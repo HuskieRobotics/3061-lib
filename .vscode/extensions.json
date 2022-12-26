@@ -1,0 +1,6 @@
+{
+    "recommendations": [
+        "richardwillis.vscode-spotless-gradle",
+        "sonarsource.sonarlint-vscode"
+    ]
+}
