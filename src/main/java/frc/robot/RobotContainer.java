@@ -207,6 +207,13 @@ public class RobotContainer {
     // x-stance
     joystickButtons0[1].onTrue(new InstantCommand(drivetrain::enableXstance, drivetrain));
     joystickButtons0[1].onFalse(new InstantCommand(drivetrain::disableXstance, drivetrain));
+
+    // evasive rotation
+    joystickButtons1[1].onTrue(
+        new SequentialCommandGroup(
+            new InstantCommand(drivetrain::setEvasiveTurnCenter),
+            new WaitCommand(EVASIVE_TURN_DURATION_SECS),
+            new InstantCommand(drivetrain::resetCenterGrav)));
   }
 
   /** Use this method to define your commands for autonomous mode. */

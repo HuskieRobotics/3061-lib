@@ -12,6 +12,7 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -379,9 +380,19 @@ public class Drivetrain extends SubsystemBase {
     Pose2d poseEstimatorPose = poseEstimator.getEstimatedPosition();
     Logger.getInstance().recordOutput("Odometry/RobotNoGyro", estimatedPoseWithoutGyro);
     Logger.getInstance().recordOutput("Odometry/Robot", poseEstimatorPose);
-    Logger.getInstance().recordOutput("3DField", new Pose3d(poseEstimatorPose));
+    Logger.getInstance().recordOutput("3DField/Robot", new Pose3d(poseEstimatorPose));
     Logger.getInstance().recordOutput("SwerveModuleStates", states);
     Logger.getInstance().recordOutput(SUBSYSTEM_NAME + "/gyroOffset", this.gyroOffset);
+
+    Logger.getInstance()
+        .recordOutput(
+            "Odometry/CoG",
+            poseEstimatorPose.plus(new Transform2d(this.centerGravity, new Rotation2d())));
+    Logger.getInstance()
+        .recordOutput(
+            "3DField/CoG",
+            new Pose3d(
+                poseEstimatorPose.plus(new Transform2d(this.centerGravity, new Rotation2d()))));
   }
 
   /**
@@ -484,6 +495,21 @@ public class Drivetrain extends SubsystemBase {
    */
   public void setCenterGrav(double x, double y) {
     this.centerGravity = new Translation2d(x, y);
+  }
+
+  /**
+   * Sets the robot's center of gravity about which it will rotate. The origin is at the center of
+   * the robot. The positive x direction is forward; the positive y direction, left.
+   *
+   * @param x the x coordinate of the robot's center of gravity (in meters)
+   * @param y the y coordinate of the robot's center of gravity (in meters)
+   */
+  public void setEvasiveTurnCenter() {
+    this.centerGravity =
+        new Translation2d(
+            EVASIVE_TURN_RADIUS_METERS,
+            new Translation2d(chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond)
+                .getAngle());
   }
 
   /** Resets the robot's center of gravity about which it will rotate to the center of the robot. */

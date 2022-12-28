@@ -55,6 +55,15 @@ public final class DrivetrainConstants {
   public static final double ROBOT_WIDTH_WITH_BUMPERS = 0.89; // meters
   public static final double ROBOT_LENGTH_WITH_BUMPERS = 0.91; // meters
 
+  /**
+   * Evasive turn constants. The distance is from the center of the robot to the point around which
+   * the robot will rotate when performing an evasive maneuver. The time is the delay in seconds
+   * before restoring the point of rotation back to the center of the robot.
+   */
+  public static final double EVASIVE_TURN_RADIUS_METERS = 1.0;
+
+  public static final double EVASIVE_TURN_DURATION_SECS = 1.3;
+
   /* The geometry and coordinate systems can be confusing. Refer to this document
   for a detailed explanation: https://docs.google.com/document/d/17dg5cIfqVOlQTTbo2ust4QxTZlUoPNzuBu2oe58Ov84/edit#heading=h.x4ppzp81ed1
   */
