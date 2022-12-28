@@ -12,7 +12,6 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -383,16 +382,6 @@ public class Drivetrain extends SubsystemBase {
     Logger.getInstance().recordOutput("3DField/Robot", new Pose3d(poseEstimatorPose));
     Logger.getInstance().recordOutput("SwerveModuleStates", states);
     Logger.getInstance().recordOutput(SUBSYSTEM_NAME + "/gyroOffset", this.gyroOffset);
-
-    Logger.getInstance()
-        .recordOutput(
-            "Odometry/CoG",
-            poseEstimatorPose.plus(new Transform2d(this.centerGravity, new Rotation2d())));
-    Logger.getInstance()
-        .recordOutput(
-            "3DField/CoG",
-            new Pose3d(
-                poseEstimatorPose.plus(new Transform2d(this.centerGravity, new Rotation2d()))));
   }
 
   /**
