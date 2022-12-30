@@ -41,6 +41,9 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
   private double turnAbsolutePositionRad = Math.random() * 2.0 * Math.PI;
   private double driveAppliedVolts = 0.0;
   private double turnAppliedVolts = 0.0;
+  private boolean isDriveOpenLoop = true;
+  private double driveSetpointMPS = 0.0;
+  private double angleSetpointDeg = 0.0;
 
   private SimpleMotorFeedforward feedForward =
       new SimpleMotorFeedforward(SIM_DRIVE_KS, SIM_DRIVE_KV, SIM_DRIVE_KA);
@@ -51,9 +54,11 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
 
   @Override
   public void updateInputs(SwerveModuleIOInputs inputs) {
+    // update the models
     driveSim.update(LOOP_PERIOD_SECS);
     turnSim.update(LOOP_PERIOD_SECS);
 
+    // update the inputs that will be logged
     double angleDiffRad = turnSim.getAngularVelocityRadPerSec() * LOOP_PERIOD_SECS;
     turnRelativePositionRad += angleDiffRad;
     turnAbsolutePositionRad += angleDiffRad;
@@ -90,21 +95,35 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
     inputs.angleCurrentAmps = new double[] {Math.abs(turnSim.getCurrentDrawAmps())};
     inputs.angleTempCelcius = new double[] {};
 
-    if (driveKp.hasChanged()
-        || driveKi.hasChanged()
-        || driveKd.hasChanged()
-        || turnKp.hasChanged()
-        || turnKi.hasChanged()
-        || turnKd.hasChanged()) {
+    // update the tunable PID constants
+    if (driveKp.hasChanged() || driveKi.hasChanged() || driveKd.hasChanged()) {
       driveController.setPID(driveKp.get(), driveKi.get(), driveKd.get());
+    }
+    if (turnKp.hasChanged() || turnKi.hasChanged() || turnKd.hasChanged()) {
       turnController.setPID(turnKp.get(), turnKi.get(), turnKd.get());
+    }
+
+    // calculate and apply the "on-board" controllers for the turn and drive motors
+    turnAppliedVolts =
+        turnController.calculate(turnRelativePositionRad, angleSetpointDeg * (Math.PI / 180.0));
+    turnAppliedVolts = MathUtil.clamp(turnAppliedVolts, -12.0, 12.0);
+    turnSim.setInputVoltage(turnAppliedVolts);
+
+    if (!isDriveOpenLoop) {
+      double velocityRadPerSec = driveSetpointMPS * (2.0 * Math.PI) / (WHEEL_CIRCUMFERENCE);
+      driveAppliedVolts =
+          feedForward.calculate(velocityRadPerSec)
+              + driveController.calculate(inputs.driveVelocityMetersPerSec, velocityRadPerSec);
+      driveAppliedVolts = MathUtil.clamp(driveAppliedVolts, -12.0, 12.0);
+      driveSim.setInputVoltage(driveAppliedVolts);
     }
   }
 
   /** Run the drive motor at the specified percentage of full power. */
   @Override
   public void setDriveMotorPercentage(double percentage) {
-
+    isDriveOpenLoop = true;
+    driveController.reset();
     driveAppliedVolts = MathUtil.clamp(percentage * 12.0, -12.0, 12.0);
     driveSim.setInputVoltage(driveAppliedVolts);
   }
@@ -112,21 +131,14 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
   /** Run the drive motor at the specified velocity. */
   @Override
   public void setDriveVelocity(double velocity) {
-    double velocityRadPerSec = velocity * (2.0 * Math.PI) / (WHEEL_CIRCUMFERENCE);
-    driveAppliedVolts =
-        feedForward.calculate(velocityRadPerSec)
-            + driveController.calculate(driveSim.getAngularVelocityRadPerSec(), velocityRadPerSec);
-    driveAppliedVolts = MathUtil.clamp(driveAppliedVolts, -12.0, 12.0);
-    driveSim.setInputVoltage(driveAppliedVolts);
+    isDriveOpenLoop = false;
+    driveSetpointMPS = velocity;
   }
 
   /** Run the turn motor to the specified angle. */
   @Override
   public void setAnglePosition(double degrees) {
 
-    turnAppliedVolts =
-        turnController.calculate(turnRelativePositionRad, degrees * (Math.PI / 180.0));
-    turnAppliedVolts = MathUtil.clamp(turnAppliedVolts, -12.0, 12.0);
-    turnSim.setInputVoltage(turnAppliedVolts);
+    angleSetpointDeg = degrees;
   }
 }
