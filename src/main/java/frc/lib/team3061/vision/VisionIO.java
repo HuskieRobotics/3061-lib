@@ -47,6 +47,6 @@ public interface VisionIO {
     /** get a PhotonPipelineResult containing identified targets */
     public PhotonPipelineResult getLatestResult();
 
-    /** return true if there is a new vision result to process */
-    public boolean hasNewResult();
+    /** get the timestamp of the image that generated the last PhotonPipelineResult. This contains any latency from the photonvision pipeline */
+    public double getLatestTimestamp();
 }

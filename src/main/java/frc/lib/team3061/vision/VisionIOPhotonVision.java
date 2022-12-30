@@ -16,7 +16,6 @@ public class VisionIOPhotonVision implements VisionIO {
 
     private double lastTimestamp = 0;
     private PhotonPipelineResult lastResult = null;
-    private boolean hasNewResult = false;
 
     public VisionIOPhotonVision() {
         NetworkTableInstance inst = NetworkTableInstance.getDefault();
@@ -35,7 +34,6 @@ public class VisionIOPhotonVision implements VisionIO {
             synchronized (VisionIOPhotonVision.this) {
                 lastTimestamp = timestamp;
                 lastResult = result;
-                hasNewResult = true;
             }
         });
     }
@@ -44,17 +42,15 @@ public class VisionIOPhotonVision implements VisionIO {
     public synchronized void updateInputs(VisionIOInputs inputs) {
         inputs.lastTimestamp = lastTimestamp;
         inputs.lastResult = lastResult;
-        inputs.hasNewResult = hasNewResult;
-    }
-
-    @Override
-    public boolean hasNewResult() {
-        return hasNewResult;
     }
 
     @Override
     public PhotonPipelineResult getLatestResult() {
-        hasNewResult = false;
         return lastResult;
+    }
+
+    @Override 
+    public double getLatestTimestamp() {
+        return lastTimestamp;
     }
 }
