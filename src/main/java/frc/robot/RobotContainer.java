@@ -12,13 +12,8 @@ import com.pathplanner.lib.commands.FollowPathWithEvents;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.ConditionalCommand;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
-import edu.wpi.first.wpilibj2.command.PrintCommand;
-import edu.wpi.first.wpilibj2.command.RepeatCommand;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.team3061.gyro.GyroIO;
@@ -201,23 +196,23 @@ public class RobotContainer {
   private void configureButtonBindings() {
     // field-relative toggle
     joystickButtons0[3].toggleOnTrue(
-        new ConditionalCommand(
-            new InstantCommand(drivetrain::disableFieldRelative, drivetrain),
-            new InstantCommand(drivetrain::enableFieldRelative, drivetrain),
+        Commands.either(
+            Commands.runOnce(drivetrain::disableFieldRelative, drivetrain),
+            Commands.runOnce(drivetrain::enableFieldRelative, drivetrain),
             drivetrain::getFieldRelative));
 
     // reset gyro to 0 degrees
-    joystickButtons1[3].onTrue(new InstantCommand(drivetrain::zeroGyroscope, drivetrain));
+    joystickButtons1[3].onTrue(Commands.runOnce(drivetrain::zeroGyroscope, drivetrain));
 
     // x-stance
-    joystickButtons0[1].onTrue(new InstantCommand(drivetrain::enableXstance, drivetrain));
-    joystickButtons0[1].onFalse(new InstantCommand(drivetrain::disableXstance, drivetrain));
+    joystickButtons0[1].onTrue(Commands.runOnce(drivetrain::enableXstance, drivetrain));
+    joystickButtons0[1].onFalse(Commands.runOnce(drivetrain::disableXstance, drivetrain));
   }
 
   /** Use this method to define your commands for autonomous mode. */
   private void configureAutoCommands() {
-    AUTO_EVENT_MAP.put("event1", new PrintCommand("passed marker 1"));
-    AUTO_EVENT_MAP.put("event2", new PrintCommand("passed marker 2"));
+    AUTO_EVENT_MAP.put("event1", Commands.print("passed marker 1"));
+    AUTO_EVENT_MAP.put("event2", Commands.print("passed marker 2"));
 
     // build auto path commands
     ArrayList<PathPlannerTrajectory> auto1Paths =
@@ -226,14 +221,14 @@ public class RobotContainer {
             AUTO_MAX_SPEED_METERS_PER_SECOND,
             AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED);
     Command autoTest =
-        new SequentialCommandGroup(
+        Commands.sequence(
             new FollowPathWithEvents(
                 new FollowPath(auto1Paths.get(0), drivetrain, true),
                 auto1Paths.get(0).getMarkers(),
                 AUTO_EVENT_MAP),
-            new InstantCommand(drivetrain::enableXstance, drivetrain),
-            new WaitCommand(5.0),
-            new InstantCommand(drivetrain::disableXstance, drivetrain),
+            Commands.runOnce(drivetrain::enableXstance, drivetrain),
+            Commands.waitSeconds(5.0),
+            Commands.runOnce(drivetrain::disableXstance, drivetrain),
             new FollowPathWithEvents(
                 new FollowPath(auto1Paths.get(1), drivetrain, false),
                 auto1Paths.get(1).getMarkers(),
@@ -248,12 +243,11 @@ public class RobotContainer {
     // "auto" command for tuning the drive velocity PID
     autoChooser.addOption(
         "Drive Velocity Tuning",
-        new SequentialCommandGroup(
-            new InstantCommand(drivetrain::disableFieldRelative, drivetrain),
-            new ParallelDeadlineGroup(
-                new WaitCommand(5.0),
-                new RepeatCommand(
-                    new InstantCommand(() -> drivetrain.drive(1.5, 0.0, 0.0), drivetrain)))));
+        Commands.sequence(
+            Commands.runOnce(drivetrain::disableFieldRelative, drivetrain),
+            Commands.deadline(
+                Commands.waitSeconds(5.0),
+                Commands.run(() -> drivetrain.drive(1.5, 0.0, 0.0), drivetrain))));
 
     // "auto" command for characterizing the drivetrain
     autoChooser.addOption(
@@ -264,6 +258,7 @@ public class RobotContainer {
             new FeedForwardCharacterizationData("drive"),
             drivetrain::runCharacterizationVolts,
             drivetrain::getCharacterizationVelocity));
+
     Shuffleboard.getTab("MAIN").add(autoChooser.getSendableChooser());
   }
 
