@@ -232,7 +232,7 @@ public class RobotContainer {
                 auto1Paths.get(0).getMarkers(),
                 AUTO_EVENT_MAP),
             new InstantCommand(drivetrain::enableXstance, drivetrain),
-            new WaitCommand(10),
+            new WaitCommand(5.0),
             new InstantCommand(drivetrain::disableXstance, drivetrain),
             new FollowPathWithEvents(
                 new FollowPath(auto1Paths.get(1), drivetrain, false),
