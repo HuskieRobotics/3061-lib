@@ -89,7 +89,7 @@ public final class SwerveModuleConstants {
   public static final double SIM_ANGLE_KF = 0.0;
 
   /* Simulated Drive Motor PID Values */
-  public static final double SIM_DRIVE_KP = 0.5;
+  public static final double SIM_DRIVE_KP = 0.8;
   public static final double SIM_DRIVE_KI = 0.0;
   public static final double SIM_DRIVE_KD = 0.0;
   public static final double SIM_DRIVE_KF = 0.0;

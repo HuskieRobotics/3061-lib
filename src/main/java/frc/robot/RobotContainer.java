@@ -8,11 +8,15 @@ import static frc.robot.subsystems.drivetrain.DrivetrainConstants.*;
 
 import com.pathplanner.lib.PathPlanner;
 import com.pathplanner.lib.PathPlannerTrajectory;
+import com.pathplanner.lib.commands.FollowPathWithEvents;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
+import edu.wpi.first.wpilibj2.command.PrintCommand;
+import edu.wpi.first.wpilibj2.command.RepeatCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
@@ -32,6 +36,7 @@ import frc.robot.commands.FeedForwardCharacterization.FeedForwardCharacterizatio
 import frc.robot.commands.FollowPath;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.subsystems.drivetrain.Drivetrain;
+import java.util.ArrayList;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -211,24 +216,46 @@ public class RobotContainer {
 
   /** Use this method to define your commands for autonomous mode. */
   private void configureAutoCommands() {
-    PathPlannerTrajectory auto1Path =
-        PathPlanner.loadPath(
-            "testPath1",
-            AUTO_MAX_SPEED_METERS_PER_SECOND,
-            AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED);
-    PathPlannerTrajectory auto2Path =
-        PathPlanner.loadPath(
-            "testPath2",
+    AUTO_EVENT_MAP.put("event1", new PrintCommand("passed marker 1"));
+    AUTO_EVENT_MAP.put("event2", new PrintCommand("passed marker 2"));
+
+    // build auto path commands
+    ArrayList<PathPlannerTrajectory> auto1Paths =
+        PathPlanner.loadPathGroup(
+            "testPaths1",
             AUTO_MAX_SPEED_METERS_PER_SECOND,
             AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED);
     Command autoTest =
         new SequentialCommandGroup(
-            new FollowPath(auto1Path, drivetrain, true),
-            new WaitCommand(2),
-            new FollowPath(auto2Path, drivetrain, false));
+            new FollowPathWithEvents(
+                new FollowPath(auto1Paths.get(0), drivetrain, true),
+                auto1Paths.get(0).getMarkers(),
+                AUTO_EVENT_MAP),
+            new InstantCommand(drivetrain::enableXstance, drivetrain),
+            new WaitCommand(5.0),
+            new InstantCommand(drivetrain::disableXstance, drivetrain),
+            new FollowPathWithEvents(
+                new FollowPath(auto1Paths.get(1), drivetrain, false),
+                auto1Paths.get(1).getMarkers(),
+                AUTO_EVENT_MAP));
 
+    // add commands to the auto chooser
     autoChooser.addDefaultOption("Do Nothing", new InstantCommand());
+
+    // demonstration of PathPlanner path group with event markers
     autoChooser.addOption("Test Path", autoTest);
+
+    // "auto" command for tuning the drive velocity PID
+    autoChooser.addOption(
+        "Drive Velocity Tuning",
+        new SequentialCommandGroup(
+            new InstantCommand(drivetrain::disableFieldRelative, drivetrain),
+            new ParallelDeadlineGroup(
+                new WaitCommand(5.0),
+                new RepeatCommand(
+                    new InstantCommand(() -> drivetrain.drive(1.5, 0.0, 0.0), drivetrain)))));
+
+    // "auto" command for characterizing the drivetrain
     autoChooser.addOption(
         "Drive Characterization",
         new FeedForwardCharacterization(
