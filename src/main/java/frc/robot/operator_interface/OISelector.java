@@ -19,6 +19,8 @@ public class OISelector {
   private static String[] lastJoystickNames = new String[] {null, null, null, null, null, null};
   private static final Alert noOperatorInterfaceWarning =
       new Alert("No operator controller(s) connected.", AlertType.WARNING);
+  private static final Alert nonCompetitionOperatorInterfaceWarning =
+      new Alert("Non-competition operator controller connected.", AlertType.WARNING);
 
   private OISelector() {}
 
@@ -62,12 +64,15 @@ public class OISelector {
 
     if (firstPort != null && secondPort != null) {
       noOperatorInterfaceWarning.set(false);
+      nonCompetitionOperatorInterfaceWarning.set(false);
       return new DualJoysticksOI(firstPort, secondPort);
     } else if (xBoxPort != null) {
       noOperatorInterfaceWarning.set(false);
+      nonCompetitionOperatorInterfaceWarning.set(true);
       return new SingleHandheldOI(xBoxPort);
     } else {
       noOperatorInterfaceWarning.set(true);
+      nonCompetitionOperatorInterfaceWarning.set(false);
       return new OperatorInterface() {};
     }
   }
