@@ -29,11 +29,11 @@ public class TeleopSwerve extends CommandBase {
    *
    * @param drivetrain the drivetrain subsystem instructed by this command
    * @param translationXSupplier the supplier of the translation x value as a percentage of the
-   *     maximum velocity
+   *     maximum velocity as defined by the standard field or robot coordinate system
    * @param translationYSupplier the supplier of the translation y value as a percentage of the
-   *     maximum velocity
+   *     maximum velocity as defined by the standard field or robot coordinate system
    * @param rotationSupplier the supplier of the rotation value as a percentage of the maximum
-   *     rotational velocity
+   *     rotational velocity as defined by the standard field or robot coordinate system
    */
   public TeleopSwerve(
       Drivetrain drivetrain,
@@ -53,9 +53,9 @@ public class TeleopSwerve extends CommandBase {
 
     // invert the controller input and apply the deadband and squaring to make the robot more
     // responsive to small changes in the controller
-    double xPercentage = -modifyAxis(translationXSupplier.getAsDouble());
-    double yPercentage = -modifyAxis(translationYSupplier.getAsDouble());
-    double rotationPercentage = -modifyAxis(rotationSupplier.getAsDouble());
+    double xPercentage = modifyAxis(translationXSupplier.getAsDouble());
+    double yPercentage = modifyAxis(translationYSupplier.getAsDouble());
+    double rotationPercentage = modifyAxis(rotationSupplier.getAsDouble());
 
     double xVelocity = xPercentage * DrivetrainConstants.MAX_VELOCITY_METERS_PER_SECOND;
     double yVelocity = yPercentage * DrivetrainConstants.MAX_VELOCITY_METERS_PER_SECOND;

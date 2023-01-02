@@ -12,10 +12,9 @@ import com.pathplanner.lib.commands.FollowPathWithEvents;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.team3061.gyro.GyroIO;
 import frc.lib.team3061.gyro.GyroIOPigeon2;
 import frc.lib.team3061.pneumatics.Pneumatics;
@@ -30,8 +29,10 @@ import frc.robot.commands.FeedForwardCharacterization;
 import frc.robot.commands.FeedForwardCharacterization.FeedForwardCharacterizationData;
 import frc.robot.commands.FollowPath;
 import frc.robot.commands.TeleopSwerve;
+import frc.robot.operator_interface.OISelector;
+import frc.robot.operator_interface.OperatorInterface;
 import frc.robot.subsystems.drivetrain.Drivetrain;
-import java.util.ArrayList;
+import java.util.List;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -41,10 +42,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
  * subsystems, commands, and button mappings) should be declared here.
  */
 public class RobotContainer {
-  private final CommandJoystick joystick0 = new CommandJoystick(0);
-  private final CommandJoystick joystick1 = new CommandJoystick(1);
-  private final Trigger[] joystickButtons0;
-  private final Trigger[] joystickButtons1;
+  private OperatorInterface oi = new OperatorInterface() {};
 
   private Drivetrain drivetrain;
   private Pneumatics pneumatics;
@@ -156,15 +154,22 @@ public class RobotContainer {
     // disable all telemetry in the LiveWindow to reduce the processing during each iteration
     LiveWindow.disableAllTelemetry();
 
-    // buttons use 1-based indexing such that the index matches the button number; leave index 0 set
-    // to null
-    this.joystickButtons0 = new Trigger[13];
-    this.joystickButtons1 = new Trigger[13];
+    updateOI();
 
-    for (int i = 1; i < joystickButtons0.length; i++) {
-      joystickButtons0[i] = joystick0.button(i);
-      joystickButtons1[i] = joystick1.button(i);
+    configureAutoCommands();
+  }
+
+  /**
+   * This method scans for any changes to the connected joystick. If anything changed, it creates
+   * new OI objects and binds all of the buttons to commands.
+   */
+  public void updateOI() {
+    if (!OISelector.didJoysticksChange()) {
+      return;
     }
+
+    CommandScheduler.getInstance().getActiveButtonLoop().clear();
+    oi = OISelector.findOperatorInterface();
 
     /*
      * Set up the default command for the drivetrain. The joysticks' values map to percentage of the
@@ -177,10 +182,9 @@ public class RobotContainer {
      * and the left joystick's x axis specifies the velocity in the y direction.
      */
     drivetrain.setDefaultCommand(
-        new TeleopSwerve(drivetrain, joystick0::getY, joystick0::getX, joystick1::getX));
+        new TeleopSwerve(drivetrain, oi::getTranslateX, oi::getTranslateY, oi::getRotate));
 
     configureButtonBindings();
-    configureAutoCommands();
   }
 
   /**
@@ -195,18 +199,19 @@ public class RobotContainer {
   /** Use this method to define your button->command mappings. */
   private void configureButtonBindings() {
     // field-relative toggle
-    joystickButtons0[3].toggleOnTrue(
-        Commands.either(
-            Commands.runOnce(drivetrain::disableFieldRelative, drivetrain),
-            Commands.runOnce(drivetrain::enableFieldRelative, drivetrain),
-            drivetrain::getFieldRelative));
+    oi.getFieldRelativeButton()
+        .toggleOnTrue(
+            Commands.either(
+                Commands.runOnce(drivetrain::disableFieldRelative, drivetrain),
+                Commands.runOnce(drivetrain::enableFieldRelative, drivetrain),
+                drivetrain::getFieldRelative));
 
     // reset gyro to 0 degrees
-    joystickButtons1[3].onTrue(Commands.runOnce(drivetrain::zeroGyroscope, drivetrain));
+    oi.getResetGyroButton().onTrue(Commands.runOnce(drivetrain::zeroGyroscope, drivetrain));
 
     // x-stance
-    joystickButtons0[1].onTrue(Commands.runOnce(drivetrain::enableXstance, drivetrain));
-    joystickButtons0[1].onFalse(Commands.runOnce(drivetrain::disableXstance, drivetrain));
+    oi.getXStanceButton().onTrue(Commands.runOnce(drivetrain::enableXstance, drivetrain));
+    oi.getXStanceButton().onFalse(Commands.runOnce(drivetrain::disableXstance, drivetrain));
   }
 
   /** Use this method to define your commands for autonomous mode. */
@@ -215,7 +220,7 @@ public class RobotContainer {
     AUTO_EVENT_MAP.put("event2", Commands.print("passed marker 2"));
 
     // build auto path commands
-    ArrayList<PathPlannerTrajectory> auto1Paths =
+    List<PathPlannerTrajectory> auto1Paths =
         PathPlanner.loadPathGroup(
             "testPaths1",
             AUTO_MAX_SPEED_METERS_PER_SECOND,
