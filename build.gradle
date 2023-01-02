@@ -174,3 +174,4 @@ gversion {
 }
 
 project.compileJava.dependsOn(createVersionFile)
+build.dependsOn(spotlessApply)
