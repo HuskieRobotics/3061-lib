@@ -27,8 +27,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.team3061.gyro.GyroIO;
 import frc.lib.team3061.gyro.GyroIOInputsAutoLogged;
 import frc.lib.team3061.swerve.SwerveModule;
+import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team6328.util.TunableNumber;
-import frc.robot.RobotOdometry;
 import org.littletonrobotics.junction.Logger;
 
 /**

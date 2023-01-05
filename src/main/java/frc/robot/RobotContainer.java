@@ -6,11 +6,8 @@ package frc.robot;
 
 import static frc.robot.subsystems.drivetrain.DrivetrainConstants.*;
 
-import java.io.IOException;
-
 import com.pathplanner.lib.PathPlanner;
 import com.pathplanner.lib.PathPlannerTrajectory;
-
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -30,6 +27,8 @@ import frc.lib.team3061.swerve.SwerveModule;
 import frc.lib.team3061.swerve.SwerveModuleIO;
 import frc.lib.team3061.swerve.SwerveModuleIOSim;
 import frc.lib.team3061.swerve.SwerveModuleIOTalonFX;
+import frc.lib.team3061.vision.Vision;
+import frc.lib.team3061.vision.VisionConstants;
 import frc.lib.team3061.vision.VisionIOPhotonVision;
 import frc.lib.team3061.vision.VisionIOSim;
 import frc.robot.Constants.Mode;
@@ -38,9 +37,8 @@ import frc.robot.commands.FeedForwardCharacterization.FeedForwardCharacterizatio
 import frc.robot.commands.FollowPath;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.subsystems.drivetrain.Drivetrain;
-import frc.robot.subsystems.vision.Vision;
-import frc.robot.subsystems.vision.VisionConstants;
-
+import java.io.IOException;
+import java.util.ArrayList;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -140,17 +138,21 @@ public class RobotContainer {
             drivetrain = new Drivetrain(new GyroIO() {}, flModule, frModule, blModule, brModule);
             pneumatics = new Pneumatics(new PneumaticsIO() {});
             try {
-              vision = new Vision(new VisionIOSim(
-                new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH), 
-                drivetrain::getPose, 
-                VisionConstants.ROBOT_TO_CAMERA
-              ));
-            } catch (IOException e) { //if the path doesn't exist use a blank field (TODO: find a better way?)
-              vision = new Vision(new VisionIOSim(
-                new AprilTagFieldLayout(null, 54, 27), 
-                drivetrain::getPose, 
-                VisionConstants.ROBOT_TO_CAMERA
-              ));
+              vision =
+                  new Vision(
+                      new VisionIOSim(
+                          new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH),
+                          drivetrain::getPose,
+                          VisionConstants.ROBOT_TO_CAMERA));
+            } catch (
+                IOException
+                    e) { // if the path doesn't exist use a blank field (TODO: find a better way?)
+              vision =
+                  new Vision(
+                      new VisionIOSim(
+                          new AprilTagFieldLayout(new ArrayList<>(), 54, 27),
+                          drivetrain::getPose,
+                          VisionConstants.ROBOT_TO_CAMERA));
             }
             break;
           }

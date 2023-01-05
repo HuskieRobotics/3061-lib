@@ -2,51 +2,54 @@ package frc.lib.team3061.vision;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.littletonrobotics.junction.LogTable;
 import org.photonvision.common.dataflow.structures.Packet;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 public interface VisionIO {
-    public static class VisionIOInputs {
-        public PhotonPipelineResult lastResult = new PhotonPipelineResult(0,new ArrayList<PhotonTrackedTarget>());
-        public double lastTimestamp = 0.0;
-        public boolean hasNewResult = false;
+  public static class VisionIOInputs {
+    PhotonPipelineResult lastResult = new PhotonPipelineResult(0, new ArrayList<>());
+    double lastTimestamp = 0.0;
+    boolean hasNewResult = false;
 
-        public void toLog(LogTable table) {
-            byte[] photonPacketBytes = new byte[lastResult.getPacketSize()];
-            lastResult.populatePacket(new Packet(photonPacketBytes));
-            table.put("photonPacketBytes", photonPacketBytes);
+    public void toLog(LogTable table) {
+      byte[] photonPacketBytes = new byte[lastResult.getPacketSize()];
+      lastResult.populatePacket(new Packet(photonPacketBytes));
+      table.put("photonPacketBytes", photonPacketBytes);
 
-            table.put("lastTimestamp", lastTimestamp);
-            table.put("hasNewResult", hasNewResult);
+      table.put("lastTimestamp", lastTimestamp);
+      table.put("hasNewResult", hasNewResult);
 
-            //log targets in a human-readable way
-            List<PhotonTrackedTarget> targets = lastResult.getTargets();
-            String[] stringifiedTargets = new String[targets.size()];
-            
-            for (int i = 0; i < targets.size(); i++) {
-                stringifiedTargets[i] = targets.get(i).toString();
-            }
-            table.put("stringifiedTargets",stringifiedTargets);
-        }
-        public void fromLog(LogTable table) {
-            byte[] photonPacketBytes = table.getRaw("photonPacketBytes", new byte[0]);
-            lastResult = new PhotonPipelineResult();
-            lastResult.createFromPacket(new Packet(photonPacketBytes));
+      // log targets in a human-readable way
+      List<PhotonTrackedTarget> targets = lastResult.getTargets();
+      String[] stringifiedTargets = new String[targets.size()];
 
-            lastTimestamp = table.getDouble("lastTimestamp",0.0);
-            hasNewResult = table.getBoolean("hasNewResult", false);
-        }
+      for (int i = 0; i < targets.size(); i++) {
+        stringifiedTargets[i] = targets.get(i).toString();
+      }
+      table.put("stringifiedTargets", stringifiedTargets);
     }
 
-    /** Updates the set of loggable inputs. */
-    public default void updateInputs(VisionIOInputs inputs) {}
+    public void fromLog(LogTable table) {
+      byte[] photonPacketBytes = table.getRaw("photonPacketBytes", new byte[0]);
+      lastResult = new PhotonPipelineResult();
+      lastResult.createFromPacket(new Packet(photonPacketBytes));
 
-    /** get a PhotonPipelineResult containing identified targets */
-    public PhotonPipelineResult getLatestResult();
+      lastTimestamp = table.getDouble("lastTimestamp", 0.0);
+      hasNewResult = table.getBoolean("hasNewResult", false);
+    }
+  }
 
-    /** get the timestamp of the image that generated the last PhotonPipelineResult. This contains any latency from the photonvision pipeline */
-    public double getLatestTimestamp();
+  /** Updates the set of loggable inputs. */
+  public default void updateInputs(VisionIOInputs inputs) {}
+
+  /** get a PhotonPipelineResult containing identified targets */
+  public PhotonPipelineResult getLatestResult();
+
+  /**
+   * get the timestamp of the image that generated the last PhotonPipelineResult. This contains any
+   * latency from the photonvision pipeline
+   */
+  public double getLatestTimestamp();
 }
