@@ -9,7 +9,7 @@ import org.littletonrobotics.junction.Logger;
 
 /**
  * This command, when executed, instructs the drivetrain subsystem to follow the specified
- * trajectory, persumably during the autonomous period. The superclass' execute method invokes the
+ * trajectory, presumably during the autonomous period. The superclass' execute method invokes the
  * drivetrain subsystem's setSwerveModuleStates method to follow the trajectory.
  *
  * <p>Requires: the Drivetrain subsystem (handled by superclass)
@@ -29,7 +29,7 @@ public class FollowPath extends PPSwerveControllerCommand {
    * @param trajectory the specified trajectory created by PathPlanner
    * @param subsystem the drivetrain subsystem required by this command
    * @param initialPath true, if this trajectory is the first in a sequence of trajectories or the
-   *     only trajector, in which case the gyro and odometry will be initialized to match the start
+   *     only trajectory, in which case the gyro and odometry will be initialized to match the start
    *     of trajectory; false, if this trajectory is a subsequent trajectory in which case the gyro
    *     and odometry will not be re-initialized in order to ensure a smooth transition between
    *     trajectories
@@ -52,7 +52,7 @@ public class FollowPath extends PPSwerveControllerCommand {
 
   /**
    * This method is invoked once when this command is scheduled. If the trajectory is the first in a
-   * sequence of trajectories or the only trajector, initialize the gyro and odometry to match the
+   * sequence of trajectories or the only trajectory, initialize the gyro and odometry to match the
    * start of trajectory. PathPlanner sets the origin of the field to the lower left corner (i.e.,
    * the corner of the field to the driver's right). Zero degrees is away from the driver and
    * increases in the CCW direction. It is critical that this initialization occurs in this method
@@ -67,7 +67,7 @@ public class FollowPath extends PPSwerveControllerCommand {
       this.drivetrain.resetOdometry(this.trajectory.getInitialState());
     }
 
-    // reset the theta controller such that old accumuldated ID values aren't used with the new path
+    // reset the theta controller such that old accumulated ID values aren't used with the new path
     //      this doesn't matter if only the P value is non-zero, which is the current behavior
     this.drivetrain.getAutoXController().reset();
     this.drivetrain.getAutoYController().reset();

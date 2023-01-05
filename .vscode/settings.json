@@ -30,5 +30,26 @@
   "editor.defaultFormatter": "richardwillis.vscode-spotless-gradle",
   "editor.codeActionsOnSave": {
   "source.fixAll.spotlessGradle": true
-  }
+  },
+  "cSpell.words": [
+    "algs",
+    "Cancoder",
+    "DEADBAND",
+    "Feedforward",
+    "gradlew",
+    "holonomic",
+    "Huskie",
+    "jama",
+    "javac",
+    "Nivore",
+    "REVPHJNI",
+    "rezero",
+    "Sedgewick",
+    "setpoint",
+    "SIMBOT",
+    "TRACKWIDTH",
+    "tunables",
+    "Vandermonde",
+    "Xstance"
+  ]  
 }
