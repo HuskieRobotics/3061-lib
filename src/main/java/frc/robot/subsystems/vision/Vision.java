@@ -1,20 +1,14 @@
 package frc.robot.subsystems.vision;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.function.BiFunction;
 
+import org.littletonrobotics.junction.Logger;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFieldLayout.OriginPosition;
-import edu.wpi.first.hal.simulation.RoboRioDataJNI;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -57,7 +51,6 @@ public class Vision extends SubsystemBase {
             layout.setOrigin(OriginPosition.kBlueAllianceWallRightSide);
         }
 
-        //TODO: see if periodic runs before or after commands, if it's after this would lead to 20ms extra latency in measurements
         if (lastTimestamp < getLatestTimestamp()) {
             lastTimestamp = getLatestTimestamp();
             for (PhotonTrackedTarget target : getLatestResult().getTargets()) {
@@ -67,6 +60,10 @@ public class Vision extends SubsystemBase {
                     Pose3d cameraPose = tagPose.transformBy(cameraToTarget.inverse());
                     Pose3d robotPose = cameraPose.transformBy(VisionConstants.ROBOT_TO_CAMERA.inverse());
                     poseEstimator.addVisionMeasurement(robotPose.toPose2d(), getLatestTimestamp()); //TODO: verify adding multiple measurements at once doesn't break anything.
+                    
+                    Logger.getInstance().recordOutput("Vision/TagPose", tagPose);
+                    Logger.getInstance().recordOutput("Vision/CameraPose", cameraPose);
+                    Logger.getInstance().recordOutput("Vision/RobotPose", robotPose.toPose2d());
                 }
             }
         }
@@ -102,13 +99,12 @@ public class Vision extends SubsystemBase {
     public Rotation2d getAngleToTag(int id) { 
         Transform3d transform = getTransform3dToTag(id);
         if (transform != null) {
-            return new Rotation2d(transform.getRotation().getZ());
+            return new Rotation2d(transform.getTranslation().getX(), transform.getTranslation().getY());
         } else {
             return null;
         }
     }
 
-    //TODO: determine if this should be camera -> target or robot -> target
     public double getDistanceToTag(int id) {
         Transform3d transform = getTransform3dToTag(id);
         if (transform != null) {

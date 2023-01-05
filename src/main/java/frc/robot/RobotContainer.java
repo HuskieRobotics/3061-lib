@@ -6,8 +6,12 @@ package frc.robot;
 
 import static frc.robot.subsystems.drivetrain.DrivetrainConstants.*;
 
+import java.io.IOException;
+
 import com.pathplanner.lib.PathPlanner;
 import com.pathplanner.lib.PathPlannerTrajectory;
+
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -26,12 +30,17 @@ import frc.lib.team3061.swerve.SwerveModule;
 import frc.lib.team3061.swerve.SwerveModuleIO;
 import frc.lib.team3061.swerve.SwerveModuleIOSim;
 import frc.lib.team3061.swerve.SwerveModuleIOTalonFX;
+import frc.lib.team3061.vision.VisionIOPhotonVision;
+import frc.lib.team3061.vision.VisionIOSim;
 import frc.robot.Constants.Mode;
 import frc.robot.commands.FeedForwardCharacterization;
 import frc.robot.commands.FeedForwardCharacterization.FeedForwardCharacterizationData;
 import frc.robot.commands.FollowPath;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.subsystems.drivetrain.Drivetrain;
+import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.VisionConstants;
+
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -48,6 +57,7 @@ public class RobotContainer {
 
   private Drivetrain drivetrain;
   private Pneumatics pneumatics;
+  private Vision vision;
 
   // use AdvantageKit's LoggedDashboardChooser instead of SendableChooser to ensure accurate logging
   private final LoggedDashboardChooser<Command> autoChooser =
@@ -111,6 +121,7 @@ public class RobotContainer {
 
             drivetrain = new Drivetrain(gyro, flModule, frModule, blModule, brModule);
             pneumatics = new Pneumatics(new PneumaticsIORev());
+            vision = new Vision(new VisionIOPhotonVision());
             break;
           }
         case ROBOT_SIMBOT:
@@ -128,6 +139,19 @@ public class RobotContainer {
                 new SwerveModule(new SwerveModuleIOSim(), 3, MAX_VELOCITY_METERS_PER_SECOND);
             drivetrain = new Drivetrain(new GyroIO() {}, flModule, frModule, blModule, brModule);
             pneumatics = new Pneumatics(new PneumaticsIO() {});
+            try {
+              vision = new Vision(new VisionIOSim(
+                new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH), 
+                drivetrain::getPose, 
+                VisionConstants.ROBOT_TO_CAMERA
+              ));
+            } catch (IOException e) { //if the path doesn't exist use a blank field (TODO: find a better way?)
+              vision = new Vision(new VisionIOSim(
+                new AprilTagFieldLayout(null, 54, 27), 
+                drivetrain::getPose, 
+                VisionConstants.ROBOT_TO_CAMERA
+              ));
+            }
             break;
           }
         default:
@@ -148,6 +172,7 @@ public class RobotContainer {
           new SwerveModule(new SwerveModuleIO() {}, 3, MAX_VELOCITY_METERS_PER_SECOND);
       drivetrain = new Drivetrain(new GyroIO() {}, flModule, frModule, blModule, brModule);
       pneumatics = new Pneumatics(new PneumaticsIO() {});
+      vision = new Vision(new VisionIOPhotonVision());
     }
 
     // workaround warning about unused variable

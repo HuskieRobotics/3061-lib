@@ -11,7 +11,7 @@ import edu.wpi.first.networktables.NetworkTableEvent;
 import edu.wpi.first.networktables.NetworkTableInstance;
 
 public class VisionIOPhotonVision implements VisionIO {
-    private static final String cameraName = "photonvision"; //Camera name of the photonvision camera
+    private static final String cameraName = "ov9268"; //Camera name of the photonvision camera
     private final PhotonCamera camera = new PhotonCamera(cameraName);
 
     private double lastTimestamp = 0;
