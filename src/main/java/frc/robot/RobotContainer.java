@@ -8,8 +8,8 @@ import static frc.robot.subsystems.drivetrain.DrivetrainConstants.*;
 
 import com.pathplanner.lib.PathPlanner;
 import com.pathplanner.lib.PathPlannerTrajectory;
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import com.pathplanner.lib.commands.FollowPathWithEvents;
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -135,23 +135,16 @@ public class RobotContainer {
                 new SwerveModule(new SwerveModuleIOSim(), 3, MAX_VELOCITY_METERS_PER_SECOND);
             drivetrain = new Drivetrain(new GyroIO() {}, flModule, frModule, blModule, brModule);
             pneumatics = new Pneumatics(new PneumaticsIO() {});
+            AprilTagFieldLayout layout;
             try {
-              vision =
-                  new Vision(
-                      new VisionIOSim(
-                          new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH),
-                          drivetrain::getPose,
-                          VisionConstants.ROBOT_TO_CAMERA));
-            } catch (
-                IOException
-                    e) { // if the path doesn't exist use a blank field (TODO: find a better way?)
-              vision =
-                  new Vision(
-                      new VisionIOSim(
-                          new AprilTagFieldLayout(new ArrayList<>(), 54, 27),
-                          drivetrain::getPose,
-                          VisionConstants.ROBOT_TO_CAMERA));
+              layout = new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
+            } catch (IOException e) {
+              layout = new AprilTagFieldLayout(new ArrayList<>(), 16.4592, 8.2296);
             }
+            vision =
+                new Vision(
+                    new VisionIOSim(layout, drivetrain::getPose, VisionConstants.ROBOT_TO_CAMERA));
+
             break;
           }
         default:

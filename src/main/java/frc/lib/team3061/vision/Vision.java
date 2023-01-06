@@ -1,5 +1,6 @@
 package frc.lib.team3061.vision;
 
+import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFieldLayout.OriginPosition;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -9,7 +10,11 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.team3061.util.RobotOdometry;
+import frc.lib.team3061.vision.VisionIO.VisionIOInputs;
+import frc.lib.team6328.util.Alert;
+import frc.lib.team6328.util.Alert.AlertType;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Optional;
 import org.littletonrobotics.junction.Logger;
 import org.photonvision.targeting.PhotonPipelineResult;
@@ -17,10 +22,17 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 
 public class Vision extends SubsystemBase {
   private VisionIO visionIO;
+  private final VisionIOInputs io = new VisionIOInputs();
   private AprilTagFieldLayout layout;
+  private DriverStation.Alliance lastAlliance = DriverStation.Alliance.Invalid;
 
   private double lastTimestamp;
   private SwerveDrivePoseEstimator poseEstimator;
+
+  private Alert noAprilTagLayoutAlert =
+      new Alert(
+          "No AprilTag layout file found. Update APRILTAG_FIELD_LAYOUT_PATH in VisionConstants.java",
+          AlertType.WARNING);
 
   public Vision(VisionIO visionIO) {
     this.visionIO = visionIO;
@@ -28,25 +40,38 @@ public class Vision extends SubsystemBase {
 
     try {
       layout = new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
+      noAprilTagLayoutAlert.set(false);
     } catch (IOException e) {
-      // TODO: figure out the best way to handle this (it shouldn't ever happen)
+      layout = new AprilTagFieldLayout(new ArrayList<>(), 16.4592, 8.2296);
+      noAprilTagLayoutAlert.set(true);
+    }
+
+    for (AprilTag tag : layout.getTags()) {
+      Logger.getInstance().recordOutput("Vision/AprilTags/" + tag.ID, tag.pose);
     }
   }
 
   public double getLatestTimestamp() {
-    return visionIO.getLatestTimestamp();
+    return io.lastTimestamp;
   }
 
   public PhotonPipelineResult getLatestResult() {
-    return visionIO.getLatestResult();
+    return io.lastResult;
   }
 
   @Override
   public void periodic() {
-    if (DriverStation.getAlliance() == DriverStation.Alliance.Red) {
-      layout.setOrigin(OriginPosition.kRedAllianceWallRightSide);
-    } else {
-      layout.setOrigin(OriginPosition.kBlueAllianceWallRightSide);
+
+    visionIO.updateInputs(io);
+    Logger.getInstance().processInputs("Vision", io);
+
+    if (DriverStation.getAlliance() != lastAlliance) {
+      lastAlliance = DriverStation.getAlliance();
+      if (DriverStation.getAlliance() == DriverStation.Alliance.Red) {
+        layout.setOrigin(OriginPosition.kRedAllianceWallRightSide);
+      } else {
+        layout.setOrigin(OriginPosition.kBlueAllianceWallRightSide);
+      }
     }
 
     if (lastTimestamp < getLatestTimestamp()) {
@@ -59,10 +84,7 @@ public class Vision extends SubsystemBase {
             Pose3d tagPose = tagPoseOptional.get();
             Pose3d cameraPose = tagPose.transformBy(cameraToTarget.inverse());
             Pose3d robotPose = cameraPose.transformBy(VisionConstants.ROBOT_TO_CAMERA.inverse());
-            poseEstimator.addVisionMeasurement(
-                robotPose.toPose2d(),
-                getLatestTimestamp()); // TODO: verify adding multiple measurements at once doesn't
-            // break anything.
+            poseEstimator.addVisionMeasurement(robotPose.toPose2d(), getLatestTimestamp());
 
             Logger.getInstance().recordOutput("Vision/TagPose", tagPose);
             Logger.getInstance().recordOutput("Vision/CameraPose", cameraPose);
@@ -87,7 +109,7 @@ public class Vision extends SubsystemBase {
    * returns the best Rotation3d from the robot to the given target.
    *
    * @param id
-   * @return the transfomr3d or null if there isn't
+   * @return the Transform3d or null if there isn't
    */
   public Transform3d getTransform3dToTag(int id) {
     PhotonPipelineResult result = getLatestResult();

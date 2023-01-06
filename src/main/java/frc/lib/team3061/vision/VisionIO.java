@@ -3,12 +3,13 @@ package frc.lib.team3061.vision;
 import java.util.ArrayList;
 import java.util.List;
 import org.littletonrobotics.junction.LogTable;
+import org.littletonrobotics.junction.inputs.LoggableInputs;
 import org.photonvision.common.dataflow.structures.Packet;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 public interface VisionIO {
-  public static class VisionIOInputs {
+  public static class VisionIOInputs implements LoggableInputs {
     PhotonPipelineResult lastResult = new PhotonPipelineResult(0, new ArrayList<>());
     double lastTimestamp = 0.0;
     boolean hasNewResult = false;
@@ -43,13 +44,4 @@ public interface VisionIO {
 
   /** Updates the set of loggable inputs. */
   public default void updateInputs(VisionIOInputs inputs) {}
-
-  /** get a PhotonPipelineResult containing identified targets */
-  public PhotonPipelineResult getLatestResult();
-
-  /**
-   * get the timestamp of the image that generated the last PhotonPipelineResult. This contains any
-   * latency from the photonvision pipeline
-   */
-  public double getLatestTimestamp();
 }
