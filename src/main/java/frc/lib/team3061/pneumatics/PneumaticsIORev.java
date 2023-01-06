@@ -21,9 +21,11 @@ public class PneumaticsIORev implements PneumaticsIO {
 
   private final PneumaticHub pneumatics;
   private final AnalogInput flowSensor;
+  private final String pneumaticsType;
 
   public PneumaticsIORev() {
     pneumatics = new PneumaticHub(PNEUMATICS_HUB_ID);
+    pneumaticsType = pneumatics.getCompressorConfigType().toString();
     flowSensor = new AnalogInput(FLOW_SENSOR_CHANNEL);
     useLowClosedLoopThresholds(false);
   }
@@ -44,10 +46,12 @@ public class PneumaticsIORev implements PneumaticsIO {
 
   @Override
   public void useLowClosedLoopThresholds(boolean useLow) {
-    if (useLow) {
-      pneumatics.enableCompressorAnalog(MIN_LOW_PRESSURE, MAX_LOW_PRESSURE);
-    } else {
-      pneumatics.enableCompressorAnalog(MIN_HIGH_PRESSURE, MAX_HIGH_PRESSURE);
+    if (pneumaticsType.compareTo("Analog") == 0) {
+      if (useLow) {
+        pneumatics.enableCompressorAnalog(MIN_LOW_PRESSURE, MAX_LOW_PRESSURE);
+      } else {
+        pneumatics.enableCompressorAnalog(MIN_HIGH_PRESSURE, MAX_HIGH_PRESSURE);
+      }
     }
   }
 }
