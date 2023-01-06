@@ -18,9 +18,10 @@ public final class VisionConstants {
   // this constant with the current year's AprilTag field layout file
   public static final Path APRILTAG_FIELD_LAYOUT_PATH =
       new File(Filesystem.getDeployDirectory(), "2022-rapidreact.json").toPath();
-  public static final double MAXIMUM_AMBIGUITY = 0.2;
 
   // FIXME: update this with the real transform from the robot to the camera
   public static final Transform3d ROBOT_TO_CAMERA =
       new Transform3d(new Translation3d(0, 0, 0), new Rotation3d(0, 0, 0));
+
+  public static final double MAXIMUM_AMBIGUITY = 0.2;
 }

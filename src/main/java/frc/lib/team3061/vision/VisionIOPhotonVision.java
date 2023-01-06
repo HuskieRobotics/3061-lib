@@ -13,13 +13,13 @@ import org.photonvision.targeting.PhotonPipelineResult;
 public class VisionIOPhotonVision implements VisionIO {
   private Alert noCameraConnectedAlert =
       new Alert("specified camera not connected", AlertType.WARNING);
-  private static final String CAMERA_NAME = "ov9268"; // Camera name of the photonvision camera
-  private final PhotonCamera camera = new PhotonCamera(CAMERA_NAME);
+  private final PhotonCamera camera;
 
   private double lastTimestamp = 0;
   private PhotonPipelineResult lastResult = new PhotonPipelineResult();
 
-  public VisionIOPhotonVision() {
+  public VisionIOPhotonVision(String cameraName) {
+    camera = new PhotonCamera(cameraName);
     NetworkTableInstance inst = NetworkTableInstance.getDefault();
 
     /*
@@ -27,7 +27,7 @@ public class VisionIOPhotonVision implements VisionIO {
      * and https://github.com/Mechanical-Advantage/RobotCode2022/blob/main/src/main/java/frc/robot/subsystems/vision/VisionIOPhotonVision.java
      */
     DoubleArraySubscriber targetPoseSub =
-        inst.getTable("/photonvision/" + CAMERA_NAME)
+        inst.getTable("/photonvision/" + cameraName)
             .getDoubleArrayTopic("targetPose")
             .subscribe(new double[0]);
 
