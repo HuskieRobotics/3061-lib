@@ -16,17 +16,25 @@ import edu.wpi.first.wpilibj.PneumaticHub;
 /**
  * Implementation of PneumaticsIO for REV Robotics Pneumatics Hub, dual REV Robotics pressure
  * sensors, and an analog flow sensor (i.e., SMC PFM711-N7-C-R.)
+ *
+ * <p>0 = analog 1 = digital
  */
 public class PneumaticsIORev implements PneumaticsIO {
 
   private final PneumaticHub pneumatics;
   private final AnalogInput flowSensor;
-  private final String pneumaticsType;
+  private final int pneumaticsType;
 
   public PneumaticsIORev() {
     pneumatics = new PneumaticHub(PNEUMATICS_HUB_ID);
-    pneumaticsType = pneumatics.getCompressorConfigType().toString();
+    // type of pneumatics
+    if (pneumatics.getCompressorConfigType().toString().equals("Analog")) {
+      pneumaticsType = 0;
+    } else {
+      pneumaticsType = 1;
+    }
     flowSensor = new AnalogInput(FLOW_SENSOR_CHANNEL);
+
     useLowClosedLoopThresholds(false);
   }
 
@@ -46,12 +54,14 @@ public class PneumaticsIORev implements PneumaticsIO {
 
   @Override
   public void useLowClosedLoopThresholds(boolean useLow) {
-    if (pneumaticsType.compareTo("Analog") == 0) {
+    if (pneumaticsType == 0) {
       if (useLow) {
         pneumatics.enableCompressorAnalog(MIN_LOW_PRESSURE, MAX_LOW_PRESSURE);
       } else {
         pneumatics.enableCompressorAnalog(MIN_HIGH_PRESSURE, MAX_HIGH_PRESSURE);
       }
+    } else {
+      pneumatics.enableCompressorDigital();
     }
   }
 }
