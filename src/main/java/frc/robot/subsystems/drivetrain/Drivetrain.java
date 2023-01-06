@@ -27,6 +27,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.team3061.gyro.GyroIO;
 import frc.lib.team3061.gyro.GyroIOInputsAutoLogged;
 import frc.lib.team3061.swerve.SwerveModule;
+import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team6328.util.TunableNumber;
 import org.littletonrobotics.junction.Logger;
 
@@ -126,13 +127,7 @@ public class Drivetrain extends SubsystemBase {
     this.timer = new Timer();
     this.startTimer();
 
-    this.poseEstimator =
-        new SwerveDrivePoseEstimator(
-            KINEMATICS, // kinematics object for drivetrain
-            Rotation2d.fromDegrees(0.0), // current rotation
-            swerveModulePositions, // currrent swerve module positions
-            new Pose2d() // starting pose
-            );
+    this.poseEstimator = RobotOdometry.getInstance().getPoseEstimator();
 
     ShuffleboardTab tabMain = Shuffleboard.getTab("MAIN");
     tabMain.addNumber("Gyroscope Angle", () -> getRotation().getDegrees());

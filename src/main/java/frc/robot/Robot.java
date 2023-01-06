@@ -138,7 +138,7 @@ public class Robot extends LoggedRobot {
   }
 
   /**
-   * This method is invoked at the start of the autonomous poeriod. It schedules the autonomous
+   * This method is invoked at the start of the autonomous period. It schedules the autonomous
    * command selected by your {@link RobotContainer} class.
    */
   @Override
