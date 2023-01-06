@@ -14,6 +14,8 @@ public final class VisionConstants {
     throw new IllegalStateException(CONSTRUCTOR_EXCEPTION);
   }
 
+  // FIXME: add the current year's AprilTag field layout file to the deploy directory and update
+  // this constant with the current year's AprilTag field layout file
   public static final Path APRILTAG_FIELD_LAYOUT_PATH =
       new File(Filesystem.getDeployDirectory(), "2022-rapidreact.json").toPath();
   public static final double MAXIMUM_AMBIGUITY = 0.2;
