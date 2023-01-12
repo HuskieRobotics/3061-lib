@@ -19,22 +19,22 @@ public final class DrivetrainConstants {
   public static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 7;
   public static final int FRONT_LEFT_MODULE_STEER_MOTOR = 6;
   public static final int FRONT_LEFT_MODULE_STEER_ENCODER = 8;
-  public static final double FRONT_LEFT_MODULE_STEER_OFFSET = 119.35;//118.0371;
+  public static final double FRONT_LEFT_MODULE_STEER_OFFSET = 119.26; // 118.0371;
 
   public static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 13;
   public static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 12;
   public static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 14;
-  public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = 102.65;//102.9968;
+  public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = 102.44; // 102.9968;
 
   public static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 10;
   public static final int BACK_LEFT_MODULE_STEER_MOTOR = 9;
   public static final int BACK_LEFT_MODULE_STEER_ENCODER = 11;
-  public static final double BACK_LEFT_MODULE_STEER_OFFSET = 172.35;//-189.7051;
+  public static final double BACK_LEFT_MODULE_STEER_OFFSET = 172.44; // -189.7051;
 
   public static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 16;
   public static final int BACK_RIGHT_MODULE_STEER_MOTOR = 15;
   public static final int BACK_RIGHT_MODULE_STEER_ENCODER = 17;
-  public static final double BACK_RIGHT_MODULE_STEER_OFFSET = 41.39;//40.3335;
+  public static final double BACK_RIGHT_MODULE_STEER_OFFSET = 40.86; // 41.39;//40.3335;
 
   public static final int PIGEON_ID = 18;
 
@@ -84,11 +84,7 @@ public final class DrivetrainConstants {
    *
    * <p>This is a measure of how fast the robot should be able to drive in a straight line.
    */
-  public static final double MAX_VELOCITY_METERS_PER_SECOND =
-      6380.0
-          / 60.0
-          / SwerveModuleConstants.DRIVE_GEAR_RATIO
-          * SwerveModuleConstants.WHEEL_CIRCUMFERENCE;
+  public static final double MAX_VELOCITY_METERS_PER_SECOND = 4.25;
 
   /**
    * The maximum angular velocity of the robot in radians per second.
@@ -102,8 +98,8 @@ public final class DrivetrainConstants {
 
   public static final int TIMEOUT_MS = 30;
 
-  public static final double AUTO_MAX_SPEED_METERS_PER_SECOND = 2.0;
-  public static final double AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED = 2.0;
+  public static final double AUTO_MAX_SPEED_METERS_PER_SECOND = .5; // 2
+  public static final double AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED = .5; // 2
   public static final double AUTO_MAX_ANGULAR_SPEED_RADIANS_PER_SECOND = 2.0 * Math.PI;
   public static final double AUTO_MAX_ANGULAR_SPEED_RADIANS_PER_SECOND_SQUARED = 2.0 * Math.PI;
 
