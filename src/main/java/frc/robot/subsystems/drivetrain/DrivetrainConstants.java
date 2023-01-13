@@ -77,7 +77,7 @@ public final class DrivetrainConstants {
    * standard module using Falcon500s to drive.
    */
 
-  // FIXME: determine maximum velocities empirically
+  // FIXME: determine the maximum velocity empirically
 
   /**
    * The maximum velocity of the robot in meters per second.
