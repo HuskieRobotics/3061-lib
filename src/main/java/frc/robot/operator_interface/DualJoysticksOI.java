@@ -4,8 +4,10 @@
 
 package frc.robot.operator_interface;
 
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.subsystems.drivetrain.*;
 
 /** Class for controlling the robot with two Xbox controllers. */
 public class DualJoysticksOI implements OperatorInterface {
@@ -13,11 +15,12 @@ public class DualJoysticksOI implements OperatorInterface {
   private final CommandJoystick rotateJoystick;
   private final Trigger[] translateJoystickButtons;
   private final Trigger[] rotateJoystickButtons;
+  private SlewRateLimiter translationLimit;
 
   public DualJoysticksOI(int translatePort, int rotatePort) {
     translateJoystick = new CommandJoystick(translatePort);
     rotateJoystick = new CommandJoystick(rotatePort);
-
+    this.translationLimit = new SlewRateLimiter(DrivetrainConstants.TRANSLATIONLIMIT);
     // buttons use 1-based indexing such that the index matches the button number; leave index 0 set
     // to null
     this.translateJoystickButtons = new Trigger[13];
@@ -31,12 +34,13 @@ public class DualJoysticksOI implements OperatorInterface {
 
   @Override
   public double getTranslateX() {
-    return -translateJoystick.getY();
+    return this.translationLimit.calculate(-translateJoystick.getY());
   }
 
   @Override
   public double getTranslateY() {
-    return -translateJoystick.getX();
+
+    return this.translationLimit.calculate(-translateJoystick.getX());
   }
 
   @Override

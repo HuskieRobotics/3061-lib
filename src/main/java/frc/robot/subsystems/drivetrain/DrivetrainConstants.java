@@ -119,4 +119,6 @@ public final class DrivetrainConstants {
   public static final HashMap<String, Command> AUTO_EVENT_MAP = new HashMap<>();
 
   public static final double DEADBAND = 0.1;
+
+  public static final double TRANSLATIONLIMIT = 0.5;
 }
