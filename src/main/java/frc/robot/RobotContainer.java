@@ -254,7 +254,7 @@ public class RobotContainer {
                 new FollowPath(auto1Paths.get(1), drivetrain, false),
                 auto1Paths.get(1).getMarkers(),
                 AUTO_EVENT_MAP));
-                
+
     // add commands to the auto chooser
     autoChooser.addDefaultOption("Do Nothing", new InstantCommand());
 
@@ -283,17 +283,20 @@ public class RobotContainer {
     // "auto" command for testing autonomous accuarcy of auto drive PID cosntants
     List<PathPlannerTrajectory> autonomousAccuracyTest1 =
         PathPlanner.loadPathGroup(
-            "testPaths1",
+            "autoAccuracyTesting1",
             2.0, // Max Velocity Meters Per Second Squared
             2.0); // Max Acceleration Meters Per Second Squared
     Command autoAccuracyTest1 = (new FollowPath(autonomousAccuracyTest1.get(0), drivetrain, true));
     autoChooser.addOption("Test Auto Accuray 1 (drive PID tuning)", autoAccuracyTest1);
 
     // "auto" command for testing autonomous accurcary of auto turn PID constants
-    List<PathPlannerTrajectory> autonomousAccuracyTest2 =
-        PathPlanner.loadPathGroup("autonomousAccuracyTest2", 2.0, 2.0);
-    Command autoAccuracyTest2 = (new FollowPath(autonomousAccuracyTest2.get(0), drivetrain, true));
-    autoChooser.addOption("Test Auto Accuray 2 (turn PID tuning)", autoAccuracyTest2);
+    //List<PathPlannerTrajectory> autonomousAccuracyTest2 =
+        //PathPlanner.loadPathGroup(
+            //"autoAccuracyTesting2",
+            //2.0, 
+            //2.0);
+    //Command autoAccuracyTest2 = (new FollowPath(autonomousAccuracyTest2.get(0), drivetrain, true));
+    //autoChooser.addOption("Test Auto Accuray 2 (turn PID tuning)", autoAccuracyTest2);
 
     Shuffleboard.getTab("MAIN").add(autoChooser.getSendableChooser());
   }
