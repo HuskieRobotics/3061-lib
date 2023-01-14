@@ -27,6 +27,7 @@ public interface PneumaticsIO {
     boolean compressorActive = false;
     double compressorCurrentAmps = 0.0;
     double flowLPM = 0.0;
+    double volumeL = 0.0;
   }
 
   /** Updates the set of loggable inputs. */

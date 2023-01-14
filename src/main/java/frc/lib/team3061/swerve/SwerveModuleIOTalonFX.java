@@ -92,7 +92,11 @@ public class SwerveModuleIOTalonFX implements SwerveModuleIO {
     angleMotorConfig.SLOT0_KI = turnKi.get();
     angleMotorConfig.SLOT0_KD = turnKd.get();
     angleMotorConfig.SLOT0_KF = ANGLE_KF;
-    angleMotorConfig.FEEDBACK_STATUS_FRAME_RATE_MS = 20;
+    angleMotorConfig.GENERAL_STATUS_FRAME_RATE_MS = 9;
+    angleMotorConfig.FEEDBACK_STATUS_FRAME_RATE_MS = 19;
+    angleMotorConfig.ANALOG_TEMP_VBAT_STATUS_FRAME_RATE_MS = 100;
+    angleMotorConfig.MOTION_MAGIC_STATUS_FRAME_RATE_MS = 101;
+    angleMotorConfig.BASE_PIDF0_STATUS_FRAME_RATE_MS = 102;
 
     mAngleMotor = TalonFXFactory.createTalon(angleMotorID, CAN_BUS_NAME, angleMotorConfig);
 
@@ -117,7 +121,11 @@ public class SwerveModuleIOTalonFX implements SwerveModuleIO {
     driveMotorConfig.SLOT0_KI = driveKi.get();
     driveMotorConfig.SLOT0_KD = driveKd.get();
     driveMotorConfig.SLOT0_KF = DRIVE_KF;
-    driveMotorConfig.FEEDBACK_STATUS_FRAME_RATE_MS = 20;
+    driveMotorConfig.GENERAL_STATUS_FRAME_RATE_MS = 9;
+    driveMotorConfig.FEEDBACK_STATUS_FRAME_RATE_MS = 19;
+    driveMotorConfig.ANALOG_TEMP_VBAT_STATUS_FRAME_RATE_MS = 100;
+    driveMotorConfig.MOTION_MAGIC_STATUS_FRAME_RATE_MS = 101;
+    driveMotorConfig.BASE_PIDF0_STATUS_FRAME_RATE_MS = 102;
 
     mDriveMotor = TalonFXFactory.createTalon(driveMotorID, CAN_BUS_NAME, driveMotorConfig);
 
