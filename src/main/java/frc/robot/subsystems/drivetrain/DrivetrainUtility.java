@@ -26,7 +26,14 @@ public class DrivetrainUtility{
         
 
 
-        Translation2d velocity = ChassisSpeeds.fromFieldRelativeSpeeds(new Translation2d(
-                        commandedVelocity.vxMetersPerSecond,
-                        commandedVelocity.vyMetersPerSecond),
-                gyroAngle);
+        Translation2d cool = toFieldRelative(
+            new Translation2d(desiredVelocity.vxMetersPerSecond, desiredVelocity.vyMetersPerSecond), 
+            gyroAngle);
+
+                
+
+        
+        private static Translation2d toFieldRelative(Translation2d robotRelativeTranslation, Rotation2d gyroAngle) {
+            return robotRelativeTranslation.rotateBy(gyroAngle);
+    }
+}
