@@ -3,7 +3,6 @@ package frc.robot.subsystems.drivetrain;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.lib.team3061.swerve.SwerveModuleConstants;
 import java.util.HashMap;
 
 public final class DrivetrainConstants {

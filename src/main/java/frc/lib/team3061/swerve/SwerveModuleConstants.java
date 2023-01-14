@@ -78,8 +78,8 @@ public final class SwerveModuleConstants {
 
   /* Drive Motor Characterization Values */
   // divide by 12 to convert from volts to percent output for CTRE
-  public static final double DRIVE_KS = (0.67841/12);//(0.55493 / 12);
-  public static final double DRIVE_KV = (2.27615/12);//(2.3014 / 12);
+  public static final double DRIVE_KS = (0.67841 / 12); // (0.55493 / 12);
+  public static final double DRIVE_KV = (2.27615 / 12); // (2.3014 / 12);
   public static final double DRIVE_KA = (0.12872 / 12);
 
   /* Simulated Angle Motor PID Values */
