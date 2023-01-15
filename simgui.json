@@ -16,7 +16,8 @@
       "/LiveWindow/Ungrouped/Scheduler": "Scheduler",
       "/Shuffleboard/MAIN/SendableChooser[0]": "String Chooser",
       "/SmartDashboard/Auto Routine": "String Chooser",
-      "/SmartDashboard/PPSwerveControllerCommand_field": "Field2d"
+      "/SmartDashboard/PPSwerveControllerCommand_field": "Field2d",
+      "/SmartDashboard/simCamera Sim Field": "Field2d"
     }
   }
 }
