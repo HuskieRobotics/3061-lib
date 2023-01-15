@@ -1,6 +1,5 @@
 package frc.robot.commands;
 
-import static frc.robot.Constants.*;
 import static frc.robot.subsystems.drivetrain.DrivetrainConstants.*;
 
 import com.pathplanner.lib.PathPlannerTrajectory;
@@ -35,16 +34,14 @@ public class FollowRobotRelativePath extends PPSwerveControllerCommand {
    * @param subsystem the drivetrain subsystem required by this command
    */
   public FollowRobotRelativePath(
-      PathPlannerTrajectory trajectory,
-      PIDController thetaController,
-      Drivetrain subsystem) {
+      PathPlannerTrajectory trajectory, PIDController thetaController, Drivetrain subsystem) {
     super(
         trajectory,
         subsystem::getPose,
         KINEMATICS,
-        new PIDController(PX_CONTROLLER, 0, 0, LOOP_PERIOD_SECS),
-        new PIDController(PY_CONTROLLER, 0, 0, LOOP_PERIOD_SECS),
-        thetaController,
+        subsystem.getAutoXController(),
+        subsystem.getAutoYController(),
+        subsystem.getAutoThetaController(),
         subsystem::setSwerveModuleStates,
         subsystem);
 
@@ -52,7 +49,7 @@ public class FollowRobotRelativePath extends PPSwerveControllerCommand {
     this.drivetrain = subsystem;
     this.trajectory = trajectory;
   }
-  
+
   /**
    * This method is invoked once when this command is scheduled. If the trajectory is the first in a
    * sequence of trajectories or the only trajector, initialize the gyro and odometry to match the
@@ -65,7 +62,7 @@ public class FollowRobotRelativePath extends PPSwerveControllerCommand {
   public void initialize() {
     super.initialize();
 
-    // set the pose offset such that getPose() returns the starting pose of the trajectory 
+    // set the pose offset such that getPose() returns the starting pose of the trajectory
     // (realPose + poseOffset = initialPose)
     poseOffset = trajectory.getInitialPose().minus(drivetrain.getPose());
 
@@ -74,9 +71,7 @@ public class FollowRobotRelativePath extends PPSwerveControllerCommand {
     this.thetaController.reset();
   }
 
-  /**
-   * Get the robot's pose with the pose offset applied
-   */
+  /** Get the robot's pose with the pose offset applied */
   public Pose2d getPose() {
     return this.drivetrain.getPose().plus(this.poseOffset);
   }
