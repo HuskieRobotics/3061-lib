@@ -1,5 +1,7 @@
 package frc.lib.team3061.vision;
 
+import static frc.lib.team3061.vision.VisionConstants.*;
+
 import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFieldLayout.OriginPosition;
@@ -84,11 +86,19 @@ public class Vision extends SubsystemBase {
             Pose3d tagPose = tagPoseOptional.get();
             Pose3d cameraPose = tagPose.transformBy(cameraToTarget.inverse());
             Pose3d robotPose = cameraPose.transformBy(VisionConstants.ROBOT_TO_CAMERA.inverse());
-            poseEstimator.addVisionMeasurement(robotPose.toPose2d(), getLatestTimestamp());
 
-            Logger.getInstance().recordOutput("Vision/TagPose", tagPose);
-            Logger.getInstance().recordOutput("Vision/CameraPose", cameraPose);
-            Logger.getInstance().recordOutput("Vision/RobotPose", robotPose.toPose2d());
+            if (poseEstimator
+                    .getEstimatedPosition()
+                    .minus(robotPose.toPose2d())
+                    .getTranslation()
+                    .getNorm()
+                < MAX_POSE_DIFFERENCE_METERS) {
+              poseEstimator.addVisionMeasurement(robotPose.toPose2d(), getLatestTimestamp());
+
+              Logger.getInstance().recordOutput("Vision/TagPose", tagPose);
+              Logger.getInstance().recordOutput("Vision/CameraPose", cameraPose);
+              Logger.getInstance().recordOutput("Vision/RobotPose", robotPose.toPose2d());
+            }
           }
         }
       }
