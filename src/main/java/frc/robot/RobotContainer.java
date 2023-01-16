@@ -255,6 +255,17 @@ public class RobotContainer {
                 auto1Paths.get(1).getMarkers(),
                 AUTO_EVENT_MAP));
 
+    autoChooser.addOption(
+        "Community Left Side",
+        Commands.run(
+            () ->
+                drivetrain.resetOdometry(
+                    PathPlanner.loadPath(
+                            "communityLeftSide",
+                            AUTO_MAX_SPEED_METERS_PER_SECOND,
+                            AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED)
+                        .getInitialState())));
+
     // add commands to the auto chooser
     autoChooser.addDefaultOption("Do Nothing", new InstantCommand());
 
@@ -290,13 +301,14 @@ public class RobotContainer {
     autoChooser.addOption("Test Auto Accuray 1 (drive PID tuning)", autoAccuracyTest1);
 
     // "auto" command for testing autonomous accurcary of auto turn PID constants
-    //List<PathPlannerTrajectory> autonomousAccuracyTest2 =
-        //PathPlanner.loadPathGroup(
-            //"autoAccuracyTesting2",
-            //2.0, 
-            //2.0);
-    //Command autoAccuracyTest2 = (new FollowPath(autonomousAccuracyTest2.get(0), drivetrain, true));
-    //autoChooser.addOption("Test Auto Accuray 2 (turn PID tuning)", autoAccuracyTest2);
+    // List<PathPlannerTrajectory> autonomousAccuracyTest2 =
+    // PathPlanner.loadPathGroup(
+    // "autoAccuracyTesting2",
+    // 2.0,
+    // 2.0);
+    // Command autoAccuracyTest2 = (new FollowPath(autonomousAccuracyTest2.get(0), drivetrain,
+    // true));
+    // autoChooser.addOption("Test Auto Accuray 2 (turn PID tuning)", autoAccuracyTest2);
 
     Shuffleboard.getTab("MAIN").add(autoChooser.getSendableChooser());
   }
