@@ -21,6 +21,11 @@ public class TalonFXFactory {
 
   private static final int TIMEOUT_MS = 100;
 
+  // These periods don't share any common factors, so they shouldn't run at the same time. 255 is
+  // max. (initially from https://github.com/Mechanical-Advantage/RobotCode2022)
+  private static int[] kPrimePeriods =
+      new int[] {255, 254, 253, 251, 247, 241, 239, 233, 229, 227, 223, 217, 211, 199, 197};
+
   public static class Configuration {
     public NeutralMode NEUTRAL_MODE = NeutralMode.Coast;
 
@@ -39,11 +44,17 @@ public class TalonFXFactory {
 
     public int CONTROL_FRAME_PERIOD_MS = 20; // 10
     public int MOTION_CONTROL_FRAME_PERIOD_MS = 100;
-    public int GENERAL_STATUS_FRAME_RATE_MS = 20; // 10
-    public int FEEDBACK_STATUS_FRAME_RATE_MS = 100;
-    public int QUAD_ENCODER_STATUS_FRAME_RATE_MS = 1000;
-    public int ANALOG_TEMP_VBAT_STATUS_FRAME_RATE_MS = 1000;
-    public int PULSE_WIDTH_STATUS_FRAME_RATE_MS = 1000;
+
+    public int GENERAL_STATUS_FRAME_RATE_MS = 10;
+    public int FEEDBACK_STATUS_FRAME_RATE_MS = 49;
+    public int QUAD_ENCODER_STATUS_FRAME_RATE_MS = kPrimePeriods[0];
+    public int ANALOG_TEMP_VBAT_STATUS_FRAME_RATE_MS = kPrimePeriods[1];
+    public int PULSE_WIDTH_STATUS_FRAME_RATE_MS = kPrimePeriods[2];
+    public int MOTION_MAGIC_STATUS_FRAME_RATE_MS = kPrimePeriods[3];
+    public int FEEDBACK_1_STATUS_FRAME_RATE_MS = kPrimePeriods[4];
+    public int BASE_PIDF0_STATUS_FRAME_RATE_MS = kPrimePeriods[5];
+    public int TURN_PIDF1_STATUS_FRAME_RATE_MS = kPrimePeriods[6];
+    public int FEEDBACK_INTEGRATED_STATUS_FRAME_RATE_MS = kPrimePeriods[7];
 
     public SensorVelocityMeasPeriod VELOCITY_MEASUREMENT_PERIOD =
         SensorVelocityMeasPeriod.Period_100Ms;
@@ -139,6 +150,8 @@ public class TalonFXFactory {
 
     talon.configAllSettings(talonFXConfig, TIMEOUT_MS);
 
+    talon.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor);
+
     talon.changeMotionControlFramePeriod(config.MOTION_CONTROL_FRAME_PERIOD_MS);
     talon.clearMotionProfileHasUnderrun(TIMEOUT_MS);
     talon.clearMotionProfileTrajectories();
@@ -173,6 +186,26 @@ public class TalonFXFactory {
     talon.setStatusFramePeriod(
         StatusFrameEnhanced.Status_8_PulseWidth,
         config.PULSE_WIDTH_STATUS_FRAME_RATE_MS,
+        TIMEOUT_MS);
+    talon.setStatusFramePeriod(
+        StatusFrameEnhanced.Status_10_MotionMagic,
+        config.MOTION_MAGIC_STATUS_FRAME_RATE_MS,
+        TIMEOUT_MS);
+    talon.setStatusFramePeriod(
+        StatusFrameEnhanced.Status_12_Feedback1,
+        config.FEEDBACK_1_STATUS_FRAME_RATE_MS,
+        TIMEOUT_MS);
+    talon.setStatusFramePeriod(
+        StatusFrameEnhanced.Status_13_Base_PIDF0,
+        config.BASE_PIDF0_STATUS_FRAME_RATE_MS,
+        TIMEOUT_MS);
+    talon.setStatusFramePeriod(
+        StatusFrameEnhanced.Status_14_Turn_PIDF1,
+        config.TURN_PIDF1_STATUS_FRAME_RATE_MS,
+        TIMEOUT_MS);
+    talon.setStatusFramePeriod(
+        StatusFrameEnhanced.Status_21_FeedbackIntegrated,
+        config.FEEDBACK_INTEGRATED_STATUS_FRAME_RATE_MS,
         TIMEOUT_MS);
 
     talon.setControlFramePeriod(ControlFrame.Control_3_General, config.CONTROL_FRAME_PERIOD_MS);

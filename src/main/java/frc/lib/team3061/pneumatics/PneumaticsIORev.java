@@ -9,6 +9,7 @@
 package frc.lib.team3061.pneumatics;
 
 import static frc.lib.team3061.pneumatics.PneumaticsConstants.*;
+import static frc.robot.Constants.*;
 
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.PneumaticHub;
@@ -40,6 +41,7 @@ public class PneumaticsIORev implements PneumaticsIO {
      * 1V corresponds to 0 L/min; 5V corresponds to 100 L/min.
      */
     inputs.flowLPM = ((flowSensor.getAverageVoltage() * 25) - 25);
+    inputs.volumeL += (inputs.flowLPM * LOOP_PERIOD_SECS) / 60;
   }
 
   @Override
