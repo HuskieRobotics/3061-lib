@@ -84,11 +84,18 @@ public class Vision extends SubsystemBase {
             Pose3d tagPose = tagPoseOptional.get();
             Pose3d cameraPose = tagPose.transformBy(cameraToTarget.inverse());
             Pose3d robotPose = cameraPose.transformBy(VisionConstants.ROBOT_TO_CAMERA.inverse());
-            poseEstimator.addVisionMeasurement(robotPose.toPose2d(), getLatestTimestamp());
-
-            Logger.getInstance().recordOutput("Vision/TagPose", tagPose);
-            Logger.getInstance().recordOutput("Vision/CameraPose", cameraPose);
-            Logger.getInstance().recordOutput("Vision/RobotPose", robotPose.toPose2d());
+            if (poseEstimator
+                    .getEstimatedPosition()
+                    .minus(robotPose.toPose2d())
+                    .getTranslation()
+                    .getNorm()
+                < 1.0) {
+              poseEstimator.addVisionMeasurement(robotPose.toPose2d(), getLatestTimestamp());
+              Logger.getInstance().recordOutput("Vision/TagPose", tagPose);
+              Logger.getInstance().recordOutput("Vision/CameraPose", cameraPose);
+              Logger.getInstance().recordOutput("Vision/RobotPose", robotPose.toPose2d());
+              break;
+            }
           }
         }
       }
