@@ -208,8 +208,7 @@ public class Drivetrain extends SubsystemBase {
    * @return the pose of the robot
    */
   public Pose2d getPose() {
-    // return poseEstimator.getEstimatedPosition();
-    return estimatedPoseWithoutGyro;
+    return poseEstimator.getEstimatedPosition();
   }
 
   /**
