@@ -371,7 +371,6 @@ public class Drivetrain extends SubsystemBase {
     // log poses, 3D geometry, and swerve module states, gyro offset
     Pose2d poseEstimatorPose = poseEstimator.getEstimatedPosition();
     Logger.getInstance().recordOutput("Odometry/RobotNoGyro", estimatedPoseWithoutGyro);
-    Logger.getInstance().recordOutput("Odometry/timestamp", Timer.getFPGATimestamp());
     Logger.getInstance().recordOutput("Odometry/Robot", poseEstimatorPose);
     Logger.getInstance().recordOutput("3DField", new Pose3d(poseEstimatorPose));
     Logger.getInstance().recordOutput("SwerveModuleStates", states);
