@@ -91,7 +91,7 @@ public final class DrivetrainConstants {
    * <p>This is a measure of how fast the robot can rotate in place.
    */
   public static final double MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND =
-      MAX_VELOCITY_METERS_PER_SECOND / Math.hypot(TRACKWIDTH_METERS / 2.0, WHEELBASE_METERS / 2.0);
+      4.2 / Math.hypot(TRACKWIDTH_METERS / 2.0, WHEELBASE_METERS / 2.0);
 
   public static final double MAX_COAST_VELOCITY_METERS_PER_SECOND = 0.05;
 
@@ -104,7 +104,7 @@ public final class DrivetrainConstants {
 
   // FIXME: tune PID values for auto paths
 
-  public static final double AUTO_DRIVE_P_CONTROLLER = 6.0;
+  public static final double AUTO_DRIVE_P_CONTROLLER = 3.5;
   public static final double AUTO_DRIVE_I_CONTROLLER = 0.0;
   public static final double AUTO_DRIVE_D_CONTROLLER = 0.0;
   public static final double AUTO_TURN_P_CONTROLLER = 10.0;

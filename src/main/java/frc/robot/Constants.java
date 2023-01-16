@@ -24,14 +24,14 @@ public final class Constants {
 
   public static final double LOOP_PERIOD_SECS = 0.02;
 
-  public static final boolean TUNING_MODE = true;
+  public static final boolean TUNING_MODE = false;
 
   // FIXME: an empty string uses the default CAN bus; specify the name of the CANivore as
   // appropriate
   public static final String CAN_BUS_NAME = "";
 
   // FIXME: specify the name of the camera used for detecting AprilTags
-  public static final String CAMERA_NAME = "ov9268";
+  public static final String CAMERA_NAME = "OV9281";
 
   private static final RobotType ROBOT = RobotType.ROBOT_SIMBOT;
 
