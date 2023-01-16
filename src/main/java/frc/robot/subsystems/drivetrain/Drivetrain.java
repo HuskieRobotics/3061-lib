@@ -93,7 +93,6 @@ public class Drivetrain extends SubsystemBase {
   private static final boolean DEBUGGING = false;
 
   private final SwerveDrivePoseEstimator poseEstimator;
-  private Timer timer;
   private boolean brakeMode;
 
   private DriveMode driveMode = DriveMode.NORMAL;
@@ -123,9 +122,6 @@ public class Drivetrain extends SubsystemBase {
     this.gyroOffset = 0;
 
     this.chassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
-
-    this.timer = new Timer();
-    this.startTimer();
 
     this.poseEstimator = RobotOdometry.getInstance().getPoseEstimator();
 
@@ -212,7 +208,8 @@ public class Drivetrain extends SubsystemBase {
    * @return the pose of the robot
    */
   public Pose2d getPose() {
-    return poseEstimator.getEstimatedPosition();
+    // return poseEstimator.getEstimatedPosition();
+    return estimatedPoseWithoutGyro;
   }
 
   /**
@@ -356,7 +353,8 @@ public class Drivetrain extends SubsystemBase {
       estimatedPoseWithoutGyro = estimatedPoseWithoutGyro.exp(twist);
     }
 
-    poseEstimator.updateWithTime(this.timer.get(), this.getRotation(), swerveModulePositions);
+    poseEstimator.updateWithTime(
+        Timer.getFPGATimestamp(), this.getRotation(), swerveModulePositions);
 
     // update the brake mode based on the robot's velocity and state (enabled/disabled)
     updateBrakeMode();
@@ -373,6 +371,7 @@ public class Drivetrain extends SubsystemBase {
     // log poses, 3D geometry, and swerve module states, gyro offset
     Pose2d poseEstimatorPose = poseEstimator.getEstimatedPosition();
     Logger.getInstance().recordOutput("Odometry/RobotNoGyro", estimatedPoseWithoutGyro);
+    Logger.getInstance().recordOutput("Odometry/timestamp", Timer.getFPGATimestamp());
     Logger.getInstance().recordOutput("Odometry/Robot", poseEstimatorPose);
     Logger.getInstance().recordOutput("3DField", new Pose3d(poseEstimatorPose));
     Logger.getInstance().recordOutput("SwerveModuleStates", states);
@@ -526,11 +525,6 @@ public class Drivetrain extends SubsystemBase {
    */
   public boolean isXstance() {
     return this.driveMode == DriveMode.X;
-  }
-
-  private void startTimer() {
-    this.timer.reset();
-    this.timer.start();
   }
 
   /**
