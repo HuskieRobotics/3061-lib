@@ -292,20 +292,21 @@ public class RobotContainer {
             drivetrain::getCharacterizationVelocity));
 
     // "auto" command for testing autonomous accuarcy of auto drive PID cosntants
-    // List<PathPlannerTrajectory> autonomousAccuracyTest1 =
-    //     PathPlanner.loadPathGroup(
-    //         "autoAccuracyTesting1",
-    //         2.0, // Max Velocity Meters Per Second Squared
-    //         2.0); // Max Acceleration Meters Per Second Squared
-    // Command autoAccuracyTest1 = (new FollowPath(autonomousAccuracyTest1.get(0), drivetrain,
-    // true));
-    // autoChooser.addOption("Test Auto Accuray 1 (drive PID tuning)", autoAccuracyTest1);
+    List<PathPlannerTrajectory> autonomousPoseTest1 =
+        PathPlanner.loadPathGroup("autoAccuracyTesting1", 2.0, 2.0);
+    Command autoPoseTest1 = (new FollowPath(autonomousPoseTest1.get(0), drivetrain, true));
+    autoChooser.addOption("Test Auto Pose Accuracy 1 (away from grid)", autoPoseTest1);
+
+    // "auto" command for testing autonomous accuracy of auto pose estmation(going towards the grid)
+    List<PathPlannerTrajectory> autonomousPoseTest2 =
+        PathPlanner.loadPathGroup("autoAccuracyTesting2", 2.0, 2.0);
+    Command autoPoseTest2 = (new FollowPath(autonomousPoseTest2.get(0), drivetrain, true));
+    autoChooser.addOption("Test Auto Pose Accuracy 2 (towards grid)", autoPoseTest2);
 
     // "auto" command for testing autonomous accurcary of auto turn PID constants
-    List<PathPlannerTrajectory> autonomousAccuracyTest2 =
-        PathPlanner.loadPathGroup("testPath2", 2.0, 2.0);
-    Command autoAccuracyTest2 = (new FollowPath(autonomousAccuracyTest2.get(0), drivetrain, true));
-    autoChooser.addOption("Test Auto Accuray 2 (turn PID tuning)", autoAccuracyTest2);
+    List<PathPlannerTrajectory> Test2 = PathPlanner.loadPathGroup("testPath2", 2.0, 2.0);
+    Command autoTest2 = (new FollowPath(Test2.get(0), drivetrain, true));
+    autoChooser.addOption("Test Auto Accuracy 2 (turn PID tuning)", autoTest2);
 
     Shuffleboard.getTab("MAIN").add(autoChooser.getSendableChooser());
   }

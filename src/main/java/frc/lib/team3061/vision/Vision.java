@@ -93,7 +93,7 @@ public class Vision extends SubsystemBase {
                     .getTranslation()
                     .getNorm()
                 < MAX_POSE_DIFFERENCE_METERS) {
-              //poseEstimator.addVisionMeasurement(robotPose.toPose2d(), getLatestTimestamp());
+              poseEstimator.addVisionMeasurement(robotPose.toPose2d(), getLatestTimestamp());
 
               Logger.getInstance().recordOutput("Vision/TagPose", tagPose);
               Logger.getInstance().recordOutput("Vision/CameraPose", cameraPose);
