@@ -5,7 +5,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import frc.lib.team3061.swerve.SwerveModuleConstants;
+import frc.lib.team3061.swerve.SwerveModuleConstants.SwerveType;
 
 @java.lang.SuppressWarnings({"java:S3010", "java:S3400"})
 public abstract class RobotConfig {
@@ -66,6 +66,9 @@ public abstract class RobotConfig {
     return 0.0;
   }
 
+  // swerve module type
+  public abstract SwerveType getSwerveType();
+
   // Swerve Module CAN IDs (FL, FR, BL, BR)
   public abstract int[] getSwerveDriveMotorCANIDs();
 
@@ -118,12 +121,7 @@ public abstract class RobotConfig {
    *
    * <p>This is a measure of how fast the robot should be able to drive in a straight line.
    */
-  public double getRobotMaxVelocity() {
-    return 6380.0
-        / 60.0
-        / SwerveModuleConstants.DRIVE_GEAR_RATIO
-        * SwerveModuleConstants.WHEEL_CIRCUMFERENCE;
-  }
+  public abstract double getRobotMaxVelocity();
 
   /**
    * The maximum angular velocity of the robot in radians per second.

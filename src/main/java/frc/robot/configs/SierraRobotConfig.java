@@ -4,7 +4,7 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import frc.lib.team3061.RobotConfig;
-import frc.lib.team3061.swerve.SwerveModuleConstants;
+import frc.lib.team3061.swerve.SwerveModuleConstants.SwerveType;
 
 public class SierraRobotConfig extends RobotConfig {
 
@@ -84,11 +84,7 @@ public class SierraRobotConfig extends RobotConfig {
    *
    * <p>This is a measure of how fast the robot should be able to drive in a straight line.
    */
-  private static final double MAX_VELOCITY_METERS_PER_SECOND =
-      6380.0
-          / 60.0
-          / SwerveModuleConstants.DRIVE_GEAR_RATIO
-          * SwerveModuleConstants.WHEEL_CIRCUMFERENCE;
+  private static final double MAX_VELOCITY_METERS_PER_SECOND = 4.25;
 
   private static final double MAX_COAST_VELOCITY_METERS_PER_SECOND = 0.05;
 
@@ -172,6 +168,11 @@ public class SierraRobotConfig extends RobotConfig {
   @Override
   public double getDriveKA() {
     return DRIVE_KA;
+  }
+
+  // Swerve Module type
+  public SwerveType getSwerveType() {
+    return SwerveType.MK4;
   }
 
   // Swerve Module CAN IDs (FL, FR, BL, BR)
