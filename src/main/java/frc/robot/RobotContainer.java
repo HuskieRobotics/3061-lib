@@ -34,6 +34,7 @@ import frc.robot.commands.FeedForwardCharacterization;
 import frc.robot.commands.FeedForwardCharacterization.FeedForwardCharacterizationData;
 import frc.robot.commands.FollowPath;
 import frc.robot.commands.TeleopSwerve;
+import frc.robot.configs.DefaultRobotConfig;
 import frc.robot.configs.MK4IRobotConfig;
 import frc.robot.configs.SierraRobotConfig;
 import frc.robot.operator_interface.OISelector;
@@ -75,14 +76,17 @@ public class RobotContainer {
     // create real, simulated, or replay subsystems based on the mode and robot specified
     if (Constants.getMode() != Mode.REPLAY) {
       switch (Constants.getRobot()) {
+        case ROBOT_DEFAULT:
         case ROBOT_2023_MK4I:
         case ROBOT_2022_SIERRA:
           {
             // create the specific RobotConfig subclass instance first
             if (Constants.getRobot() == Constants.RobotType.ROBOT_2023_MK4I) {
               config = new MK4IRobotConfig();
-            } else {
+            } else if (Constants.getRobot() == Constants.RobotType.ROBOT_2022_SIERRA) {
               config = new SierraRobotConfig();
+            } else {
+              config = new DefaultRobotConfig();
             }
 
             GyroIO gyro = new GyroIOPigeon2(config.getPigeonCANID());
