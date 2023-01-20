@@ -1,10 +1,12 @@
 package frc.lib.team3061;
 
+import frc.lib.team3061.swerve.SwerveModuleConstants;
+
 public abstract class RobotConfig {
 
   private static RobotConfig robotConfig;
 
-  public static RobotConfig getRobotConfig() {
+  public static RobotConfig getInstance() {
     return robotConfig;
   }
 
@@ -59,34 +61,22 @@ public abstract class RobotConfig {
   }
 
   // Swerve Module CAN IDs (FL, FR, BL, BR)
-  public int[] getSwerveDriveMotorCANIDs() {
-    return new int[] {1, 2, 3, 4};
-  }
+  public abstract int[] getSwerveDriveMotorCANIDs();
 
-  public int[] getSwerveSteerMotorCANIDs() {
-    return new int[] {5, 6, 7, 8};
-  }
+  public abstract int[] getSwerveSteerMotorCANIDs();
 
-  public int[] getSwerveSteerEncoderCANIDs() {
-    return new int[] {9, 10, 11, 12};
-  }
+  public abstract int[] getSwerveSteerEncoderCANIDs();
 
   public double[] getSwerveSteerOffsets() {
     return new double[] {0.0, 0.0, 0.0, 0.0};
   }
 
-  public int getPigeonCANID() {
-    return 1;
-  }
+  public abstract int getPigeonCANID();
 
   // robot dimensions accessors
-  public double getTrackwidth() {
-    return 0.0;
-  }
+  public abstract double getTrackwidth();
 
-  public double getWheelbase() {
-    return 0.0;
-  }
+  public abstract double getWheelbase();
 
   public double getRobotWidthWithBumpers() {
     return 0.0;
@@ -96,23 +86,44 @@ public abstract class RobotConfig {
     return 0.0;
   }
 
+  // robot maximum velcoity
   public double getRobotMaxVelocity() {
+    return 6380.0
+        / 60.0
+        / SwerveModuleConstants.DRIVE_GEAR_RATIO
+        * SwerveModuleConstants.WHEEL_CIRCUMFERENCE;
+  }
+
+  // auto path PIDs
+  public double getAutoDriveKP() {
     return 0.0;
   }
 
-  // FIXME: tune PID values for auto paths
+  public double getAutoDriveKI() {
+    return 0.0;
+  }
 
-  public static final double AUTO_DRIVE_P_CONTROLLER = 6.0;
-  public static final double AUTO_DRIVE_I_CONTROLLER = 0.0;
-  public static final double AUTO_DRIVE_D_CONTROLLER = 0.0;
-  public static final double AUTO_TURN_P_CONTROLLER = 10.0;
-  public static final double AUTO_TURN_I_CONTROLLER = 0.0;
-  public static final double AUTO_TURN_D_CONTROLLER = 0.0;
+  public double getAutoDriveKD() {
+    return 0.0;
+  }
 
-  // FIXME: an empty string uses the CAN bus; specify the name of the CANivore as
-  // appropriate
-  public static final String CAN_BUS_NAME = "";
+  public double getAutoTurnKP() {
+    return 0.0;
+  }
 
-  // FIXME: specify the name of the camera used for detecting AprilTags
-  public static final String CAMERA_NAME = "ov9268";
+  public double getAutoTurnKI() {
+    return 0.0;
+  }
+
+  public double getAutoTurnKD() {
+    return 0.0;
+  }
+
+  public String getCANBusName() {
+    return "";
+  }
+
+  public String getCameraName() {
+    return "";
+  }
 }

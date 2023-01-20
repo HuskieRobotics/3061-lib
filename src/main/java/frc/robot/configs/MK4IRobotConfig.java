@@ -1,9 +1,9 @@
-package frc.robot;
+package frc.robot.configs;
 
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.swerve.SwerveModuleConstants;
 
-public class SierraRobotConfig implements RobotConfig {
+public class MK4IRobotConfig extends RobotConfig {
 
   // FIXME: tune PID values for the angle and drive motors
 
@@ -83,53 +83,81 @@ public class SierraRobotConfig implements RobotConfig {
           / SwerveModuleConstants.DRIVE_GEAR_RATIO
           * SwerveModuleConstants.WHEEL_CIRCUMFERENCE;
 
+  // FIXME: tune PID values for auto paths
+
+  public static final double AUTO_DRIVE_P_CONTROLLER = 6.0;
+  public static final double AUTO_DRIVE_I_CONTROLLER = 0.0;
+  public static final double AUTO_DRIVE_D_CONTROLLER = 0.0;
+  public static final double AUTO_TURN_P_CONTROLLER = 10.0;
+  public static final double AUTO_TURN_I_CONTROLLER = 0.0;
+  public static final double AUTO_TURN_D_CONTROLLER = 0.0;
+
+  // FIXME: an empty string uses the CAN bus; specify the name of the CANivore as
+  // appropriate
+  public static final String CAN_BUS_NAME = "";
+
+  // FIXME: specify the name of the camera used for detecting AprilTags
+  public static final String CAMERA_NAME = "ov9268";
+
   // Swerve Module PID accessors
+  @Override
   public double getSwerveAngleKP() {
     return ANGLE_KP;
   }
 
+  @Override
   public double getSwerveAngleKI() {
     return ANGLE_KI;
   }
 
+  @Override
   public double getSwerveAngleKD() {
     return ANGLE_KD;
   }
 
+  @Override
   public double getSwerveAngleKF() {
     return ANGLE_KF;
   }
 
+  @Override
   public double getSwerveDriveKP() {
     return DRIVE_KP;
   }
 
+  @Override
   public double getSwerveDriveKI() {
     return DRIVE_KI;
   }
 
+  @Override
   public double getSwerveDriveKD() {
     return DRIVE_KD;
   }
 
+  @Override
   public double getSwerveDriveKF() {
     return DRIVE_KF;
   }
 
   // Drive Characterization accessors
+  @Override
   public double getDriveKS() {
     return DRIVE_KS;
   }
 
+  @Override
   public double getDriveKV() {
     return DRIVE_KV;
   }
 
+  @Override
   public double getDriveKA() {
     return DRIVE_KA;
   }
 
   // Swerve Module CAN IDs (FL, FR, BL, BR)
+  @Override
   public int[] getSwerveDriveMotorCANIDs() {
     return new int[] {
       FRONT_LEFT_MODULE_DRIVE_MOTOR,
@@ -139,6 +167,7 @@ public class SierraRobotConfig implements RobotConfig {
     };
   }
 
+  @Override
   public int[] getSwerveSteerMotorCANIDs() {
     return new int[] {
       FRONT_LEFT_MODULE_STEER_MOTOR,
@@ -148,6 +177,7 @@ public class SierraRobotConfig implements RobotConfig {
     };
   }
 
+  @Override
   public int[] getSwerveSteerEncoderCANIDs() {
     return new int[] {
       FRONT_LEFT_MODULE_STEER_ENCODER,
@@ -157,6 +187,7 @@ public class SierraRobotConfig implements RobotConfig {
     };
   }
 
+  @Override
   public double[] getSwerveSteerOffsets() {
     return new double[] {
       FRONT_LEFT_MODULE_STEER_OFFSET,
@@ -166,28 +197,75 @@ public class SierraRobotConfig implements RobotConfig {
     };
   }
 
+  @Override
   public int getPigeonCANID() {
     return PIGEON_ID;
   }
 
   // robot dimensions accessors
+  @Override
   public double getTrackwidth() {
     return TRACKWIDTH_METERS;
   }
 
+  @Override
   public double getWheelbase() {
     return WHEELBASE_METERS;
   }
 
+  @Override
   public double getRobotWidthWithBumpers() {
     return ROBOT_WIDTH_WITH_BUMPERS;
   }
 
+  @Override
   public double getRobotLengthWithBumpers() {
     return ROBOT_LENGTH_WITH_BUMPERS;
   }
 
+  @Override
   public double getRobotMaxVelocity() {
     return MAX_VELOCITY_METERS_PER_SECOND;
+  }
+
+  // auto path PIDs
+  @Override
+  public double getAutoDriveKP() {
+    return AUTO_DRIVE_P_CONTROLLER;
+  }
+
+  @Override
+  public double getAutoDriveKI() {
+    return AUTO_DRIVE_I_CONTROLLER;
+  }
+
+  @Override
+  public double getAutoDriveKD() {
+    return AUTO_DRIVE_D_CONTROLLER;
+  }
+
+  @Override
+  public double getAutoTurnKP() {
+    return AUTO_TURN_P_CONTROLLER;
+  }
+
+  @Override
+  public double getAutoTurnKI() {
+    return AUTO_TURN_I_CONTROLLER;
+  }
+
+  @Override
+  public double getAutoTurnKD() {
+    return AUTO_TURN_D_CONTROLLER;
+  }
+
+  @Override
+  public String getCANBusName() {
+    return CAN_BUS_NAME;
+  }
+
+  @Override
+  public String getCameraName() {
+    return CAMERA_NAME;
   }
 }

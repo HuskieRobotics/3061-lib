@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.gyro.GyroIO;
 import frc.lib.team3061.gyro.GyroIOPigeon2;
 import frc.lib.team3061.pneumatics.Pneumatics;
@@ -36,6 +37,8 @@ import frc.robot.commands.FeedForwardCharacterization;
 import frc.robot.commands.FeedForwardCharacterization.FeedForwardCharacterizationData;
 import frc.robot.commands.FollowPath;
 import frc.robot.commands.TeleopSwerve;
+import frc.robot.configs.MK4IRobotConfig;
+import frc.robot.configs.SierraRobotConfig;
 import frc.robot.operator_interface.OISelector;
 import frc.robot.operator_interface.OperatorInterface;
 import frc.robot.subsystems.drivetrain.Drivetrain;
@@ -52,6 +55,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
  */
 public class RobotContainer {
   private OperatorInterface oi = new OperatorInterface() {};
+  private RobotConfig config;
 
   private Drivetrain drivetrain;
 
@@ -67,8 +71,63 @@ public class RobotContainer {
     // create real, simulated, or replay subsystems based on the mode and robot specified
     if (Constants.getMode() != Mode.REPLAY) {
       switch (Constants.getRobot()) {
-        case ROBOT_2022_PRESEASON:
+        case ROBOT_2022_SIERRA:
           {
+            config = new SierraRobotConfig();
+            GyroIO gyro = new GyroIOPigeon2(PIGEON_ID);
+
+            SwerveModule flModule =
+                new SwerveModule(
+                    new SwerveModuleIOTalonFX(
+                        0,
+                        FRONT_LEFT_MODULE_DRIVE_MOTOR,
+                        FRONT_LEFT_MODULE_STEER_MOTOR,
+                        FRONT_LEFT_MODULE_STEER_ENCODER,
+                        FRONT_LEFT_MODULE_STEER_OFFSET),
+                    0,
+                    MAX_VELOCITY_METERS_PER_SECOND);
+
+            SwerveModule frModule =
+                new SwerveModule(
+                    new SwerveModuleIOTalonFX(
+                        1,
+                        FRONT_RIGHT_MODULE_DRIVE_MOTOR,
+                        FRONT_RIGHT_MODULE_STEER_MOTOR,
+                        FRONT_RIGHT_MODULE_STEER_ENCODER,
+                        FRONT_RIGHT_MODULE_STEER_OFFSET),
+                    1,
+                    MAX_VELOCITY_METERS_PER_SECOND);
+
+            SwerveModule blModule =
+                new SwerveModule(
+                    new SwerveModuleIOTalonFX(
+                        2,
+                        BACK_LEFT_MODULE_DRIVE_MOTOR,
+                        BACK_LEFT_MODULE_STEER_MOTOR,
+                        BACK_LEFT_MODULE_STEER_ENCODER,
+                        BACK_LEFT_MODULE_STEER_OFFSET),
+                    2,
+                    MAX_VELOCITY_METERS_PER_SECOND);
+
+            SwerveModule brModule =
+                new SwerveModule(
+                    new SwerveModuleIOTalonFX(
+                        3,
+                        BACK_RIGHT_MODULE_DRIVE_MOTOR,
+                        BACK_RIGHT_MODULE_STEER_MOTOR,
+                        BACK_RIGHT_MODULE_STEER_ENCODER,
+                        BACK_RIGHT_MODULE_STEER_OFFSET),
+                    3,
+                    MAX_VELOCITY_METERS_PER_SECOND);
+
+            drivetrain = new Drivetrain(gyro, flModule, frModule, blModule, brModule);
+            new Pneumatics(new PneumaticsIORev());
+            new Vision(new VisionIOPhotonVision(CAMERA_NAME));
+            break;
+          }
+        case ROBOT_2023_MK4I:
+          {
+            config = new MK4IRobotConfig();
             GyroIO gyro = new GyroIOPigeon2(PIGEON_ID);
 
             SwerveModule flModule =
@@ -122,6 +181,7 @@ public class RobotContainer {
           }
         case ROBOT_SIMBOT:
           {
+            config = new MK4IRobotConfig();
             SwerveModule flModule =
                 new SwerveModule(new SwerveModuleIOSim(), 0, MAX_VELOCITY_METERS_PER_SECOND);
 
