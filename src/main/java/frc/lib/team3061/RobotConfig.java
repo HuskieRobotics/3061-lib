@@ -1,7 +1,10 @@
 package frc.lib.team3061;
 
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import frc.lib.team3061.swerve.SwerveModuleConstants;
 
+@java.lang.SuppressWarnings({"java:S3010", "java:S3400"})
 public abstract class RobotConfig {
 
   private static RobotConfig robotConfig;
@@ -78,6 +81,21 @@ public abstract class RobotConfig {
 
   public abstract double getWheelbase();
 
+  /* The geometry and coordinate systems can be confusing. Refer to this document
+  for a detailed explanation: https://docs.google.com/document/d/17dg5cIfqVOlQTTbo2ust4QxTZlUoPNzuBu2oe58Ov84/edit#heading=h.x4ppzp81ed1
+  */
+  public SwerveDriveKinematics getSwerveDriveKinematics() {
+    return new SwerveDriveKinematics(
+        // Front left
+        new Translation2d(getWheelbase() / 2.0, getTrackwidth() / 2.0),
+        // Front right
+        new Translation2d(getWheelbase() / 2.0, -getTrackwidth() / 2.0),
+        // Back left
+        new Translation2d(-getWheelbase() / 2.0, getTrackwidth() / 2.0),
+        // Back right
+        new Translation2d(-getWheelbase() / 2.0, -getTrackwidth() / 2.0));
+  }
+
   public double getRobotWidthWithBumpers() {
     return 0.0;
   }
@@ -86,12 +104,40 @@ public abstract class RobotConfig {
     return 0.0;
   }
 
-  // robot maximum velcoity
+  // robot maximum velocity and acceleration
+
+  /**
+   * The maximum velocity of the robot in meters per second.
+   *
+   * <p>This is a measure of how fast the robot should be able to drive in a straight line.
+   */
   public double getRobotMaxVelocity() {
     return 6380.0
         / 60.0
         / SwerveModuleConstants.DRIVE_GEAR_RATIO
         * SwerveModuleConstants.WHEEL_CIRCUMFERENCE;
+  }
+
+  /**
+   * The maximum angular velocity of the robot in radians per second.
+   *
+   * <p>This is a measure of how fast the robot can rotate in place.
+   */
+  public double getRobotMaxAcceleration() {
+    return getRobotMaxVelocity() / Math.hypot(getTrackwidth() / 2.0, getWheelbase() / 2.0);
+  }
+
+  public double getRobotMaxCoastVelocity() {
+    return 0.0;
+  }
+
+  // auto max velocity and acceleration
+  public double getAutoMaxSpeed() {
+    return 0.0;
+  }
+
+  public double getAutoMaxAcceleration() {
+    return 0.0;
   }
 
   // auto path PIDs

@@ -83,6 +83,11 @@ public class SierraRobotConfig extends RobotConfig {
           / SwerveModuleConstants.DRIVE_GEAR_RATIO
           * SwerveModuleConstants.WHEEL_CIRCUMFERENCE;
 
+  public static final double MAX_COAST_VELOCITY_METERS_PER_SECOND = 0.05;
+
+  public static final double AUTO_MAX_SPEED_METERS_PER_SECOND = 2.0;
+  public static final double AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED = 2.0;
+
   // FIXME: tune PID values for auto paths
 
   public static final double AUTO_DRIVE_P_CONTROLLER = 6.0;
@@ -226,6 +231,23 @@ public class SierraRobotConfig extends RobotConfig {
   @Override
   public double getRobotMaxVelocity() {
     return MAX_VELOCITY_METERS_PER_SECOND;
+  }
+
+  @Override
+  public double getRobotMaxCoastVelocity() {
+    return MAX_COAST_VELOCITY_METERS_PER_SECOND;
+  }
+
+  // auto path max velocities and accelerations
+
+  @Override
+  public double getAutoMaxSpeed() {
+    return AUTO_MAX_SPEED_METERS_PER_SECOND;
+  }
+
+  @Override
+  public double getAutoMaxAcceleration() {
+    return AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED;
   }
 
   // auto path PIDs

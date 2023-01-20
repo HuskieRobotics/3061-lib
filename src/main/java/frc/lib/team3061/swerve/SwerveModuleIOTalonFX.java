@@ -1,7 +1,6 @@
 package frc.lib.team3061.swerve;
 
 import static frc.lib.team3061.swerve.SwerveModuleConstants.*;
-import static frc.robot.Constants.*;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.DemandType;
@@ -16,6 +15,7 @@ import com.ctre.phoenix.sensors.SensorTimeBase;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import frc.lib.team254.drivers.TalonFXFactory;
+import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.util.CANDeviceFinder;
 import frc.lib.team3061.util.CANDeviceId.CANDeviceType;
 import frc.lib.team6328.util.TunableNumber;
@@ -32,6 +32,8 @@ public class SwerveModuleIOTalonFX implements SwerveModuleIO {
   private final TunableNumber turnKp = new TunableNumber("Drive/TurnKp", ANGLE_KP);
   private final TunableNumber turnKi = new TunableNumber("Drive/TurnKi", ANGLE_KI);
   private final TunableNumber turnKd = new TunableNumber("Drive/TurnKd", ANGLE_KD);
+
+  private final String canBusName = RobotConfig.getInstance().getCANBusName();
 
   private TalonFX mAngleMotor;
   private TalonFX mDriveMotor;
@@ -66,7 +68,7 @@ public class SwerveModuleIOTalonFX implements SwerveModuleIO {
   }
 
   private void configAngleEncoder(int canCoderID) {
-    angleEncoder = new CANCoder(canCoderID, CAN_BUS_NAME);
+    angleEncoder = new CANCoder(canCoderID, canBusName);
 
     angleEncoder.configFactoryDefault();
 
@@ -98,7 +100,7 @@ public class SwerveModuleIOTalonFX implements SwerveModuleIO {
     angleMotorConfig.MOTION_MAGIC_STATUS_FRAME_RATE_MS = 101;
     angleMotorConfig.BASE_PIDF0_STATUS_FRAME_RATE_MS = 102;
 
-    mAngleMotor = TalonFXFactory.createTalon(angleMotorID, CAN_BUS_NAME, angleMotorConfig);
+    mAngleMotor = TalonFXFactory.createTalon(angleMotorID, canBusName, angleMotorConfig);
 
     double absolutePosition =
         Conversions.degreesToFalcon(getCanCoder().getDegrees() - angleOffsetDeg, ANGLE_GEAR_RATIO);
@@ -127,7 +129,7 @@ public class SwerveModuleIOTalonFX implements SwerveModuleIO {
     driveMotorConfig.MOTION_MAGIC_STATUS_FRAME_RATE_MS = 101;
     driveMotorConfig.BASE_PIDF0_STATUS_FRAME_RATE_MS = 102;
 
-    mDriveMotor = TalonFXFactory.createTalon(driveMotorID, CAN_BUS_NAME, driveMotorConfig);
+    mDriveMotor = TalonFXFactory.createTalon(driveMotorID, canBusName, driveMotorConfig);
 
     mDriveMotor.setSelectedSensorPosition(0);
   }
