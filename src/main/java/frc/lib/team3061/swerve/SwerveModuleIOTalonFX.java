@@ -39,7 +39,6 @@ public class SwerveModuleIOTalonFX implements SwerveModuleIO {
   private final TunableNumber turnKd =
       new TunableNumber("Drive/TurnKd", RobotConfig.getInstance().getSwerveAngleKD());
 
-  private final double wheelDiameterMeters;
   private final double wheelCircumference;
   private final double driveGearRatio;
   private final boolean driveMotorInverted;
@@ -71,7 +70,6 @@ public class SwerveModuleIOTalonFX implements SwerveModuleIO {
 
     if (RobotConfig.getInstance().getSwerveType() == SwerveType.MK4) {
 
-      wheelDiameterMeters = MK4_L2_WHEEL_DIAMETER_METERS;
       wheelCircumference = MK4_L2_WHEEL_CIRCUMFERENCE;
       driveGearRatio = MK4_L2_DRIVE_GEAR_RATIO;
       driveMotorInverted = MK4_L2_DRIVE_MOTOR_INVERTED;
@@ -80,7 +78,6 @@ public class SwerveModuleIOTalonFX implements SwerveModuleIO {
       canCoderInverted = MK4_L2_CAN_CODER_INVERTED;
     } else { // MK4I
 
-      wheelDiameterMeters = MK4I_L2_WHEEL_DIAMETER_METERS;
       wheelCircumference = MK4I_L2_WHEEL_CIRCUMFERENCE;
       driveGearRatio = MK4I_L2_DRIVE_GEAR_RATIO;
       driveMotorInverted = MK4I_L2_DRIVE_MOTOR_INVERTED;
