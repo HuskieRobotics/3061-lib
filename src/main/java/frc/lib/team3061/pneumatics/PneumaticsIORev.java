@@ -8,7 +8,6 @@
 
 package frc.lib.team3061.pneumatics;
 
-import static frc.lib.team3061.pneumatics.PneumaticsConstants.*;
 import static frc.robot.Constants.*;
 
 import edu.wpi.first.wpilibj.AnalogInput;
@@ -20,6 +19,11 @@ import frc.lib.team3061.RobotConfig;
  * sensors, and an analog flow sensor (i.e., SMC PFM711-N7-C-R.)
  */
 public class PneumaticsIORev implements PneumaticsIO {
+
+  private static final int MIN_LOW_PRESSURE = 50;
+  private static final int MAX_LOW_PRESSURE = 60;
+  private static final int MIN_HIGH_PRESSURE = 80;
+  private static final int MAX_HIGH_PRESSURE = 120;
 
   private final PneumaticHub pneumatics;
   private final AnalogInput flowSensor;
