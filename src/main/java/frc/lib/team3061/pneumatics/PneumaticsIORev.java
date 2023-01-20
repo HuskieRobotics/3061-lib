@@ -13,6 +13,7 @@ import static frc.robot.Constants.*;
 
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.PneumaticHub;
+import frc.lib.team3061.RobotConfig;
 
 /**
  * Implementation of PneumaticsIO for REV Robotics Pneumatics Hub, dual REV Robotics pressure
@@ -24,15 +25,17 @@ public class PneumaticsIORev implements PneumaticsIO {
   private final AnalogInput flowSensor;
 
   public PneumaticsIORev() {
-    pneumatics = new PneumaticHub(PNEUMATICS_HUB_ID);
-    flowSensor = new AnalogInput(FLOW_SENSOR_CHANNEL);
+    pneumatics = new PneumaticHub(RobotConfig.getInstance().getPneumaticsHubCANID());
+    flowSensor = new AnalogInput(RobotConfig.getInstance().getFlowSensorChannel());
     useLowClosedLoopThresholds(false);
   }
 
   @Override
   public void updateInputs(PneumaticsIOInputs inputs) {
-    inputs.highPressurePSI = pneumatics.getPressure(REV_HIGH_PRESSURE_SENSOR_CHANNEL);
-    inputs.lowPressurePSI = pneumatics.getPressure(REV_LOW_PRESSURE_SENSOR_CHANNEL);
+    inputs.highPressurePSI =
+        pneumatics.getPressure(RobotConfig.getInstance().getRevHighPressureSensorChannel());
+    inputs.lowPressurePSI =
+        pneumatics.getPressure(RobotConfig.getInstance().getRevLowPressureSensorChannel());
     inputs.compressorActive = pneumatics.getCompressor();
     inputs.compressorCurrentAmps = pneumatics.getCompressorCurrent();
 

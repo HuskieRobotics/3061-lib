@@ -179,4 +179,18 @@ public abstract class RobotConfig {
   public String getCameraName() {
     return "";
   }
+
+  public abstract int getPneumaticsHubCANID();
+
+  public int getFlowSensorChannel() {
+    return 0;
+  }
+
+  public int getRevHighPressureSensorChannel() {
+    return 0;
+  }
+
+  public int getRevLowPressureSensorChannel() {
+    return 1;
+  }
 }

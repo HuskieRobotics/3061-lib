@@ -1,5 +1,8 @@
 package frc.robot.configs;
 
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.swerve.SwerveModuleConstants;
 
@@ -23,33 +26,33 @@ public class MK4IRobotConfig extends RobotConfig {
 
   /* Drive Motor Characterization Values */
   // divide by 12 to convert from volts to percent output for CTRE
-  public static final double DRIVE_KS = (0.55493 / 12);
-  public static final double DRIVE_KV = (2.3014 / 12);
-  public static final double DRIVE_KA = (0.12872 / 12);
+  private static final double DRIVE_KS = (0.55493 / 12);
+  private static final double DRIVE_KV = (2.3014 / 12);
+  private static final double DRIVE_KA = (0.12872 / 12);
 
   // FIXME: update all CAN IDs
   // FIXME: update all steer offsets
-  public static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 7;
-  public static final int FRONT_LEFT_MODULE_STEER_MOTOR = 6;
-  public static final int FRONT_LEFT_MODULE_STEER_ENCODER = 8;
-  public static final double FRONT_LEFT_MODULE_STEER_OFFSET = 118.0371;
+  private static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 7;
+  private static final int FRONT_LEFT_MODULE_STEER_MOTOR = 6;
+  private static final int FRONT_LEFT_MODULE_STEER_ENCODER = 8;
+  private static final double FRONT_LEFT_MODULE_STEER_OFFSET = 118.0371;
 
-  public static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 13;
-  public static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 12;
-  public static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 14;
-  public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = 102.9968;
+  private static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 13;
+  private static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 12;
+  private static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 14;
+  private static final double FRONT_RIGHT_MODULE_STEER_OFFSET = 102.9968;
 
-  public static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 10;
-  public static final int BACK_LEFT_MODULE_STEER_MOTOR = 9;
-  public static final int BACK_LEFT_MODULE_STEER_ENCODER = 11;
-  public static final double BACK_LEFT_MODULE_STEER_OFFSET = -189.7051;
+  private static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 10;
+  private static final int BACK_LEFT_MODULE_STEER_MOTOR = 9;
+  private static final int BACK_LEFT_MODULE_STEER_ENCODER = 11;
+  private static final double BACK_LEFT_MODULE_STEER_OFFSET = -189.7051;
 
-  public static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 16;
-  public static final int BACK_RIGHT_MODULE_STEER_MOTOR = 15;
-  public static final int BACK_RIGHT_MODULE_STEER_ENCODER = 17;
-  public static final double BACK_RIGHT_MODULE_STEER_OFFSET = 40.3335;
+  private static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 16;
+  private static final int BACK_RIGHT_MODULE_STEER_MOTOR = 15;
+  private static final int BACK_RIGHT_MODULE_STEER_ENCODER = 17;
+  private static final double BACK_RIGHT_MODULE_STEER_OFFSET = 40.3335;
 
-  public static final int PIGEON_ID = 18;
+  private static final int PIGEON_ID = 18;
 
   // FIXME: update robot dimensions
 
@@ -58,17 +61,21 @@ public class MK4IRobotConfig extends RobotConfig {
    *
    * <p>Should be measured from center to center.
    */
-  public static final double TRACKWIDTH_METERS = 0.5715; // 22.5 inches
+  private static final double TRACKWIDTH_METERS = 0.5715; // 22.5 inches
 
   /**
    * The front-to-back distance between the drivetrain wheels.
    *
    * <p>Should be measured from center to center.
    */
-  public static final double WHEELBASE_METERS = 0.5969; // 23.5 inches
+  private static final double WHEELBASE_METERS = 0.5969; // 23.5 inches
 
-  public static final double ROBOT_WIDTH_WITH_BUMPERS = 0.89; // meters
-  public static final double ROBOT_LENGTH_WITH_BUMPERS = 0.91; // meters
+  private static final double ROBOT_WIDTH_WITH_BUMPERS = 0.89; // meters
+  private static final double ROBOT_LENGTH_WITH_BUMPERS = 0.91; // meters
+
+  // FIXME: update this with the real transform from the robot to the camera
+  private static final Transform3d ROBOT_TO_CAMERA =
+      new Transform3d(new Translation3d(0, 0, 0), new Rotation3d(0, 0, 0));
 
   // FIXME: determine maximum velocities empirically
 
@@ -77,27 +84,38 @@ public class MK4IRobotConfig extends RobotConfig {
    *
    * <p>This is a measure of how fast the robot should be able to drive in a straight line.
    */
-  public static final double MAX_VELOCITY_METERS_PER_SECOND =
+  private static final double MAX_VELOCITY_METERS_PER_SECOND =
       6380.0
           / 60.0
           / SwerveModuleConstants.DRIVE_GEAR_RATIO
           * SwerveModuleConstants.WHEEL_CIRCUMFERENCE;
 
+  private static final double MAX_COAST_VELOCITY_METERS_PER_SECOND = 0.05;
+
+  private static final double AUTO_MAX_SPEED_METERS_PER_SECOND = 2.0;
+  private static final double AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED = 2.0;
+
   // FIXME: tune PID values for auto paths
 
-  public static final double AUTO_DRIVE_P_CONTROLLER = 6.0;
-  public static final double AUTO_DRIVE_I_CONTROLLER = 0.0;
-  public static final double AUTO_DRIVE_D_CONTROLLER = 0.0;
-  public static final double AUTO_TURN_P_CONTROLLER = 10.0;
-  public static final double AUTO_TURN_I_CONTROLLER = 0.0;
-  public static final double AUTO_TURN_D_CONTROLLER = 0.0;
+  private static final double AUTO_DRIVE_P_CONTROLLER = 6.0;
+  private static final double AUTO_DRIVE_I_CONTROLLER = 0.0;
+  private static final double AUTO_DRIVE_D_CONTROLLER = 0.0;
+  private static final double AUTO_TURN_P_CONTROLLER = 10.0;
+  private static final double AUTO_TURN_I_CONTROLLER = 0.0;
+  private static final double AUTO_TURN_D_CONTROLLER = 0.0;
 
   // FIXME: an empty string uses the CAN bus; specify the name of the CANivore as
   // appropriate
-  public static final String CAN_BUS_NAME = "";
+  private static final String CAN_BUS_NAME = "";
 
   // FIXME: specify the name of the camera used for detecting AprilTags
-  public static final String CAMERA_NAME = "ov9268";
+  private static final String CAMERA_NAME = "ov9268";
+
+  // FIXME: specify the configuration for pneumatics
+  private static final int PNEUMATICS_HUB_ID = 20;
+  private static final int FLOW_SENSOR_CHANNEL = 0;
+  private static final int REV_HIGH_PRESSURE_SENSOR_CHANNEL = 0;
+  private static final int REV_LOW_PRESSURE_SENSOR_CHANNEL = 1;
 
   // Swerve Module PID accessors
   @Override
@@ -224,8 +242,30 @@ public class MK4IRobotConfig extends RobotConfig {
   }
 
   @Override
+  public Transform3d getRobotToCameraTransform() {
+    return ROBOT_TO_CAMERA;
+  }
+
+  @Override
   public double getRobotMaxVelocity() {
     return MAX_VELOCITY_METERS_PER_SECOND;
+  }
+
+  @Override
+  public double getRobotMaxCoastVelocity() {
+    return MAX_COAST_VELOCITY_METERS_PER_SECOND;
+  }
+
+  // auto path max velocities and accelerations
+
+  @Override
+  public double getAutoMaxSpeed() {
+    return AUTO_MAX_SPEED_METERS_PER_SECOND;
+  }
+
+  @Override
+  public double getAutoMaxAcceleration() {
+    return AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED;
   }
 
   // auto path PIDs
@@ -267,5 +307,25 @@ public class MK4IRobotConfig extends RobotConfig {
   @Override
   public String getCameraName() {
     return CAMERA_NAME;
+  }
+
+  @Override
+  public int getPneumaticsHubCANID() {
+    return PNEUMATICS_HUB_ID;
+  }
+
+  @Override
+  public int getFlowSensorChannel() {
+    return FLOW_SENSOR_CHANNEL;
+  }
+
+  @Override
+  public int getRevHighPressureSensorChannel() {
+    return REV_HIGH_PRESSURE_SENSOR_CHANNEL;
+  }
+
+  @Override
+  public int getRevLowPressureSensorChannel() {
+    return REV_LOW_PRESSURE_SENSOR_CHANNEL;
   }
 }
