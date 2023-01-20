@@ -300,8 +300,22 @@ public class RobotContainer {
     // "auto" command for testing autonomous accuracy of auto pose estmation(going towards the grid)
     List<PathPlannerTrajectory> autonomousPoseTest2 =
         PathPlanner.loadPathGroup("autoAccuracyTesting2", 2.0, 2.0);
-    Command autoPoseTest2 = (new FollowPath(autonomousPoseTest2.get(0), drivetrain, true));
-    autoChooser.addOption("Test Auto Pose Accuracy 2 (towards grid)", autoPoseTest2);
+    Command autoPoseTest2 = 
+      Commands.sequence(
+        new FollowPath(autonomousPoseTest2.get(0), drivetrain, true),
+        Commands.waitSeconds(1.0),
+        new FollowPath(autonomousPoseTest2.get(1), drivetrain, false));
+    autoChooser.addOption("Test Auto Pose Accuracy 2 (curved towards grid)", autoPoseTest2);
+
+    // "auto" command for testing autonomous accracy for auto pose estamation(going towards the grid)
+    List<PathPlannerTrajectory> autonomousPoseTest3 =
+        PathPlanner.loadPathGroup("autoAccuracyTesting3", 2.0, 2.0);
+    Command autoPoseTest3 =
+      Commands.sequence(
+        new FollowPath(autonomousPoseTest3.get(0), drivetrain, true),
+        Commands.waitSeconds(1.0),
+        new FollowPath(autonomousPoseTest3.get(1), drivetrain, false));
+    autoChooser.addOption("Test Auto Pose Accuracy 3 (straight towards grid)", autoPoseTest3);
 
     // "auto" command for testing autonomous accurcary of auto turn PID constants
     List<PathPlannerTrajectory> Test2 = PathPlanner.loadPathGroup("testPath2", 2.0, 2.0);
