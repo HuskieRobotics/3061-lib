@@ -1,5 +1,8 @@
 package frc.robot.configs;
 
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.swerve.SwerveModuleConstants;
 
@@ -69,6 +72,10 @@ public class SierraRobotConfig extends RobotConfig {
 
   public static final double ROBOT_WIDTH_WITH_BUMPERS = 0.89; // meters
   public static final double ROBOT_LENGTH_WITH_BUMPERS = 0.91; // meters
+
+  // FIXME: update this with the real transform from the robot to the camera
+  public static final Transform3d ROBOT_TO_CAMERA =
+      new Transform3d(new Translation3d(0, 0, 0), new Rotation3d(0, 0, 0));
 
   // FIXME: determine maximum velocities empirically
 
@@ -226,6 +233,11 @@ public class SierraRobotConfig extends RobotConfig {
   @Override
   public double getRobotLengthWithBumpers() {
     return ROBOT_LENGTH_WITH_BUMPERS;
+  }
+
+  @Override
+  public Transform3d getRobotToCameraTransform() {
+    return ROBOT_TO_CAMERA;
   }
 
   @Override

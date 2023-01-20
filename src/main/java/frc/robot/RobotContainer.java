@@ -163,7 +163,10 @@ public class RobotContainer {
               layout = new AprilTagFieldLayout(new ArrayList<>(), 16.4592, 8.2296);
             }
             new Vision(
-                new VisionIOSim(layout, drivetrain::getPose, VisionConstants.ROBOT_TO_CAMERA));
+                new VisionIOSim(
+                    layout,
+                    drivetrain::getPose,
+                    RobotConfig.getInstance().getRobotToCameraTransform()));
 
             break;
           }

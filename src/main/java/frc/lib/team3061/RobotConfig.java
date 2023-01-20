@@ -1,6 +1,9 @@
 package frc.lib.team3061;
 
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import frc.lib.team3061.swerve.SwerveModuleConstants;
 
@@ -102,6 +105,10 @@ public abstract class RobotConfig {
 
   public double getRobotLengthWithBumpers() {
     return 0.0;
+  }
+
+  public Transform3d getRobotToCameraTransform() {
+    return new Transform3d(new Translation3d(0, 0, 0), new Rotation3d(0, 0, 0));
   }
 
   // robot maximum velocity and acceleration
