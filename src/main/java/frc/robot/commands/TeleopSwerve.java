@@ -27,8 +27,8 @@ public class TeleopSwerve extends CommandBase {
   public static final double DEADBAND = 0.1;
 
   private final double maxVelocityMetersPerSecond = RobotConfig.getInstance().getRobotMaxVelocity();
-  private final double maxAccelerationMetersPerSecondSquared =
-      RobotConfig.getInstance().getRobotMaxAcceleration();
+  private final double maxAngularVelocityRadiansPerSecond =
+      RobotConfig.getInstance().getRobotMaxAngularVelocity();
 
   /**
    * Create a new TeleopSwerve command object.
@@ -65,7 +65,7 @@ public class TeleopSwerve extends CommandBase {
 
     double xVelocity = xPercentage * maxVelocityMetersPerSecond;
     double yVelocity = yPercentage * maxVelocityMetersPerSecond;
-    double rotationalVelocity = rotationPercentage * maxAccelerationMetersPerSecondSquared;
+    double rotationalVelocity = rotationPercentage * maxAngularVelocityRadiansPerSecond;
 
     Logger.getInstance().recordOutput("ActiveCommands/TeleopSwerve", true);
     Logger.getInstance().recordOutput("TeleopSwerve/xVelocity", xVelocity);

@@ -89,7 +89,7 @@ public class RobotContainer {
               config = new DefaultRobotConfig();
             }
 
-            GyroIO gyro = new GyroIOPigeon2(config.getPigeonCANID());
+            GyroIO gyro = new GyroIOPigeon2(config.getGyroCANID());
 
             int[] driveMotorCANIDs = config.getSwerveDriveMotorCANIDs();
             int[] steerMotorCANDIDs = config.getSwerveSteerMotorCANIDs();

@@ -88,9 +88,9 @@ public class SwerveModuleIOTalonFX implements SwerveModuleIO {
 
     this.feedForward =
         new SimpleMotorFeedforward(
-            RobotConfig.getInstance().getDriveKS(),
-            RobotConfig.getInstance().getDriveKV(),
-            RobotConfig.getInstance().getDriveKA());
+            RobotConfig.getInstance().getDriveKS() / 12,
+            RobotConfig.getInstance().getDriveKV() / 12,
+            RobotConfig.getInstance().getDriveKA() / 12);
 
     CANDeviceFinder can = new CANDeviceFinder();
     can.isDevicePresent(CANDeviceType.TALON, driveMotorID, "Mod " + moduleNumber + "Drive");

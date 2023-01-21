@@ -6,25 +6,11 @@ import edu.wpi.first.math.geometry.Translation3d;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.swerve.SwerveModuleConstants.SwerveType;
 
+/*
+ * Refer to the README for how to represent your robot's configuration. For more information on
+ * these methods, refer to the documentation in the RobotConfig class.
+ */
 public class SierraRobotConfig extends RobotConfig {
-
-  /* Angle Motor PID Values */
-  private static final double ANGLE_KP = 0.6;
-  private static final double ANGLE_KI = 0.0;
-  private static final double ANGLE_KD = 12.0;
-  private static final double ANGLE_KF = 0.0;
-
-  /* Drive Motor PID Values */
-  private static final double DRIVE_KP = 0.10;
-  private static final double DRIVE_KI = 0.0;
-  private static final double DRIVE_KD = 0.0;
-  private static final double DRIVE_KF = 0.0;
-
-  /* Drive Motor Characterization Values */
-  // divide by 12 to convert from volts to percent output for CTRE
-  private static final double DRIVE_KS = (0.55493 / 12);
-  private static final double DRIVE_KV = (2.3014 / 12);
-  private static final double DRIVE_KA = (0.12872 / 12);
 
   private static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 7;
   private static final int FRONT_LEFT_MODULE_STEER_MOTOR = 6;
@@ -46,40 +32,48 @@ public class SierraRobotConfig extends RobotConfig {
   private static final int BACK_RIGHT_MODULE_STEER_ENCODER = 17;
   private static final double BACK_RIGHT_MODULE_STEER_OFFSET = 40.3335;
 
-  private static final int PIGEON_ID = 18;
+  private static final int GYRO_ID = 18;
 
-  /**
-   * The left-to-right distance between the drivetrain wheels
-   *
-   * <p>Should be measured from center to center.
-   */
   private static final double TRACKWIDTH_METERS = 0.5715; // 22.5 inches
-
-  /**
-   * The front-to-back distance between the drivetrain wheels.
-   *
-   * <p>Should be measured from center to center.
-   */
   private static final double WHEELBASE_METERS = 0.5969; // 23.5 inches
-
   private static final double ROBOT_WIDTH_WITH_BUMPERS = 0.89; // meters
   private static final double ROBOT_LENGTH_WITH_BUMPERS = 0.91; // meters
+
+  /* Angle Motor PID Values */
+  private static final double ANGLE_KP = 0.6;
+  private static final double ANGLE_KI = 0.0;
+  private static final double ANGLE_KD = 12.0;
+  private static final double ANGLE_KF = 0.0;
+
+  /* Drive Motor PID Values */
+  private static final double DRIVE_KP = 0.10;
+  private static final double DRIVE_KI = 0.0;
+  private static final double DRIVE_KD = 0.0;
+  private static final double DRIVE_KF = 0.0;
+
+  private static final double DRIVE_KS = 0.55493;
+  private static final double DRIVE_KV = 2.3014;
+  private static final double DRIVE_KA = 0.12872;
+
+  private static final SwerveType SWERVE_TYPE = SwerveType.MK4;
+
+  private static final double MAX_VELOCITY_METERS_PER_SECOND = 4.25;
+  private static final double MAX_COAST_VELOCITY_METERS_PER_SECOND = 0.05;
+
+  private static final String CAN_BUS_NAME = "";
+
+  private static final String CAMERA_NAME = "ov9268";
 
   private static final Transform3d ROBOT_TO_CAMERA =
       new Transform3d(new Translation3d(0, 0, 0), new Rotation3d(0, 0, 0));
 
-  /**
-   * The maximum velocity of the robot in meters per second.
-   *
-   * <p>This is a measure of how fast the robot should be able to drive in a straight line.
-   */
-  private static final double MAX_VELOCITY_METERS_PER_SECOND = 4.25;
-
-  private static final double MAX_COAST_VELOCITY_METERS_PER_SECOND = 0.05;
+  private static final int PNEUMATICS_HUB_ID = 20;
+  private static final int FLOW_SENSOR_CHANNEL = 0;
+  private static final int REV_HIGH_PRESSURE_SENSOR_CHANNEL = 0;
+  private static final int REV_LOW_PRESSURE_SENSOR_CHANNEL = 1;
 
   private static final double AUTO_MAX_SPEED_METERS_PER_SECOND = 2.0;
   private static final double AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED = 2.0;
-
   private static final double AUTO_DRIVE_P_CONTROLLER = 6.0;
   private static final double AUTO_DRIVE_I_CONTROLLER = 0.0;
   private static final double AUTO_DRIVE_D_CONTROLLER = 0.0;
@@ -87,16 +81,6 @@ public class SierraRobotConfig extends RobotConfig {
   private static final double AUTO_TURN_I_CONTROLLER = 0.0;
   private static final double AUTO_TURN_D_CONTROLLER = 0.0;
 
-  private static final String CAN_BUS_NAME = "";
-
-  private static final String CAMERA_NAME = "ov9268";
-
-  private static final int PNEUMATICS_HUB_ID = 20;
-  private static final int FLOW_SENSOR_CHANNEL = 0;
-  private static final int REV_HIGH_PRESSURE_SENSOR_CHANNEL = 0;
-  private static final int REV_LOW_PRESSURE_SENSOR_CHANNEL = 1;
-
-  // Swerve Module PID accessors
   @Override
   public double getSwerveAngleKP() {
     return ANGLE_KP;
@@ -137,7 +121,6 @@ public class SierraRobotConfig extends RobotConfig {
     return DRIVE_KF;
   }
 
-  // Drive Characterization accessors
   @Override
   public double getDriveKS() {
     return DRIVE_KS;
@@ -153,12 +136,11 @@ public class SierraRobotConfig extends RobotConfig {
     return DRIVE_KA;
   }
 
-  // Swerve Module type
+  @Override
   public SwerveType getSwerveType() {
-    return SwerveType.MK4;
+    return SWERVE_TYPE;
   }
 
-  // Swerve Module CAN IDs (FL, FR, BL, BR)
   @Override
   public int[] getSwerveDriveMotorCANIDs() {
     return new int[] {
@@ -200,11 +182,10 @@ public class SierraRobotConfig extends RobotConfig {
   }
 
   @Override
-  public int getPigeonCANID() {
-    return PIGEON_ID;
+  public int getGyroCANID() {
+    return GYRO_ID;
   }
 
-  // robot dimensions accessors
   @Override
   public double getTrackwidth() {
     return TRACKWIDTH_METERS;
@@ -240,8 +221,6 @@ public class SierraRobotConfig extends RobotConfig {
     return MAX_COAST_VELOCITY_METERS_PER_SECOND;
   }
 
-  // auto path max velocities and accelerations
-
   @Override
   public double getAutoMaxSpeed() {
     return AUTO_MAX_SPEED_METERS_PER_SECOND;
@@ -252,7 +231,6 @@ public class SierraRobotConfig extends RobotConfig {
     return AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED;
   }
 
-  // auto path PIDs
   @Override
   public double getAutoDriveKP() {
     return AUTO_DRIVE_P_CONTROLLER;
