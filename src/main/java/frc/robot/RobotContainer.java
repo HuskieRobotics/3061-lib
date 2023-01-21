@@ -64,7 +64,7 @@ public class RobotContainer {
 
   // RobotContainer singleton
   private static RobotContainer robotContainer = new RobotContainer();
-  private final Map<String, Command> AUTO_EVENT_MAP = new HashMap<>();
+  private final Map<String, Command> autoEventMap = new HashMap<>();
 
   /** Create the container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -260,8 +260,8 @@ public class RobotContainer {
 
   /** Use this method to define your commands for autonomous mode. */
   private void configureAutoCommands() {
-    AUTO_EVENT_MAP.put("event1", Commands.print("passed marker 1"));
-    AUTO_EVENT_MAP.put("event2", Commands.print("passed marker 2"));
+    autoEventMap.put("event1", Commands.print("passed marker 1"));
+    autoEventMap.put("event2", Commands.print("passed marker 2"));
 
     // build auto path commands
     List<PathPlannerTrajectory> auto1Paths =
@@ -272,14 +272,14 @@ public class RobotContainer {
             new FollowPathWithEvents(
                 new FollowPath(auto1Paths.get(0), drivetrain, true),
                 auto1Paths.get(0).getMarkers(),
-                AUTO_EVENT_MAP),
+                autoEventMap),
             Commands.runOnce(drivetrain::enableXstance, drivetrain),
             Commands.waitSeconds(5.0),
             Commands.runOnce(drivetrain::disableXstance, drivetrain),
             new FollowPathWithEvents(
                 new FollowPath(auto1Paths.get(1), drivetrain, false),
                 auto1Paths.get(1).getMarkers(),
-                AUTO_EVENT_MAP));
+                autoEventMap));
 
     // add commands to the auto chooser
     autoChooser.addDefaultOption("Do Nothing", new InstantCommand());

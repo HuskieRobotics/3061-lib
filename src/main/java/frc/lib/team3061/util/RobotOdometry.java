@@ -22,7 +22,6 @@ public class RobotOdometry {
       };
 
   private RobotOdometry() {
-    // FIXME: test if the config object is valid
     estimator =
         new SwerveDrivePoseEstimator(
             RobotConfig.getInstance().getSwerveDriveKinematics(),
