@@ -10,6 +10,7 @@ import static frc.robot.subsystems.drivetrain.DrivetrainConstants.*;
 import com.pathplanner.lib.PathPlanner;
 import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.commands.FollowPathWithEvents;
+import com.pathplanner.lib.server.PathPlannerServer;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -300,27 +301,30 @@ public class RobotContainer {
     // "auto" command for testing autonomous accuracy of auto pose estmation(going towards the grid)
     List<PathPlannerTrajectory> autonomousPoseTest2 =
         PathPlanner.loadPathGroup("autoAccuracyTesting2", 2.0, 2.0);
-    Command autoPoseTest2 = 
-      Commands.sequence(
-        new FollowPath(autonomousPoseTest2.get(0), drivetrain, true),
-        Commands.waitSeconds(1.0),
-        new FollowPath(autonomousPoseTest2.get(1), drivetrain, false));
+    Command autoPoseTest2 =
+        Commands.sequence(
+            new FollowPath(autonomousPoseTest2.get(0), drivetrain, true),
+            Commands.waitSeconds(1.0),
+            new FollowPath(autonomousPoseTest2.get(1), drivetrain, false));
     autoChooser.addOption("Test Auto Pose Accuracy 2 (curved towards grid)", autoPoseTest2);
 
-    // "auto" command for testing autonomous accracy for auto pose estamation(going towards the grid)
+    // "auto" command for testing autonomous accracy for auto pose estamation(going towards the
+    // grid)
     List<PathPlannerTrajectory> autonomousPoseTest3 =
         PathPlanner.loadPathGroup("autoAccuracyTesting3", 2.0, 2.0);
     Command autoPoseTest3 =
-      Commands.sequence(
-        new FollowPath(autonomousPoseTest3.get(0), drivetrain, true),
-        Commands.waitSeconds(1.0),
-        new FollowPath(autonomousPoseTest3.get(1), drivetrain, false));
+        Commands.sequence(
+            new FollowPath(autonomousPoseTest3.get(0), drivetrain, true),
+            Commands.waitSeconds(1.0),
+            new FollowPath(autonomousPoseTest3.get(1), drivetrain, false));
     autoChooser.addOption("Test Auto Pose Accuracy 3 (straight towards grid)", autoPoseTest3);
 
     // "auto" command for testing autonomous accurcary of auto turn PID constants
     List<PathPlannerTrajectory> Test2 = PathPlanner.loadPathGroup("testPath2", 2.0, 2.0);
     Command autoTest2 = (new FollowPath(Test2.get(0), drivetrain, true));
     autoChooser.addOption("Test Auto Accuracy 2 (turn PID tuning)", autoTest2);
+
+    PathPlannerServer.startServer(3061);
 
     Shuffleboard.getTab("MAIN").add(autoChooser.getSendableChooser());
   }
