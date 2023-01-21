@@ -64,7 +64,7 @@ public class RobotContainer {
 
   // RobotContainer singleton
   private static RobotContainer robotContainer = new RobotContainer();
-  private static final Map<String, Command> AUTO_EVENT_MAP = new HashMap<>();
+  private final Map<String, Command> AUTO_EVENT_MAP = new HashMap<>();
 
   /** Create the container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
