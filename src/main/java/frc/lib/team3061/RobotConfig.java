@@ -278,19 +278,19 @@ public abstract class RobotConfig {
   }
 
   /**
-   * Returns the maximum speed, in meters per second, for the robot when following autonmous paths.
+   * Returns the maximum speed, in meters per second, for the robot when following autonomous paths.
    * Must be overridden.
    *
-   * @return the maximum speed, in meters per second, for the robot when following autonmous paths
+   * @return the maximum speed, in meters per second, for the robot when following autonomous paths
    */
   public abstract double getAutoMaxSpeed();
 
   /**
    * Returns the maximum acceleration, in meters per second squared, for the robot when following
-   * autonmous paths. Must be overridden.
+   * autonomous paths. Must be overridden.
    *
    * @return the maximum acceleration, in meters per second squared, for the robot when following
-   *     autonmous paths
+   *     autonomous paths
    */
   public abstract double getAutoMaxAcceleration();
 
