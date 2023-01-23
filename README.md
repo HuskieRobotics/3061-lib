@@ -2,6 +2,10 @@
 
 Huskie Robotics, FRC Team 3061's, starter project and library focused on a swerve-based drivetrain. Supports SDS MK4/MK4i swerve modules using 2 Falcon 500 motors and a CTRE CANCoder, a CTRE Pigeon Gyro, and REV Robotics power distribution hub and pneumatics hub. However, due to the hardware abstraction layer, this code can be adapted to other motor controllers, encoders, and gyros as well as different swerve module designs.
 
+**External Dependencies**
+----
+* git must be installed as the GVersion plugin depends upon it
+
 **Features**
 ----
 * multiple robots, including a simulated robot with basic simulation of swerve modules
