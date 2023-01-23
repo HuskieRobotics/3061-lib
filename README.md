@@ -31,6 +31,24 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
     * When the drive motor is supplied a positive input, it should turn the swerve module wheel such that the robot moves forward; if not, negate.
     * When the angle motor is supplied a positive input, it should rotate the swerve module wheel such that the wheel rotates in the CCW direction; if not, negate.
     * When the angle motor rotates the swerve module wheel in a CCW direction, the CANcoder should increase its reading; if not, set to negate.
+* Checking geometry:
+    1. elevate the robot on a cart positioned in front of the operator console so the driver's perspective is the same as the robot's (i.e., the front of the robot facing away from the driver); we label the front, back, left, and right of the robot on the robot since which is which may be ambiguous until more of the robot is assembled
+    2. position all four wheels such that they are pointing forward (bevel gears all facing the same direction as when the steer offsets were determined)
+    3. push the drive joystick forward
+    4. verify that the joystick is specifying a positive x velocity (graph AdvantageKit/RealOutput/TeleopSwerve/xVelocity in AdvantageScope); if not, update the corresponding method in the OperatorInterface subclass
+    5. verify that each wheel is rotating to move the robot forward (+x direction)
+    6. verify that the drive TalonFX distance is consistent (graph AdvantageKit/Mod0/DriveDistanceMeters and verify that it is increasing; check all 4 modules)
+    7. perform steps 3-6 but pull the drive joystick backwards (xVelocity should be negative and DriveDistanceMeters should decrease)
+    8. perform steps 3-6 but push the drive joystick to the left (yVelocity should be positive; DriveDistanceMeters should increase if the wheel is pointed to the left and decrease if pointed to the right; add AdvantageKit/RealOutputs/SwerveModuleStates to the Swerve tab in AdvantageScope to visualize)
+    9. perform steps 3-6 but push the drive joystick to the right (yVelocity should be negative; DriveDistanceMeters should increase if the wheel is pointed to the right and decrease if pointed to the left; use the Swerve tab in AdvantageScope to visualize)
+    10. push the rotate joystick in the direction to rotate CCW (when looking down on the robot)
+    11. verify that the joystick is specifying a positive rotational velocity (graph AdvantageKit/RealOutput/TeleopSwerve/rotationalVelocity in AdvantageScope); if not, update the corresponding method in the OperatorInterface subclass
+    12. verify that each wheel is rotating to rotate the robot in a CCW direction
+    13. perform steps 10-12 but push the rotate joystick in the direction to rotate CW
+    14. graph AdvantageKit/Drive/Gyro/PositionDeg
+    15. rotate the cart in a CCW direction and verify that the gyro is increasing
+    16. rotate the cart in a CW direction and verify that the gyro is decreasing
+    17. use Phoenix Tuner to flash the LEDs on the Falcon 500s and CANcoders to ensure that the CAN IDs are properly assigned to the front-left, front-right, back-left, and back-right positions (all of the above may behave as expected even if the modules aren't assigned to the appropriate corners)
 * Setting Steer Offsets (e.g., ```FRONT_LEFT_MODULE_STEER_OFFSET```) in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
     * set ```DEBUGGING``` in SwerveModule.java to true
     * for finding the offsets, use a piece of 1x1 metal that is straight against the forks of the front and back modules (on the left and right side) to ensure that the modules are straight
