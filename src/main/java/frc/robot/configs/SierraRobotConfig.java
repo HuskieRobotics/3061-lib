@@ -51,8 +51,8 @@ public class SierraRobotConfig extends RobotConfig {
   private static final double DRIVE_KD = 0.0;
   private static final double DRIVE_KF = 0.0;
 
-  private static final double DRIVE_KS = 0.55493;
-  private static final double DRIVE_KV = 2.3014;
+  private static final double DRIVE_KS = 0.67841;
+  private static final double DRIVE_KV = 2.27615;
   private static final double DRIVE_KA = 0.12872;
 
   private static final SwerveType SWERVE_TYPE = SwerveType.MK4;
