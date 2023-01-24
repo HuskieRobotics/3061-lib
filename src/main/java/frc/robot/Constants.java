@@ -42,7 +42,7 @@ public final class Constants {
     if (RobotBase.isReal()) {
       if (ROBOT == RobotType.ROBOT_SIMBOT) { // Invalid robot selected
         invalidRobotAlert.set(true);
-        return RobotType.ROBOT_2022_SIERRA; // default to Sierra for now
+        return RobotType.ROBOT_DEFAULT;
       } else {
         return ROBOT;
       }

@@ -15,22 +15,22 @@ public class SierraRobotConfig extends RobotConfig {
   private static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 7;
   private static final int FRONT_LEFT_MODULE_STEER_MOTOR = 6;
   private static final int FRONT_LEFT_MODULE_STEER_ENCODER = 8;
-  private static final double FRONT_LEFT_MODULE_STEER_OFFSET = 118.0371;
+  private static final double FRONT_LEFT_MODULE_STEER_OFFSET = 119.26;
 
   private static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 13;
   private static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 12;
   private static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 14;
-  private static final double FRONT_RIGHT_MODULE_STEER_OFFSET = 102.9968;
+  private static final double FRONT_RIGHT_MODULE_STEER_OFFSET = 102.44;
 
   private static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 10;
   private static final int BACK_LEFT_MODULE_STEER_MOTOR = 9;
   private static final int BACK_LEFT_MODULE_STEER_ENCODER = 11;
-  private static final double BACK_LEFT_MODULE_STEER_OFFSET = -189.7051;
+  private static final double BACK_LEFT_MODULE_STEER_OFFSET = 172.44;
 
   private static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 16;
   private static final int BACK_RIGHT_MODULE_STEER_MOTOR = 15;
   private static final int BACK_RIGHT_MODULE_STEER_ENCODER = 17;
-  private static final double BACK_RIGHT_MODULE_STEER_OFFSET = 40.3335;
+  private static final double BACK_RIGHT_MODULE_STEER_OFFSET = 40.86;
 
   private static final int GYRO_ID = 18;
 
@@ -51,8 +51,8 @@ public class SierraRobotConfig extends RobotConfig {
   private static final double DRIVE_KD = 0.0;
   private static final double DRIVE_KF = 0.0;
 
-  private static final double DRIVE_KS = 0.55493;
-  private static final double DRIVE_KV = 2.3014;
+  private static final double DRIVE_KS = 0.67841;
+  private static final double DRIVE_KV = 2.27615;
   private static final double DRIVE_KA = 0.12872;
 
   private static final SwerveType SWERVE_TYPE = SwerveType.MK4;
@@ -62,10 +62,10 @@ public class SierraRobotConfig extends RobotConfig {
 
   private static final String CAN_BUS_NAME = "";
 
-  private static final String CAMERA_NAME = "ov9268";
+  private static final String CAMERA_NAME = "OV9281";
 
   private static final Transform3d ROBOT_TO_CAMERA =
-      new Transform3d(new Translation3d(0, 0, 0), new Rotation3d(0, 0, 0));
+      new Transform3d(new Translation3d(0.254, 0, 0.648), new Rotation3d(0, 0, 0));
 
   private static final int PNEUMATICS_HUB_ID = 20;
   private static final int FLOW_SENSOR_CHANNEL = 0;
@@ -74,7 +74,7 @@ public class SierraRobotConfig extends RobotConfig {
 
   private static final double AUTO_MAX_SPEED_METERS_PER_SECOND = 2.0;
   private static final double AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED = 2.0;
-  private static final double AUTO_DRIVE_P_CONTROLLER = 6.0;
+  private static final double AUTO_DRIVE_P_CONTROLLER = 3.5;
   private static final double AUTO_DRIVE_I_CONTROLLER = 0.0;
   private static final double AUTO_DRIVE_D_CONTROLLER = 0.0;
   private static final double AUTO_TURN_P_CONTROLLER = 10.0;
