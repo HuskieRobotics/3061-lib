@@ -11,6 +11,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team3061.vision.VisionIO.VisionIOInputs;
 import frc.lib.team6328.util.Alert;
@@ -85,7 +86,9 @@ public class Vision extends SubsystemBase {
           if (tagPoseOptional.isPresent()) {
             Pose3d tagPose = tagPoseOptional.get();
             Pose3d cameraPose = tagPose.transformBy(cameraToTarget.inverse());
-            Pose3d robotPose = cameraPose.transformBy(VisionConstants.ROBOT_TO_CAMERA.inverse());
+            Pose3d robotPose =
+                cameraPose.transformBy(
+                    RobotConfig.getInstance().getRobotToCameraTransform().inverse());
 
             if (poseEstimator
                     .getEstimatedPosition()
@@ -125,7 +128,9 @@ public class Vision extends SubsystemBase {
     PhotonPipelineResult result = getLatestResult();
     for (PhotonTrackedTarget target : result.getTargets()) {
       if (target.getFiducialId() == id && isValidTarget(target)) {
-        return VisionConstants.ROBOT_TO_CAMERA.plus(target.getBestCameraToTarget());
+        return RobotConfig.getInstance()
+            .getRobotToCameraTransform()
+            .plus(target.getBestCameraToTarget());
       }
     }
     return null;

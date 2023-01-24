@@ -1,8 +1,8 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.lib.team3061.RobotConfig;
 import frc.robot.subsystems.drivetrain.Drivetrain;
-import frc.robot.subsystems.drivetrain.DrivetrainConstants;
 import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 
@@ -23,6 +23,12 @@ public class TeleopSwerve extends CommandBase {
   private final DoubleSupplier translationXSupplier;
   private final DoubleSupplier translationYSupplier;
   private final DoubleSupplier rotationSupplier;
+
+  public static final double DEADBAND = 0.1;
+
+  private final double maxVelocityMetersPerSecond = RobotConfig.getInstance().getRobotMaxVelocity();
+  private final double maxAngularVelocityRadiansPerSecond =
+      RobotConfig.getInstance().getRobotMaxAngularVelocity();
 
   /**
    * Create a new TeleopSwerve command object.
@@ -57,10 +63,9 @@ public class TeleopSwerve extends CommandBase {
     double yPercentage = modifyAxis(translationYSupplier.getAsDouble());
     double rotationPercentage = modifyAxis(rotationSupplier.getAsDouble());
 
-    double xVelocity = xPercentage * DrivetrainConstants.MAX_VELOCITY_METERS_PER_SECOND;
-    double yVelocity = yPercentage * DrivetrainConstants.MAX_VELOCITY_METERS_PER_SECOND;
-    double rotationalVelocity =
-        rotationPercentage * DrivetrainConstants.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND;
+    double xVelocity = xPercentage * maxVelocityMetersPerSecond;
+    double yVelocity = yPercentage * maxVelocityMetersPerSecond;
+    double rotationalVelocity = rotationPercentage * maxAngularVelocityRadiansPerSecond;
 
     Logger.getInstance().recordOutput("ActiveCommands/TeleopSwerve", true);
     Logger.getInstance().recordOutput("TeleopSwerve/xVelocity", xVelocity);
@@ -88,7 +93,7 @@ public class TeleopSwerve extends CommandBase {
    */
   private static double modifyAxis(double value) {
     // Deadband
-    value = deadband(value, DrivetrainConstants.DEADBAND);
+    value = deadband(value, DEADBAND);
 
     // Square the axis
     value = Math.copySign(value * value, value);

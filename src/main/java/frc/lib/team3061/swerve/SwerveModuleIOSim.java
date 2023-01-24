@@ -33,9 +33,25 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
   private final TunableNumber turnKi = new TunableNumber("Drive/TurnKi", SIM_ANGLE_KI);
   private final TunableNumber turnKd = new TunableNumber("Drive/TurnKd", SIM_ANGLE_KD);
 
-  private FlywheelSim driveSim = new FlywheelSim(DCMotor.getFalcon500(1), DRIVE_GEAR_RATIO, 0.025);
+  /* Simulated Angle Motor PID Values */
+  private static final double SIM_ANGLE_KP = 12.0;
+  private static final double SIM_ANGLE_KI = 0.0;
+  private static final double SIM_ANGLE_KD = 0.0;
+
+  /* Simulated Drive Motor PID Values */
+  private static final double SIM_DRIVE_KP = 0.8;
+  private static final double SIM_DRIVE_KI = 0.0;
+  private static final double SIM_DRIVE_KD = 0.0;
+
+  /* Simulated Drive Motor Characterization Values */
+  private static final double SIM_DRIVE_KS = 0.116970;
+  private static final double SIM_DRIVE_KV = 0.133240;
+  private static final double SIM_DRIVE_KA = 0.0;
+
+  private FlywheelSim driveSim =
+      new FlywheelSim(DCMotor.getFalcon500(1), MK4_L2_DRIVE_GEAR_RATIO, 0.025);
   private FlywheelSim turnSim =
-      new FlywheelSim(DCMotor.getFalcon500(1), ANGLE_GEAR_RATIO, 0.004096955);
+      new FlywheelSim(DCMotor.getFalcon500(1), MK4_L2_ANGLE_GEAR_RATIO, 0.004096955);
 
   private double turnRelativePositionRad = 0.0;
   private double turnAbsolutePositionRad = Math.random() * 2.0 * Math.PI;
@@ -77,10 +93,10 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
         inputs.driveDistanceMeters
             + (driveSim.getAngularVelocityRadPerSec()
                 * LOOP_PERIOD_SECS
-                * (WHEEL_CIRCUMFERENCE / (2.0 * Math.PI)));
+                * (MK4_L2_WHEEL_CIRCUMFERENCE / (2.0 * Math.PI)));
 
     inputs.driveVelocityMetersPerSec =
-        driveSim.getAngularVelocityRadPerSec() * (WHEEL_CIRCUMFERENCE / (2.0 * Math.PI));
+        driveSim.getAngularVelocityRadPerSec() * (MK4_L2_WHEEL_CIRCUMFERENCE / (2.0 * Math.PI));
 
     inputs.driveAppliedPercentage = driveAppliedVolts / 12.0;
     inputs.driveCurrentAmps = new double[] {Math.abs(driveSim.getCurrentDrawAmps())};
@@ -110,7 +126,7 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
     turnSim.setInputVoltage(turnAppliedVolts);
 
     if (!isDriveOpenLoop) {
-      double velocityRadPerSec = driveSetpointMPS * (2.0 * Math.PI) / (WHEEL_CIRCUMFERENCE);
+      double velocityRadPerSec = driveSetpointMPS * (2.0 * Math.PI) / (MK4_L2_WHEEL_CIRCUMFERENCE);
       driveAppliedVolts =
           feedForward.calculate(velocityRadPerSec)
               + driveController.calculate(inputs.driveVelocityMetersPerSec, velocityRadPerSec);
