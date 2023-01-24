@@ -257,7 +257,8 @@ public class Drivetrain extends SubsystemBase {
    * @param translationYSupplier the desired velocity in the y direction (m/s)
    * @param rotationSupplier the desired rotational velcoity (rad/s)
    */
-  public void drive(double xVelocity, double yVelocity, double rotationalVelocity) {
+  public void drive(
+      double xVelocity, double yVelocity, double rotationalVelocity, boolean isOpenLoop) {
 
     switch (driveMode) {
       case NORMAL:
@@ -284,7 +285,7 @@ public class Drivetrain extends SubsystemBase {
 
         for (SwerveModule swerveModule : swerveModules) {
           swerveModule.setDesiredState(
-              swerveModuleStates[swerveModule.getModuleNumber()], true, false);
+              swerveModuleStates[swerveModule.getModuleNumber()], isOpenLoop, false);
         }
         break;
 
@@ -564,7 +565,7 @@ public class Drivetrain extends SubsystemBase {
     characterizationVoltage = volts;
 
     // invoke drive which will set the characterization voltage to each module
-    drive(0, 0, 0);
+    drive(0, 0, 0, true);
   }
 
   /** Returns the average drive velocity in meters/sec. */

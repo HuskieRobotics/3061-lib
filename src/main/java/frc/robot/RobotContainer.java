@@ -294,7 +294,7 @@ public class RobotContainer {
             Commands.runOnce(drivetrain::disableFieldRelative, drivetrain),
             Commands.deadline(
                 Commands.waitSeconds(5.0),
-                Commands.run(() -> drivetrain.drive(1.5, 0.0, 0.0), drivetrain))));
+                Commands.run(() -> drivetrain.drive(1.5, 0.0, 0.0, false), drivetrain))));
 
     // "auto" command for characterizing the drivetrain
     autoChooser.addOption(
