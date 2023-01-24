@@ -4,7 +4,7 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import frc.robot.subsystems.drivetrain.DrivetrainConstants;
+import frc.lib.team3061.RobotConfig;
 
 /**
  * Singleton class for SwerveDrivePoseEstimator that allows it to be shared by subsystems
@@ -24,7 +24,10 @@ public class RobotOdometry {
   private RobotOdometry() {
     estimator =
         new SwerveDrivePoseEstimator(
-            DrivetrainConstants.KINEMATICS, new Rotation2d(), defaultPositions, new Pose2d());
+            RobotConfig.getInstance().getSwerveDriveKinematics(),
+            new Rotation2d(),
+            defaultPositions,
+            new Pose2d());
   }
 
   public static RobotOdometry getInstance() {

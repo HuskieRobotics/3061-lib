@@ -4,9 +4,6 @@
 
 package frc.robot;
 
-import static frc.robot.Constants.*;
-import static frc.robot.subsystems.drivetrain.DrivetrainConstants.*;
-
 import com.pathplanner.lib.PathPlanner;
 import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.commands.FollowPathWithEvents;
@@ -17,6 +14,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.gyro.GyroIO;
 import frc.lib.team3061.gyro.GyroIOPigeon2;
 import frc.lib.team3061.pneumatics.Pneumatics;
@@ -36,12 +34,17 @@ import frc.robot.commands.FeedForwardCharacterization;
 import frc.robot.commands.FeedForwardCharacterization.FeedForwardCharacterizationData;
 import frc.robot.commands.FollowPath;
 import frc.robot.commands.TeleopSwerve;
+import frc.robot.configs.DefaultRobotConfig;
+import frc.robot.configs.MK4IRobotConfig;
+import frc.robot.configs.SierraRobotConfig;
 import frc.robot.operator_interface.OISelector;
 import frc.robot.operator_interface.OperatorInterface;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -52,7 +55,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
  */
 public class RobotContainer {
   private OperatorInterface oi = new OperatorInterface() {};
-
+  private RobotConfig config;
   private Drivetrain drivetrain;
 
   // use AdvantageKit's LoggedDashboardChooser instead of SendableChooser to ensure accurate logging
@@ -61,78 +64,100 @@ public class RobotContainer {
 
   // RobotContainer singleton
   private static RobotContainer robotContainer = new RobotContainer();
+  private final Map<String, Command> autoEventMap = new HashMap<>();
 
   /** Create the container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
+    /*
+     * IMPORTANT: The RobotConfig subclass object *must* be created before any other objects
+     * that use it directly or indirectly. If this isn't done, a null pointer exception will result.
+     */
+
     // create real, simulated, or replay subsystems based on the mode and robot specified
     if (Constants.getMode() != Mode.REPLAY) {
       switch (Constants.getRobot()) {
-        case ROBOT_2022_PRESEASON:
+        case ROBOT_DEFAULT:
+        case ROBOT_2023_MK4I:
+        case ROBOT_2022_SIERRA:
           {
-            GyroIO gyro = new GyroIOPigeon2(PIGEON_ID);
+            // create the specific RobotConfig subclass instance first
+            if (Constants.getRobot() == Constants.RobotType.ROBOT_2023_MK4I) {
+              config = new MK4IRobotConfig();
+            } else if (Constants.getRobot() == Constants.RobotType.ROBOT_2022_SIERRA) {
+              config = new SierraRobotConfig();
+            } else {
+              config = new DefaultRobotConfig();
+            }
 
+            GyroIO gyro = new GyroIOPigeon2(config.getGyroCANID());
+
+            int[] driveMotorCANIDs = config.getSwerveDriveMotorCANIDs();
+            int[] steerMotorCANDIDs = config.getSwerveSteerMotorCANIDs();
+            int[] steerEncoderCANDIDs = config.getSwerveSteerEncoderCANIDs();
+            double[] steerOffsets = config.getSwerveSteerOffsets();
             SwerveModule flModule =
                 new SwerveModule(
                     new SwerveModuleIOTalonFX(
                         0,
-                        FRONT_LEFT_MODULE_DRIVE_MOTOR,
-                        FRONT_LEFT_MODULE_STEER_MOTOR,
-                        FRONT_LEFT_MODULE_STEER_ENCODER,
-                        FRONT_LEFT_MODULE_STEER_OFFSET),
+                        driveMotorCANIDs[0],
+                        steerMotorCANDIDs[0],
+                        steerEncoderCANDIDs[0],
+                        steerOffsets[0]),
                     0,
-                    MAX_VELOCITY_METERS_PER_SECOND);
+                    config.getRobotMaxVelocity());
 
             SwerveModule frModule =
                 new SwerveModule(
                     new SwerveModuleIOTalonFX(
                         1,
-                        FRONT_RIGHT_MODULE_DRIVE_MOTOR,
-                        FRONT_RIGHT_MODULE_STEER_MOTOR,
-                        FRONT_RIGHT_MODULE_STEER_ENCODER,
-                        FRONT_RIGHT_MODULE_STEER_OFFSET),
+                        driveMotorCANIDs[1],
+                        steerMotorCANDIDs[1],
+                        steerEncoderCANDIDs[1],
+                        steerOffsets[1]),
                     1,
-                    MAX_VELOCITY_METERS_PER_SECOND);
+                    config.getRobotMaxVelocity());
 
             SwerveModule blModule =
                 new SwerveModule(
                     new SwerveModuleIOTalonFX(
                         2,
-                        BACK_LEFT_MODULE_DRIVE_MOTOR,
-                        BACK_LEFT_MODULE_STEER_MOTOR,
-                        BACK_LEFT_MODULE_STEER_ENCODER,
-                        BACK_LEFT_MODULE_STEER_OFFSET),
+                        driveMotorCANIDs[2],
+                        steerMotorCANDIDs[2],
+                        steerEncoderCANDIDs[2],
+                        steerOffsets[2]),
                     2,
-                    MAX_VELOCITY_METERS_PER_SECOND);
+                    config.getRobotMaxVelocity());
 
             SwerveModule brModule =
                 new SwerveModule(
                     new SwerveModuleIOTalonFX(
                         3,
-                        BACK_RIGHT_MODULE_DRIVE_MOTOR,
-                        BACK_RIGHT_MODULE_STEER_MOTOR,
-                        BACK_RIGHT_MODULE_STEER_ENCODER,
-                        BACK_RIGHT_MODULE_STEER_OFFSET),
+                        driveMotorCANIDs[3],
+                        steerMotorCANDIDs[3],
+                        steerEncoderCANDIDs[3],
+                        steerOffsets[3]),
                     3,
-                    MAX_VELOCITY_METERS_PER_SECOND);
+                    config.getRobotMaxVelocity());
 
             drivetrain = new Drivetrain(gyro, flModule, frModule, blModule, brModule);
             new Pneumatics(new PneumaticsIORev());
-            new Vision(new VisionIOPhotonVision(CAMERA_NAME));
+            new Vision(new VisionIOPhotonVision(config.getCameraName()));
             break;
           }
         case ROBOT_SIMBOT:
           {
+            config = new MK4IRobotConfig();
             SwerveModule flModule =
-                new SwerveModule(new SwerveModuleIOSim(), 0, MAX_VELOCITY_METERS_PER_SECOND);
+                new SwerveModule(new SwerveModuleIOSim(), 0, config.getRobotMaxVelocity());
 
             SwerveModule frModule =
-                new SwerveModule(new SwerveModuleIOSim(), 1, MAX_VELOCITY_METERS_PER_SECOND);
+                new SwerveModule(new SwerveModuleIOSim(), 1, config.getRobotMaxVelocity());
 
             SwerveModule blModule =
-                new SwerveModule(new SwerveModuleIOSim(), 2, MAX_VELOCITY_METERS_PER_SECOND);
+                new SwerveModule(new SwerveModuleIOSim(), 2, config.getRobotMaxVelocity());
 
             SwerveModule brModule =
-                new SwerveModule(new SwerveModuleIOSim(), 3, MAX_VELOCITY_METERS_PER_SECOND);
+                new SwerveModule(new SwerveModuleIOSim(), 3, config.getRobotMaxVelocity());
             drivetrain = new Drivetrain(new GyroIO() {}, flModule, frModule, blModule, brModule);
             new Pneumatics(new PneumaticsIO() {});
             AprilTagFieldLayout layout;
@@ -142,7 +167,10 @@ public class RobotContainer {
               layout = new AprilTagFieldLayout(new ArrayList<>(), 16.4592, 8.2296);
             }
             new Vision(
-                new VisionIOSim(layout, drivetrain::getPose, VisionConstants.ROBOT_TO_CAMERA));
+                new VisionIOSim(
+                    layout,
+                    drivetrain::getPose,
+                    RobotConfig.getInstance().getRobotToCameraTransform()));
 
             break;
           }
@@ -152,16 +180,16 @@ public class RobotContainer {
 
     } else {
       SwerveModule flModule =
-          new SwerveModule(new SwerveModuleIO() {}, 0, MAX_VELOCITY_METERS_PER_SECOND);
+          new SwerveModule(new SwerveModuleIO() {}, 0, config.getRobotMaxVelocity());
 
       SwerveModule frModule =
-          new SwerveModule(new SwerveModuleIO() {}, 1, MAX_VELOCITY_METERS_PER_SECOND);
+          new SwerveModule(new SwerveModuleIO() {}, 1, config.getRobotMaxVelocity());
 
       SwerveModule blModule =
-          new SwerveModule(new SwerveModuleIO() {}, 2, MAX_VELOCITY_METERS_PER_SECOND);
+          new SwerveModule(new SwerveModuleIO() {}, 2, config.getRobotMaxVelocity());
 
       SwerveModule brModule =
-          new SwerveModule(new SwerveModuleIO() {}, 3, MAX_VELOCITY_METERS_PER_SECOND);
+          new SwerveModule(new SwerveModuleIO() {}, 3, config.getRobotMaxVelocity());
       drivetrain = new Drivetrain(new GyroIO() {}, flModule, frModule, blModule, brModule);
       new Pneumatics(new PneumaticsIO() {});
       new Vision(new VisionIO() {});
@@ -232,28 +260,26 @@ public class RobotContainer {
 
   /** Use this method to define your commands for autonomous mode. */
   private void configureAutoCommands() {
-    AUTO_EVENT_MAP.put("event1", Commands.print("passed marker 1"));
-    AUTO_EVENT_MAP.put("event2", Commands.print("passed marker 2"));
+    autoEventMap.put("event1", Commands.print("passed marker 1"));
+    autoEventMap.put("event2", Commands.print("passed marker 2"));
 
     // build auto path commands
     List<PathPlannerTrajectory> auto1Paths =
         PathPlanner.loadPathGroup(
-            "testPaths1",
-            AUTO_MAX_SPEED_METERS_PER_SECOND,
-            AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED);
+            "testPaths1", config.getAutoMaxSpeed(), config.getAutoMaxAcceleration());
     Command autoTest =
         Commands.sequence(
             new FollowPathWithEvents(
                 new FollowPath(auto1Paths.get(0), drivetrain, true),
                 auto1Paths.get(0).getMarkers(),
-                AUTO_EVENT_MAP),
+                autoEventMap),
             Commands.runOnce(drivetrain::enableXstance, drivetrain),
             Commands.waitSeconds(5.0),
             Commands.runOnce(drivetrain::disableXstance, drivetrain),
             new FollowPathWithEvents(
                 new FollowPath(auto1Paths.get(1), drivetrain, false),
                 auto1Paths.get(1).getMarkers(),
-                AUTO_EVENT_MAP));
+                autoEventMap));
 
     // add commands to the auto chooser
     autoChooser.addDefaultOption("Do Nothing", new InstantCommand());

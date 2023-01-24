@@ -1,7 +1,6 @@
 package frc.lib.team3061.swerve;
 
 import static frc.lib.team3061.swerve.SwerveModuleConstants.*;
-import static frc.robot.Constants.*;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.DemandType;
@@ -16,6 +15,7 @@ import com.ctre.phoenix.sensors.SensorTimeBase;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import frc.lib.team254.drivers.TalonFXFactory;
+import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.util.CANDeviceFinder;
 import frc.lib.team3061.util.CANDeviceId.CANDeviceType;
 import frc.lib.team6328.util.TunableNumber;
@@ -26,12 +26,27 @@ import frc.lib.team6328.util.TunableNumber;
  */
 public class SwerveModuleIOTalonFX implements SwerveModuleIO {
 
-  private final TunableNumber driveKp = new TunableNumber("Drive/DriveKp", DRIVE_KP);
-  private final TunableNumber driveKi = new TunableNumber("Drive/DriveKi", DRIVE_KI);
-  private final TunableNumber driveKd = new TunableNumber("Drive/DriveKd", DRIVE_KD);
-  private final TunableNumber turnKp = new TunableNumber("Drive/TurnKp", ANGLE_KP);
-  private final TunableNumber turnKi = new TunableNumber("Drive/TurnKi", ANGLE_KI);
-  private final TunableNumber turnKd = new TunableNumber("Drive/TurnKd", ANGLE_KD);
+  private final TunableNumber driveKp =
+      new TunableNumber("Drive/DriveKp", RobotConfig.getInstance().getSwerveDriveKP());
+  private final TunableNumber driveKi =
+      new TunableNumber("Drive/DriveKi", RobotConfig.getInstance().getSwerveDriveKI());
+  private final TunableNumber driveKd =
+      new TunableNumber("Drive/DriveKd", RobotConfig.getInstance().getSwerveDriveKD());
+  private final TunableNumber turnKp =
+      new TunableNumber("Drive/TurnKp", RobotConfig.getInstance().getSwerveAngleKP());
+  private final TunableNumber turnKi =
+      new TunableNumber("Drive/TurnKi", RobotConfig.getInstance().getSwerveAngleKI());
+  private final TunableNumber turnKd =
+      new TunableNumber("Drive/TurnKd", RobotConfig.getInstance().getSwerveAngleKD());
+
+  private final double wheelCircumference;
+  private final double driveGearRatio;
+  private final boolean driveMotorInverted;
+  private final double angleGearRatio;
+  private final boolean angleMotorInverted;
+  private final boolean canCoderInverted;
+
+  private final String canBusName = RobotConfig.getInstance().getCANBusName();
 
   private TalonFX mAngleMotor;
   private TalonFX mDriveMotor;
@@ -53,7 +68,29 @@ public class SwerveModuleIOTalonFX implements SwerveModuleIO {
 
     this.angleOffsetDeg = angleOffsetDeg;
 
-    this.feedForward = new SimpleMotorFeedforward(DRIVE_KS, DRIVE_KV, DRIVE_KA);
+    if (RobotConfig.getInstance().getSwerveType() == SwerveType.MK4) {
+
+      wheelCircumference = MK4_L2_WHEEL_CIRCUMFERENCE;
+      driveGearRatio = MK4_L2_DRIVE_GEAR_RATIO;
+      driveMotorInverted = MK4_L2_DRIVE_MOTOR_INVERTED;
+      angleGearRatio = MK4_L2_ANGLE_GEAR_RATIO;
+      angleMotorInverted = MK4_L2_ANGLE_MOTOR_INVERTED;
+      canCoderInverted = MK4_L2_CAN_CODER_INVERTED;
+    } else { // MK4I
+
+      wheelCircumference = MK4I_L2_WHEEL_CIRCUMFERENCE;
+      driveGearRatio = MK4I_L2_DRIVE_GEAR_RATIO;
+      driveMotorInverted = MK4I_L2_DRIVE_MOTOR_INVERTED;
+      angleGearRatio = MK4I_L2_ANGLE_GEAR_RATIO;
+      angleMotorInverted = MK4I_L2_ANGLE_MOTOR_INVERTED;
+      canCoderInverted = MK4I_L2_CAN_CODER_INVERTED;
+    }
+
+    this.feedForward =
+        new SimpleMotorFeedforward(
+            RobotConfig.getInstance().getDriveKS() / 12,
+            RobotConfig.getInstance().getDriveKV() / 12,
+            RobotConfig.getInstance().getDriveKA() / 12);
 
     CANDeviceFinder can = new CANDeviceFinder();
     can.isDevicePresent(CANDeviceType.TALON, driveMotorID, "Mod " + moduleNumber + "Drive");
@@ -66,13 +103,13 @@ public class SwerveModuleIOTalonFX implements SwerveModuleIO {
   }
 
   private void configAngleEncoder(int canCoderID) {
-    angleEncoder = new CANCoder(canCoderID, CAN_BUS_NAME);
+    angleEncoder = new CANCoder(canCoderID, canBusName);
 
     angleEncoder.configFactoryDefault();
 
     CANCoderConfiguration config = new CANCoderConfiguration();
     config.absoluteSensorRange = AbsoluteSensorRange.Unsigned_0_to_360;
-    config.sensorDirection = CAN_CODER_INVERTED;
+    config.sensorDirection = canCoderInverted;
     config.initializationStrategy = SensorInitializationStrategy.BootToAbsolutePosition;
     config.sensorTimeBase = SensorTimeBase.PerSecond;
     angleEncoder.configAllSettings(config);
@@ -86,22 +123,22 @@ public class SwerveModuleIOTalonFX implements SwerveModuleIO {
             ANGLE_CONTINUOUS_CURRENT_LIMIT,
             ANGLE_PEAK_CURRENT_LIMIT,
             ANGLE_PEAK_CURRENT_DURATION);
-    angleMotorConfig.INVERTED = ANGLE_MOTOR_INVERTED;
+    angleMotorConfig.INVERTED = angleMotorInverted;
     angleMotorConfig.NEUTRAL_MODE = ANGLE_NEUTRAL_MODE;
     angleMotorConfig.SLOT0_KP = turnKp.get();
     angleMotorConfig.SLOT0_KI = turnKi.get();
     angleMotorConfig.SLOT0_KD = turnKd.get();
-    angleMotorConfig.SLOT0_KF = ANGLE_KF;
+    angleMotorConfig.SLOT0_KF = RobotConfig.getInstance().getSwerveAngleKF();
     angleMotorConfig.GENERAL_STATUS_FRAME_RATE_MS = 9;
     angleMotorConfig.FEEDBACK_STATUS_FRAME_RATE_MS = 19;
     angleMotorConfig.ANALOG_TEMP_VBAT_STATUS_FRAME_RATE_MS = 100;
     angleMotorConfig.MOTION_MAGIC_STATUS_FRAME_RATE_MS = 101;
     angleMotorConfig.BASE_PIDF0_STATUS_FRAME_RATE_MS = 102;
 
-    mAngleMotor = TalonFXFactory.createTalon(angleMotorID, CAN_BUS_NAME, angleMotorConfig);
+    mAngleMotor = TalonFXFactory.createTalon(angleMotorID, canBusName, angleMotorConfig);
 
     double absolutePosition =
-        Conversions.degreesToFalcon(getCanCoder().getDegrees() - angleOffsetDeg, ANGLE_GEAR_RATIO);
+        Conversions.degreesToFalcon(getCanCoder().getDegrees() - angleOffsetDeg, angleGearRatio);
     mAngleMotor.setSelectedSensorPosition(absolutePosition);
   }
 
@@ -113,21 +150,21 @@ public class SwerveModuleIOTalonFX implements SwerveModuleIO {
             DRIVE_CONTINUOUS_CURRENT_LIMIT,
             DRIVE_PEAK_CURRENT_LIMIT,
             DRIVE_PEAK_CURRENT_DURATION);
-    driveMotorConfig.INVERTED = DRIVE_MOTOR_INVERTED;
+    driveMotorConfig.INVERTED = driveMotorInverted;
     driveMotorConfig.NEUTRAL_MODE = DRIVE_NEUTRAL_MODE;
     driveMotorConfig.OPEN_LOOP_RAMP_RATE = OPEN_LOOP_RAMP;
     driveMotorConfig.CLOSED_LOOP_RAMP_RATE = CLOSED_LOOP_RAMP;
     driveMotorConfig.SLOT0_KP = driveKp.get();
     driveMotorConfig.SLOT0_KI = driveKi.get();
     driveMotorConfig.SLOT0_KD = driveKd.get();
-    driveMotorConfig.SLOT0_KF = DRIVE_KF;
+    driveMotorConfig.SLOT0_KF = RobotConfig.getInstance().getSwerveDriveKF();
     driveMotorConfig.GENERAL_STATUS_FRAME_RATE_MS = 9;
     driveMotorConfig.FEEDBACK_STATUS_FRAME_RATE_MS = 19;
     driveMotorConfig.ANALOG_TEMP_VBAT_STATUS_FRAME_RATE_MS = 100;
     driveMotorConfig.MOTION_MAGIC_STATUS_FRAME_RATE_MS = 101;
     driveMotorConfig.BASE_PIDF0_STATUS_FRAME_RATE_MS = 102;
 
-    mDriveMotor = TalonFXFactory.createTalon(driveMotorID, CAN_BUS_NAME, driveMotorConfig);
+    mDriveMotor = TalonFXFactory.createTalon(driveMotorID, canBusName, driveMotorConfig);
 
     mDriveMotor.setSelectedSensorPosition(0);
   }
@@ -149,29 +186,22 @@ public class SwerveModuleIOTalonFX implements SwerveModuleIO {
   @Override
   public void updateInputs(SwerveModuleIOInputs inputs) {
     inputs.drivePositionDeg =
-        Conversions.falconToDegrees(
-            mDriveMotor.getSelectedSensorPosition(), SwerveModuleConstants.DRIVE_GEAR_RATIO);
+        Conversions.falconToDegrees(mDriveMotor.getSelectedSensorPosition(), driveGearRatio);
     inputs.driveDistanceMeters =
         Conversions.falconToMeters(
-            mDriveMotor.getSelectedSensorPosition(),
-            SwerveModuleConstants.WHEEL_CIRCUMFERENCE,
-            SwerveModuleConstants.DRIVE_GEAR_RATIO);
+            mDriveMotor.getSelectedSensorPosition(), wheelCircumference, driveGearRatio);
     inputs.driveVelocityMetersPerSec =
         Conversions.falconToMPS(
-            mDriveMotor.getSelectedSensorVelocity(),
-            SwerveModuleConstants.WHEEL_CIRCUMFERENCE,
-            SwerveModuleConstants.DRIVE_GEAR_RATIO);
+            mDriveMotor.getSelectedSensorVelocity(), wheelCircumference, driveGearRatio);
     inputs.driveAppliedPercentage = mDriveMotor.getMotorOutputPercent();
     inputs.driveCurrentAmps = new double[] {mDriveMotor.getStatorCurrent()};
     inputs.driveTempCelsius = new double[] {mDriveMotor.getTemperature()};
 
     inputs.angleAbsolutePositionDeg = angleEncoder.getAbsolutePosition();
     inputs.anglePositionDeg =
-        Conversions.falconToDegrees(
-            mAngleMotor.getSelectedSensorPosition(), SwerveModuleConstants.ANGLE_GEAR_RATIO);
+        Conversions.falconToDegrees(mAngleMotor.getSelectedSensorPosition(), angleGearRatio);
     inputs.angleVelocityRevPerMin =
-        Conversions.falconToRPM(
-            mAngleMotor.getSelectedSensorVelocity(), SwerveModuleConstants.ANGLE_GEAR_RATIO);
+        Conversions.falconToRPM(mAngleMotor.getSelectedSensorVelocity(), angleGearRatio);
     inputs.angleAppliedPercentage = mAngleMotor.getMotorOutputPercent();
     inputs.angleCurrentAmps = new double[] {mAngleMotor.getStatorCurrent()};
     inputs.angleTempCelsius = new double[] {mAngleMotor.getTemperature()};
@@ -201,11 +231,7 @@ public class SwerveModuleIOTalonFX implements SwerveModuleIO {
   /** Run the drive motor at the specified velocity. */
   @Override
   public void setDriveVelocity(double velocity) {
-    double ticksPerSecond =
-        Conversions.mpsToFalcon(
-            velocity,
-            SwerveModuleConstants.WHEEL_CIRCUMFERENCE,
-            SwerveModuleConstants.DRIVE_GEAR_RATIO);
+    double ticksPerSecond = Conversions.mpsToFalcon(velocity, wheelCircumference, driveGearRatio);
     mDriveMotor.set(
         ControlMode.Velocity,
         ticksPerSecond,
@@ -216,7 +242,7 @@ public class SwerveModuleIOTalonFX implements SwerveModuleIO {
   /** Run the turn motor to the specified angle. */
   @Override
   public void setAnglePosition(double degrees) {
-    mAngleMotor.set(ControlMode.Position, Conversions.degreesToFalcon(degrees, ANGLE_GEAR_RATIO));
+    mAngleMotor.set(ControlMode.Position, Conversions.degreesToFalcon(degrees, angleGearRatio));
   }
 
   /** Enable or disable brake mode on the drive motor. */

@@ -1,6 +1,7 @@
 {
     "recommendations": [
         "richardwillis.vscode-spotless-gradle",
-        "sonarsource.sonarlint-vscode"
+        "sonarsource.sonarlint-vscode",
+        "streetsidesoftware.code-spell-checker"
     ]
 }

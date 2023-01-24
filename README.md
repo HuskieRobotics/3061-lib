@@ -21,38 +21,45 @@ Huskie Robotics, FRC Team 3061's, starter project and library focused on a swerv
 
 **Configuration**
 ----
-The following constants must be adjusted in the Constants.java, DrivetrainConstants.java, and SwerveModuleConstants.java files (all distance units must be in meters, and rotation units in degrees):</br>
+Each robot's configuration is captured in that robot's subclass of the ```RobotConfig``` abstract class. This enables the same code base to support multiple robots with different characteristics. Each enumerated value in the ```RobotType``` enumeration in Constants.java has a corresponding subclass of ```RobotConfig``` (other than ```ROBOT_SIMBOT```). For example the ```RobotType.ROBOT_DEFAULT``` corresponds to the ```DefaultRobotConfig``` subclass.
 
-* Constants.java
-    * ```CAN_BUS_NAME``` constant: set to the name of the CANivore CAN FD bus or leave as an empty string if not using CANivore
-    * ```RobotType``` enumeration: update to reflect your robots; leave ```ROBOT_SIMBOT``` if using simulation; update the ```getRobot``` and ```getMode``` methods to reflect new robots
-* DrivetrainConstants.java
-    * swerve module motor controllers and encoders CAN ID constants (e.g., ```FRONT_LEFT_MODULE_DRIVE_MOTOR```, ```FRONT_LEFT_MODULE_STEER_MOTOR```, ```FRONT_LEFT_MODULE_STEER_ENCODER```): set to the assigned CAN IDs
-    * steer offset constants (e.g., ```FRONT_LEFT_MODULE_STEER_OFFSET```): refer to the Tuning section
-    * ```TRACKWIDTH_METERS``` constant: set to the center-to-center distance of left and right modules
-    * ```WHEELBASE_METERS``` constant: set to the center-to-center distance of front and rear module wheels
-    * ```ROBOT_WIDTH_WITH_BUMPERS``` constant: set to the width of the robot including its bumpers
-    * ```ROBOT_LENGTH_WITH_BUMPERS``` constant: set to the length of the robot including its bumpers
-    * ```MAX_VELOCITY_METERS_PER_SECOND``` and ```MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND``` constants: you can use the theoretical values, but it is better to physically drive the robot and find the actual max values.
-    * ```PIGEON_ID``` constant: set to the CAN ID of the Pigeon; ensure that the gyro rotation is CCW+
-* SwerveModuleConstants.java
-    * ```WHEEL_DIAMETER_METERS``` constant: set to the diameter of the wheel in the swerve module
-    * ```DRIVE_GEAR_RATIO``` and ```ANGLE_GEAR_RATIO``` constants: set to the gear ration of the swerve module's drive and turn mechanisms; the gear ratios must be defined such that they are greater than 1
-    * ```DRIVE_MOTOR_INVERTED``` constant: when the drive motor is supplied a positive input, it turns the swerve module wheel such that the robot moves forward; if not, set to true
-    * ```ANGLE_MOTOR_INVERTED``` constant: when the angle motor is supplied a positive input, it rotates the swerve module wheel such that the wheel rotates in the CCW direction; if not, set to true
-    * ```CAN_CODER_INVERTED``` constant: when the angle motor rotates the swerve module wheel in a CCW direction, the CANcoder should increase its reading; if not, set to true
+To configure the initial robot, address each of the ```FIXME``` comments in the ```DefaultRobotConfig``` class.
 
+To add an additional robot, create a new subclass of ```RobotConfig``` (you can duplicate and rename ```DefaultRobotConfig```); add the new robot to the ```RobotType``` enumeration, update the ```getRobot``` and ```getMode``` methods, and update the ```ROBOT``` constant in Constants.java; and update the RobotContainer constructor to create an instance of the new RobotConfig subclass based on the value returned from ```Constants.getRobot()```.
 
 **Tuning**
 ----
 
-* Setting Steer Offsets (e.g., ```FRONT_LEFT_MODULE_STEER_OFFSET```) in DrivetrainConstants.java
+* Checking motor and encoder directions:
+    * The drive motor, angle motor, and angle encoder constants in SwerveModuleConstants should be configured appropriately for the MK4 and MK4i swerve modules. However, it doesn't hurt to verify.
+    * When the drive motor is supplied a positive input, it should turn the swerve module wheel such that the robot moves forward; if not, negate.
+    * When the angle motor is supplied a positive input, it should rotate the swerve module wheel such that the wheel rotates in the CCW direction; if not, negate.
+    * When the angle motor rotates the swerve module wheel in a CCW direction, the CANcoder should increase its reading; if not, set to negate.
+* Checking geometry:
+    1. elevate the robot on a cart positioned in front of the operator console so the driver's perspective is the same as the robot's (i.e., the front of the robot facing away from the driver); we label the front, back, left, and right of the robot on the robot since which is which may be ambiguous until more of the robot is assembled
+    2. position all four wheels such that they are pointing forward (bevel gears all facing the same direction as when the steer offsets were determined)
+    3. push the drive joystick forward
+    4. verify that the joystick is specifying a positive x velocity (graph AdvantageKit/RealOutput/TeleopSwerve/xVelocity in AdvantageScope); if not, update the corresponding method in the OperatorInterface subclass
+    5. verify that each wheel is rotating to move the robot forward (+x direction)
+    6. verify that the drive TalonFX distance is consistent (graph AdvantageKit/Mod0/DriveDistanceMeters and verify that it is increasing; check all 4 modules)
+    7. perform steps 3-6 but pull the drive joystick backwards (xVelocity should be negative and DriveDistanceMeters should decrease)
+    8. perform steps 3-6 but push the drive joystick to the left (yVelocity should be positive; DriveDistanceMeters should increase if the wheel is pointed to the left and decrease if pointed to the right; add AdvantageKit/RealOutputs/SwerveModuleStates to the Swerve tab in AdvantageScope to visualize)
+    9. perform steps 3-6 but push the drive joystick to the right (yVelocity should be negative; DriveDistanceMeters should increase if the wheel is pointed to the right and decrease if pointed to the left; use the Swerve tab in AdvantageScope to visualize)
+    10. push the rotate joystick in the direction to rotate CCW (when looking down on the robot)
+    11. verify that the joystick is specifying a positive rotational velocity (graph AdvantageKit/RealOutput/TeleopSwerve/rotationalVelocity in AdvantageScope); if not, update the corresponding method in the OperatorInterface subclass
+    12. verify that each wheel is rotating to rotate the robot in a CCW direction
+    13. perform steps 10-12 but push the rotate joystick in the direction to rotate CW
+    14. graph AdvantageKit/Drive/Gyro/PositionDeg
+    15. rotate the cart in a CCW direction and verify that the gyro is increasing
+    16. rotate the cart in a CW direction and verify that the gyro is decreasing
+    17. use Phoenix Tuner to flash the LEDs on the Falcon 500s and CANcoders to ensure that the CAN IDs are properly assigned to the front-left, front-right, back-left, and back-right positions (all of the above may behave as expected even if the modules aren't assigned to the appropriate corners)
+* Setting Steer Offsets (e.g., ```FRONT_LEFT_MODULE_STEER_OFFSET```) in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
     * set ```DEBUGGING``` in SwerveModule.java to true
     * for finding the offsets, use a piece of 1x1 metal that is straight against the forks of the front and back modules (on the left and right side) to ensure that the modules are straight
-    * point the bevel gears of all the wheels in the same direction (either facing left or right), and preferably you should have the wheels facing in the direction where a positive input to the drive motor drives forward; if for some reason you set the offsets with the wheels backwards, you can change the ```DRIVE_MOTOR_INVERTED``` to fix
+    * point the bevel gears of all the wheels in the same direction (either facing left or right), and preferably you should have the wheels facing in the direction where a positive input to the drive motor drives forward; if for some reason you set the offsets with the wheels backwards, you can change the appropriate ```DRIVE_MOTOR_INVERTED``` in ```SwerveModuleConstants``` to fix
     * open Shuffleboard, go to the SwerveModule tab, and see 4 indicators called "Mod 0 Cancoder", "Mod 1 Cancoder", etc. If you have already straightened the modules, copy those 4 numbers exactly (to 2 decimal places) to their respective ```STEER_OFFSET``` constants
     * set ```DEBUGGING``` in SwerveModule.java back to false
-* Angle Motor PID Values (```ANGLE_KP```, ```ANGLE_KI```, ```ANGLE_KD```) in SwerveModuleConstants.java:
+* Angle Motor PID Values (```ANGLE_KP```, ```ANGLE_KI```, ```ANGLE_KD```) in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
     * set ```TUNING_MODE``` in Constants.java to true
     * open Shuffleboard, go to the SmartDashboard tab, and see controls for each of the PID values; values can be changed via these controls as you interactively tune the controller
     * start with a low P value (0.01)
@@ -62,18 +69,19 @@ The following constants must be adjusted in the Constants.java, DrivetrainConsta
     * ignore I
     * copy the values from the Shuffleboard controls into SwerveModuleConstants.java
     * set ```TUNING_MODE``` in Constants.java to false
-* Drive characterization values (```DRIVE_KS```, ```DRIVE_KV```, ```DRIVE_KA```) in SwerveModuleConstants.java:
+* Drive characterization values (```DRIVE_KS```, ```DRIVE_KV```, ```DRIVE_KA```) in in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
     * in Shuffleboard, set the "Auto Routine" chooser to "Drive Characterization"
     * start the autonomous period
     * the ```FeedForwardCharacterization``` command will run and output the KS and KV values (you do not need to lock the modules straight forward as the code will keep them oriented in the forward direction)
     * copy the KS and KV values into SwerveModuleConstants.java
-* Drive Motor PID Values (```DRIVE_KP```, ```DRIVE_KI```, ```DRIVE_KD```) in SwerveModuleConstants.java:
+* Drive Motor PID Values (```DRIVE_KP```, ```DRIVE_KI```, ```DRIVE_KD```) in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
     * set ```TUNING_MODE``` in Constants.java to true
     * open Shuffleboard, go to the SmartDashboard tab, and see controls for each of the PID values; values can be changed via these controls as you interactively tune the controller
+    * in Shuffleboard, set the "Auto Routine" chooser to "Drive Velocity Tuning"
     * tune ```DRIVE_KP``` until it doesn't overshoot and doesn't oscillate around a target velocity
     * copy the values from the Shuffleboard controls into SwerveModuleConstants.java
     * set ```TUNING_MODE``` in Constants.java to false
-* ```AUTO_DRIVE_P_CONTROLLER``` and ```AUTO_TURN_P_CONTROLLER``` constants in DrivetrainConstants.java:
+* ```AUTO_DRIVE_P_CONTROLLER``` and ```AUTO_TURN_P_CONTROLLER``` constants in in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
     * set ```TUNING_MODE``` in Constants.java to true
     * open Shuffleboard, go to the SmartDashboard tab, and see controls for each of the PID values; values can be changed via these controls as you interactively tune the controller
     * tune until until auto paths are smoothly followed

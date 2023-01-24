@@ -1,9 +1,8 @@
 package frc.robot.commands;
 
-import static frc.robot.subsystems.drivetrain.DrivetrainConstants.*;
-
 import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.commands.PPSwerveControllerCommand;
+import frc.lib.team3061.RobotConfig;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import org.littletonrobotics.junction.Logger;
 
@@ -38,7 +37,7 @@ public class FollowPath extends PPSwerveControllerCommand {
     super(
         trajectory,
         subsystem::getPose,
-        KINEMATICS,
+        RobotConfig.getInstance().getSwerveDriveKinematics(),
         subsystem.getAutoXController(),
         subsystem.getAutoYController(),
         subsystem.getAutoThetaController(),

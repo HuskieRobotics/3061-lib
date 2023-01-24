@@ -22,16 +22,7 @@ import frc.lib.team6328.util.Alert.AlertType;
  */
 public final class Constants {
 
-  public static final double LOOP_PERIOD_SECS = 0.02;
-
   public static final boolean TUNING_MODE = false;
-
-  // FIXME: an empty string uses the default CAN bus; specify the name of the CANivore as
-  // appropriate
-  public static final String CAN_BUS_NAME = "";
-
-  // FIXME: specify the name of the camera used for detecting AprilTags
-  public static final String CAMERA_NAME = "ov9268";
 
   private static final RobotType ROBOT = RobotType.ROBOT_SIMBOT;
 
@@ -39,11 +30,19 @@ public final class Constants {
       new Alert("Invalid robot selected, using competition robot as default.", AlertType.ERROR);
 
   // FIXME: update for various robots
+  public enum RobotType {
+    ROBOT_2022_SIERRA,
+    ROBOT_2023_MK4I,
+    ROBOT_DEFAULT,
+    ROBOT_SIMBOT
+  }
+
+  // FIXME: update for various robots
   public static RobotType getRobot() {
     if (RobotBase.isReal()) {
       if (ROBOT == RobotType.ROBOT_SIMBOT) { // Invalid robot selected
         invalidRobotAlert.set(true);
-        return RobotType.ROBOT_2022_PRESEASON;
+        return RobotType.ROBOT_2022_SIERRA; // default to Sierra for now
       } else {
         return ROBOT;
       }
@@ -55,7 +54,9 @@ public final class Constants {
   // FIXME: update for various robots
   public static Mode getMode() {
     switch (getRobot()) {
-      case ROBOT_2022_PRESEASON:
+      case ROBOT_DEFAULT:
+      case ROBOT_2022_SIERRA:
+      case ROBOT_2023_MK4I:
         return RobotBase.isReal() ? Mode.REAL : Mode.REPLAY;
 
       case ROBOT_SIMBOT:
@@ -66,15 +67,11 @@ public final class Constants {
     }
   }
 
-  // FIXME: update for various robots
-  public enum RobotType {
-    ROBOT_2022_PRESEASON,
-    ROBOT_SIMBOT
-  }
-
   public enum Mode {
     REAL,
     REPLAY,
     SIM
   }
+
+  public static final double LOOP_PERIOD_SECS = 0.02;
 }

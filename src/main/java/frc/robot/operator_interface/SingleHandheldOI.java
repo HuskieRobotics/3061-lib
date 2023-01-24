@@ -27,7 +27,7 @@ public class SingleHandheldOI implements OperatorInterface {
 
   @Override
   public double getRotate() {
-    return -controller.getLeftTriggerAxis();
+    return -controller.getRightX();
   }
 
   @Override
