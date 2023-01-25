@@ -36,4 +36,7 @@ public interface OperatorInterface {
   public default Trigger getXStanceButton() {
     return new Trigger(() -> false);
   }
+  public default Trigger getVisionIsEnabledSwitch() {
+    return new Trigger(() -> false);
+  }
 }

@@ -234,6 +234,16 @@ public class Drivetrain extends SubsystemBase {
         new Pose2d(state.poseMeters.getTranslation(), state.holonomicRotation));
   }
 
+  public void reassesPoseAfterDisabledVisionSubSystem() {
+    for (int i = 0; i < 4; i++) {
+      swerveModulePositions[i] = swerveModules[i].getPosition();
+    }
+
+    poseEstimator.resetPosition(
+        this.getRotation(),
+        swerveModulePositions,
+        new Pose2d(this.getPose().getTranslation(), this.getRotation()));
+  }
   /**
    * Controls the drivetrain to move the robot with the desired velocities in the x, y, and
    * rotational directions. The velocities may be specified from either the robot's frame of
