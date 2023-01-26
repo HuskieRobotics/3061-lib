@@ -36,7 +36,7 @@ public class VisionIOSim implements VisionIO {
 
     this.simVision =
         new SimVisionSystem(
-            CAMERA_NAME, DIAGONAL_FOV, robotToCamera.inverse(), 9000, IMG_WIDTH, IMG_HEIGHT, 0);
+            CAMERA_NAME, DIAGONAL_FOV, robotToCamera, 9000, IMG_WIDTH, IMG_HEIGHT, 0);
 
     layout.setOrigin(OriginPosition.kBlueAllianceWallRightSide);
 
