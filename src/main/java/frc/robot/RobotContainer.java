@@ -57,6 +57,7 @@ public class RobotContainer {
   private OperatorInterface oi = new OperatorInterface() {};
   private RobotConfig config;
   private Drivetrain drivetrain;
+  private Vision vision;
 
   // use AdvantageKit's LoggedDashboardChooser instead of SendableChooser to ensure accurate logging
   private final LoggedDashboardChooser<Command> autoChooser =
@@ -256,6 +257,8 @@ public class RobotContainer {
     // x-stance
     oi.getXStanceButton().onTrue(Commands.runOnce(drivetrain::enableXstance, drivetrain));
     oi.getXStanceButton().onFalse(Commands.runOnce(drivetrain::disableXstance, drivetrain));
+    oi.getVisionIsEnabledSwitch().onTrue(Commands.runOnce(vision::visionSubsystemIsEnabledIsTrue()));
+    oi.getVisionIsEnabledSwitch().onFalse(Commands.runOnce(vision::visionSubsystemIsEnabledIsFalse()));
   }
 
   /** Use this method to define your commands for autonomous mode. */
@@ -318,3 +321,4 @@ public class RobotContainer {
     return autoChooser.get();
   }
 }
+  

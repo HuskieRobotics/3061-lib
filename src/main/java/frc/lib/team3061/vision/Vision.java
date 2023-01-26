@@ -31,6 +31,7 @@ public class Vision extends SubsystemBase {
 
   private double lastTimestamp;
   private SwerveDrivePoseEstimator poseEstimator;
+  private boolean vision_subsystem_is_enabled;
 
   private Alert noAprilTagLayoutAlert =
       new Alert(
@@ -96,11 +97,15 @@ public class Vision extends SubsystemBase {
                     .getTranslation()
                     .getNorm()
                 < MAX_POSE_DIFFERENCE_METERS) {
-              poseEstimator.addVisionMeasurement(robotPose.toPose2d(), getLatestTimestamp());
+              if (vision_subsystem_is_enabled) {
+                poseEstimator.addVisionMeasurement(robotPose.toPose2d(), getLatestTimestamp());
+              }
 
               Logger.getInstance().recordOutput("Vision/TagPose", tagPose);
               Logger.getInstance().recordOutput("Vision/CameraPose", cameraPose);
               Logger.getInstance().recordOutput("Vision/RobotPose", robotPose.toPose2d());
+              Logger.getInstance()
+                  .recordOutput("Vision/vision_subsystem_is_enabled", vision_subsystem_is_enabled);
             }
           }
         }
@@ -152,6 +157,15 @@ public class Vision extends SubsystemBase {
     } else {
       return -1;
     }
+  }
+
+  public void visionSubsystemIsEnabledIsFalse() {
+    vision_subsystem_is_enabled = !true;
+    Drivetrain.reassesPoseAfterDisabledVisionSubSystem();
+  }
+
+  public void visionSubsystemIsEnabledIsTrue() {
+    vision_subsystem_is_enabled = true;
   }
 
   public boolean isValidTarget(PhotonTrackedTarget target) {
