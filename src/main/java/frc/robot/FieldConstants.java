@@ -15,8 +15,8 @@ public final class FieldConstants {
   public static final Translation2d COMMUNITY_POINT_1 = new Translation2d(0, 0);
   public static final Translation2d COMMUNITY_POINT_2 = new Translation2d(0, 5.49);
   public static final Translation2d COMMUNITY_POINT_3 = new Translation2d(3, 5.49);
-  public static final Translation2d COMMUNITY_POINT_4 = new Translation2d(3.36, 5.49);
-  public static final Translation2d COMMUNITY_POINT_5 = new Translation2d(3.36, 3.98);
+  public static final Translation2d COMMUNITY_POINT_4 = new Translation2d(5.36, 5.49);
+  public static final Translation2d COMMUNITY_POINT_5 = new Translation2d(5.36, 3.98);
   public static final Translation2d COMMUNITY_POINT_6 = new Translation2d(3, 3.98);
   public static final Translation2d COMMUNITY_POINT_7 = new Translation2d(3, 1.51);
   public static final Translation2d COMMUNITY_POINT_8 = new Translation2d(4.91, 1.51);
@@ -39,6 +39,11 @@ public final class FieldConstants {
   public static final Region2d COMMUNITY_REGION_1 = new Region2d(COMMUNITY_REGION_POINTS_1);
   public static final Region2d COMMUNITY_REGION_2 = new Region2d(COMMUNITY_REGION_POINTS_2);
   public static final Region2d COMMUNITY_REGION_3 = new Region2d(COMMUNITY_REGION_POINTS_3);
+
+  public static final Translation2d REGION_1_2_TRANSITION_POINT =
+      new Translation2d(3, (5.49 + 3.98) / 2.0);
+  public static final Translation2d REGION_1_3_TRANSITION_POINT =
+      new Translation2d(3, (1.51 / 2.0));
 
   public static final Field2d COMMUNITY_ZONE =
       new Field2d(new Region2d[] {COMMUNITY_REGION_1, COMMUNITY_REGION_2, COMMUNITY_REGION_3});
