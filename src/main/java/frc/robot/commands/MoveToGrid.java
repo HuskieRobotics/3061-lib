@@ -4,6 +4,8 @@ import com.pathplanner.lib.PathConstraints;
 import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.commands.PPSwerveControllerCommand;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.lib.team6328.util.Alert;
+import frc.lib.team6328.util.Alert.AlertType;
 import frc.robot.FieldConstants;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.drivetrain.DrivetrainConstants;
@@ -13,10 +15,20 @@ public class MoveToGrid extends CommandBase {
   private Drivetrain drivetrain;
   private PathPlannerTrajectory trajectory;
   private PPSwerveControllerCommand ppSwerveControllerCommand;
+  private Alert noPathAlert = new Alert("No path between start and end pose", AlertType.WARNING);
 
   public MoveToGrid(Drivetrain subsystem) {
     // no requirements for movetogrid, drivetrain for ppswerve
     this.drivetrain = subsystem;
+
+    FieldConstants.COMMUNITY_REGION_1.addNeighbor(
+        FieldConstants.COMMUNITY_REGION_2, FieldConstants.REGION_1_2_TRANSITION_POINT);
+    FieldConstants.COMMUNITY_REGION_2.addNeighbor(
+        FieldConstants.COMMUNITY_REGION_1, FieldConstants.REGION_1_2_TRANSITION_POINT);
+    FieldConstants.COMMUNITY_REGION_1.addNeighbor(
+        FieldConstants.COMMUNITY_REGION_3, FieldConstants.REGION_1_3_TRANSITION_POINT);
+    FieldConstants.COMMUNITY_REGION_3.addNeighbor(
+        FieldConstants.COMMUNITY_REGION_1, FieldConstants.REGION_1_3_TRANSITION_POINT);
   }
 
   public void initialize() {
@@ -35,26 +47,34 @@ public class MoveToGrid extends CommandBase {
                 DrivetrainConstants.AUTO_MAX_SPEED_METERS_PER_SECOND,
                 DrivetrainConstants.AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED));
 
-    this.ppSwerveControllerCommand =
-        new PPSwerveControllerCommand(
-            this.trajectory,
-            this.drivetrain::getPose,
-            DrivetrainConstants.KINEMATICS,
-            this.drivetrain.getAutoXController(),
-            this.drivetrain.getAutoYController(),
-            this.drivetrain.getAutoThetaController(),
-            this.drivetrain::setSwerveModuleStates,
-            this.drivetrain);
-    this.ppSwerveControllerCommand.schedule();
+    noPathAlert.set(this.trajectory == null);
 
-    Logger.getInstance().recordOutput("Odometry/trajectory", trajectory);
+    if (this.trajectory != null) {
+      this.ppSwerveControllerCommand =
+          new PPSwerveControllerCommand(
+              this.trajectory,
+              this.drivetrain::getPose,
+              DrivetrainConstants.KINEMATICS,
+              this.drivetrain.getAutoXController(),
+              this.drivetrain.getAutoYController(),
+              this.drivetrain.getAutoThetaController(),
+              this.drivetrain::setSwerveModuleStates,
+              this.drivetrain);
+      this.ppSwerveControllerCommand.schedule();
+
+      Logger.getInstance().recordOutput("Odometry/trajectory", trajectory);
+    }
+    // FIXME: add alert that no path was found
   }
 
-  public boolean isFinished(){
-    return ppSwerveControllerCommand.isFinished();
+  public boolean isFinished() {
+    return this.trajectory == null || ppSwerveControllerCommand.isFinished();
   }
 
   public void end(boolean interrupted) {
-    this.drivetrain.stop();
+    if (this.trajectory != null) {
+      this.drivetrain.stop();
+    }
+    this.trajectory = null;
   }
 }
