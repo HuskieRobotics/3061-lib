@@ -11,12 +11,14 @@ import com.pathplanner.lib.PathPlanner;
 import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.commands.FollowPathWithEvents;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.lib.team3061.gyro.GyroIO;
 import frc.lib.team3061.gyro.GyroIOPigeon2;
 import frc.lib.team3061.pneumatics.Pneumatics;
@@ -35,6 +37,7 @@ import frc.robot.Constants.Mode;
 import frc.robot.commands.FeedForwardCharacterization;
 import frc.robot.commands.FeedForwardCharacterization.FeedForwardCharacterizationData;
 import frc.robot.commands.FollowPath;
+import frc.robot.commands.MoveToGrid;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.operator_interface.OISelector;
 import frc.robot.operator_interface.OperatorInterface;
@@ -51,6 +54,15 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
  * subsystems, commands, and button mappings) should be declared here.
  */
 public class RobotContainer {
+  private final JoystickButton[] operatorButtons;
+
+  // private DigitalInput scoringLevel = new DigitalInput(14);
+  // private DigitalInput scoringColumn = new DigitalInput(15);
+  // private DigitalInput scoringGrid = new DigitalInput(16);
+
+  // TODO: update with the corresponding port
+  private Joystick operatorConsole = new Joystick(2);
+
   private OperatorInterface oi = new OperatorInterface() {};
 
   private Drivetrain drivetrain;
@@ -170,6 +182,13 @@ public class RobotContainer {
     // disable all telemetry in the LiveWindow to reduce the processing during each iteration
     LiveWindow.disableAllTelemetry();
 
+    // update if switches require JoystickButton (for whatever reason)
+    this.operatorButtons = new JoystickButton[13];
+
+    for (int i = 1; i < operatorButtons.length; i++) {
+      operatorButtons[i] = new JoystickButton(operatorConsole, i);
+    }
+
     updateOI();
 
     configureAutoCommands();
@@ -228,7 +247,27 @@ public class RobotContainer {
     // x-stance
     oi.getXStanceButton().onTrue(Commands.runOnce(drivetrain::enableXstance, drivetrain));
     oi.getXStanceButton().onFalse(Commands.runOnce(drivetrain::disableXstance, drivetrain));
+
+    // move to grid
+    oi.getMoveToGridButton().onTrue(new MoveToGrid(drivetrain));
+
+    configureAutoScoringButton();
+    configureSwitchBindings();
   }
+
+  private void configureAutoScoringButton() {
+    // operatorButtons[9].onTrue(
+    // if grid position 1
+    //  if node position 1
+    //    if level position 1
+    //    if level position 2
+    //    else
+    // etc...
+    // );
+  }
+
+  // TODO: find out the class type to be used for switches
+  private void configureSwitchBindings() {}
 
   /** Use this method to define your commands for autonomous mode. */
   private void configureAutoCommands() {
@@ -279,7 +318,11 @@ public class RobotContainer {
             new FeedForwardCharacterizationData("drive"),
             drivetrain::runCharacterizationVolts,
             drivetrain::getCharacterizationVelocity));
-
+    /*
+        autoChooser.addOption(
+            "Grid Traversal",
+            new MoveToGrid(drivetrain, true)); // check for if initialPath condition met
+    */
     Shuffleboard.getTab("MAIN").add(autoChooser.getSendableChooser());
   }
 

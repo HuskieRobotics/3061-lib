@@ -44,4 +44,9 @@ public class SingleHandheldOI implements OperatorInterface {
   public Trigger getXStanceButton() {
     return new Trigger(controller::getYButton);
   }
+
+  @Override
+  public Trigger getMoveToGridButton() {
+    return new Trigger(controller::getAButton);
+  }
 }

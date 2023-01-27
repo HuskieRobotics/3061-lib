@@ -48,19 +48,19 @@ public class Field2d {
 
     // BFS to find the shortest path to the end
     List<Region2d> path = breadthFirstSearch(startRegion, endRegion);
-    if (path.isEmpty()) return null;
+    // if (path.isEmpty()) return null;
 
     // create point locations
     ArrayList<Translation2d> pointLocations = new ArrayList<>();
     pointLocations.add(start.getTranslation());
-
+    /*
     // add all the transition points
     for (int i = 0; i < path.size() - 1; i++) {
       Region2d from = path.get(i);
       Region2d to = path.get(i + 1);
       pointLocations.add(from.getTransitionPoint(to));
     }
-
+    */
     pointLocations.add(end.getTranslation());
 
     // find the correct heading for each
@@ -68,7 +68,7 @@ public class Field2d {
     // create points
     List<PathPoint> points = new ArrayList<>();
     Rotation2d lastHeading = null;
-    for (int i = 0; i < pointLocations.size() - 2; i++) {
+    for (int i = 0; i < pointLocations.size() - 1; i++) {
       double deltaX = pointLocations.get(i + 1).getX() - pointLocations.get(i).getX();
       double deltaY = pointLocations.get(i + 1).getY() - pointLocations.get(i).getY();
       lastHeading = new Rotation2d(deltaX, deltaY);
