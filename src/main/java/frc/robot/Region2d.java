@@ -47,6 +47,7 @@ public class Region2d {
    */
   public void addNeighbor(Region2d other, Translation2d point) {
     transitionMap.put(other, point);
+    // FIXME: should this mehtod add both regions as neighbors to each other?
   }
 
   /**

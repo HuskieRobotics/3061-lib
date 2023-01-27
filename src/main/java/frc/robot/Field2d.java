@@ -48,19 +48,19 @@ public class Field2d {
 
     // BFS to find the shortest path to the end
     List<Region2d> path = breadthFirstSearch(startRegion, endRegion);
-    // if (path.isEmpty()) return null;
+    if (path.isEmpty()) return null;
 
     // create point locations
     ArrayList<Translation2d> pointLocations = new ArrayList<>();
     pointLocations.add(start.getTranslation());
-    /*
+
     // add all the transition points
     for (int i = 0; i < path.size() - 1; i++) {
       Region2d from = path.get(i);
       Region2d to = path.get(i + 1);
       pointLocations.add(from.getTransitionPoint(to));
     }
-    */
+
     pointLocations.add(end.getTranslation());
 
     // find the correct heading for each
@@ -73,9 +73,12 @@ public class Field2d {
       double deltaY = pointLocations.get(i + 1).getY() - pointLocations.get(i).getY();
       lastHeading = new Rotation2d(deltaX, deltaY);
       if (i == 0) {
+        // FIXME: should the initial heading be the same as the current heading which could be
+        // derived from the current velocity in order to avoid a discontinuity at the start?
         points.add(new PathPoint(pointLocations.get(i), lastHeading, start.getRotation()));
       } else {
-        points.add(new PathPoint(pointLocations.get(i), lastHeading));
+        // FIXME: do we want to interpolate the holonomic rotation for intermediate path points?
+        points.add(new PathPoint(pointLocations.get(i), lastHeading, start.getRotation()));
       }
     }
 
@@ -89,6 +92,14 @@ public class Field2d {
   public List<Region2d> breadthFirstSearch(Region2d start, Region2d end) {
     Queue<ArrayList<Region2d>> todo = new LinkedList<>();
     Set<Region2d> explored = new HashSet<>();
+
+    // add the starting region to the set of explored regions
+    explored.add(start);
+
+    // if the path starts and ends in the same region, return that region
+    if (start == end) {
+      return new ArrayList<>(Arrays.asList(start));
+    }
 
     todo.add(
         new ArrayList<>(
