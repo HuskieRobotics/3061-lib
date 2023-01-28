@@ -9,6 +9,7 @@
 package frc.robot.operator_interface;
 
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.lib.team6328.util.Alert;
 import frc.lib.team6328.util.Alert.AlertType;
 
@@ -22,13 +23,23 @@ public class OISelector {
   private static final Alert nonCompetitionOperatorInterfaceWarning =
       new Alert("Non-competition operator controller connected.", AlertType.WARNING);
 
+  private static OperatorInterface oi = null;
+
   private OISelector() {}
+
+  public static OperatorInterface getOperatorInterface() {
+    if (didJoysticksChange()) {
+      CommandScheduler.getInstance().getActiveButtonLoop().clear();
+      oi = findOperatorInterface();
+    }
+    return oi;
+  }
 
   /**
    * Returns whether the connected joysticks have changed since the last time this method was
    * called.
    */
-  public static boolean didJoysticksChange() {
+  private static boolean didJoysticksChange() {
     boolean joysticksChanged = false;
     for (int port = 0; port < DriverStation.kJoystickPorts; port++) {
       String name = DriverStation.getJoystickName(port);
@@ -44,7 +55,7 @@ public class OISelector {
    * Instantiates and returns an appropriate OperatorInterface object based on the connected
    * joysticks.
    */
-  public static OperatorInterface findOperatorInterface() {
+  private static OperatorInterface findOperatorInterface() {
     Integer firstPort = null;
     Integer secondPort = null;
     Integer xBoxPort = null;

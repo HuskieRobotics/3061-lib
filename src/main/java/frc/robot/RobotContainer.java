@@ -15,7 +15,6 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
@@ -199,12 +198,11 @@ public class RobotContainer {
    * new OI objects and binds all of the buttons to commands.
    */
   public void updateOI() {
-    if (!OISelector.didJoysticksChange()) {
+    OperatorInterface prevOI = oi;
+    oi = OISelector.getOperatorInterface();
+    if (oi == prevOI) {
       return;
     }
-
-    CommandScheduler.getInstance().getActiveButtonLoop().clear();
-    oi = OISelector.findOperatorInterface();
 
     /*
      * Set up the default command for the drivetrain. The joysticks' values map to percentage of the
