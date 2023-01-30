@@ -47,7 +47,9 @@ public class Region2d {
    */
   public void addNeighbor(Region2d other, Translation2d point) {
     transitionMap.put(other, point);
-    // FIXME: should this mehtod add both regions as neighbors to each other?
+    // FIXME: should this mehtod add both regions as neighbors to each other? No, we want the
+    // flexibility to set the transition point inside of one of the regions to avoid obstacles
+    // (e.g., charging station).
   }
 
   /**

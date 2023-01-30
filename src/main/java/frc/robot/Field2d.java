@@ -73,11 +73,11 @@ public class Field2d {
       double deltaY = pointLocations.get(i + 1).getY() - pointLocations.get(i).getY();
       lastHeading = new Rotation2d(deltaX, deltaY);
       if (i == 0) {
-        // FIXME: should the initial heading be the same as the current heading which could be
-        // derived from the current velocity in order to avoid a discontinuity at the start?
+        // FIXME: the initial heading be the same as the current heading which could be
+        // derived from the current velocity in order to avoid a discontinuity at the start, and we
+        // should also specify a velocity override for the first point.
         points.add(new PathPoint(pointLocations.get(i), lastHeading, start.getRotation()));
       } else {
-        // FIXME: do we want to interpolate the holonomic rotation for intermediate path points?
         points.add(new PathPoint(pointLocations.get(i), lastHeading, start.getRotation()));
       }
     }
