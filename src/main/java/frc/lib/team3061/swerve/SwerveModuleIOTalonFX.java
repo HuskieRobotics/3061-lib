@@ -140,6 +140,8 @@ public class SwerveModuleIOTalonFX implements SwerveModuleIO {
     double absolutePosition =
         Conversions.degreesToFalcon(getCanCoder().getDegrees() - angleOffsetDeg, angleGearRatio);
     mAngleMotor.setSelectedSensorPosition(absolutePosition);
+    mAngleMotor.configVoltageCompSaturation(12); // default 12v voltage compensation for motors
+    mAngleMotor.enableVoltageCompensation(true);
   }
 
   private void configDriveMotor(int driveMotorID) {
@@ -166,6 +168,8 @@ public class SwerveModuleIOTalonFX implements SwerveModuleIO {
 
     mDriveMotor = TalonFXFactory.createTalon(driveMotorID, canBusName, driveMotorConfig);
 
+    mDriveMotor.configVoltageCompSaturation(12); // default 12v voltage compensation for motors
+    mDriveMotor.enableVoltageCompensation(true);
     mDriveMotor.setSelectedSensorPosition(0);
   }
 
