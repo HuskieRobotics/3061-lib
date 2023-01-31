@@ -59,8 +59,17 @@ public class DualJoysticksOI implements OperatorInterface {
     return translateJoystickButtons[1];
   }
 
+  //TODO: Remove when simulated testing is done!
   @Override
   public Trigger getMoveToGridButton() {
     return translateJoystickButtons[2];
+  }
+  @Override
+  public Trigger getHybridLeftMiddleGridButton(){
+    return translateJoystickButtons[4];
+  }
+  @Override
+  public Trigger getHybridLeftMiddleColumnButton(){
+    return translateJoystickButtons[4];
   }
 }

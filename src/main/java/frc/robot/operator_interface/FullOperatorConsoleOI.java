@@ -32,11 +32,13 @@ public class FullOperatorConsoleOI implements OperatorInterface {
     // to null
     this.translateJoystickButtons = new Trigger[13];
     this.rotateJoystickButtons = new Trigger[13];
-    this.operatorPanelButtons = new Trigger[13];
+    this.operatorPanelButtons = new Trigger[17];
 
     for (int i = 1; i < translateJoystickButtons.length; i++) {
       translateJoystickButtons[i] = translateJoystick.button(i);
       rotateJoystickButtons[i] = rotateJoystick.button(i);
+    }
+    for(int i = 1; i < operatorPanelButtons.length; i++) {
       operatorPanelButtons[i] = operatorPanel.button(i);
     }
   }
@@ -73,6 +75,34 @@ public class FullOperatorConsoleOI implements OperatorInterface {
 
   @Override
   public Trigger getMoveToGridButton() {
-    return translateJoystickButtons[2];
+    return operatorPanelButtons[9];
+  }
+
+  //TODO: Check if values correspond to the correct values on the switches (based on method names)
+  @Override
+  public Trigger getHybridLeftMiddleGridButton(){
+    return operatorPanelButtons[4];
+  }
+  @Override
+  public Trigger getHybridMiddleRightGridButton(){
+    return operatorPanelButtons[16];
+  }
+
+  @Override
+  public Trigger getHybridLeftMiddleColumnButton(){
+    return operatorPanelButtons[3];
+  }
+  @Override
+  public Trigger getHybridMiddleRightColumnButton(){
+    return operatorPanelButtons[15];
+  }
+
+  @Override
+  public Trigger getHybridHighMiddleLevelButton(){
+    return operatorPanelButtons[2];
+  }
+  @Override
+  public Trigger getHybridMiddleLowLevelButton(){
+    return operatorPanelButtons[14];
   }
 }

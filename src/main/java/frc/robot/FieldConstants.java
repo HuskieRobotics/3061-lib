@@ -36,28 +36,33 @@ public final class FieldConstants {
         COMMUNITY_POINT_10, COMMUNITY_POINT_7, COMMUNITY_POINT_8, COMMUNITY_POINT_9
       };
 
-  public static final Region2d COMMUNITY_REGION_1 = new Region2d(COMMUNITY_REGION_POINTS_1);
+      public static final Region2d COMMUNITY_REGION_1 = new Region2d(COMMUNITY_REGION_POINTS_1);
   public static final Region2d COMMUNITY_REGION_2 = new Region2d(COMMUNITY_REGION_POINTS_2);
   public static final Region2d COMMUNITY_REGION_3 = new Region2d(COMMUNITY_REGION_POINTS_3);
 
   public static final Translation2d REGION_1_2_TRANSITION_POINT =
-      new Translation2d(3, (5.49 + 3.98) / 2.0);
+      new Translation2d(3.5, (5.49 + 3.98) / 2.0);
+  public static final Translation2d REGION_2_1_TRANSITION_POINT =
+      new Translation2d(2.5, (5.49 + 3.98) / 2.0);
   public static final Translation2d REGION_1_3_TRANSITION_POINT =
-      new Translation2d(3, (1.51 / 2.0));
+      new Translation2d(3.5, (1.51 / 2.0));
+  public static final Translation2d REGION_3_1_TRANSITION_POINT =
+      new Translation2d(2.5, (1.51 / 2.0));
 
   public static final Field2d COMMUNITY_ZONE =
       new Field2d(new Region2d[] {COMMUNITY_REGION_1, COMMUNITY_REGION_2, COMMUNITY_REGION_3});
 
-  // TODO: Replace placeholder X values for each grid node location
-  public static final Pose2d GRID_1_NODE_1 = new Pose2d(2, 0.51, Rotation2d.fromDegrees(180));
-  public static final Pose2d GRID_1_NODE_2 = new Pose2d(2, 1.05, Rotation2d.fromDegrees(180));
-  public static final Pose2d GRID_1_NODE_3 = new Pose2d(2, 1.63, Rotation2d.fromDegrees(180));
+  // Grid Length: ~ 1.38m
+  // FIXME: Set X value based on robot size constants/manipulator requirements
+  public static final Pose2d GRID_1_NODE_1 = new Pose2d(1.77, 0.51, Rotation2d.fromDegrees(180));
+  public static final Pose2d GRID_1_NODE_2 = new Pose2d(1.77, 1.05, Rotation2d.fromDegrees(180));
+  public static final Pose2d GRID_1_NODE_3 = new Pose2d(1.77, 1.63, Rotation2d.fromDegrees(180));
 
-  public static final Pose2d GRID_2_NODE_1 = new Pose2d(2, 2.19, Rotation2d.fromDegrees(180));
-  public static final Pose2d GRID_2_NODE_2 = new Pose2d(2, 2.75, Rotation2d.fromDegrees(180));
-  public static final Pose2d GRID_2_NODE_3 = new Pose2d(2, 3.31, Rotation2d.fromDegrees(180));
+  public static final Pose2d GRID_2_NODE_1 = new Pose2d(1.77, 2.19, Rotation2d.fromDegrees(180));
+  public static final Pose2d GRID_2_NODE_2 = new Pose2d(1.77, 2.75, Rotation2d.fromDegrees(180));
+  public static final Pose2d GRID_2_NODE_3 = new Pose2d(1.77, 3.31, Rotation2d.fromDegrees(180));
 
-  public static final Pose2d GRID_3_NODE_1 = new Pose2d(2, 3.87, Rotation2d.fromDegrees(180));
-  public static final Pose2d GRID_3_NODE_2 = new Pose2d(2, 4.42, Rotation2d.fromDegrees(180));
-  public static final Pose2d GRID_3_NODE_3 = new Pose2d(2, 4.98, Rotation2d.fromDegrees(180));
+  public static final Pose2d GRID_3_NODE_1 = new Pose2d(1.77, 3.87, Rotation2d.fromDegrees(180));
+  public static final Pose2d GRID_3_NODE_2 = new Pose2d(1.77, 4.42, Rotation2d.fromDegrees(180));
+  public static final Pose2d GRID_3_NODE_3 = new Pose2d(1.77, 4.98, Rotation2d.fromDegrees(180));
 }

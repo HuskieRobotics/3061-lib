@@ -63,8 +63,6 @@ public class Field2d {
 
     pointLocations.add(end.getTranslation());
 
-    // find the correct heading for each
-
     // create points
     List<PathPoint> points = new ArrayList<>();
     Rotation2d lastHeading = null;

@@ -40,4 +40,25 @@ public interface OperatorInterface {
   public default Trigger getMoveToGridButton() {
     return new Trigger(() -> false);
   }
+
+  public default Trigger getHybridLeftMiddleGridButton(){
+    return new Trigger(() -> false);
+  }
+  public default Trigger getHybridMiddleRightGridButton(){
+    return new Trigger(() -> false);
+  }
+
+  public default Trigger getHybridLeftMiddleColumnButton(){
+    return new Trigger(() -> false);
+  }
+  public default Trigger getHybridMiddleRightColumnButton(){
+    return new Trigger(() -> false);
+  }
+  
+  public default Trigger getHybridHighMiddleLevelButton(){
+    return new Trigger(() -> false);
+  }
+  public default Trigger getHybridMiddleLowLevelButton(){
+    return new Trigger(() -> false);
+  }
 }
