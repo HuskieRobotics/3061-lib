@@ -238,7 +238,7 @@ public class Drivetrain extends SubsystemBase {
         new Pose2d(state.poseMeters.getTranslation(), state.holonomicRotation));
   }
 
-  public void reassesPoseAfterDisabledVisionSubSystem() {
+  public void  resetPoseRotationToGyro() {
     for (int i = 0; i < 4; i++) {
       swerveModulePositions[i] = swerveModules[i].getPosition();
     }
