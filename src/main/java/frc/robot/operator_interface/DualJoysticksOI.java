@@ -58,4 +58,9 @@ public class DualJoysticksOI implements OperatorInterface {
   public Trigger getXStanceButton() {
     return translateJoystickButtons[1];
   }
+
+  @Override
+  public Trigger getVisionIsEnabledSwitch() {
+    return rotateJoystickButtons[1];
+  }
 }
