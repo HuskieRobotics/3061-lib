@@ -31,7 +31,7 @@ public class Vision extends SubsystemBase {
 
   private double lastTimestamp;
   private SwerveDrivePoseEstimator poseEstimator;
-  private boolean isEnabled;
+  private boolean isEnabled = true;
 
   private Alert noAprilTagLayoutAlert =
       new Alert(
@@ -110,6 +110,10 @@ public class Vision extends SubsystemBase {
         }
       }
     }
+  }
+
+  public boolean isEnabled() {
+    return isEnabled;
   }
 
   public boolean tagVisible(int id) {

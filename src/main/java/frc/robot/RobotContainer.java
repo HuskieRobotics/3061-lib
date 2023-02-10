@@ -258,12 +258,14 @@ public class RobotContainer {
     // x-stance
     oi.getXStanceButton().onTrue(Commands.runOnce(drivetrain::enableXstance, drivetrain));
     oi.getXStanceButton().onFalse(Commands.runOnce(drivetrain::disableXstance, drivetrain));
-    oi.getVisionIsEnabledSwitch().onTrue(Commands.runOnce(() -> vision.enable(true), vision));
     oi.getVisionIsEnabledSwitch()
-        .onFalse(
-            Commands.parallel(
-                Commands.runOnce(() -> vision.enable(false)),
-                Commands.runOnce(drivetrain::resetPoseRotationToGyro)));
+        .toggleOnTrue(
+            Commands.either(
+                Commands.parallel(
+                    Commands.runOnce(() -> vision.enable(false)),
+                    Commands.runOnce(drivetrain::resetPoseRotationToGyro)),
+                Commands.runOnce(() -> vision.enable(true), vision),
+                vision::isEnabled));
   }
 
   /** Use this method to define your commands for autonomous mode. */
