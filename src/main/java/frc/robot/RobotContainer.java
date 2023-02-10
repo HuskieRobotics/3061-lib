@@ -57,7 +57,7 @@ public class RobotContainer {
   private OperatorInterface oi = new OperatorInterface() {};
   private RobotConfig config;
   private Drivetrain drivetrain;
-  private Vision vision = new Vision();
+  private Vision vision;
 
   // use AdvantageKit's LoggedDashboardChooser instead of SendableChooser to ensure accurate logging
   private final LoggedDashboardChooser<Command> autoChooser =
@@ -142,7 +142,7 @@ public class RobotContainer {
 
             drivetrain = new Drivetrain(gyro, flModule, frModule, blModule, brModule);
             new Pneumatics(new PneumaticsIORev());
-            new Vision(new VisionIOPhotonVision(config.getCameraName()));
+            vision = new Vision(new VisionIOPhotonVision(config.getCameraName()));
             break;
           }
         case ROBOT_SIMBOT:
@@ -167,7 +167,7 @@ public class RobotContainer {
             } catch (IOException e) {
               layout = new AprilTagFieldLayout(new ArrayList<>(), 16.4592, 8.2296);
             }
-            new Vision(
+            vision = new Vision(
                 new VisionIOSim(
                     layout,
                     drivetrain::getPose,
@@ -193,7 +193,7 @@ public class RobotContainer {
           new SwerveModule(new SwerveModuleIO() {}, 3, config.getRobotMaxVelocity());
       drivetrain = new Drivetrain(new GyroIO() {}, flModule, frModule, blModule, brModule);
       new Pneumatics(new PneumaticsIO() {});
-      new Vision(new VisionIO() {});
+      vision = new Vision(new VisionIO() {});
     }
 
     // disable all telemetry in the LiveWindow to reduce the processing during each iteration

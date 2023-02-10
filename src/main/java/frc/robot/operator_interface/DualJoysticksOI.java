@@ -58,4 +58,5 @@ public class DualJoysticksOI implements OperatorInterface {
   public Trigger getXStanceButton() {
     return translateJoystickButtons[1];
   }
+
 }
