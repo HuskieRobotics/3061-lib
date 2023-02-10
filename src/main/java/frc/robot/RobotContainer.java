@@ -167,11 +167,12 @@ public class RobotContainer {
             } catch (IOException e) {
               layout = new AprilTagFieldLayout(new ArrayList<>(), 16.4592, 8.2296);
             }
-            vision = new Vision(
-                new VisionIOSim(
-                    layout,
-                    drivetrain::getPose,
-                    RobotConfig.getInstance().getRobotToCameraTransform()));
+            vision =
+                new Vision(
+                    new VisionIOSim(
+                        layout,
+                        drivetrain::getPose,
+                        RobotConfig.getInstance().getRobotToCameraTransform()));
 
             break;
           }
@@ -257,8 +258,12 @@ public class RobotContainer {
     // x-stance
     oi.getXStanceButton().onTrue(Commands.runOnce(drivetrain::enableXstance, drivetrain));
     oi.getXStanceButton().onFalse(Commands.runOnce(drivetrain::disableXstance, drivetrain));
-    oi.getVisionIsEnabledSwitch().onTrue(Commands.runOnce(vision::visionSubsystemIsEnabledIsTrue()));
-    oi.getVisionIsEnabledSwitch().onFalse(Commands.parallel(Commands.runOnce(vision::disableVision, drivetrain:: resetPoseRotationToGyro())));;
+    oi.getVisionIsEnabledSwitch().onTrue(Commands.runOnce(() -> vision.enable(true), vision));
+    oi.getVisionIsEnabledSwitch()
+        .onFalse(
+            Commands.parallel(
+                Commands.runOnce(() -> vision.enable(false)),
+                Commands.runOnce(drivetrain::resetPoseRotationToGyro)));
   }
 
   /** Use this method to define your commands for autonomous mode. */
@@ -321,4 +326,3 @@ public class RobotContainer {
     return autoChooser.get();
   }
 }
-  

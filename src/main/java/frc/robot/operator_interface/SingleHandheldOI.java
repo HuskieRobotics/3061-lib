@@ -46,7 +46,7 @@ public class SingleHandheldOI implements OperatorInterface {
   }
 
   @Override
-  public Trigger getXStanceButton() {
-    return new Trigger(controller::getYButton);
+  public Trigger getVisionIsEnabledSwitch() {
+    return new Trigger(controller::getXButton);
   }
 }

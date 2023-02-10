@@ -109,7 +109,7 @@ public class Vision extends SubsystemBase {
           }
         }
       }
-    }is
+    }
   }
 
   public boolean tagVisible(int id) {
@@ -158,12 +158,8 @@ public class Vision extends SubsystemBase {
     }
   }
 
-  public void visionSubsystemIsEnabledIsFalse() {
-    isEnabled = !true;
-  }
-
-  public void visionSubsystemIsEnabledIsTrue() {
-    isEnabled = true;
+  public void enable(boolean enable) {
+    isEnabled = enable;
   }
 
   public boolean isValidTarget(PhotonTrackedTarget target) {
