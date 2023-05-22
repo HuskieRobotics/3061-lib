@@ -1,5 +1,6 @@
 package frc.lib.team3061.vision;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout.OriginPosition;
 import java.util.ArrayList;
 import java.util.List;
 import org.littletonrobotics.junction.LogTable;
@@ -44,4 +45,6 @@ public interface VisionIO {
 
   /** Updates the set of loggable inputs. */
   public default void updateInputs(VisionIOInputs inputs) {}
+
+  public default void setLayoutOrigin(OriginPosition origin) {}
 }

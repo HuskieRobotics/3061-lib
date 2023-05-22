@@ -57,7 +57,7 @@ public class Robot extends LoggedRobot {
         logger.recordMetadata(GIT_DIRTY, "All changes committed");
         break;
       case 1:
-        logger.recordMetadata(GIT_DIRTY, "Uncomitted changes");
+        logger.recordMetadata(GIT_DIRTY, "Uncommitted changes");
         break;
       default:
         logger.recordMetadata(GIT_DIRTY, "Unknown");
@@ -110,11 +110,13 @@ public class Robot extends LoggedRobot {
 
     // Invoke the factory method to create the RobotContainer singleton.
     robotContainer = RobotContainer.getInstance();
+
+    robotContainer.robotInit();
   }
 
   /**
    * This method is called every robot packet, no matter the mode. Use this for items like
-   * diagnostics that you want ran during disabled, autonomous, teleoperated and test.
+   * diagnostics that you want ran during disabled, autonomous, teleop and test.
    *
    * <p>This runs after the mode specific periodic methods, but before LiveWindow and SmartDashboard
    * integrated updating.
@@ -135,6 +137,7 @@ public class Robot extends LoggedRobot {
   @Override
   public void disabledPeriodic() {
     robotContainer.updateOI();
+    robotContainer.checkAllianceColor();
   }
 
   /**
@@ -143,6 +146,8 @@ public class Robot extends LoggedRobot {
    */
   @Override
   public void autonomousInit() {
+    robotContainer.checkAllianceColor();
+    robotContainer.autonomousInit();
     autonomousCommand = robotContainer.getAutonomousCommand();
 
     // schedule the autonomous command
@@ -151,7 +156,7 @@ public class Robot extends LoggedRobot {
     }
   }
 
-  /** This method is invoked at the start of the teleoperated period. */
+  /** This method is invoked at the start of the teleop period. */
   @Override
   public void teleopInit() {
     /*
@@ -162,6 +167,9 @@ public class Robot extends LoggedRobot {
     if (autonomousCommand != null) {
       autonomousCommand.cancel();
     }
+
+    robotContainer.checkAllianceColor();
+    robotContainer.teleopInit();
   }
 
   /** This method is invoked at the start of the test period. */

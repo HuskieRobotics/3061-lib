@@ -29,14 +29,16 @@ public class VisionIOSim implements VisionIO {
 
   private Supplier<Pose2d> poseSupplier;
   private SimVisionSystem simVision;
+  private AprilTagFieldLayout layout;
 
   public VisionIOSim(
       AprilTagFieldLayout layout, Supplier<Pose2d> poseSupplier, Transform3d robotToCamera) {
+    this.layout = layout;
     this.poseSupplier = poseSupplier;
 
     this.simVision =
         new SimVisionSystem(
-            CAMERA_NAME, DIAGONAL_FOV, robotToCamera.inverse(), 9000, IMG_WIDTH, IMG_HEIGHT, 0);
+            CAMERA_NAME, DIAGONAL_FOV, robotToCamera, 9000, IMG_WIDTH, IMG_HEIGHT, 0);
 
     layout.setOrigin(OriginPosition.kBlueAllianceWallRightSide);
 
@@ -74,5 +76,22 @@ public class VisionIOSim implements VisionIO {
     this.simVision.processFrame(poseSupplier.get());
     inputs.lastTimestamp = this.lastTimestamp;
     inputs.lastResult = this.lastResult;
+  }
+
+  @Override
+  public void setLayoutOrigin(OriginPosition origin) {
+    layout.setOrigin(origin);
+    this.simVision.clearVisionTargets();
+
+    for (AprilTag tag : layout.getTags()) {
+      if (layout.getTagPose(tag.ID).isPresent()) {
+        this.simVision.addSimVisionTarget(
+            new SimVisionTarget(
+                layout.getTagPose(tag.ID).get(),
+                Units.inchesToMeters(6),
+                Units.inchesToMeters(6),
+                tag.ID));
+}
+    }
   }
 }

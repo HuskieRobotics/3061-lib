@@ -243,8 +243,8 @@ public abstract class RobotConfig {
    *
    * @return the 3D transform from the center of the robot to the center of the camera
    */
-  public Transform3d getRobotToCameraTransform() {
-    return new Transform3d(new Translation3d(0, 0, 0), new Rotation3d(0, 0, 0));
+  public Transform3d[] getRobotToCameraTransforms() {
+    return new Transform3d[] {};
   }
 
   /**
@@ -255,6 +255,14 @@ public abstract class RobotConfig {
    */
   public abstract double getRobotMaxVelocity();
 
+  /*
+   * Returns the multiplier for when the robot is in slow mode. Defaults to 0.
+   * @return the multiplier for when the robot is in slow mode
+   */
+  public double getRobotSlowModeMultiplier() {
+    return 0.0;
+  }
+
   /**
    * The maximum angular velocity of the robot in radians per second. This is a measure of how fast
    * the robot can rotate in place. By default it is calculated based on the maximum velocity and
@@ -264,6 +272,14 @@ public abstract class RobotConfig {
    */
   public double getRobotMaxAngularVelocity() {
     return getRobotMaxVelocity() / Math.hypot(getTrackwidth() / 2.0, getWheelbase() / 2.0);
+  }
+
+  public double getRobotMaxDriveAcceleration() {
+    return 1000.0;
+  }
+
+  public double getRobotMaxTurnAcceleration() {
+    return 1000.0;
   }
 
   /**
@@ -375,7 +391,11 @@ public abstract class RobotConfig {
    *
    * @return the name of the camera used by the vision subsystem
    */
-  public String getCameraName() {
+  public String getCameraName0() {
+    return "";
+  }
+
+  public String getCameraName1() {
     return "";
   }
 
@@ -415,5 +435,67 @@ public abstract class RobotConfig {
    */
   public int getRevLowPressureSensorChannel() {
     return 1;
+  }
+
+  public double getDriveToPoseDriveKP() {
+    return 0.0;
+}
+
+  public double getDriveToPoseDriveKD() {
+    return 0.0;
+  }
+
+  public double getDriveToPoseThetaKP() {
+    return 0.0;
+  }
+
+  public double getDriveToPoseThetaKI() {
+    return 0.0;
+  }
+
+  public double getDriveToPoseThetaKD() {
+    return 0.0;
+  }
+
+  public double getDriveToPoseDriveMaxVelocity() {
+    return getAutoMaxSpeed();
+  }
+
+  public double getDriveToPoseDriveMaxAcceleration() {
+    return getAutoMaxAcceleration();
+  }
+
+  public double getDriveToPoseTurnMaxVelocity() {
+    return getDriveToPoseDriveMaxVelocity()
+        / Math.hypot(getTrackwidth() / 2.0, getWheelbase() / 2.0);
+  }
+
+  public double getDriveToPoseTurnMaxAcceleration() {
+    return getDriveToPoseDriveMaxAcceleration()
+        / Math.hypot(getTrackwidth() / 2.0, getWheelbase() / 2.0);
+  }
+
+  public double getDriveToPoseDriveTolerance() {
+    return 0.0;
+  }
+
+  public double getDriveToPoseThetaTolerance() {
+    return 0.0;
+  }
+
+  public double getSquaringSpeed() {
+    return 0.0;
+  }
+
+  public double getSquaringDuration() {
+    return 0.0;
+  }
+
+  public int getLEDCount() {
+    return 0;
+  }
+
+  public double getStallAgainstElementVelocity() {
+    return 0;
   }
 }

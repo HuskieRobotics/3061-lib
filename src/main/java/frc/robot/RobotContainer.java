@@ -4,10 +4,18 @@
 
 package frc.robot;
 
+import static frc.robot.Constants.*;
+import static frc.robot.FieldRegionConstants.*;
+
+import com.pathplanner.lib.PathConstraints;
 import com.pathplanner.lib.PathPlanner;
 import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.commands.FollowPathWithEvents;
+import com.pathplanner.lib.server.PathPlannerServer;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -34,8 +42,8 @@ import frc.robot.commands.FeedForwardCharacterization;
 import frc.robot.commands.FeedForwardCharacterization.FeedForwardCharacterizationData;
 import frc.robot.commands.FollowPath;
 import frc.robot.commands.TeleopSwerve;
-import frc.robot.configs.DefaultRobotConfig;
 import frc.robot.configs.MK4IRobotConfig;
+import frc.robot.configs.NovaRobotConfig;
 import frc.robot.configs.SierraRobotConfig;
 import frc.robot.operator_interface.OISelector;
 import frc.robot.operator_interface.OperatorInterface;
@@ -57,6 +65,7 @@ public class RobotContainer {
   private OperatorInterface oi = new OperatorInterface() {};
   private RobotConfig config;
   private Drivetrain drivetrain;
+  private Alliance lastAlliance = DriverStation.Alliance.Invalid;
   private Vision vision;
 
   // use AdvantageKit's LoggedDashboardChooser instead of SendableChooser to ensure accurate logging
@@ -78,16 +87,15 @@ public class RobotContainer {
     if (Constants.getMode() != Mode.REPLAY) {
       switch (Constants.getRobot()) {
         case ROBOT_DEFAULT:
+        case ROBOT_2023_NOVA:
         case ROBOT_2023_MK4I:
         case ROBOT_2022_SIERRA:
           {
             // create the specific RobotConfig subclass instance first
             if (Constants.getRobot() == Constants.RobotType.ROBOT_2023_MK4I) {
               config = new MK4IRobotConfig();
-            } else if (Constants.getRobot() == Constants.RobotType.ROBOT_2022_SIERRA) {
-              config = new SierraRobotConfig();
             } else {
-              config = new DefaultRobotConfig();
+              config = new NovaRobotConfig();
             }
 
             GyroIO gyro = new GyroIOPigeon2(config.getGyroCANID());
@@ -142,7 +150,14 @@ public class RobotContainer {
 
             drivetrain = new Drivetrain(gyro, flModule, frModule, blModule, brModule);
             new Pneumatics(new PneumaticsIORev());
-            vision = new Vision(new VisionIOPhotonVision(config.getCameraName()));
+            vision =
+                new Vision(
+                    new VisionIOPhotonVision(config.getCameraName0()),
+                    new VisionIOPhotonVision(config.getCameraName1()));
+                    
+                    if (Constants.getRobot() == Constants.RobotType.ROBOT_2022_SIERRA) {
+              new Pneumatics(new PneumaticsIORev());
+            }
             break;
           }
         case ROBOT_SIMBOT:
@@ -172,8 +187,7 @@ public class RobotContainer {
                     new VisionIOSim(
                         layout,
                         drivetrain::getPose,
-                        RobotConfig.getInstance().getRobotToCameraTransform()));
-
+                        RobotConfig.getInstance().getRobotToCameraTransforms()[0]));
             break;
           }
         default:
@@ -181,6 +195,7 @@ public class RobotContainer {
       }
 
     } else {
+      config = new NovaRobotConfig();
       SwerveModule flModule =
           new SwerveModule(new SwerveModuleIO() {}, 0, config.getRobotMaxVelocity());
 
@@ -193,16 +208,58 @@ public class RobotContainer {
       SwerveModule brModule =
           new SwerveModule(new SwerveModuleIO() {}, 3, config.getRobotMaxVelocity());
       drivetrain = new Drivetrain(new GyroIO() {}, flModule, frModule, blModule, brModule);
-      new Pneumatics(new PneumaticsIO() {});
-      vision = new Vision(new VisionIO() {});
+      vision = new Vision(new VisionIO() {}, new VisionIO() {});
     }
 
     // disable all telemetry in the LiveWindow to reduce the processing during each iteration
     LiveWindow.disableAllTelemetry();
 
+    constructField();
+
     updateOI();
 
     configureAutoCommands();
+  }
+
+  public void constructField() {
+    // FIXME: adjust boundary and transition points after reviewing field region slides
+    Field2d.getInstance()
+        .setRegions(
+            new Region2d[] {
+              COMMUNITY_REGION_1,
+              COMMUNITY_REGION_2,
+              COMMUNITY_REGION_3,
+              LOADING_ZONE_REGION_1,
+              LOADING_ZONE_REGION_2,
+              FIELD_ZONE_REGION_1,
+              FIELD_ZONE_REGION_2,
+              FIELD_ZONE_REGION_3,
+              FIELD_ZONE_REGION_4
+            });
+
+    COMMUNITY_REGION_1.addNeighbor(COMMUNITY_REGION_2, COMMUNITY_REGION_1_2_TRANSITION_POINT);
+    COMMUNITY_REGION_2.addNeighbor(COMMUNITY_REGION_1, COMMUNITY_REGION_2_1_TRANSITION_POINT);
+    COMMUNITY_REGION_1.addNeighbor(COMMUNITY_REGION_3, COMMUNITY_REGION_1_3_TRANSITION_POINT);
+    COMMUNITY_REGION_3.addNeighbor(COMMUNITY_REGION_1, COMMUNITY_REGION_3_1_TRANSITION_POINT);
+    COMMUNITY_REGION_2.addNeighbor(FIELD_ZONE_REGION_1, COMMUNITY_2_TO_FIELD_1_TRANSITION_POINT);
+    COMMUNITY_REGION_3.addNeighbor(FIELD_ZONE_REGION_2, COMMUNITY_3_TO_FIELD_2_TRANSITION_POINT);
+
+    LOADING_ZONE_REGION_1.addNeighbor(
+        LOADING_ZONE_REGION_2, LOADING_ZONE_REGION_1_2_TRANSITION_POINT);
+    LOADING_ZONE_REGION_2.addNeighbor(
+        LOADING_ZONE_REGION_1, LOADING_ZONE_REGION_2_1_TRANSITION_POINT);
+    LOADING_ZONE_REGION_2.addNeighbor(FIELD_ZONE_REGION_4, LOADING_2_TO_FIELD_4_TRANSITION_POINT);
+
+    FIELD_ZONE_REGION_1.addNeighbor(FIELD_ZONE_REGION_2, FIELD_ZONE_REGION_1_2_TRANSITION_POINT);
+    FIELD_ZONE_REGION_2.addNeighbor(FIELD_ZONE_REGION_1, FIELD_ZONE_REGION_2_1_TRANSITION_POINT);
+    FIELD_ZONE_REGION_1.addNeighbor(FIELD_ZONE_REGION_3, FIELD_ZONE_REGION_1_3_TRANSITION_POINT);
+    FIELD_ZONE_REGION_3.addNeighbor(FIELD_ZONE_REGION_1, FIELD_ZONE_REGION_3_1_TRANSITION_POINT);
+    FIELD_ZONE_REGION_1.addNeighbor(FIELD_ZONE_REGION_4, FIELD_ZONE_REGION_1_4_TRANSITION_POINT);
+    FIELD_ZONE_REGION_4.addNeighbor(FIELD_ZONE_REGION_1, FIELD_ZONE_REGION_4_1_TRANSITION_POINT);
+    FIELD_ZONE_REGION_1.addNeighbor(COMMUNITY_REGION_2, FIELD_1_TO_COMMUNITY_2_TRANSITION_POINT);
+    FIELD_ZONE_REGION_2.addNeighbor(COMMUNITY_REGION_3, FIELD_2_TO_COMMUNITY_3_TRANSITION_POINT);
+    FIELD_ZONE_REGION_3.addNeighbor(LOADING_ZONE_REGION_1, FIELD_3_TO_LOADING_1_TRANSITION_POINT);
+    FIELD_ZONE_REGION_4.addNeighbor(LOADING_ZONE_REGION_2, FIELD_4_TO_LOADING_2_TRANSITION_POINT);
   }
 
   /**
@@ -210,12 +267,11 @@ public class RobotContainer {
    * new OI objects and binds all of the buttons to commands.
    */
   public void updateOI() {
-    if (!OISelector.didJoysticksChange()) {
+    OperatorInterface prevOI = oi;
+    oi = OISelector.getOperatorInterface();
+    if (oi == prevOI) {
       return;
     }
-
-    CommandScheduler.getInstance().getActiveButtonLoop().clear();
-    oi = OISelector.findOperatorInterface();
 
     /*
      * Set up the default command for the drivetrain. The joysticks' values map to percentage of the
@@ -244,36 +300,43 @@ public class RobotContainer {
 
   /** Use this method to define your button->command mappings. */
   private void configureButtonBindings() {
-    // field-relative toggle
-    oi.getFieldRelativeButton()
-        .toggleOnTrue(
-            Commands.either(
-                Commands.runOnce(drivetrain::disableFieldRelative, drivetrain),
-                Commands.runOnce(drivetrain::enableFieldRelative, drivetrain),
-                drivetrain::getFieldRelative));
 
-    // reset gyro to 0 degrees
-    oi.getResetGyroButton().onTrue(Commands.runOnce(drivetrain::zeroGyroscope, drivetrain));
+    configureDrivetrainCommands();
 
-    // x-stance
-    oi.getXStanceButton().onTrue(Commands.runOnce(drivetrain::enableXstance, drivetrain));
-    oi.getXStanceButton().onFalse(Commands.runOnce(drivetrain::disableXstance, drivetrain));
+    // enable/disable vision
+    oi.getVisionIsEnabledSwitch().onTrue(Commands.runOnce(() -> vision.enable(true)));
     oi.getVisionIsEnabledSwitch()
-        .toggleOnTrue(
-            Commands.either(
+        .onFalse(
                 Commands.parallel(
-                    Commands.runOnce(() -> vision.enable(false)),
-                    Commands.runOnce(drivetrain::resetPoseRotationToGyro)),
-                Commands.runOnce(() -> vision.enable(true), vision),
-                vision::isEnabled));
+                Commands.runOnce(() -> vision.enable(false), vision),
+                Commands.runOnce(drivetrain::resetPoseRotationToGyro)));
+    oi.getInterruptAll()
+        .onTrue(
+            Commands.parallel(
+                Commands.runOnce(manipulator::stop, manipulator),
+                Commands.runOnce(elevator::stopElevator, elevator),
+                Commands.runOnce(intake::stopIntake, intake),
+                Commands.runOnce(drivetrain::disableXstance),
+                Commands.runOnce(led::enableTeleopLED),
+                new TeleopSwerve(drivetrain, oi::getTranslateX, oi::getTranslateY, oi::getRotate)));
   }
 
   /** Use this method to define your commands for autonomous mode. */
   private void configureAutoCommands() {
+    // Waypoints
     autoEventMap.put("event1", Commands.print("passed marker 1"));
     autoEventMap.put("event2", Commands.print("passed marker 2"));
 
     // build auto path commands
+
+    // add commands to the auto chooser
+    autoChooser.addDefaultOption("Do Nothing", new InstantCommand());
+
+    PathPlannerTrajectory straightPath = PathPlanner.loadPath("distanceTest", 2, 2);
+
+    Command straightPathCommand = new FollowPath(straightPath, drivetrain, true, true);
+    autoChooser.addOption("Straight Path", straightPathCommand);
+    
     List<PathPlannerTrajectory> auto1Paths =
         PathPlanner.loadPathGroup(
             "testPaths1", config.getAutoMaxSpeed(), config.getAutoMaxAcceleration());
@@ -304,7 +367,7 @@ public class RobotContainer {
             Commands.runOnce(drivetrain::disableFieldRelative, drivetrain),
             Commands.deadline(
                 Commands.waitSeconds(5.0),
-                Commands.run(() -> drivetrain.drive(1.5, 0.0, 0.0, false), drivetrain))));
+                Commands.run(() -> drivetrain.drive(1.5, 0.0, 0.0, false, false), drivetrain))));
 
     // "auto" command for characterizing the drivetrain
     autoChooser.addOption(
@@ -317,6 +380,76 @@ public class RobotContainer {
             drivetrain::getCharacterizationVelocity));
 
     Shuffleboard.getTab("MAIN").add(autoChooser.getSendableChooser());
+
+    if (TUNING_MODE) {
+      PathPlannerServer.startServer(3061);
+  }
+  }
+  
+  
+
+  private void configureDrivetrainCommands() {
+
+    oi.getTurn180Button()
+        .onTrue(new RotateToAngle(drivetrain, oi::getTranslateX, oi::getTranslateY));
+
+    if (TUNING_MODE) {
+      oi.getAutoBalanceButton().onTrue(new AutoBalance(drivetrain, true, led, false));
+      oi.getAutoBalanceTestNOTGRID().onTrue(new AutoBalance(drivetrain, true, led, true));
+    }
+
+    oi.getToggleIntakeButton()
+        .toggleOnTrue(
+            Commands.either(
+                Commands.sequence(
+                    new DeployIntake(intake),
+                    Commands.waitUntil(() -> intake.hasGamePiece()),
+                    new RetractIntake(intake)),
+                new RetractIntake(intake),
+                intake::isRetracted));
+
+    // field-relative toggle
+    oi.getFieldRelativeButton()
+        .toggleOnTrue(
+            Commands.either(
+                Commands.runOnce(drivetrain::disableFieldRelative, drivetrain),
+                Commands.runOnce(drivetrain::enableFieldRelative, drivetrain),
+                drivetrain::getFieldRelative));
+
+    // slow-mode toggle
+    oi.getTranslationSlowModeButton()
+        .onTrue(Commands.runOnce(drivetrain::enableTranslationSlowMode, drivetrain));
+    oi.getTranslationSlowModeButton()
+        .onFalse(Commands.runOnce(drivetrain::disableTranslationSlowMode, drivetrain));
+    oi.getRotationSlowModeButton()
+        .onTrue(Commands.runOnce(drivetrain::enableRotationSlowMode, drivetrain));
+    oi.getRotationSlowModeButton()
+        .onFalse(Commands.runOnce(drivetrain::disableRotationSlowMode, drivetrain));
+
+    // reset gyro to 0 degrees
+    oi.getResetGyroButton().onTrue(Commands.runOnce(drivetrain::zeroGyroscope, drivetrain));
+
+    // Ian release game Piece
+    oi.getReleaseTriggerButton()
+        .onTrue(
+            Commands.sequence(
+                new ReleaseGamePiece(manipulator, () -> elevator.getToggledToCone()),
+                new SetElevatorPosition(elevator, Position.CONE_STORAGE, led),
+                new RetractIntake(intake)));
+
+    // reset pose based on vision
+    oi.getResetPoseToVisionButton()
+        .onTrue(
+            Commands.runOnce(() -> drivetrain.resetPoseToVision(() -> vision.getBestRobotPose())));
+
+    // x-stance
+    oi.getXStanceButton().onTrue(Commands.runOnce(drivetrain::enableXstance, drivetrain));
+    oi.getXStanceButton().onFalse(Commands.runOnce(drivetrain::disableXstance, drivetrain));
+
+    // turbo
+    // oi.getTurboButton().onTrue(Commands.runOnce(drivetrain::enableTurbo, drivetrain));
+    // oi.getTurboButton().onFalse(Commands.runOnce(drivetrain::disableTurbo, drivetrain));
+    oi.getTurboButton().onTrue(new SetElevatorPosition(elevator, Position.CONE_STORAGE, led));
   }
 
   /**
@@ -326,5 +459,32 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     return autoChooser.get();
+  }
+
+  public void checkAllianceColor() {
+    if (DriverStation.getAlliance() != lastAlliance) {
+      lastAlliance = DriverStation.getAlliance();
+      vision.updateAlliance(lastAlliance);
+      Field2d.getInstance().updateAlliance(lastAlliance);
+}
+  }
+
+  public void autonomousInit() {
+  }
+
+  public void teleopInit() {
+  }
+
+  public void robotInit() {
+  }
+
+  public void disabledPeriodic() {
+  }
+
+  public static Pose2d adjustPoseForRobot(Pose2d pose) {
+    return new Pose2d(
+        pose.getX() + RobotConfig.getInstance().getRobotWidthWithBumpers() / 2,
+        pose.getY(),
+        pose.getRotation());
   }
 }

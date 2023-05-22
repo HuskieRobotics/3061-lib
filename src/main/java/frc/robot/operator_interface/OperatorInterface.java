@@ -8,7 +8,7 @@
 
 package frc.robot.operator_interface;
 
-import edu.wpi.first.wpilibj2.command.button.Trigger;
+import edu.wpi.first.wpilibj2.command.button.*;
 
 /** Interface for all driver and operator controls. */
 public interface OperatorInterface {
@@ -33,11 +33,33 @@ public interface OperatorInterface {
     return new Trigger(() -> false);
   }
 
+  public default Trigger getResetPoseToVisionButton() {
+    return new Trigger(() -> false);
+  }
+
   public default Trigger getXStanceButton() {
+    return new Trigger(() -> false);
+  }public default Trigger getTranslationSlowModeButton() {
+    return new Trigger(() -> false);
+  }
+
+  public default Trigger getRotationSlowModeButton() {
+    return new Trigger(() -> false);
+  }
+
+  public default Trigger getTurn180Button() {
     return new Trigger(() -> false);
   }
 
   public default Trigger getVisionIsEnabledSwitch() {
     return new Trigger(() -> false);
-  }
 }
+
+  public default Trigger getTurboButton() {
+    return new Trigger(() -> false);
+  }
+
+  public default Trigger getInterruptAll() {
+    return new Trigger(() -> false);
+  }
+  }

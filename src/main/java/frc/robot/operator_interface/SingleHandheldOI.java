@@ -44,9 +44,27 @@ public class SingleHandheldOI implements OperatorInterface {
   public Trigger getXStanceButton() {
     return new Trigger(controller::getYButton);
   }
+  
+    @Override
+  public Trigger getTranslationSlowModeButton() {
+    return new Trigger(controller::getLeftBumper);
+  }
+
+  @Override
+  public Trigger getRotationSlowModeButton() {
+    return new Trigger(controller::getRightBumper);
+  }
+
+
 
   @Override
   public Trigger getVisionIsEnabledSwitch() {
+    // vision is always enabled with Xbox as there is no switch to disable
+    return new Trigger(() -> true);
+  }
+
+  @Override
+  public Trigger getIntakeChuteButton() {
     return new Trigger(controller::getXButton);
   }
 }

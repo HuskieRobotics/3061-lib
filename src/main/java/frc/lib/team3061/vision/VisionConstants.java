@@ -11,11 +11,10 @@ public final class VisionConstants {
     throw new IllegalStateException(CONSTRUCTOR_EXCEPTION);
   }
 
-  // FIXME: add the current year's AprilTag field layout file to the deploy directory and update
-  // this constant with the current year's AprilTag field layout file
   public static final Path APRILTAG_FIELD_LAYOUT_PATH =
       new File(Filesystem.getDeployDirectory(), "2023-chargedup.json").toPath();
 
   public static final double MAXIMUM_AMBIGUITY = 0.2;
-  public static final double MAX_POSE_DIFFERENCE_METERS = 1.0;
+  public static final double MAX_POSE_DIFFERENCE_METERS = 1000.0;
+  public static final double MAX_DISTANCE_TO_TARGET = 6.0;
 }
