@@ -11,6 +11,7 @@ import frc.lib.team6328.util.Alert.AlertType;
 import frc.lib.team6328.util.TunableNumber;
 import frc.robot.Field2d;
 import frc.robot.subsystems.drivetrain.Drivetrain;
+import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 /**
@@ -25,7 +26,8 @@ import org.littletonrobotics.junction.Logger;
  *
  * <p>At End: stops the drivetrain, sets trajectory to null
  */
-public abstract class MoveToPose extends CommandBase {
+public class MoveToPose extends CommandBase {
+  private Supplier<Pose2d> endPoseSupplier;
   private Drivetrain drivetrain;
   private double minPathTraversalTime;
   private PathPlannerTrajectory trajectory;
@@ -38,27 +40,23 @@ public abstract class MoveToPose extends CommandBase {
    *
    * @param subsystem the drivetrain subsystem required by this command
    */
-  protected MoveToPose(Drivetrain subsystem) {
-    this(subsystem, 0);
+  protected MoveToPose(Drivetrain subsystem, Supplier<Pose2d> endPoseSupplier) {
+    this(subsystem, endPoseSupplier, 0);
   }
 
-  protected MoveToPose(Drivetrain subsystem, double minPathTraversalTime) {
+  protected MoveToPose(
+      Drivetrain subsystem, Supplier<Pose2d> endPoseSupplier, double minPathTraversalTime) {
+    this.endPoseSupplier = endPoseSupplier;
     this.drivetrain = subsystem;
     this.minPathTraversalTime = minPathTraversalTime;
 
     addRequirements(subsystem);
   }
 
-  /**
-   * This method returns a Pose2d object meant for the end pose of the auto-generated paths based on
-   * the current values of the operator console switches.
-   *
-   * @return the end pose for a path
-   */
-  public abstract Pose2d endPose();
-
   @Override
   public void initialize() {
+    Logger.getInstance().recordOutput("ActiveCommands/MoveToPose", true);
+
     // reset the theta controller such that old accumulated ID values aren't used with the new path
     //      this doesn't matter if only the P value is non-zero, which is the current behavior
     this.drivetrain.getAutoXController().reset();
@@ -137,9 +135,27 @@ public abstract class MoveToPose extends CommandBase {
     }
     this.trajectory = null;
     this.ppSwerveControllerCommand = null;
+
+    Logger.getInstance().recordOutput("ActiveCommands/MoveToPose", false);
   }
 
   public double getTotalTimeSeconds() {
     return this.trajectory.getTotalTimeSeconds();
+  }
+
+  private Pose2d endPose() {
+    Pose2d endPose = endPoseSupplier.get();
+
+    Pose2d translatedEndPose =
+        new Pose2d(
+            endPose.getX() - RobotConfig.getInstance().getRobotWidthWithBumpers() / 2,
+            endPose.getY(),
+            endPose.getRotation());
+
+    translatedEndPose = Field2d.getInstance().mapPoseToCurrentAlliance(translatedEndPose);
+
+    Logger.getInstance().recordOutput("MoveToPose/endPose", translatedEndPose);
+
+    return translatedEndPose;
   }
 }
