@@ -352,6 +352,20 @@ public class RobotContainer {
     // demonstration of PathPlanner path group with event markers
     autoChooser.addOption("Test Path", autoTest);
 
+    // "auto" path for Tuning auto PIDs
+    PathPlannerTrajectory tuningPath = PathPlanner.loadPath("Tuning", 2.0, 3.0);
+    Command tuningCommand = new FollowPath(tuningPath, drivetrain, true, true);
+    autoChooser.addOption("Auto Tuning Path", tuningCommand);
+
+    // start point auto
+    PathPlannerTrajectory startPointPath =
+        PathPlanner.loadPath(
+            "StartPoint", config.getAutoMaxSpeed(), config.getAutoMaxAcceleration());
+    Command startPoint =
+        Commands.runOnce(
+            () -> drivetrain.resetOdometry(startPointPath.getInitialState()), drivetrain);
+    autoChooser.addOption("Start Point", startPoint);
+
     // "auto" command for tuning the drive velocity PID
     autoChooser.addOption(
         "Drive Velocity Tuning",
