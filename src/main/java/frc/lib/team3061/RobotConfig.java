@@ -1,9 +1,7 @@
 package frc.lib.team3061;
 
-import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import frc.lib.team3061.swerve.SwerveModuleConstants.SwerveType;
 
@@ -439,7 +437,7 @@ public abstract class RobotConfig {
 
   public double getDriveToPoseDriveKP() {
     return 0.0;
-}
+  }
 
   public double getDriveToPoseDriveKD() {
     return 0.0;

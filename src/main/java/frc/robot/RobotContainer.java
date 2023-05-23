@@ -7,7 +7,6 @@ package frc.robot;
 import static frc.robot.Constants.*;
 import static frc.robot.FieldRegionConstants.*;
 
-import com.pathplanner.lib.PathConstraints;
 import com.pathplanner.lib.PathPlanner;
 import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.commands.FollowPathWithEvents;
@@ -19,7 +18,6 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.lib.team3061.RobotConfig;
@@ -41,10 +39,10 @@ import frc.robot.Constants.Mode;
 import frc.robot.commands.FeedForwardCharacterization;
 import frc.robot.commands.FeedForwardCharacterization.FeedForwardCharacterizationData;
 import frc.robot.commands.FollowPath;
+import frc.robot.commands.RotateToAngle;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.configs.MK4IRobotConfig;
 import frc.robot.configs.NovaRobotConfig;
-import frc.robot.configs.SierraRobotConfig;
 import frc.robot.operator_interface.OISelector;
 import frc.robot.operator_interface.OperatorInterface;
 import frc.robot.subsystems.drivetrain.Drivetrain;
@@ -89,7 +87,6 @@ public class RobotContainer {
         case ROBOT_DEFAULT:
         case ROBOT_2023_NOVA:
         case ROBOT_2023_MK4I:
-        case ROBOT_2022_SIERRA:
           {
             // create the specific RobotConfig subclass instance first
             if (Constants.getRobot() == Constants.RobotType.ROBOT_2023_MK4I) {
@@ -154,8 +151,8 @@ public class RobotContainer {
                 new Vision(
                     new VisionIOPhotonVision(config.getCameraName0()),
                     new VisionIOPhotonVision(config.getCameraName1()));
-                    
-                    if (Constants.getRobot() == Constants.RobotType.ROBOT_2022_SIERRA) {
+
+            if (Constants.getRobot() == Constants.RobotType.ROBOT_DEFAULT) {
               new Pneumatics(new PneumaticsIORev());
             }
             break;
@@ -222,7 +219,6 @@ public class RobotContainer {
   }
 
   public void constructField() {
-    // FIXME: adjust boundary and transition points after reviewing field region slides
     Field2d.getInstance()
         .setRegions(
             new Region2d[] {
@@ -307,17 +303,13 @@ public class RobotContainer {
     oi.getVisionIsEnabledSwitch().onTrue(Commands.runOnce(() -> vision.enable(true)));
     oi.getVisionIsEnabledSwitch()
         .onFalse(
-                Commands.parallel(
+            Commands.parallel(
                 Commands.runOnce(() -> vision.enable(false), vision),
                 Commands.runOnce(drivetrain::resetPoseRotationToGyro)));
     oi.getInterruptAll()
         .onTrue(
             Commands.parallel(
-                Commands.runOnce(manipulator::stop, manipulator),
-                Commands.runOnce(elevator::stopElevator, elevator),
-                Commands.runOnce(intake::stopIntake, intake),
                 Commands.runOnce(drivetrain::disableXstance),
-                Commands.runOnce(led::enableTeleopLED),
                 new TeleopSwerve(drivetrain, oi::getTranslateX, oi::getTranslateY, oi::getRotate)));
   }
 
@@ -336,21 +328,21 @@ public class RobotContainer {
 
     Command straightPathCommand = new FollowPath(straightPath, drivetrain, true, true);
     autoChooser.addOption("Straight Path", straightPathCommand);
-    
+
     List<PathPlannerTrajectory> auto1Paths =
         PathPlanner.loadPathGroup(
             "testPaths1", config.getAutoMaxSpeed(), config.getAutoMaxAcceleration());
     Command autoTest =
         Commands.sequence(
             new FollowPathWithEvents(
-                new FollowPath(auto1Paths.get(0), drivetrain, true),
+                new FollowPath(auto1Paths.get(0), drivetrain, true, true),
                 auto1Paths.get(0).getMarkers(),
                 autoEventMap),
             Commands.runOnce(drivetrain::enableXstance, drivetrain),
             Commands.waitSeconds(5.0),
             Commands.runOnce(drivetrain::disableXstance, drivetrain),
             new FollowPathWithEvents(
-                new FollowPath(auto1Paths.get(1), drivetrain, false),
+                new FollowPath(auto1Paths.get(1), drivetrain, false, true),
                 auto1Paths.get(1).getMarkers(),
                 autoEventMap));
 
@@ -383,30 +375,13 @@ public class RobotContainer {
 
     if (TUNING_MODE) {
       PathPlannerServer.startServer(3061);
+    }
   }
-  }
-  
-  
 
   private void configureDrivetrainCommands() {
 
     oi.getTurn180Button()
         .onTrue(new RotateToAngle(drivetrain, oi::getTranslateX, oi::getTranslateY));
-
-    if (TUNING_MODE) {
-      oi.getAutoBalanceButton().onTrue(new AutoBalance(drivetrain, true, led, false));
-      oi.getAutoBalanceTestNOTGRID().onTrue(new AutoBalance(drivetrain, true, led, true));
-    }
-
-    oi.getToggleIntakeButton()
-        .toggleOnTrue(
-            Commands.either(
-                Commands.sequence(
-                    new DeployIntake(intake),
-                    Commands.waitUntil(() -> intake.hasGamePiece()),
-                    new RetractIntake(intake)),
-                new RetractIntake(intake),
-                intake::isRetracted));
 
     // field-relative toggle
     oi.getFieldRelativeButton()
@@ -429,14 +404,6 @@ public class RobotContainer {
     // reset gyro to 0 degrees
     oi.getResetGyroButton().onTrue(Commands.runOnce(drivetrain::zeroGyroscope, drivetrain));
 
-    // Ian release game Piece
-    oi.getReleaseTriggerButton()
-        .onTrue(
-            Commands.sequence(
-                new ReleaseGamePiece(manipulator, () -> elevator.getToggledToCone()),
-                new SetElevatorPosition(elevator, Position.CONE_STORAGE, led),
-                new RetractIntake(intake)));
-
     // reset pose based on vision
     oi.getResetPoseToVisionButton()
         .onTrue(
@@ -447,9 +414,8 @@ public class RobotContainer {
     oi.getXStanceButton().onFalse(Commands.runOnce(drivetrain::disableXstance, drivetrain));
 
     // turbo
-    // oi.getTurboButton().onTrue(Commands.runOnce(drivetrain::enableTurbo, drivetrain));
-    // oi.getTurboButton().onFalse(Commands.runOnce(drivetrain::disableTurbo, drivetrain));
-    oi.getTurboButton().onTrue(new SetElevatorPosition(elevator, Position.CONE_STORAGE, led));
+    oi.getTurboButton().onTrue(Commands.runOnce(drivetrain::enableTurbo, drivetrain));
+    oi.getTurboButton().onFalse(Commands.runOnce(drivetrain::disableTurbo, drivetrain));
   }
 
   /**
@@ -466,19 +432,19 @@ public class RobotContainer {
       lastAlliance = DriverStation.getAlliance();
       vision.updateAlliance(lastAlliance);
       Field2d.getInstance().updateAlliance(lastAlliance);
-}
+    }
   }
 
   public void autonomousInit() {
+    // when the LED subsystem is pulled in, we will change the LEDs here
   }
 
   public void teleopInit() {
-  }
-
-  public void robotInit() {
+    // when the LED subsystem is pulled in, we will change the LEDs here
   }
 
   public void disabledPeriodic() {
+    // when the LED subsystem is pulled in, we will change the LEDs here
   }
 
   public static Pose2d adjustPoseForRobot(Pose2d pose) {

@@ -30,7 +30,6 @@ public class MoveToLoadingZone extends MoveToPose {
    *
    * @param subsystem the drivetrain subsystem required by this command
    */
-  // FIXME: Remove this constructor if we need to account for path traversal times
   public MoveToLoadingZone(Drivetrain subsystem, Pose2d endPose) {
     this(subsystem, endPose, 0);
   }

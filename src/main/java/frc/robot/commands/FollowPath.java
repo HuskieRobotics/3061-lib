@@ -72,14 +72,14 @@ public class FollowPath extends PPSwerveControllerCommand {
 
     super.initialize();
 
-      // reset odometry to the starting pose of the trajectory
+    // reset odometry to the starting pose of the trajectory
     if (initialPath) {
       PathPlannerState initialState = this.trajectory.getInitialState();
       if (this.useAllianceColor) {
         initialState =
             PathPlannerTrajectory.transformStateForAlliance(
                 initialState, DriverStation.getAlliance());
-    }
+      }
       this.drivetrain.resetOdometry(initialState);
     }
 

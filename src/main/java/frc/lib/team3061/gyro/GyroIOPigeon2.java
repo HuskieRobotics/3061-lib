@@ -7,9 +7,7 @@ package frc.lib.team3061.gyro;
 import com.ctre.phoenix.ErrorCode;
 import com.ctre.phoenix.sensors.Pigeon2;
 import com.ctre.phoenix.sensors.PigeonIMU_StatusFrame;
-import edu.wpi.first.math.util.Units;
 import frc.lib.team3061.RobotConfig;
-import org.littletonrobotics.junction.Logger;
 
 public class GyroIOPigeon2 implements GyroIO {
   private final Pigeon2 gyro;

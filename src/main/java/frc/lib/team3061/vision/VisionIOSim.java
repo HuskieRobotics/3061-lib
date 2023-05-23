@@ -91,7 +91,7 @@ public class VisionIOSim implements VisionIO {
                 Units.inchesToMeters(6),
                 Units.inchesToMeters(6),
                 tag.ID));
-}
+      }
     }
   }
 }

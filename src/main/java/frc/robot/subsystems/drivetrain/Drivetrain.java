@@ -117,7 +117,6 @@ public class Drivetrain extends SubsystemBase {
   private boolean isTurbo;
   private boolean hasCrossedToRedSide = false;
   private boolean hasCrossedToBlueSide = true;
-  private double maxDriveAcceleration;
 
   private boolean isMoveToGridEnabled;
 
@@ -151,7 +150,8 @@ public class Drivetrain extends SubsystemBase {
 
     this.poseEstimator = RobotOdometry.getInstance().getPoseEstimator();
 
-    this.isTurbo = false;
+    // based on testing we can drive in turbo mode all the time
+    this.isTurbo = true;
 
     this.isMoveToGridEnabled = true;
 
@@ -187,16 +187,15 @@ public class Drivetrain extends SubsystemBase {
   }
 
   public void enableTurbo() {
-    isTurbo = true;
+    this.isTurbo = true;
   }
 
   public void disableTurbo() {
-    isTurbo = false;
-    }
+    this.isTurbo = false;
+  }
 
   public boolean getTurbo() {
-    // based on testing, we can drive in turbo mode all the time
-    return true;
+    return this.isTurbo;
   }
 
   /**
@@ -231,11 +230,11 @@ public class Drivetrain extends SubsystemBase {
   }
 
   public double getPitch() {
-    return gyroInputs.pitch;
+    return gyroInputs.pitchDeg;
   }
 
   public double getRoll() {
-    return gyroInputs.roll;
+    return gyroInputs.rollDeg;
   }
 
   /**
@@ -633,13 +632,13 @@ public class Drivetrain extends SubsystemBase {
    * @param x the x coordinate of the robot's center of gravity (in meters)
    * @param y the y coordinate of the robot's center of gravity (in meters)
    */
-  public void setCenterGrav(double x, double y) {
+  public void setCenterGravity(double x, double y) {
     this.centerGravity = new Translation2d(x, y);
   }
 
   /** Resets the robot's center of gravity about which it will rotate to the center of the robot. */
-  public void resetCenterGrav() {
-    setCenterGrav(0.0, 0.0);
+  public void resetCenterGravity() {
+    setCenterGravity(0.0, 0.0);
   }
 
   /**

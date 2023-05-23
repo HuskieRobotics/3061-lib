@@ -39,7 +39,9 @@ public interface OperatorInterface {
 
   public default Trigger getXStanceButton() {
     return new Trigger(() -> false);
-  }public default Trigger getTranslationSlowModeButton() {
+  }
+
+  public default Trigger getTranslationSlowModeButton() {
     return new Trigger(() -> false);
   }
 
@@ -53,7 +55,7 @@ public interface OperatorInterface {
 
   public default Trigger getVisionIsEnabledSwitch() {
     return new Trigger(() -> false);
-}
+  }
 
   public default Trigger getTurboButton() {
     return new Trigger(() -> false);
@@ -62,4 +64,4 @@ public interface OperatorInterface {
   public default Trigger getInterruptAll() {
     return new Trigger(() -> false);
   }
-  }
+}

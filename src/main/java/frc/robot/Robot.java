@@ -110,8 +110,6 @@ public class Robot extends LoggedRobot {
 
     // Invoke the factory method to create the RobotContainer singleton.
     robotContainer = RobotContainer.getInstance();
-
-    robotContainer.robotInit();
   }
 
   /**

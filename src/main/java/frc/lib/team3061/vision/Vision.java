@@ -100,7 +100,7 @@ public class Vision extends SubsystemBase {
       layout.setOrigin(OriginPosition.kRedAllianceWallRightSide);
       for (VisionIO visionIO : visionIOs) {
         visionIO.setLayoutOrigin(OriginPosition.kRedAllianceWallRightSide);
-  }
+      }
     } else {
       layout.setOrigin(OriginPosition.kBlueAllianceWallRightSide);
       for (VisionIO visionIO : visionIOs) {
@@ -112,7 +112,7 @@ public class Vision extends SubsystemBase {
       if (layout.getTagPose(tag.ID).isPresent()) {
         Logger.getInstance()
             .recordOutput("Vision/AprilTags/" + tag.ID, layout.getTagPose(tag.ID).get());
-  }
+      }
     }
   }
 
@@ -130,13 +130,13 @@ public class Vision extends SubsystemBase {
 
         if (robotPose == null) return;
 
-            if (poseEstimator
-                    .getEstimatedPosition()
-                    .minus(robotPose.toPose2d())
-                    .getTranslation()
-                    .getNorm()
-                < MAX_POSE_DIFFERENCE_METERS) {
-              if (isEnabled) {
+        if (poseEstimator
+                .getEstimatedPosition()
+                .minus(robotPose.toPose2d())
+                .getTranslation()
+                .getNorm()
+            < MAX_POSE_DIFFERENCE_METERS) {
+          if (isEnabled) {
             // old
             // poseEstimator.addVisionMeasurement(robotPose.toPose2d(), ios[i].lastTimestamp);
 
@@ -146,19 +146,19 @@ public class Vision extends SubsystemBase {
                 ios[i].lastTimestamp,
                 getStdDevs(poseAndDistance.distanceToAprilTag));
             isVisionUpdating = true;
-              }
+          }
 
           Logger.getInstance().recordOutput("Vision/RobotPose" + i, robotPose.toPose2d());
-              Logger.getInstance().recordOutput("Vision/isEnabled", isEnabled);
-            }
-          }
+          Logger.getInstance().recordOutput("Vision/isEnabled", isEnabled);
         }
       }
+    }
+  }
 
   private Matrix<N3, N1> getStdDevs(double targetDistance) {
     double stdDevTrust = SDslope.get() * (Math.pow(targetDistance, SDpower.get()));
     return VecBuilder.fill(stdDevTrust, stdDevTrust, stdDevTrust);
-    }
+  }
 
   // make a tunable number for the equation for standard deviation
   // 1 meter is .2, 3 meters is .9, so then
@@ -175,7 +175,7 @@ public class Vision extends SubsystemBase {
     for (int i = 0; i < 2; i++) {
       Logger.getInstance().recordOutput("Vision/TagPose" + index + "_" + i, new Pose2d());
       Logger.getInstance().recordOutput("Vision/NVRobotPose" + index + "_" + i, new Pose2d());
-      }
+    }
 
     for (PhotonTrackedTarget target : ios[index].lastResult.getTargets()) {
       if (isValidTarget(target)) {
@@ -198,14 +198,14 @@ public class Vision extends SubsystemBase {
             closestTargetDistance = targetDistance;
 
             robotPoseFromClosestTarget = robotPose;
+          }
+        }
       }
-    }
-  }
       targetCount++;
     }
 
     return new RobotPoseFromAprilTag(robotPoseFromClosestTarget, closestTargetDistance);
-    }
+  }
 
   public Pose3d getBestRobotPose() {
     Pose3d robotPoseFromClosestTarget = null;
@@ -217,8 +217,8 @@ public class Vision extends SubsystemBase {
       if (robotPose != null && distanceToAprilTag < closestTargetDistance) {
         robotPoseFromClosestTarget = robotPose;
         closestTargetDistance = distanceToAprilTag;
+      }
     }
-  }
     return robotPoseFromClosestTarget;
   }
 
@@ -245,7 +245,7 @@ public class Vision extends SubsystemBase {
               < tunablePoseDifferenceThreshold.get()) {
         Logger.getInstance().recordOutput("Vision/posesInLine", true);
         return true;
-}
+      }
     }
     Logger.getInstance().recordOutput("Vision/posesInLine", false);
     return false;

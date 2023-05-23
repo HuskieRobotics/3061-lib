@@ -21,8 +21,7 @@ public class NovaRobotConfig extends RobotConfig {
   private static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 16;
   private static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 15;
   private static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 17;
-  // FIXME find new offset: 1
-  private static final double FRONT_RIGHT_MODULE_STEER_OFFSET = 100.02; // 83.49;
+  private static final double FRONT_RIGHT_MODULE_STEER_OFFSET = 100.02;
 
   private static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 7;
   private static final int BACK_LEFT_MODULE_STEER_MOTOR = 6;
@@ -41,23 +40,18 @@ public class NovaRobotConfig extends RobotConfig {
   private static final double ROBOT_WIDTH_WITH_BUMPERS = 0.8382; // meters //33 in
   private static final double ROBOT_LENGTH_WITH_BUMPERS = 0.8382; // meters // 33 in
 
-  // FIXME: tune PID values for the angle and drive motors for the swerve modules
-
   /* Angle Motor PID Values */
-  // FIXME: Adjust
   private static final double ANGLE_KP = 0.4;
   private static final double ANGLE_KI = 0.0;
   private static final double ANGLE_KD = 12.0;
   private static final double ANGLE_KF = 0.0;
 
   /* Drive Motor PID Values */
-  // FIXME: Adjust
   private static final double DRIVE_KP = 0.10;
   private static final double DRIVE_KI = 0.0;
   private static final double DRIVE_KD = 5.5;
   private static final double DRIVE_KF = 0.0;
 
-  // FIXME: adjust with characterization
   private static final double DRIVE_KS = 0.28006;
   private static final double DRIVE_KV = 2.32216;
   private static final double DRIVE_KA = 0.12872;
@@ -68,7 +62,6 @@ public class NovaRobotConfig extends RobotConfig {
   private static final double MAX_COAST_VELOCITY_METERS_PER_SECOND = 0.05;
   private static final double SLOW_MODE_MULTIPLIER = 0.75;
 
-  // FIXME: tune these
   private static final double MAX_DRIVE_ACCELERATION_METERS_PER_SECOND_SQUARED = 10.0;
   private static final double MAX_TURN_ACCELERATION_RADIANS_PER_SECOND_SQUARED = 4.0 * Math.PI;
 
@@ -78,9 +71,6 @@ public class NovaRobotConfig extends RobotConfig {
 
   private static final String CAMERA_NAME_1 = "OV9281R";
 
-  private static final int DRIVER_CAMERA_PORT = 0;
-
-  // FIXME: update this with the actual transform from the robot to the camera
   private static final Transform3d ROBOT_TO_CAMERA_0 =
       new Transform3d(
           new Translation3d(
@@ -97,8 +87,6 @@ public class NovaRobotConfig extends RobotConfig {
               Units.inchesToMeters(49.240)),
           new Rotation3d(0, Units.degreesToRadians(25), Units.degreesToRadians(-30)));
 
-  // FIXME: specify maximum velocity and acceleration and tune PID values for auto paths
-
   private static final double AUTO_MAX_SPEED_METERS_PER_SECOND = 2.0;
   private static final double AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED = 2.0;
   private static final double AUTO_DRIVE_P_CONTROLLER = 8.0;
@@ -108,7 +96,6 @@ public class NovaRobotConfig extends RobotConfig {
   private static final double AUTO_TURN_I_CONTROLLER = 0.0;
   private static final double AUTO_TURN_D_CONTROLLER = 0.0;
 
-  // FIXME: tune all drive to pose constants
   // Drive to Pose constants
   private static final double DRIVE_TO_POSE_DRIVE_KP = 2.5;
   private static final double DRIVE_TO_POSE_DRIVE_KD = 0.0;
@@ -331,11 +318,6 @@ public class NovaRobotConfig extends RobotConfig {
   @Override
   public String getCameraName1() {
     return CAMERA_NAME_1;
-  }
-
-  @Override
-  public int getDriverCameraPort() {
-    return DRIVER_CAMERA_PORT;
   }
 
   @Override

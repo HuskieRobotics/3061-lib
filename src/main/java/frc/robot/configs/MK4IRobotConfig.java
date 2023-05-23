@@ -68,8 +68,6 @@ public class MK4IRobotConfig extends RobotConfig {
 
   private static final String CAMERA_NAME = "OV9281";
 
-  private static final int DRIVER_CAMERA_PORT = 0;
-
   private static final Transform3d ROBOT_TO_CAMERA =
       new Transform3d(new Translation3d(0.356, 0.0, 0.465), new Rotation3d(0, 0, 0));
 
@@ -327,7 +325,7 @@ public class MK4IRobotConfig extends RobotConfig {
   @Override
   public double getDriveToPoseDriveKP() {
     return DRIVE_TO_POSE_DRIVE_KP;
-}
+  }
 
   @Override
   public double getDriveToPoseDriveKD() {

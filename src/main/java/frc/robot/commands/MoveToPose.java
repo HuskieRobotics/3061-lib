@@ -33,16 +33,11 @@ public abstract class MoveToPose extends CommandBase {
   private Alert noPathAlert = new Alert("No path between start and end pose", AlertType.WARNING);
   private final TunableNumber timeOffset = new TunableNumber("MoveToPose/TIME_OFFSET", 0.1);
 
-  // FIXME: replace with "predict into future" time closer to actual for robot
-  // private static final double TIME_OFFSET = 0.2;
-
   /**
    * Constructs a new MoveToPose command object.
    *
    * @param subsystem the drivetrain subsystem required by this command
    */
-
-  // FIXME: potentially get rid of completely if we need to account for path traversal times
   protected MoveToPose(Drivetrain subsystem) {
     this(subsystem, 0);
   }
@@ -81,7 +76,6 @@ public abstract class MoveToPose extends CommandBase {
 
     double distance = endPose.minus(this.drivetrain.getPose()).getTranslation().getNorm();
     double maxVelocity = RobotConfig.getInstance().getAutoMaxSpeed();
-    // FIXME: add elevator movement time (isn't this already accounted for?)
     if (minPathTraversalTime != 0) {
       maxVelocity = distance / minPathTraversalTime;
     }

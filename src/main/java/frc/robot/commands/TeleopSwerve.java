@@ -98,7 +98,7 @@ public class TeleopSwerve extends CommandBase {
         xVelocity =
             lastXVelocity
                 + Math.copySign(driveAccelerationMetersPer20Ms, xVelocity - lastXVelocity);
-  }
+      }
 
       if (Math.abs(yVelocity - lastYVelocity) > driveAccelerationMetersPer20Ms) {
         yVelocity =
