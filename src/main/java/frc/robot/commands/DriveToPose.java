@@ -22,6 +22,19 @@ import frc.robot.subsystems.drivetrain.Drivetrain;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
+/**
+ * This command, when executed, instructs the drivetrain subsystem to drive to the specified pose in
+ * a straight line. The specified pose is not translated based on the alliance color. The execute
+ * method invokes the drivetrain subsystem's drive method. For following a predetermined path, refer
+ * to the FollowPath Command class. For generating a path on the fly and following that path, refer
+ * to the MoveToPose Command class.
+ *
+ * <p>Requires: the Drivetrain subsystem
+ *
+ * <p>Finished When: the robot is at the specified pose (within the specified tolerances)
+ *
+ * <p>At End: stops the drivetrain
+ */
 public class DriveToPose extends CommandBase {
   private final Drivetrain drivetrain;
   private final Supplier<Pose2d> poseSupplier;
@@ -87,7 +100,14 @@ public class DriveToPose extends CommandBase {
           new TrapezoidProfile.Constraints(thetaMaxVelocity.get(), thetaMaxAcceleration.get()),
           LOOP_PERIOD_SECS);
 
-  /** Drives to the specified pose under full software control. */
+  /**
+   * Constructs a new DriveToPose command that drives the robot in a straight line to the specified
+   * pose. A pose supplier is specified instead of a pose since the target pose may not be known
+   * when this command is created.
+   *
+   * @param drivetrain the drivetrain subsystem required by this command
+   * @param poseSupplier a supplier that returns the pose to drive to
+   */
   public DriveToPose(Drivetrain drivetrain, Supplier<Pose2d> poseSupplier) {
     this.drivetrain = drivetrain;
     this.poseSupplier = poseSupplier;
@@ -96,6 +116,13 @@ public class DriveToPose extends CommandBase {
     thetaController.enableContinuousInput(-Math.PI, Math.PI);
   }
 
+  /**
+   * This method is invoked once when this command is scheduled. It resets all the PID controllers
+   * and initializes the current and target poses. It is critical that this initialization occurs in
+   * this method and not the constructor as this object is constructed well before the command is
+   * scheduled and the robot's pose will definitely have changed and the target pose may not be
+   * known until this command is scheduled.
+   */
   @Override
   public void initialize() {
     Logger.getInstance().recordOutput("ActiveCommands/DriveToPose", true);
@@ -115,8 +142,16 @@ public class DriveToPose extends CommandBase {
     this.timer.restart();
   }
 
+  /**
+   * This method is invoked periodically while this command is scheduled. It calculates the
+   * velocities based on the current and target poses and invokes the drivetrain subsystem's drive
+   * method.
+   */
   @Override
   public void execute() {
+    // set running to true in this method to capture that the calculate method has been invoked on
+    // the PID controllers. This is important since these controllers will return true for atGoal if
+    // the calculate method has not yet been invoked.
     running = true;
 
     // Update from tunable numbers
@@ -129,7 +164,9 @@ public class DriveToPose extends CommandBase {
         || driveMaxVelocity.hasChanged()
         || driveMaxAcceleration.hasChanged()
         || thetaMaxVelocity.hasChanged()
-        || thetaMaxAcceleration.hasChanged()) {
+        || thetaMaxAcceleration.hasChanged()
+        || driveTolerance.hasChanged()
+        || thetaTolerance.hasChanged()) {
       xController.setP(driveKp.get());
       xController.setD(driveKd.get());
       xController.setI(driveKi.get());
@@ -150,10 +187,8 @@ public class DriveToPose extends CommandBase {
       thetaController.setTolerance(thetaTolerance.get());
     }
 
-    // Get current and target pose
     Pose2d currentPose = drivetrain.getPose();
 
-    // Command speeds
     double xVelocity = xController.calculate(currentPose.getX(), this.targetPose.getX());
     double yVelocity = yController.calculate(currentPose.getY(), this.targetPose.getY());
     double thetaVelocity =
@@ -166,21 +201,38 @@ public class DriveToPose extends CommandBase {
     drivetrain.drive(xVelocity, yVelocity, thetaVelocity, true, true);
   }
 
-  @Override
-  public void end(boolean interrupted) {
-    drivetrain.stop();
-    running = false;
-    Logger.getInstance().recordOutput("ActiveCommands/DriveToPose", false);
-  }
-
+  /**
+   * This method returns true if the command has finished. It is invoked periodically while this
+   * command is scheduled (after execute is invoked). This command is considered finished if the
+   * move-to-pose feature is disabled on the drivetrain subsystem or if the timeout has elapsed or
+   * if all the PID controllers are at their goal.
+   *
+   * @return true if the command has finished
+   */
   @Override
   public boolean isFinished() {
     Logger.getInstance().recordOutput("DriveToPose/xErr", xController.atGoal());
     Logger.getInstance().recordOutput("DriveToPose/yErr", yController.atGoal());
     Logger.getInstance().recordOutput("DriveToPose/tErr", thetaController.atGoal());
 
-    return !drivetrain.isMoveToGridEnabled()
+    // check that running is true (i.e., the calculate method has been invoked on the PID
+    // controllers) and that each of the controllers is at their goal. This is important since these
+    // controllers will return true for atGoal if the calculate method has not yet been invoked.
+    return !drivetrain.isMoveToPoseEnabled()
         || this.timer.hasElapsed(timeout.get())
         || (running && xController.atGoal() && yController.atGoal() && thetaController.atGoal());
+  }
+
+  /**
+   * This method will be invoked when this command finishes or is interrupted. It stops the motion
+   * of the drivetrain.
+   *
+   * @param interrupted true if the command was interrupted by another command being scheduled
+   */
+  @Override
+  public void end(boolean interrupted) {
+    drivetrain.stop();
+    running = false;
+    Logger.getInstance().recordOutput("ActiveCommands/DriveToPose", false);
   }
 }

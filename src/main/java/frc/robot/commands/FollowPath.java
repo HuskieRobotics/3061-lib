@@ -35,6 +35,9 @@ public class FollowPath extends PPSwerveControllerCommand {
    *     of trajectory; false, if this trajectory is a subsequent trajectory in which case the gyro
    *     and odometry will not be re-initialized in order to ensure a smooth transition between
    *     trajectories
+   * @param useAllianceColor if true, the path states will be automatically transformed based on
+   *     alliance color. In order for this to work properly, you MUST create your path on the blue
+   *     side of the field.
    */
   public FollowPath(
       PathPlannerTrajectory trajectory,

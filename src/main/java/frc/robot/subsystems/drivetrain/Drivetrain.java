@@ -118,7 +118,7 @@ public class Drivetrain extends SubsystemBase {
   private boolean hasCrossedToRedSide = false;
   private boolean hasCrossedToBlueSide = true;
 
-  private boolean isMoveToGridEnabled;
+  private boolean isMoveToPoseEnabled;
 
   private Alert noPoseAlert =
       new Alert("Attempted to reset pose from vision, but no pose was found.", AlertType.WARNING);
@@ -153,7 +153,7 @@ public class Drivetrain extends SubsystemBase {
     // based on testing we can drive in turbo mode all the time
     this.isTurbo = true;
 
-    this.isMoveToGridEnabled = true;
+    this.isMoveToPoseEnabled = true;
 
     ShuffleboardTab tabMain = Shuffleboard.getTab("MAIN");
     tabMain
@@ -736,12 +736,12 @@ public class Drivetrain extends SubsystemBase {
     return driveVelocityAverage / 4.0;
   }
 
-  public void enableMoveToGrid(boolean state) {
-    this.isMoveToGridEnabled = state;
+  public void enableMoveToPose(boolean state) {
+    this.isMoveToPoseEnabled = state;
   }
 
-  public boolean isMoveToGridEnabled() {
-    return this.isMoveToGridEnabled;
+  public boolean isMoveToPoseEnabled() {
+    return this.isMoveToPoseEnabled;
   }
 
   private enum DriveMode {

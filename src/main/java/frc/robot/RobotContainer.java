@@ -394,8 +394,17 @@ public class RobotContainer {
 
   private void configureDrivetrainCommands() {
 
-    oi.getTurn180Button()
-        .onTrue(new RotateToAngle(drivetrain, oi::getTranslateX, oi::getTranslateY));
+    oi.getLock180Button()
+        .onTrue(
+            new RotateToAngle(
+                drivetrain,
+                oi::getTranslateX,
+                oi::getTranslateY,
+                () ->
+                    (drivetrain.getPose().getRotation().getDegrees() > -90
+                            && drivetrain.getPose().getRotation().getDegrees() < 90)
+                        ? 0.0
+                        : 180.0));
 
     // field-relative toggle
     oi.getFieldRelativeButton()

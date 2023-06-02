@@ -55,7 +55,7 @@ public class FullOperatorConsoleOI implements OperatorInterface {
   }
 
   @Override
-  public Trigger getTurn180Button() {
+  public Trigger getLock180Button() {
     return translateJoystickButtons[3];
   }
 

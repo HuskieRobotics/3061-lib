@@ -49,7 +49,7 @@ public interface OperatorInterface {
     return new Trigger(() -> false);
   }
 
-  public default Trigger getTurn180Button() {
+  public default Trigger getLock180Button() {
     return new Trigger(() -> false);
   }
 
