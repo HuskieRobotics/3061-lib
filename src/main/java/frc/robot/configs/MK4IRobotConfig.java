@@ -298,8 +298,8 @@ public class MK4IRobotConfig extends RobotConfig {
   }
 
   @Override
-  public String getCameraName0() {
-    return CAMERA_NAME;
+  public String[] getCameraNames() {
+    return new String[] {CAMERA_NAME};
   }
 
   @Override
@@ -377,15 +377,5 @@ public class MK4IRobotConfig extends RobotConfig {
   @Override
   public double getDriveToPoseThetaTolerance() {
     return DRIVE_TO_POSE_THETA_TOLERANCE_RADIANS;
-  }
-
-  @Override
-  public double getSquaringSpeed() {
-    return SQUARING_SPEED_METERS_PER_SECOND;
-  }
-
-  @Override
-  public double getSquaringDuration() {
-    return SQUARING_DURATION_SECONDS;
   }
 }

@@ -281,8 +281,8 @@ public class DefaultRobotConfig extends RobotConfig {
   }
 
   @Override
-  public String getCameraName0() {
-    return CAMERA_NAME;
+  public String[] getCameraNames() {
+    return new String[] {CAMERA_NAME};
   }
 
   @Override

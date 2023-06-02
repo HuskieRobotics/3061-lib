@@ -146,10 +146,11 @@ public class RobotContainer {
                     config.getRobotMaxVelocity());
 
             drivetrain = new Drivetrain(gyro, flModule, frModule, blModule, brModule);
+            String[] cameraNames = config.getCameraNames();
             vision =
                 new Vision(
-                    new VisionIOPhotonVision(config.getCameraName0()),
-                    new VisionIOPhotonVision(config.getCameraName1()));
+                    new VisionIOPhotonVision(cameraNames[0]),
+                    new VisionIOPhotonVision(cameraNames[1]));
 
             if (Constants.getRobot() == Constants.RobotType.ROBOT_DEFAULT) {
               new Pneumatics(new PneumaticsIORev());

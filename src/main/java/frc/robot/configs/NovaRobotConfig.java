@@ -311,13 +311,8 @@ public class NovaRobotConfig extends RobotConfig {
   }
 
   @Override
-  public String getCameraName0() {
-    return CAMERA_NAME_0;
-  }
-
-  @Override
-  public String getCameraName1() {
-    return CAMERA_NAME_1;
+  public String[] getCameraNames() {
+    return new String[] {CAMERA_NAME_0, CAMERA_NAME_1};
   }
 
   @Override
@@ -378,23 +373,8 @@ public class NovaRobotConfig extends RobotConfig {
   }
 
   @Override
-  public double getSquaringSpeed() {
-    return SQUARING_SPEED_METERS_PER_SECOND;
-  }
-
-  @Override
-  public double getSquaringDuration() {
-    return SQUARING_DURATION_SECONDS;
-  }
-
-  @Override
   public int getPneumaticsHubCANID() {
     return 0;
-  }
-
-  @Override
-  public int getLEDCount() {
-    return LED_COUNT;
   }
 
   @Override

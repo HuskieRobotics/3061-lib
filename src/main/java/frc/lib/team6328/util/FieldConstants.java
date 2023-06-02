@@ -18,6 +18,8 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import java.util.Map;
 
+@java.lang.SuppressWarnings({"java:S1118", "java:S115", "java:S2386"})
+
 /**
  * Contains various field dimensions and useful reference points. Dimensions are in meters, and sets
  * of corners start in the lower left moving clockwise.
