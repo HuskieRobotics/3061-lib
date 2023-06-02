@@ -9,7 +9,6 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.DoubleArraySubscriber;
 import edu.wpi.first.networktables.NetworkTableEvent;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj.Timer;
 import java.util.EnumSet;
 import java.util.function.Supplier;
 import org.photonvision.PhotonCamera;
@@ -77,9 +76,7 @@ public class VisionIOSim implements VisionIO {
         EnumSet.of(NetworkTableEvent.Kind.kValueAll),
         event -> {
           PhotonPipelineResult result = camera.getLatestResult();
-          // FIXME: should we call getTimestampSeconds instead which is more accurate? Why do we
-          // divide by 1000; shouldn't we multiply by 1000?
-          double timestamp = Timer.getFPGATimestamp() - (result.getLatencyMillis() / 1000.0);
+          double timestamp = result.getTimestampSeconds();
           synchronized (VisionIOSim.this) {
             lastTimestamp = timestamp;
             lastResult = result;

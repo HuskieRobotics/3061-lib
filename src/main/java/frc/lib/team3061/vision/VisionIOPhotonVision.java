@@ -3,7 +3,6 @@ package frc.lib.team3061.vision;
 import edu.wpi.first.networktables.DoubleArraySubscriber;
 import edu.wpi.first.networktables.NetworkTableEvent;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj.Timer;
 import frc.lib.team6328.util.Alert;
 import frc.lib.team6328.util.Alert.AlertType;
 import java.util.EnumSet;
@@ -43,9 +42,7 @@ public class VisionIOPhotonVision implements VisionIO {
         event -> {
           PhotonPipelineResult result = camera.getLatestResult();
 
-          // FIXME: should we call getTimestampSeconds instead which is more accurate? Why do we
-          // divide by 1000; shouldn't we multiply by 1000?
-          double timestamp = Timer.getFPGATimestamp() - (result.getLatencyMillis() / 1000.0);
+          double timestamp = result.getTimestampSeconds();
           synchronized (VisionIOPhotonVision.this) {
             lastTimestamp = timestamp;
             lastResult = result;
