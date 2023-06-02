@@ -8,7 +8,10 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
-/** Class for controlling the robot with two Xbox controllers. */
+/**
+ * Class for controlling the robot with two joysticks, 1 Xbox controller, and 1 operator button
+ * panel.
+ */
 public class FullOperatorConsoleOI implements OperatorInterface {
   private final CommandJoystick translateJoystick;
   private final Trigger[] translateJoystickButtons;
@@ -65,11 +68,6 @@ public class FullOperatorConsoleOI implements OperatorInterface {
   }
 
   @Override
-  public Trigger getInterruptAll() {
-    return translateJoystickButtons[5];
-  }
-
-  @Override
   public Trigger getFieldRelativeButton() {
     return translateJoystickButtons[9];
   }
@@ -92,6 +90,10 @@ public class FullOperatorConsoleOI implements OperatorInterface {
   }
 
   // Operator Controller
+  @Override
+  public Trigger getInterruptAll() {
+    return new Trigger(operatorController::getStartButton);
+  }
 
   // Operator Panel
 

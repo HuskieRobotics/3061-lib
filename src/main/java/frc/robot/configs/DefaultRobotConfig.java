@@ -72,7 +72,7 @@ public class DefaultRobotConfig extends RobotConfig {
   private static final String CAN_BUS_NAME = "";
 
   // FIXME: specify the name of the camera used for detecting AprilTags
-  private static final String CAMERA_NAME = "ov9268";
+  private static final String CAMERA_NAME = "OV9281";
 
   // FIXME: update this with the actual transform from the robot to the camera
   private static final Transform3d ROBOT_TO_CAMERA =

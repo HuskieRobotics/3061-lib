@@ -13,6 +13,8 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.lib.team6328.util.Alert;
 import frc.lib.team6328.util.Alert.AlertType;
 
+@java.lang.SuppressWarnings({"java:S3776"})
+
 /**
  * Utility class for selecting the appropriate OI implementations based on the connected joysticks.
  */
@@ -70,7 +72,7 @@ public class OISelector {
           firstPort = port;
         } else if (secondPort == null) {
           secondPort = port;
-        } else if (thirdPort == null) {
+        } else { // thirdPort == null
           thirdPort = port;
         }
       }
