@@ -219,14 +219,14 @@ public class Drivetrain extends SubsystemBase {
    */
   public Rotation2d getRotation() {
     if (gyroInputs.connected) {
-      return Rotation2d.fromDegrees(gyroInputs.positionDeg + this.gyroOffset);
+      return Rotation2d.fromDegrees(gyroInputs.yawDeg + this.gyroOffset);
     } else {
       return estimatedPoseWithoutGyro.getRotation();
     }
   }
 
   public double getYaw() {
-    return gyroInputs.positionDeg;
+    return gyroInputs.yawDeg;
   }
 
   public double getPitch() {
@@ -249,7 +249,7 @@ public class Drivetrain extends SubsystemBase {
     //      taking effect. As a result, it is recommended to never set the yaw and
     //      adjust the local offset instead.
     if (gyroInputs.connected) {
-      this.gyroOffset = expectedYaw - gyroInputs.positionDeg;
+      this.gyroOffset = expectedYaw - gyroInputs.yawDeg;
     } else {
       this.gyroOffset = 0;
       this.estimatedPoseWithoutGyro =
