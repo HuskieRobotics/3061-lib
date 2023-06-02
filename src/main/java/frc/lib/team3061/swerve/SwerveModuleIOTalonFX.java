@@ -20,7 +20,7 @@ import frc.lib.team6328.util.TunableNumber;
 
 /**
  * Implementation of the SwerveModuleIO interface for MK4 Swerve Modules with two Falcon 500 motors
- * and a CAN coder.
+ * and a CANcoder.
  */
 public class SwerveModuleIOTalonFX implements SwerveModuleIO {
 
