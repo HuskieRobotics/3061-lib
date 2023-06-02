@@ -323,14 +323,14 @@ public class RobotContainer {
     // add commands to the auto chooser
     autoChooser.addDefaultOption("Do Nothing", new InstantCommand());
 
-    PathPlannerTrajectory straightPath = PathPlanner.loadPath("distanceTest", 2, 2);
+    PathPlannerTrajectory straightPath = PathPlanner.loadPath("DistanceTest", 2, 2);
 
     Command straightPathCommand = new FollowPath(straightPath, drivetrain, true, true);
     autoChooser.addOption("Straight Path", straightPathCommand);
 
     List<PathPlannerTrajectory> auto1Paths =
         PathPlanner.loadPathGroup(
-            "testPaths1", config.getAutoMaxSpeed(), config.getAutoMaxAcceleration());
+            "TestPaths1", config.getAutoMaxSpeed(), config.getAutoMaxAcceleration());
     Command autoTest =
         Commands.sequence(
             new FollowPathWithEvents(
