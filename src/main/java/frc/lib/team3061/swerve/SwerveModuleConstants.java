@@ -22,7 +22,7 @@ public final class SwerveModuleConstants {
   /* MK4i L2 */
 
   /*
-  	This is best determined empirically. Refer to this document for more information: !!!
+  	Wheel diameter is best determined empirically. Refer to this document for more information: !!!
   */
   public static final double MK4I_L2_WHEEL_DIAMETER_METERS = 0.096294;
   public static final double MK4I_L2_WHEEL_CIRCUMFERENCE = MK4I_L2_WHEEL_DIAMETER_METERS * Math.PI;
@@ -36,7 +36,7 @@ public final class SwerveModuleConstants {
   /* MK4 L2 */
 
   /*
-  	This is best determined empirically. Refer to this document for more information: !!!
+  	Wheel diameter is best determined empirically. Refer to this document for more information: !!!
   */
   public static final double MK4_L2_WHEEL_DIAMETER_METERS = 0.10033;
   public static final double MK4_L2_WHEEL_CIRCUMFERENCE = MK4_L2_WHEEL_DIAMETER_METERS * Math.PI;
