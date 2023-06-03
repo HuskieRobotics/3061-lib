@@ -8,16 +8,22 @@ Huskie Robotics, FRC Team 3061's, starter project and library focused on a swerv
 
 **Features**
 ----
-* multiple robots, including a simulated robot with basic simulation of swerve modules
+* multiple robots with different configurations, including a simulated robot with basic simulation of swerve modules
 * logging and replay via [AdvantageKit](https://github.com/Mechanical-Advantage/AdvantageKit/blob/main/README.md)
+* vision subsystem supporting multiple Photonvision based cameras to update pose estimation
+* move-to-pose command that generates on-the-fly paths using a field model defined by a set of regions and transition points between regions
 * CAN FD (CANivore) to reduce CAN bus utilization
-* reports devices missing from the CAN bus
+* commands
+    * drive-to-pose (closed loop straight-line motion to pose)
+    * rotate-to-angle (closed loop rotational setpoint with optional driver-controlled translational motion)
 * swerve-specific features
     * robot-relative and field-relative driving modes
+    * slow mode for fine-tuned motion
+    * acceleration limiting when not in "turbo" mode
     * current limiting configuration for motors
     * x-stance
     * leave wheels rotated in last direction when not driving to enable smooth continuation of motion
-    * switch drive motors to coast mode when robot is disabled and has stopped moving to facilitate manual pushing
+    * switch drive motors to coast mode when robot is disabled and has stopped moving for a period of time to facilitate manual pushing
 
 **Configuration**
 ----
@@ -94,7 +100,7 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
 * Joystick 0 controls translation (forwards and sideways movement), and Joystick 1 controls rotation. </br>
 * Joystick 0's button 3 enables and disables field-relative driving.
 * Joystick 1's button 3 zeroes the gyro, useful when testing teleop, just rotate the robot forwards, and press the button to rezero.
-* Joystick 0's button 1 enables x-stance while pressed.
+* Joystick 1's button 4 enables x-stance while pressed.
 
 **Credits**
 ----
@@ -102,4 +108,3 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
 * general AdvantageKit logging code, AdvantageKit-enabled Gyro classes, swerve module simulation, and drive characterization from Mechanical Advantage's [SwerveDevelopment](https://github.com/Mechanical-Advantage/SwerveDevelopment)
 * AdvantageKit-enabled pneumatics classes from Mechanical Advantage's 2022 [robot code](https://github.com/Mechanical-Advantage/RobotCode2022)
 * Talon factories from Citrus Circuits 2022 [robot code](https://github.com/frc1678/C2022)
-* CAN device finder code from team 3620 2020 [robot code](https://github.com/FRC3620/FRC3620_2020_GalacticSenate)
