@@ -6,13 +6,11 @@ import edu.wpi.first.math.geometry.Translation2d;
 import frc.lib.team6328.util.FieldConstants;
 
 /**
- * The FieldConstants class contains various constants relating to the FRC Game Arena for the
- * Region2d and Field2d classes.
+ * This class defines the points for all of the regions that defines the field along with the
+ * transitions points between these regions. For more information refer to the Field2d and Region2d
+ * classes.
  */
 public final class FieldRegionConstants {
-  // Current FieldConstants are for the FRC 2023 Game "Charged Up"
-  // NOTE TO SELF: All constants to be accessed globally should be initialized using (public static)
-
   private static final String CONSTRUCTOR_EXCEPTION = "constant class";
 
   private FieldRegionConstants() {

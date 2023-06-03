@@ -132,9 +132,13 @@ public class Robot extends LoggedRobot {
     logReceiverQueueAlert.set(Logger.getInstance().getReceiverQueueFault());
   }
 
+  /** This method is invoked periodically when the robot is in the disabled state. */
   @Override
   public void disabledPeriodic() {
+    // check if the operator interface (e.g., joysticks) has changed
     robotContainer.updateOI();
+
+    // check if the alliance color has changed based on the FMS data
     robotContainer.checkAllianceColor();
   }
 
@@ -144,7 +148,10 @@ public class Robot extends LoggedRobot {
    */
   @Override
   public void autonomousInit() {
+    // check if the alliance color has changed based on the FMS data; the current alliance color is
+    // not guaranteed to be correct until the start of autonomous
     robotContainer.checkAllianceColor();
+
     robotContainer.autonomousInit();
     autonomousCommand = robotContainer.getAutonomousCommand();
 
@@ -166,7 +173,11 @@ public class Robot extends LoggedRobot {
       autonomousCommand.cancel();
     }
 
+    // check if the alliance color has changed based on the FMS data; if the robot power cycled
+    // during a match, this would be the first opportunity to check the alliance color based on FMS
+    // data.
     robotContainer.checkAllianceColor();
+
     robotContainer.teleopInit();
   }
 

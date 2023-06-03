@@ -375,7 +375,7 @@ public class NovaRobotConfig extends RobotConfig {
   }
 
   @Override
-  public double getStallAgainstElementVelocity() {
+  public double getMoveToPathFinalVelocity() {
     return SQUARING_SPEED_METERS_PER_SECOND;
   }
 }

@@ -593,7 +593,7 @@ public abstract class RobotConfig {
    * @return the velocity, in meters per second, of the robot when driving into a field element
    *     during a move-to-pose command
    */
-  public double getStallAgainstElementVelocity() {
+  public double getMoveToPathFinalVelocity() {
     return 0;
   }
 }

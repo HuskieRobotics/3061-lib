@@ -17,11 +17,15 @@ import frc.lib.team6328.util.Alert.AlertType;
  * constants. This class should not be used for any other purpose. All constants should be declared
  * globally (i.e. public static). Do not put anything functional in this class.
  *
+ * <p>Subsystem-specific constants should be defined in the subsystem's own constant class.
+ * Constants that vary from robot to robot should be defined in the config classes.
+ *
  * <p>It is advised to statically import this class (or one of its inner classes) wherever the
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
 
+  // set to true in order to change all Tunable values via Shuffleboard
   public static final boolean TUNING_MODE = false;
 
   private static final RobotType ROBOT = RobotType.ROBOT_SIMBOT;

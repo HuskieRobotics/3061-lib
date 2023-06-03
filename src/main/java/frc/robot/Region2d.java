@@ -11,10 +11,15 @@ import java.util.Map.Entry;
 import java.util.Set;
 import org.littletonrobotics.junction.Logger;
 
+/**
+ * This class models a region of the field. It is defined by its vertices and the transition points
+ * to neighboring regions.
+ */
 public class Region2d {
   private Path2D shape;
   private HashMap<Region2d, Translation2d> transitionMap;
   private DriverStation.Alliance alliance = DriverStation.Alliance.Invalid;
+
   /**
    * Create a Region2d, a polygon, from an array of Translation2d specifying vertices of a polygon.
    * The polygon is created using the even-odd winding rule.
@@ -33,9 +38,12 @@ public class Region2d {
     this.shape.closePath();
   }
 
+  /**
+   * Log the bounding rectangle of the region and the transition points to neighboring regions.
+   * These can be visualized using AdvantageScope to confirm that the regions are properly defined.
+   */
   public void logPoints() {
-
-    // assume all regions are rectangular
+    // log the bounding rectangle of the region
     Rectangle2D rect = this.shape.getBounds2D();
     Logger.getInstance()
         .recordOutput("Region2d/point0", new Pose2d(rect.getX(), rect.getY(), new Rotation2d()));
@@ -53,6 +61,7 @@ public class Region2d {
             new Pose2d(
                 rect.getX() + rect.getWidth(), rect.getY() + rect.getHeight(), new Rotation2d()));
 
+    // assume that there are at most 4 neighbors
     for (int i = 0; i < 4; i++) {
       Logger.getInstance().recordOutput("Region2d/transition" + i, new Pose2d());
     }
@@ -67,7 +76,7 @@ public class Region2d {
   }
 
   /**
-   * Returns true if the region contains a given Pose2d
+   * Returns true if the region contains a given Pose2d accounting for the alliance color.
    *
    * @param other the given pose2d
    * @return if the pose is inside the region
@@ -83,9 +92,12 @@ public class Region2d {
   }
 
   /**
-   * Add a neighboring Region2d and the ideal point through which to transition between the two.
-   * Normally, this operation will be performed once per transition with the transition point on at
-   * the center of the boundary between the two regions.
+   * Add a neighboring Region2d and the ideal point through which to transition from this region to
+   * the other region. Normally, this method will be invoked once per transition. The transition
+   * point doesn't need to be on the boundary between the two regions. It may be advantageous for
+   * the transition point to be located within the other region to influence the generated path.
+   * Therefore, the transition point from one region to another may not be the same when traversing
+   * the regions in the opposite direction.
    *
    * @param other the other region
    * @param point a Translation2d representing the transition point
@@ -126,6 +138,11 @@ public class Region2d {
     }
   }
 
+  /**
+   * Sets the current alliance color which is used to transform the coordinates of the region.
+   *
+   * @param newAlliance the new alliance color
+   */
   public void updateAlliance(DriverStation.Alliance newAlliance) {
     this.alliance = newAlliance;
   }
