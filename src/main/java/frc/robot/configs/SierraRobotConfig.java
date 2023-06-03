@@ -30,7 +30,7 @@ public class SierraRobotConfig extends RobotConfig {
   private static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 16;
   private static final int BACK_RIGHT_MODULE_STEER_MOTOR = 15;
   private static final int BACK_RIGHT_MODULE_STEER_ENCODER = 17;
-  private static final double BACK_RIGHT_MODULE_STEER_OFFSET = 40.86;
+  private static final double BACK_RIGHT_MODULE_STEER_OFFSET = 40.78;
 
   private static final int GYRO_ID = 18;
 
@@ -59,12 +59,15 @@ public class SierraRobotConfig extends RobotConfig {
 
   private static final double MAX_VELOCITY_METERS_PER_SECOND = 4.25;
   private static final double MAX_COAST_VELOCITY_METERS_PER_SECOND = 0.05;
+  private static final double MAX_DRIVE_ACCELERATION_METERS_PER_SECOND_SQUARED = 4.0;
+  private static final double MAX_TURN_ACCELERATION_RADIANS_PER_SECOND_SQUARED = 4.0;
+  private static final double SLOW_MODE_MULTIPLIER = 0.75;
 
   private static final String CAN_BUS_NAME = "";
 
   private static final String CAMERA_NAME = "OV9281";
 
-  private static final Transform3d ROBOT_TO_CAMERA =
+  private static final Transform3d ROBOT_TO_CAMERA_0 =
       new Transform3d(new Translation3d(0.254, 0, 0.648), new Rotation3d(0, 0, 0));
 
   private static final int PNEUMATICS_HUB_ID = 20;
@@ -80,6 +83,14 @@ public class SierraRobotConfig extends RobotConfig {
   private static final double AUTO_TURN_P_CONTROLLER = 10.0;
   private static final double AUTO_TURN_I_CONTROLLER = 0.0;
   private static final double AUTO_TURN_D_CONTROLLER = 0.0;
+
+  // Drive to Pose constants
+  private static final double DRIVE_TO_POSE_DRIVE_KP = 2.5;
+  private static final double DRIVE_TO_POSE_DRIVE_KD = 0.0;
+  private static final double DRIVE_TO_POSE_THETA_KP = 7.0;
+  private static final double DRIVE_TO_POSE_THETA_KD = 0.0;
+  private static final double DRIVE_TO_POSE_DRIVE_TOLERANCE_METERS = 0.01;
+  private static final double DRIVE_TO_POSE_THETA_TOLERANCE_RADIANS = 0.035;
 
   @Override
   public double getSwerveAngleKP() {
@@ -207,13 +218,28 @@ public class SierraRobotConfig extends RobotConfig {
   }
 
   @Override
-  public Transform3d getRobotToCameraTransform() {
-    return ROBOT_TO_CAMERA;
+  public Transform3d[] getRobotToCameraTransforms() {
+    return new Transform3d[] {ROBOT_TO_CAMERA_0};
   }
 
   @Override
   public double getRobotMaxVelocity() {
     return MAX_VELOCITY_METERS_PER_SECOND;
+  }
+
+  @Override
+  public double getRobotMaxDriveAcceleration() {
+    return MAX_DRIVE_ACCELERATION_METERS_PER_SECOND_SQUARED;
+  }
+
+  @Override
+  public double getRobotMaxTurnAcceleration() {
+    return MAX_TURN_ACCELERATION_RADIANS_PER_SECOND_SQUARED;
+  }
+
+  @Override
+  public double getRobotSlowModeMultiplier() {
+    return SLOW_MODE_MULTIPLIER;
   }
 
   @Override
@@ -267,8 +293,8 @@ public class SierraRobotConfig extends RobotConfig {
   }
 
   @Override
-  public String getCameraName() {
-    return CAMERA_NAME;
+  public String[] getCameraNames() {
+    return new String[] {CAMERA_NAME};
   }
 
   @Override
@@ -289,5 +315,57 @@ public class SierraRobotConfig extends RobotConfig {
   @Override
   public int getRevLowPressureSensorChannel() {
     return REV_LOW_PRESSURE_SENSOR_CHANNEL;
+  }
+
+  @Override
+  public double getDriveToPoseDriveKP() {
+    return DRIVE_TO_POSE_DRIVE_KP;
+  }
+
+  @Override
+  public double getDriveToPoseDriveKD() {
+    return DRIVE_TO_POSE_DRIVE_KD;
+  }
+
+  @Override
+  public double getDriveToPoseThetaKP() {
+    return DRIVE_TO_POSE_THETA_KP;
+  }
+
+  @Override
+  public double getDriveToPoseThetaKD() {
+    return DRIVE_TO_POSE_THETA_KD;
+  }
+
+  @Override
+  public double getDriveToPoseDriveMaxVelocity() {
+    return getAutoMaxSpeed();
+  }
+
+  @Override
+  public double getDriveToPoseDriveMaxAcceleration() {
+    return getAutoMaxAcceleration();
+  }
+
+  @Override
+  public double getDriveToPoseTurnMaxVelocity() {
+    return getDriveToPoseDriveMaxVelocity()
+        / Math.hypot(getTrackwidth() / 2.0, getWheelbase() / 2.0);
+  }
+
+  @Override
+  public double getDriveToPoseTurnMaxAcceleration() {
+    return getDriveToPoseDriveMaxAcceleration()
+        / Math.hypot(getTrackwidth() / 2.0, getWheelbase() / 2.0);
+  }
+
+  @Override
+  public double getDriveToPoseDriveTolerance() {
+    return DRIVE_TO_POSE_DRIVE_TOLERANCE_METERS;
+  }
+
+  @Override
+  public double getDriveToPoseThetaTolerance() {
+    return DRIVE_TO_POSE_THETA_TOLERANCE_RADIANS;
   }
 }

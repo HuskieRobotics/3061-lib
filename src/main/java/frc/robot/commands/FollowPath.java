@@ -1,7 +1,9 @@
 package frc.robot.commands;
 
 import com.pathplanner.lib.PathPlannerTrajectory;
+import com.pathplanner.lib.PathPlannerTrajectory.PathPlannerState;
 import com.pathplanner.lib.commands.PPSwerveControllerCommand;
+import edu.wpi.first.wpilibj.DriverStation;
 import frc.lib.team3061.RobotConfig;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import org.littletonrobotics.junction.Logger;
@@ -21,6 +23,7 @@ public class FollowPath extends PPSwerveControllerCommand {
   private Drivetrain drivetrain;
   private PathPlannerTrajectory trajectory;
   private boolean initialPath;
+  private boolean useAllianceColor;
 
   /**
    * Constructs a new FollowPath object.
@@ -32,8 +35,15 @@ public class FollowPath extends PPSwerveControllerCommand {
    *     of trajectory; false, if this trajectory is a subsequent trajectory in which case the gyro
    *     and odometry will not be re-initialized in order to ensure a smooth transition between
    *     trajectories
+   * @param useAllianceColor if true, the path states will be automatically transformed based on
+   *     alliance color. In order for this to work properly, you MUST create your path on the blue
+   *     side of the field.
    */
-  public FollowPath(PathPlannerTrajectory trajectory, Drivetrain subsystem, boolean initialPath) {
+  public FollowPath(
+      PathPlannerTrajectory trajectory,
+      Drivetrain subsystem,
+      boolean initialPath,
+      boolean useAllianceColor) {
     super(
         trajectory,
         subsystem::getPose,
@@ -42,11 +52,13 @@ public class FollowPath extends PPSwerveControllerCommand {
         subsystem.getAutoYController(),
         subsystem.getAutoThetaController(),
         subsystem::setSwerveModuleStates,
+        useAllianceColor,
         subsystem);
 
     this.drivetrain = subsystem;
     this.trajectory = trajectory;
     this.initialPath = initialPath;
+    this.useAllianceColor = useAllianceColor;
   }
 
   /**
@@ -59,11 +71,19 @@ public class FollowPath extends PPSwerveControllerCommand {
    */
   @Override
   public void initialize() {
+    Logger.getInstance().recordOutput("ActiveCommands/FollowPath", true);
+
     super.initialize();
 
+    // reset odometry to the starting pose of the trajectory
     if (initialPath) {
-      // reset odometry to the starting pose of the trajectory
-      this.drivetrain.resetOdometry(this.trajectory.getInitialState());
+      PathPlannerState initialState = this.trajectory.getInitialState();
+      if (this.useAllianceColor) {
+        initialState =
+            PathPlannerTrajectory.transformStateForAlliance(
+                initialState, DriverStation.getAlliance());
+      }
+      this.drivetrain.resetOdometry(initialState);
     }
 
     // reset the theta controller such that old accumulated ID values aren't used with the new path
@@ -85,5 +105,6 @@ public class FollowPath extends PPSwerveControllerCommand {
   public void end(boolean interrupted) {
     this.drivetrain.stop();
     super.end(interrupted);
+    Logger.getInstance().recordOutput("ActiveCommands/FollowPath", false);
   }
 }

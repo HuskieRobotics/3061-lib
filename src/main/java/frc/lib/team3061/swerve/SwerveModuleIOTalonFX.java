@@ -16,13 +16,11 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import frc.lib.team254.drivers.TalonFXFactory;
 import frc.lib.team3061.RobotConfig;
-import frc.lib.team3061.util.CANDeviceFinder;
-import frc.lib.team3061.util.CANDeviceId.CANDeviceType;
 import frc.lib.team6328.util.TunableNumber;
 
 /**
  * Implementation of the SwerveModuleIO interface for MK4 Swerve Modules with two Falcon 500 motors
- * and a CAN coder.
+ * and a CANcoder.
  */
 public class SwerveModuleIOTalonFX implements SwerveModuleIO {
 
@@ -91,11 +89,6 @@ public class SwerveModuleIOTalonFX implements SwerveModuleIO {
             RobotConfig.getInstance().getDriveKS() / 12,
             RobotConfig.getInstance().getDriveKV() / 12,
             RobotConfig.getInstance().getDriveKA() / 12);
-
-    CANDeviceFinder can = new CANDeviceFinder();
-    can.isDevicePresent(CANDeviceType.TALON, driveMotorID, "Mod " + moduleNumber + "Drive");
-    can.isDevicePresent(CANDeviceType.TALON, angleMotorID, "Mod " + moduleNumber + "Angle");
-    // check for the CANcoder on the CAN bus when supported by CANDeviceFinder
 
     configAngleEncoder(canCoderID);
     configAngleMotor(angleMotorID);

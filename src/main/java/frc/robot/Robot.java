@@ -57,7 +57,7 @@ public class Robot extends LoggedRobot {
         logger.recordMetadata(GIT_DIRTY, "All changes committed");
         break;
       case 1:
-        logger.recordMetadata(GIT_DIRTY, "Uncomitted changes");
+        logger.recordMetadata(GIT_DIRTY, "Uncommitted changes");
         break;
       default:
         logger.recordMetadata(GIT_DIRTY, "Unknown");
@@ -114,7 +114,7 @@ public class Robot extends LoggedRobot {
 
   /**
    * This method is called every robot packet, no matter the mode. Use this for items like
-   * diagnostics that you want ran during disabled, autonomous, teleoperated and test.
+   * diagnostics that you want ran during disabled, autonomous, teleop and test.
    *
    * <p>This runs after the mode specific periodic methods, but before LiveWindow and SmartDashboard
    * integrated updating.
@@ -132,9 +132,14 @@ public class Robot extends LoggedRobot {
     logReceiverQueueAlert.set(Logger.getInstance().getReceiverQueueFault());
   }
 
+  /** This method is invoked periodically when the robot is in the disabled state. */
   @Override
   public void disabledPeriodic() {
+    // check if the operator interface (e.g., joysticks) has changed
     robotContainer.updateOI();
+
+    // check if the alliance color has changed based on the FMS data
+    robotContainer.checkAllianceColor();
   }
 
   /**
@@ -143,6 +148,11 @@ public class Robot extends LoggedRobot {
    */
   @Override
   public void autonomousInit() {
+    // check if the alliance color has changed based on the FMS data; the current alliance color is
+    // not guaranteed to be correct until the start of autonomous
+    robotContainer.checkAllianceColor();
+
+    robotContainer.autonomousInit();
     autonomousCommand = robotContainer.getAutonomousCommand();
 
     // schedule the autonomous command
@@ -151,7 +161,7 @@ public class Robot extends LoggedRobot {
     }
   }
 
-  /** This method is invoked at the start of the teleoperated period. */
+  /** This method is invoked at the start of the teleop period. */
   @Override
   public void teleopInit() {
     /*
@@ -162,6 +172,13 @@ public class Robot extends LoggedRobot {
     if (autonomousCommand != null) {
       autonomousCommand.cancel();
     }
+
+    // check if the alliance color has changed based on the FMS data; if the robot power cycled
+    // during a match, this would be the first opportunity to check the alliance color based on FMS
+    // data.
+    robotContainer.checkAllianceColor();
+
+    robotContainer.teleopInit();
   }
 
   /** This method is invoked at the start of the test period. */

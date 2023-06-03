@@ -27,7 +27,10 @@ import frc.lib.team3061.gyro.GyroIO;
 import frc.lib.team3061.gyro.GyroIOInputsAutoLogged;
 import frc.lib.team3061.swerve.SwerveModule;
 import frc.lib.team3061.util.RobotOdometry;
+import frc.lib.team6328.util.Alert;
+import frc.lib.team6328.util.Alert.AlertType;
 import frc.lib.team6328.util.TunableNumber;
+import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 /**
@@ -36,6 +39,7 @@ import org.littletonrobotics.junction.Logger;
  * robot's rotation.
  */
 public class Drivetrain extends SubsystemBase {
+
   private final GyroIO gyroIO;
   private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
 
@@ -88,6 +92,9 @@ public class Drivetrain extends SubsystemBase {
 
   private boolean isFieldRelative;
 
+  private boolean isTranslationSlowMode = false;
+  private boolean isRotationSlowMode = false;
+
   private double gyroOffset;
 
   private ChassisSpeeds chassisSpeeds;
@@ -98,11 +105,28 @@ public class Drivetrain extends SubsystemBase {
 
   private final SwerveDrivePoseEstimator poseEstimator;
   private boolean brakeMode;
+  private Timer brakeModeTimer = new Timer();
+  private static final double BREAK_MODE_DELAY_SEC = 10.0;
 
   private DriveMode driveMode = DriveMode.NORMAL;
   private double characterizationVoltage = 0.0;
 
-  /** Constructs a new DrivetrainSubsystem object. */
+  private boolean isTurbo;
+
+  private boolean isMoveToPoseEnabled;
+
+  private Alert noPoseAlert =
+      new Alert("Attempted to reset pose from vision, but no pose was found.", AlertType.WARNING);
+
+  /**
+   * Creates a new Drivetrain subsystem.
+   *
+   * @param gyroIO the abstracted interface for the gyro for the drivetrain
+   * @param flModule the front left swerve module
+   * @param frModule the front right swerve module
+   * @param blModule the back left swerve module
+   * @param brModule the back right swerve module
+   */
   public Drivetrain(
       GyroIO gyroIO,
       SwerveModule flModule,
@@ -121,7 +145,7 @@ public class Drivetrain extends SubsystemBase {
 
     this.zeroGyroscope();
 
-    this.isFieldRelative = false;
+    this.isFieldRelative = true;
 
     this.gyroOffset = 0;
 
@@ -129,10 +153,21 @@ public class Drivetrain extends SubsystemBase {
 
     this.poseEstimator = RobotOdometry.getInstance().getPoseEstimator();
 
+    // based on testing we can drive in turbo mode all the time
+    this.isTurbo = true;
+
+    this.isMoveToPoseEnabled = true;
+
     ShuffleboardTab tabMain = Shuffleboard.getTab("MAIN");
-    tabMain.addNumber("Gyroscope Angle", () -> getRotation().getDegrees());
-    tabMain.addBoolean("X-Stance On?", this::isXstance);
-    tabMain.addBoolean("Field-Relative Enabled?", () -> this.isFieldRelative);
+    tabMain
+        .addNumber("Gyroscope Angle", () -> getRotation().getDegrees())
+        .withPosition(9, 0)
+        .withSize(1, 1);
+    tabMain.addBoolean("X-Stance On?", this::isXstance).withPosition(7, 0).withSize(1, 1);
+    tabMain
+        .addBoolean("Field-Relative Enabled?", () -> this.isFieldRelative)
+        .withPosition(8, 0)
+        .withSize(1, 1);
 
     if (DEBUGGING) {
       ShuffleboardTab tab = Shuffleboard.getTab(SUBSYSTEM_NAME);
@@ -154,9 +189,30 @@ public class Drivetrain extends SubsystemBase {
     }
   }
 
+  /** Enables "turbo" mode (i.e., acceleration is not limited by software) */
+  public void enableTurbo() {
+    this.isTurbo = true;
+  }
+
+  /** Disables "turbo" mode (i.e., acceleration is limited by software) */
+  public void disableTurbo() {
+    this.isTurbo = false;
+  }
+
+  /**
+   * Returns true if the robot is in "turbo" mode (i.e., acceleration is not limited by software);
+   * false otherwise
+   *
+   * @return true if the robot is in "turbo" mode (i.e., acceleration is not limited by software);
+   *     false otherwise
+   */
+  public boolean getTurbo() {
+    return this.isTurbo;
+  }
+
   /**
    * Zeroes the gyroscope. This sets the current rotation of the robot to zero degrees. This method
-   * is intended to be invoked only when the alignment beteween the robot's rotation and the gyro is
+   * is intended to be invoked only when the alignment between the robot's rotation and the gyro is
    * sufficiently different to make field-relative driving difficult. The robot needs to be
    * positioned facing away from the driver, ideally aligned to a field wall before this method is
    * invoked.
@@ -173,12 +229,41 @@ public class Drivetrain extends SubsystemBase {
    *
    * @return the rotation of the robot
    */
-  private Rotation2d getRotation() {
+  public Rotation2d getRotation() {
     if (gyroInputs.connected) {
-      return Rotation2d.fromDegrees(gyroInputs.positionDeg + this.gyroOffset);
+      return Rotation2d.fromDegrees(gyroInputs.yawDeg + this.gyroOffset);
     } else {
       return estimatedPoseWithoutGyro.getRotation();
     }
+  }
+
+  /**
+   * Returns the yaw of the drivetrain as reported by the gyro in degrees. This value does not
+   * include the local offset and will likely be different than value returned by the getRotation
+   * method, which should probably be invoked instead.
+   *
+   * @return the yaw of the drivetrain as reported by the gyro in degrees
+   */
+  public double getYaw() {
+    return gyroInputs.yawDeg;
+  }
+
+  /**
+   * Returns the pitch of the drivetrain as reported by the gyro in degrees.
+   *
+   * @return the pitch of the drivetrain as reported by the gyro in degrees
+   */
+  public double getPitch() {
+    return gyroInputs.pitchDeg;
+  }
+
+  /**
+   * Returns the roll of the drivetrain as reported by the gyro in degrees.
+   *
+   * @return the roll of the drivetrain as reported by the gyro in degrees
+   */
+  public double getRoll() {
+    return gyroInputs.rollDeg;
   }
 
   /**
@@ -193,7 +278,7 @@ public class Drivetrain extends SubsystemBase {
     //      taking effect. As a result, it is recommended to never set the yaw and
     //      adjust the local offset instead.
     if (gyroInputs.connected) {
-      this.gyroOffset = expectedYaw - gyroInputs.positionDeg;
+      this.gyroOffset = expectedYaw - gyroInputs.yawDeg;
     } else {
       this.gyroOffset = 0;
       this.estimatedPoseWithoutGyro =
@@ -238,6 +323,11 @@ public class Drivetrain extends SubsystemBase {
         new Pose2d(state.poseMeters.getTranslation(), state.holonomicRotation));
   }
 
+  /**
+   * Sets the robot's odometry's rotation based on the gyro. This method is intended to be invoked
+   * when the vision subsystem is first disabled and may have negatively impacted the pose
+   * estimator.
+   */
   public void resetPoseRotationToGyro() {
     for (int i = 0; i < 4; i++) {
       swerveModulePositions[i] = swerveModules[i].getPosition();
@@ -248,6 +338,25 @@ public class Drivetrain extends SubsystemBase {
         swerveModulePositions,
         new Pose2d(this.getPose().getTranslation(), this.getRotation()));
   }
+
+  /**
+   * Sets the odometry of the robot based on the supplied pose (e.g., from the vision subsystem).
+   * When testing, the robot can be positioned in front of an AprilTag and this method can be
+   * invoked to reset the robot's pose based on tag.
+   *
+   * @param poseSupplier the supplier of the pose to which set the robot's odometry
+   */
+  public void resetPoseToVision(Supplier<Pose3d> poseSupplier) {
+    Pose3d pose = poseSupplier.get();
+    if (pose != null) {
+      noPoseAlert.set(false);
+      setGyroOffset(pose.toPose2d().getRotation().getDegrees());
+      poseEstimator.resetPosition(this.getRotation(), swerveModulePositions, pose.toPose2d());
+    } else {
+      noPoseAlert.set(true);
+    }
+  }
+
   /**
    * Controls the drivetrain to move the robot with the desired velocities in the x, y, and
    * rotational directions. The velocities may be specified from either the robot's frame of
@@ -257,22 +366,46 @@ public class Drivetrain extends SubsystemBase {
    * field to the driver's right). Zero degrees is away from the driver and increases in the CCW
    * direction.
    *
-   * <p>If the drive mode is XSTANCE, the robot will ignore the specified velocities and turn the
-   * swerve modules into the x-stance orientation.
+   * <p>If the translation or rotation slow mode features are enabled, the corresponding velocities
+   * will be scaled to enable finer control.
+   *
+   * <p>If the drive mode is X, the robot will ignore the specified velocities and turn the swerve
+   * modules into the x-stance orientation.
    *
    * <p>If the drive mode is CHARACTERIZATION, the robot will ignore the specified velocities and
-   * run the characterization routine.
+   * run the characterization routine. Refer to the FeedForwardCharacterization command class for
+   * more information.
    *
-   * @param translationXSupplier the desired velocity in the x direction (m/s)
-   * @param translationYSupplier the desired velocity in the y direction (m/s)
-   * @param rotationSupplier the desired rotational velcoity (rad/s)
+   * @param xVelocity the desired velocity in the x direction (m/s)
+   * @param yVelocity the desired velocity in the y direction (m/s)
+   * @param rotationalVelocity the desired rotational velocity (rad/s)
+   * @param isOpenLoop true for open-loop control; false for closed-loop control
+   * @param overrideFieldRelative true to force field-relative motion; false to use the current
+   *     setting
    */
   public void drive(
-      double xVelocity, double yVelocity, double rotationalVelocity, boolean isOpenLoop) {
+      double xVelocity,
+      double yVelocity,
+      double rotationalVelocity,
+      boolean isOpenLoop,
+      boolean overrideFieldRelative) {
 
     switch (driveMode) {
       case NORMAL:
-        if (isFieldRelative) {
+        // get the slow-mode multiplier from the config
+        double slowModeMultiplier = RobotConfig.getInstance().getRobotSlowModeMultiplier();
+        // if translation or rotation is in slow mode, multiply the x and y velocities by the
+        // slow-mode multiplier
+        if (isTranslationSlowMode) {
+          xVelocity *= slowModeMultiplier;
+          yVelocity *= slowModeMultiplier;
+        }
+        // if rotation is in slow mode, multiply the rotational velocity by the slow-mode multiplier
+        if (isRotationSlowMode) {
+          rotationalVelocity *= slowModeMultiplier;
+        }
+
+        if (isFieldRelative || overrideFieldRelative) {
           chassisSpeeds =
               ChassisSpeeds.fromFieldRelativeSpeeds(
                   xVelocity, yVelocity, rotationalVelocity, getRotation());
@@ -282,11 +415,11 @@ public class Drivetrain extends SubsystemBase {
         }
 
         Logger.getInstance()
-            .recordOutput("Drivetrain/chassisSpeedVx", chassisSpeeds.vxMetersPerSecond);
+            .recordOutput("Drivetrain/ChassisSpeedVx", chassisSpeeds.vxMetersPerSecond);
         Logger.getInstance()
-            .recordOutput("Drivetrain/chassisSpeedVy", chassisSpeeds.vyMetersPerSecond);
+            .recordOutput("Drivetrain/ChassisSpeedVy", chassisSpeeds.vyMetersPerSecond);
         Logger.getInstance()
-            .recordOutput("Drivetrain/chassisSpeedVo", chassisSpeeds.omegaRadiansPerSecond);
+            .recordOutput("Drivetrain/ChassisSpeedVo", chassisSpeeds.omegaRadiansPerSecond);
 
         SwerveModuleState[] swerveModuleStates =
             kinematics.toSwerveModuleStates(chassisSpeeds, centerGravity);
@@ -308,7 +441,6 @@ public class Drivetrain extends SubsystemBase {
 
       case X:
         this.setXStance();
-
         break;
     }
   }
@@ -334,17 +466,19 @@ public class Drivetrain extends SubsystemBase {
 
     // update and log gyro inputs
     gyroIO.updateInputs(gyroInputs);
-    Logger.getInstance().processInputs("Drive/Gyro", gyroInputs);
+    Logger.getInstance().processInputs("Drivetrain/Gyro", gyroInputs);
 
-    // update and log the swerve moudles inputs
+    // update and log the swerve modules inputs
     for (SwerveModule swerveModule : swerveModules) {
       swerveModule.updateAndProcessInputs();
     }
+    Logger.getInstance().recordOutput("Drivetrain/AvgDriveCurrent", this.getAverageDriveCurrent());
 
-    // update estimated poses
+    // update swerve module states and positions
     SwerveModuleState[] states = new SwerveModuleState[4];
     for (int i = 0; i < 4; i++) {
       states[i] = swerveModules[i].getState();
+      prevSwerveModulePositions[i] = swerveModulePositions[i];
       swerveModulePositions[i] = swerveModules[i].getPosition();
     }
 
@@ -367,6 +501,7 @@ public class Drivetrain extends SubsystemBase {
       estimatedPoseWithoutGyro = estimatedPoseWithoutGyro.exp(twist);
     }
 
+    // update the pose estimator based on the gyro and swerve module positions
     poseEstimator.updateWithTime(
         Timer.getFPGATimestamp(), this.getRotation(), swerveModulePositions);
 
@@ -388,39 +523,7 @@ public class Drivetrain extends SubsystemBase {
     Logger.getInstance().recordOutput("Odometry/Robot", poseEstimatorPose);
     Logger.getInstance().recordOutput("3DField", new Pose3d(poseEstimatorPose));
     Logger.getInstance().recordOutput("SwerveModuleStates", states);
-    Logger.getInstance().recordOutput(SUBSYSTEM_NAME + "/gyroOffset", this.gyroOffset);
-  }
-
-  /**
-   * If the robot is enabled and brake mode is not enabled, enable it. If the robot is disabled, has
-   * stopped moving, and brake mode is enabled, disable it.
-   */
-  private void updateBrakeMode() {
-    if (DriverStation.isEnabled() && !brakeMode) {
-      brakeMode = true;
-      setBrakeMode(true);
-
-    } else {
-      boolean stillMoving = false;
-      for (SwerveModule mod : swerveModules) {
-        if (Math.abs(mod.getState().speedMetersPerSecond)
-            > RobotConfig.getInstance().getRobotMaxCoastVelocity()) {
-          stillMoving = true;
-        }
-      }
-
-      if (brakeMode && !stillMoving) {
-        brakeMode = false;
-        setBrakeMode(false);
-      }
-    }
-  }
-
-  private void setBrakeMode(boolean enable) {
-    for (SwerveModule mod : swerveModules) {
-      mod.setAngleBrakeMode(enable);
-      mod.setDriveBrakeMode(enable);
-    }
+    Logger.getInstance().recordOutput("Drivetrain/GyroOffset", this.gyroOffset);
   }
 
   /**
@@ -467,9 +570,41 @@ public class Drivetrain extends SubsystemBase {
   }
 
   /**
+   * Enables slow mode for translation. When enabled, the robot's translational velocities will be
+   * scaled down.
+   */
+  public void enableTranslationSlowMode() {
+    this.isTranslationSlowMode = true;
+  }
+
+  /**
+   * Disables slow mode for translation. When disabled, the robot's translational velocities will
+   * not be scaled.
+   */
+  public void disableTranslationSlowMode() {
+    this.isTranslationSlowMode = false;
+  }
+
+  /**
+   * Enables slow mode for rotation. When enabled, the robot's rotational velocity will be scaled
+   * down.
+   */
+  public void enableRotationSlowMode() {
+    this.isRotationSlowMode = true;
+  }
+
+  /**
+   * Disables slow mode for rotation. When disabled, the robot's rotational velocity will not be
+   * scaled.
+   */
+  public void disableRotationSlowMode() {
+    this.isRotationSlowMode = false;
+  }
+
+  /**
    * Sets the swerve modules in the x-stance orientation. In this orientation the wheels are aligned
-   * to make an 'X'. This makes it more difficult for other robots to push the robot, which is
-   * useful when shooting.
+   * to make an 'X'. This prevents the robot from rolling on an inclined surface and makes it more
+   * difficult for other robots to push the robot, which is useful when shooting.
    */
   public void setXStance() {
     chassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
@@ -485,19 +620,44 @@ public class Drivetrain extends SubsystemBase {
   }
 
   /**
+   * Puts the drivetrain into the x-stance orientation. In this orientation the wheels are aligned
+   * to make an 'X'. This prevents the robot from rolling on an inclined surface and makes it more
+   * difficult for other robots to push the robot, which is useful when shooting. The robot cannot
+   * be driven until x-stance is disabled.
+   */
+  public void enableXstance() {
+    this.driveMode = DriveMode.X;
+    this.setXStance();
+  }
+
+  /** Disables x-stance, allowing the robot to be driven. */
+  public void disableXstance() {
+    this.driveMode = DriveMode.NORMAL;
+  }
+
+  /**
+   * Returns true if the robot is in the x-stance orientation.
+   *
+   * @return true if the robot is in the x-stance orientation
+   */
+  public boolean isXstance() {
+    return this.driveMode == DriveMode.X;
+  }
+
+  /**
    * Sets the robot's center of gravity about which it will rotate. The origin is at the center of
    * the robot. The positive x direction is forward; the positive y direction, left.
    *
    * @param x the x coordinate of the robot's center of gravity (in meters)
    * @param y the y coordinate of the robot's center of gravity (in meters)
    */
-  public void setCenterGrav(double x, double y) {
+  public void setCenterGravity(double x, double y) {
     this.centerGravity = new Translation2d(x, y);
   }
 
   /** Resets the robot's center of gravity about which it will rotate to the center of the robot. */
-  public void resetCenterGrav() {
-    setCenterGrav(0.0, 0.0);
+  public void resetCenterGravity() {
+    setCenterGravity(0.0, 0.0);
   }
 
   /**
@@ -519,27 +679,16 @@ public class Drivetrain extends SubsystemBase {
   }
 
   /**
-   * Puts the drivetrain into the x-stance orientation. In this orientation the wheels are aligned
-   * to make an 'X'. This makes it more difficult for other robots to push the robot, which is
-   * useful when shooting. The robot cannot be driven until x-stance is disabled.
-   */
-  public void enableXstance() {
-    this.driveMode = DriveMode.X;
-    this.setXStance();
-  }
-
-  /** Disables the x-stance, allowing the robot to be driven. */
-  public void disableXstance() {
-    this.driveMode = DriveMode.NORMAL;
-  }
-
-  /**
-   * Returns true if the robot is in the x-stance orientation.
+   * Returns the average current of the swerve module drive motors in amps.
    *
-   * @return true if the robot is in the x-stance orientation
+   * @return the average current of the swerve module drive motors in amps
    */
-  public boolean isXstance() {
-    return this.driveMode == DriveMode.X;
+  public double getAverageDriveCurrent() {
+    double totalCurrent = 0.0;
+    for (SwerveModule module : swerveModules) {
+      totalCurrent += Math.abs(module.getDriveCurrent());
+    }
+    return totalCurrent / swerveModules.length;
   }
 
   /**
@@ -569,22 +718,83 @@ public class Drivetrain extends SubsystemBase {
     return autoThetaController;
   }
 
-  /** Runs forwards at the commanded voltage. */
+  /**
+   * Runs forwards at the commanded voltage.
+   *
+   * @param volts the commanded voltage
+   */
   public void runCharacterizationVolts(double volts) {
     driveMode = DriveMode.CHARACTERIZATION;
     characterizationVoltage = volts;
 
     // invoke drive which will set the characterization voltage to each module
-    drive(0, 0, 0, true);
+    drive(0, 0, 0, true, false);
   }
 
-  /** Returns the average drive velocity in meters/sec. */
+  /**
+   * Returns the average drive velocity in meters/sec.
+   *
+   * @return the average drive velocity in meters/sec
+   */
   public double getCharacterizationVelocity() {
     double driveVelocityAverage = 0.0;
     for (SwerveModule swerveModule : swerveModules) {
       driveVelocityAverage += swerveModule.getState().speedMetersPerSecond;
     }
     return driveVelocityAverage / 4.0;
+  }
+
+  /**
+   * Enables or disables the move-to-pose feature. Refer to the MoveToPose command class for more
+   * information.
+   *
+   * @param state true to enable, false to disable
+   */
+  public void enableMoveToPose(boolean state) {
+    this.isMoveToPoseEnabled = state;
+  }
+
+  /**
+   * Returns true if the move-to-pose feature is enabled; false otherwise.
+   *
+   * @return true if the move-to-pose feature is enabled; false otherwise
+   */
+  public boolean isMoveToPoseEnabled() {
+    return this.isMoveToPoseEnabled;
+  }
+
+  /**
+   * If the robot is enabled and brake mode is not enabled, enable it. If the robot is disabled, has
+   * stopped moving for the specified period of time, and brake mode is enabled, disable it.
+   */
+  private void updateBrakeMode() {
+    if (DriverStation.isEnabled() && !brakeMode) {
+      brakeMode = true;
+      setBrakeMode(true);
+      brakeModeTimer.restart();
+
+    } else {
+      boolean stillMoving = false;
+      for (SwerveModule mod : swerveModules) {
+        if (Math.abs(mod.getState().speedMetersPerSecond)
+            > RobotConfig.getInstance().getRobotMaxCoastVelocity()) {
+          stillMoving = true;
+          brakeModeTimer.restart();
+        }
+      }
+
+      if (brakeMode && !stillMoving && brakeModeTimer.hasElapsed(BREAK_MODE_DELAY_SEC)) {
+        brakeMode = false;
+        setBrakeMode(false);
+      }
+    }
+  }
+
+  private void setBrakeMode(boolean enable) {
+    for (SwerveModule mod : swerveModules) {
+      mod.setAngleBrakeMode(enable);
+      mod.setDriveBrakeMode(enable);
+    }
   }
 
   private enum DriveMode {

@@ -132,6 +132,15 @@ public class SwerveModule {
   }
 
   /**
+   * Get the stator current of the drive motor of this swerve module.
+   *
+   * @return the stator current of the drive motor of this swerve module
+   */
+  public double getDriveCurrent() {
+    return inputs.driveCurrentAmps[0];
+  }
+
+  /**
    * Update this swerve module's inputs and log them.
    *
    * <p>This method must be invoked by the drivetrain subsystem's periodic method.

@@ -2,13 +2,17 @@ package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.lib.team3061.RobotConfig;
+import frc.lib.team6328.util.TunableNumber;
+import frc.robot.Constants;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 
 /**
  * This command, when executed, instructs the drivetrain subsystem to drive based on the specified
- * values from the controller(s). This command is designed to be the default command for the
+ * values from the controller(s) and enabled features. Configurable deadband and power function are
+ * applied to the controller inputs. If the robot isn't in "turbo" mode, the acceleration is limited
+ * based on the configurable constraints. This command is designed to be the default command for the
  * drivetrain subsystem.
  *
  * <p>Requires: the Drivetrain subsystem
@@ -24,11 +28,24 @@ public class TeleopSwerve extends CommandBase {
   private final DoubleSupplier translationYSupplier;
   private final DoubleSupplier rotationSupplier;
 
-  public static final double DEADBAND = 0.1;
+  private static final double DEADBAND = 0.1;
+  private double lastAngularVelocity;
+  private double lastXVelocity;
+  private double lastYVelocity;
 
   private final double maxVelocityMetersPerSecond = RobotConfig.getInstance().getRobotMaxVelocity();
   private final double maxAngularVelocityRadiansPerSecond =
       RobotConfig.getInstance().getRobotMaxAngularVelocity();
+
+  private final TunableNumber maxTurnAcceleration =
+      new TunableNumber(
+          "TeleopSwerve/maxTurnAcceleration",
+          RobotConfig.getInstance().getRobotMaxTurnAcceleration());
+  private final TunableNumber joystickPower = new TunableNumber("TeleopSwerve/joystickPower", 2.0);
+  private final TunableNumber maxDriveAcceleration =
+      new TunableNumber(
+          "TeleopSwerve/maxDriveAcceleration",
+          RobotConfig.getInstance().getRobotMaxDriveAcceleration());
 
   /**
    * Create a new TeleopSwerve command object.
@@ -55,32 +72,75 @@ public class TeleopSwerve extends CommandBase {
   }
 
   @Override
+  public void initialize() {
+    Logger.getInstance().recordOutput("ActiveCommands/TeleopSwerve", true);
+  }
+
+  /**
+   * This method is invoked periodically while this command is scheduled. It calculates the
+   * velocities based on the supplied values and enabled features and invokes the drivetrain
+   * subsystem's drive method.
+   */
+  @Override
   public void execute() {
 
-    // invert the controller input and apply the deadband and squaring to make the robot more
-    // responsive to small changes in the controller
-    double xPercentage = modifyAxis(translationXSupplier.getAsDouble());
-    double yPercentage = modifyAxis(translationYSupplier.getAsDouble());
-    double rotationPercentage = modifyAxis(rotationSupplier.getAsDouble());
+    // invert the controller input and apply the deadband and exponential function to make the robot
+    // more responsive to small changes in the controller
+    double xPercentage = modifyAxis(translationXSupplier.getAsDouble(), joystickPower.get());
+    double yPercentage = modifyAxis(translationYSupplier.getAsDouble(), joystickPower.get());
+    double rotationPercentage = modifyAxis(rotationSupplier.getAsDouble(), joystickPower.get());
 
     double xVelocity = xPercentage * maxVelocityMetersPerSecond;
     double yVelocity = yPercentage * maxVelocityMetersPerSecond;
     double rotationalVelocity = rotationPercentage * maxAngularVelocityRadiansPerSecond;
 
-    Logger.getInstance().recordOutput("ActiveCommands/TeleopSwerve", true);
     Logger.getInstance().recordOutput("TeleopSwerve/xVelocity", xVelocity);
     Logger.getInstance().recordOutput("TeleopSwerve/yVelocity", yVelocity);
     Logger.getInstance().recordOutput("TeleopSwerve/rotationalVelocity", rotationalVelocity);
 
-    drivetrain.drive(xVelocity, yVelocity, rotationalVelocity, true);
+    // if the robot is not in turbo mode, limit the acceleration
+    if (!drivetrain.getTurbo()) {
+      double driveAccelerationMetersPer20Ms =
+          maxDriveAcceleration.get() * Constants.LOOP_PERIOD_SECS;
+
+      if (Math.abs(xVelocity - lastXVelocity) > driveAccelerationMetersPer20Ms) {
+        xVelocity =
+            lastXVelocity
+                + Math.copySign(driveAccelerationMetersPer20Ms, xVelocity - lastXVelocity);
+      }
+
+      if (Math.abs(yVelocity - lastYVelocity) > driveAccelerationMetersPer20Ms) {
+        yVelocity =
+            lastYVelocity
+                + Math.copySign(driveAccelerationMetersPer20Ms, yVelocity - lastYVelocity);
+      }
+
+      double turnAccelerationRadiansPer20Ms =
+          maxTurnAcceleration.get() * Constants.LOOP_PERIOD_SECS;
+
+      if (Math.abs(rotationalVelocity - lastAngularVelocity) > turnAccelerationRadiansPer20Ms) {
+        rotationalVelocity =
+            lastAngularVelocity
+                + Math.copySign(
+                    turnAccelerationRadiansPer20Ms, rotationalVelocity - lastAngularVelocity);
+      }
+    }
+
+    lastXVelocity = xVelocity;
+    lastYVelocity = yVelocity;
+    lastAngularVelocity = rotationalVelocity;
+
+    drivetrain.drive(xVelocity, yVelocity, rotationalVelocity, true, false);
   }
 
+  /**
+   * This method will be invoked when this command finishes or is interrupted. The drivetrain is
+   * left in whatever state it was in when the command finished.
+   *
+   * @param interrupted true if the command was interrupted by another command being scheduled
+   */
   @Override
   public void end(boolean interrupted) {
-    this.drivetrain.stop();
-
-    super.end(interrupted);
-
     Logger.getInstance().recordOutput("ActiveCommands/TeleopSwerve", false);
   }
 
@@ -88,17 +148,14 @@ public class TeleopSwerve extends CommandBase {
    * Squares the specified value, while preserving the sign. This method is used on all joystick
    * inputs. This is useful as a non-linear range is more natural for the driver.
    *
-   * @param value
-   * @return
+   * @param value the raw controller value
+   * @param power the power to which the value should be raised
+   * @return the modified value
    */
-  private static double modifyAxis(double value) {
-    // Deadband
-    value = deadband(value, DEADBAND);
-
-    // Square the axis
-    value = Math.copySign(value * value, value);
-
-    return value;
+  public static double modifyAxis(double value, double power) {
+    double modifiedValue = deadband(value, DEADBAND);
+    modifiedValue = Math.copySign(Math.pow(modifiedValue, power), modifiedValue);
+    return modifiedValue;
   }
 
   private static double deadband(double value, double deadband) {

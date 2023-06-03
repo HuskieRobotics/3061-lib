@@ -1,9 +1,7 @@
 package frc.lib.team3061;
 
-import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import frc.lib.team3061.swerve.SwerveModuleConstants.SwerveType;
 
@@ -12,6 +10,11 @@ public abstract class RobotConfig {
 
   private static RobotConfig robotConfig;
 
+  /**
+   * Returns the singleton instance of the RobotConfig object.
+   *
+   * @return the singleton instance of the RobotConfig object
+   */
   public static RobotConfig getInstance() {
     return robotConfig;
   }
@@ -138,7 +141,6 @@ public abstract class RobotConfig {
    */
   public abstract SwerveType getSwerveType();
 
-  // Swerve Module CAN IDs (FL, FR, BL, BR)
   /**
    * Returns the CAN IDs for the swerve modules' drive motors in the order of front left, front
    * right, back left, and back right. Must be overridden.
@@ -238,22 +240,32 @@ public abstract class RobotConfig {
   }
 
   /**
-   * Returns the 3D transform from the center of the robot to the center of the camera. The units
-   * are meters and radians. Defaults to the robot's center on the floor.
+   * Returns the 3D transforms from the center of the robot to the center of each camera. The units
+   * are meters and radians. Defaults to an empty array specifying no cameras.
    *
-   * @return the 3D transform from the center of the robot to the center of the camera
+   * @return the 3D transforms from the center of the robot to the center of each camera
    */
-  public Transform3d getRobotToCameraTransform() {
-    return new Transform3d(new Translation3d(0, 0, 0), new Rotation3d(0, 0, 0));
+  public Transform3d[] getRobotToCameraTransforms() {
+    return new Transform3d[] {};
   }
 
   /**
-   * Returns the maximum velocity of the robot in meters per second. This is a measure of how fast
-   * the robot should be able to drive in a straight line. Must be overridden.
+   * Returns the maximum translational velocity of the robot in meters per second. This is a measure
+   * of how fast the robot should be able to drive in a straight line. Must be overridden.
    *
    * @return the maximum velocity of the robot in meters per second
    */
   public abstract double getRobotMaxVelocity();
+
+  /**
+   * Returns the multiplier for when the robot is in slow mode. Defaults to 1 (no effect in slow
+   * mode).
+   *
+   * @return the multiplier for when the robot is in slow mode
+   */
+  public double getRobotSlowModeMultiplier() {
+    return 1.0;
+  }
 
   /**
    * The maximum angular velocity of the robot in radians per second. This is a measure of how fast
@@ -264,6 +276,26 @@ public abstract class RobotConfig {
    */
   public double getRobotMaxAngularVelocity() {
     return getRobotMaxVelocity() / Math.hypot(getTrackwidth() / 2.0, getWheelbase() / 2.0);
+  }
+
+  /**
+   * Returns the maximum translational acceleration of the robot in meters per second squared.
+   * Defaults to 1000 m/s/s.
+   *
+   * @return the maximum translational acceleration of the robot in meters per second squared
+   */
+  public double getRobotMaxDriveAcceleration() {
+    return 1000.0;
+  }
+
+  /**
+   * Returns the maximum angular acceleration of the robot in radians per second squared. Defaults
+   * to 1000 rad/s/s.
+   *
+   * @return the maximum angular acceleration of the robot in radians per second squared
+   */
+  public double getRobotMaxTurnAcceleration() {
+    return 1000.0;
   }
 
   /**
@@ -371,12 +403,13 @@ public abstract class RobotConfig {
   }
 
   /**
-   * Returns the name of the camera used by the vision subsystem. Defaults to "".
+   * Returns the names of the cameras used by the vision subsystem. Defaults to an empty array (no
+   * cameras).
    *
-   * @return the name of the camera used by the vision subsystem
+   * @return the names of the cameras used by the vision subsystem
    */
-  public String getCameraName() {
-    return "";
+  public String[] getCameraNames() {
+    return new String[] {};
   }
 
   /**
@@ -415,5 +448,152 @@ public abstract class RobotConfig {
    */
   public int getRevLowPressureSensorChannel() {
     return 1;
+  }
+
+  /**
+   * Returns the the proportional constant for the PID controller for translational motion when
+   * driving to a specific pose. Defaults to 0.
+   *
+   * @return the proportional constant for the PID controller for translational motion when driving
+   *     to a specific pose
+   */
+  public double getDriveToPoseDriveKP() {
+    return 0.0;
+  }
+
+  /**
+   * Returns the integral constant for the PID controller for translational motion when driving to a
+   * specific pose. Defaults to 0.
+   *
+   * @return the integral constant for the PID controller for translational motion when driving to a
+   *     specific pose
+   */
+  public double getDriveToPoseDriveKI() {
+    return 0.0;
+  }
+
+  /**
+   * Returns the derivative constant for the PID controller for translational motion when driving to
+   * a specific pose. Defaults to 0.
+   *
+   * @return the derivative constant for the PID controller for translational motion when driving to
+   *     a specific pose
+   */
+  public double getDriveToPoseDriveKD() {
+    return 0.0;
+  }
+
+  /**
+   * Returns the proportional constant for the PID controller for rotational motion when driving to
+   * a specific pose. Defaults to 0.
+   *
+   * @return the proportional constant for the PID controller for rotational motion when driving to
+   *     a specific pose
+   */
+  public double getDriveToPoseThetaKP() {
+    return 0.0;
+  }
+
+  /**
+   * Returns the integral constant for the PID controller for rotational motion when driving to a
+   * specific pose. Defaults to 0.
+   *
+   * @return the integral constant for the PID controller for rotational motion when driving to a
+   *     specific pose
+   */
+  public double getDriveToPoseThetaKI() {
+    return 0.0;
+  }
+
+  /**
+   * Returns the derivative constant for the PID controller for rotational motion when driving to a
+   * specific pose. Defaults to 0.
+   *
+   * @return the derivative constant for the PID controller for rotational motion when driving to a
+   *     specific pose
+   */
+  public double getDriveToPoseThetaKD() {
+    return 0.0;
+  }
+
+  /**
+   * Returns the maximum translational speed, in meters per second, for the robot during the
+   * drive-to-pose command. Defaults to the maximum speed for autonomous.
+   *
+   * @return the maximum translational speed, in meters per second, for the robot during the
+   *     drive-to-pose command
+   */
+  public double getDriveToPoseDriveMaxVelocity() {
+    return getAutoMaxSpeed();
+  }
+
+  /**
+   * Returns the maximum translational acceleration, in meters per second squared, for the robot
+   * during the drive-to-pose command. Defaults to the maximum acceleration for autonomous.
+   *
+   * @return the maximum translational acceleration, in meters per second squared, for the robot
+   *     during the drive-to-pose command
+   */
+  public double getDriveToPoseDriveMaxAcceleration() {
+    return getAutoMaxAcceleration();
+  }
+
+  /**
+   * Returns the maximum rotational speed, in radians per second, for the robot during the
+   * drive-to-pose command. Defaults to the velocity derived from the maximum translational speed
+   * and hte robot's geometry.
+   *
+   * @return the maximum rotational speed, in radians per second, for the robot during the
+   *     drive-to-pose command
+   */
+  public double getDriveToPoseTurnMaxVelocity() {
+    return getDriveToPoseDriveMaxVelocity()
+        / Math.hypot(getTrackwidth() / 2.0, getWheelbase() / 2.0);
+  }
+
+  /**
+   * Returns the maximum rotational acceleration, in radians per second squared, for the robot
+   * during the drive-to-pose command. Defaults to the acceleration derived from the maximum
+   * translational acceleration and the robot's geometry.
+   *
+   * @return the maximum rotational acceleration, in radians per second squared, for the robot
+   *     during the drive-to-pose command
+   */
+  public double getDriveToPoseTurnMaxAcceleration() {
+    return getDriveToPoseDriveMaxAcceleration()
+        / Math.hypot(getTrackwidth() / 2.0, getWheelbase() / 2.0);
+  }
+
+  /**
+   * Returns the tolerance, in meters, for which the robot's position is considered at the specified
+   * pose during the drive-to-pose command. Defaults to 0.
+   *
+   * @return the tolerance, in meters, for which the robot's position is considered at the specified
+   *     pose during the drive-to-pose command
+   */
+  public double getDriveToPoseDriveTolerance() {
+    return 0.0;
+  }
+
+  /**
+   * Returns the tolerance, in radians, for which the robot's heading is considered at the specified
+   * pose during the drive-to-pose command. Defaults to 0.
+   *
+   * @return the tolerance, in radians, for which the robot's heading is considered at the specified
+   *     pose during the drive-to-pose command
+   */
+  public double getDriveToPoseThetaTolerance() {
+    return 0.0;
+  }
+
+  /**
+   * Returns the velocity, in meters per second, of the robot when driving into a field element
+   * during a move-to-pose command. Defaults to 0.
+   *
+   * @return the velocity, in meters per second, of the robot when driving into a field element
+   *     during a move-to-pose command
+   */
+  public double getMoveToPathFinalVelocity() {
+    return 0;
   }
 }

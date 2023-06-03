@@ -7,7 +7,7 @@ package frc.robot.operator_interface;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
-/** Class for controlling the robot with two Xbox controllers. */
+/** Class for controlling the robot with two joysticks. */
 public class DualJoysticksOI implements OperatorInterface {
   private final CommandJoystick translateJoystick;
   private final CommandJoystick rotateJoystick;
@@ -56,11 +56,17 @@ public class DualJoysticksOI implements OperatorInterface {
 
   @Override
   public Trigger getXStanceButton() {
-    return translateJoystickButtons[1];
+    return rotateJoystickButtons[4];
   }
 
   @Override
   public Trigger getVisionIsEnabledSwitch() {
-    return rotateJoystickButtons[1];
+    // vision is always enabled with dual joysticks as there is no switch to disable
+    return new Trigger(() -> true);
+  }
+
+  @Override
+  public Trigger getTurboButton() {
+    return translateJoystickButtons[1];
   }
 }
