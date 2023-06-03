@@ -75,12 +75,12 @@ public class Vision extends SubsystemBase {
    *     single single PhotonPipelineResult. There is a one-to-one relationship between each
    *     VisionIO object and each co-processor (e.g., Raspberry Pi) running PhotonVision.
    */
-  public Vision(VisionIO... visionIO) {
-    this.visionIOs = visionIO;
+  public Vision(VisionIO[] visionIOs) {
+    this.visionIOs = visionIOs;
     this.camerasToRobots = RobotConfig.getInstance().getRobotToCameraTransforms();
-    this.lastTimestamps = new double[visionIO.length];
-    this.ios = new VisionIOInputs[visionIO.length];
-    for (int i = 0; i < visionIO.length; i++) {
+    this.lastTimestamps = new double[visionIOs.length];
+    this.ios = new VisionIOInputs[visionIOs.length];
+    for (int i = 0; i < visionIOs.length; i++) {
       this.ios[i] = new VisionIOInputs();
     }
 

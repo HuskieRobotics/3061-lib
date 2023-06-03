@@ -12,7 +12,6 @@ import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.commands.FollowPathWithEvents;
 import com.pathplanner.lib.server.PathPlannerServer;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
@@ -41,6 +40,7 @@ import frc.robot.commands.FeedForwardCharacterization.FeedForwardCharacterizatio
 import frc.robot.commands.FollowPath;
 import frc.robot.commands.RotateToAngle;
 import frc.robot.commands.TeleopSwerve;
+import frc.robot.configs.DefaultRobotConfig;
 import frc.robot.configs.MK4IRobotConfig;
 import frc.robot.configs.NovaRobotConfig;
 import frc.robot.operator_interface.OISelector;
@@ -72,14 +72,19 @@ public class RobotContainer {
 
   // RobotContainer singleton
   private static RobotContainer robotContainer = new RobotContainer();
+
   private final Map<String, Command> autoEventMap = new HashMap<>();
 
-  /** Create the container for the robot. Contains subsystems, OI devices, and commands. */
+  /**
+   * Create the container for the robot. Contains subsystems, operator interface (OI) devices, and
+   * commands.
+   */
   public RobotContainer() {
     /*
      * IMPORTANT: The RobotConfig subclass object *must* be created before any other objects
      * that use it directly or indirectly. If this isn't done, a null pointer exception will result.
      */
+    createRobotConfig();
 
     // create real, simulated, or replay subsystems based on the mode and robot specified
     if (Constants.getMode() != Mode.REPLAY) {
@@ -88,13 +93,6 @@ public class RobotContainer {
         case ROBOT_2023_NOVA:
         case ROBOT_2023_MK4I:
           {
-            // create the specific RobotConfig subclass instance first
-            if (Constants.getRobot() == Constants.RobotType.ROBOT_2023_MK4I) {
-              config = new MK4IRobotConfig();
-            } else {
-              config = new NovaRobotConfig();
-            }
-
             GyroIO gyro = new GyroIOPigeon2(config.getGyroCANID());
 
             int[] driveMotorCANIDs = config.getSwerveDriveMotorCANIDs();
@@ -146,11 +144,13 @@ public class RobotContainer {
                     config.getRobotMaxVelocity());
 
             drivetrain = new Drivetrain(gyro, flModule, frModule, blModule, brModule);
+
             String[] cameraNames = config.getCameraNames();
-            vision =
-                new Vision(
-                    new VisionIOPhotonVision(cameraNames[0]),
-                    new VisionIOPhotonVision(cameraNames[1]));
+            VisionIO[] visionIOs = new VisionIO[cameraNames.length];
+            for (int i = 0; i < visionIOs.length; i++) {
+              visionIOs[i] = new VisionIOPhotonVision(cameraNames[i]);
+            }
+            vision = new Vision(visionIOs);
 
             if (Constants.getRobot() == Constants.RobotType.ROBOT_DEFAULT) {
               new Pneumatics(new PneumaticsIORev());
@@ -159,7 +159,6 @@ public class RobotContainer {
           }
         case ROBOT_SIMBOT:
           {
-            config = new MK4IRobotConfig();
             SwerveModule flModule =
                 new SwerveModule(new SwerveModuleIOSim(), 0, config.getRobotMaxVelocity());
 
@@ -181,10 +180,12 @@ public class RobotContainer {
             }
             vision =
                 new Vision(
-                    new VisionIOSim(
-                        layout,
-                        drivetrain::getPose,
-                        RobotConfig.getInstance().getRobotToCameraTransforms()[0]));
+                    new VisionIO[] {
+                      new VisionIOSim(
+                          layout,
+                          drivetrain::getPose,
+                          RobotConfig.getInstance().getRobotToCameraTransforms()[0])
+                    });
             break;
           }
         default:
@@ -192,7 +193,6 @@ public class RobotContainer {
       }
 
     } else {
-      config = new NovaRobotConfig();
       SwerveModule flModule =
           new SwerveModule(new SwerveModuleIO() {}, 0, config.getRobotMaxVelocity());
 
@@ -205,7 +205,13 @@ public class RobotContainer {
       SwerveModule brModule =
           new SwerveModule(new SwerveModuleIO() {}, 3, config.getRobotMaxVelocity());
       drivetrain = new Drivetrain(new GyroIO() {}, flModule, frModule, blModule, brModule);
-      vision = new Vision(new VisionIO() {}, new VisionIO() {});
+
+      String[] cameraNames = config.getCameraNames();
+      VisionIO[] visionIOs = new VisionIO[cameraNames.length];
+      for (int i = 0; i < visionIOs.length; i++) {
+        visionIOs[i] = new VisionIO() {};
+      }
+      vision = new Vision(visionIOs);
     }
 
     // disable all telemetry in the LiveWindow to reduce the processing during each iteration
@@ -218,7 +224,30 @@ public class RobotContainer {
     configureAutoCommands();
   }
 
-  public void constructField() {
+  /**
+   * The RobotConfig subclass object *must* be created before any other objects that use it directly
+   * or indirectly. If this isn't done, a null pointer exception will result.
+   */
+  private void createRobotConfig() {
+    switch (Constants.getRobot()) {
+      case ROBOT_DEFAULT:
+        config = new DefaultRobotConfig();
+        break;
+      case ROBOT_2023_NOVA:
+      case ROBOT_SIMBOT:
+        config = new NovaRobotConfig();
+        break;
+      case ROBOT_2023_MK4I:
+        config = new MK4IRobotConfig();
+        break;
+    }
+  }
+
+  /**
+   * Creates the field from the defined regions and transition points from one region to its
+   * neighbor. The field is used to generate paths.
+   */
+  private void constructField() {
     Field2d.getInstance()
         .setRegions(
             new Region2d[] {
@@ -259,8 +288,8 @@ public class RobotContainer {
   }
 
   /**
-   * This method scans for any changes to the connected joystick. If anything changed, it creates
-   * new OI objects and binds all of the buttons to commands.
+   * This method scans for any changes to the connected operator interface (e.g., joysticks). If
+   * anything changed, it creates a new OI object and binds all of the buttons to commands.
    */
   public void updateOI() {
     OperatorInterface prevOI = oi;
@@ -268,19 +297,6 @@ public class RobotContainer {
     if (oi == prevOI) {
       return;
     }
-
-    /*
-     * Set up the default command for the drivetrain. The joysticks' values map to percentage of the
-     * maximum velocities. The velocities may be specified from either the robot's frame of
-     * reference or the field's frame of reference. In the robot's frame of reference, the positive
-     * x direction is forward; the positive y direction, left; position rotation, CCW. In the field
-     * frame of reference, the origin of the field to the lower left corner (i.e., the corner of the
-     * field to the driver's right). Zero degrees is away from the driver and increases in the CCW
-     * direction. This is why the left joystick's y axis specifies the velocity in the x direction
-     * and the left joystick's x axis specifies the velocity in the y direction.
-     */
-    drivetrain.setDefaultCommand(
-        new TeleopSwerve(drivetrain, oi::getTranslateX, oi::getTranslateY, oi::getRotate));
 
     configureButtonBindings();
   }
@@ -306,6 +322,9 @@ public class RobotContainer {
             Commands.parallel(
                 Commands.runOnce(() -> vision.enable(false), vision),
                 Commands.runOnce(drivetrain::resetPoseRotationToGyro)));
+
+    // interrupt all commands by running a command that requires every subsystem. This is used to
+    // recover to a known state if the robot becomes "stuck" in a command.
     oi.getInterruptAll()
         .onTrue(
             Commands.parallel(
@@ -324,14 +343,14 @@ public class RobotContainer {
     // add commands to the auto chooser
     autoChooser.addDefaultOption("Do Nothing", new InstantCommand());
 
-    PathPlannerTrajectory straightPath = PathPlanner.loadPath("DistanceTest", 2, 2);
-
-    Command straightPathCommand = new FollowPath(straightPath, drivetrain, true, true);
-    autoChooser.addOption("Straight Path", straightPathCommand);
-
+    /************ Test Path ************
+     *
+     * demonstration of PathPlanner path group with event markers
+     *
+     */
     List<PathPlannerTrajectory> auto1Paths =
         PathPlanner.loadPathGroup(
-            "TestPaths1", config.getAutoMaxSpeed(), config.getAutoMaxAcceleration());
+            "TestPath", config.getAutoMaxSpeed(), config.getAutoMaxAcceleration());
     Command autoTest =
         Commands.sequence(
             new FollowPathWithEvents(
@@ -345,19 +364,14 @@ public class RobotContainer {
                 new FollowPath(auto1Paths.get(1), drivetrain, false, true),
                 auto1Paths.get(1).getMarkers(),
                 autoEventMap));
-
-    // add commands to the auto chooser
-    autoChooser.addDefaultOption("Do Nothing", new InstantCommand());
-
-    // demonstration of PathPlanner path group with event markers
     autoChooser.addOption("Test Path", autoTest);
 
-    // "auto" path for Tuning auto PIDs
-    PathPlannerTrajectory tuningPath = PathPlanner.loadPath("Tuning", 2.0, 3.0);
-    Command tuningCommand = new FollowPath(tuningPath, drivetrain, true, true);
-    autoChooser.addOption("Auto Tuning Path", tuningCommand);
+    /************ Start Point ************
+     *
+     * useful for initializing the pose of the robot to a known location
+     *
+     */
 
-    // start point auto
     PathPlannerTrajectory startPointPath =
         PathPlanner.loadPath(
             "StartPoint", config.getAutoMaxSpeed(), config.getAutoMaxAcceleration());
@@ -366,16 +380,11 @@ public class RobotContainer {
             () -> drivetrain.resetOdometry(startPointPath.getInitialState()), drivetrain);
     autoChooser.addOption("Start Point", startPoint);
 
-    // "auto" command for tuning the drive velocity PID
-    autoChooser.addOption(
-        "Drive Velocity Tuning",
-        Commands.sequence(
-            Commands.runOnce(drivetrain::disableFieldRelative, drivetrain),
-            Commands.deadline(
-                Commands.waitSeconds(5.0),
-                Commands.run(() -> drivetrain.drive(1.5, 0.0, 0.0, false, false), drivetrain))));
-
-    // "auto" command for characterizing the drivetrain
+    /************ Drive Characterization ************
+     *
+     * useful for characterizing the drivetrain (i.e, determining kS and kV)
+     *
+     */
     autoChooser.addOption(
         "Drive Characterization",
         new FeedForwardCharacterization(
@@ -385,15 +394,60 @@ public class RobotContainer {
             drivetrain::runCharacterizationVolts,
             drivetrain::getCharacterizationVelocity));
 
+    /************ Distance Test ************
+     *
+     * used for empirically determining the wheel diameter
+     *
+     */
+    PathPlannerTrajectory distanceTestPath = PathPlanner.loadPath("DistanceTest", 2, 2);
+    Command distanceTestPathCommand = new FollowPath(distanceTestPath, drivetrain, true, true);
+    autoChooser.addOption("Distance Path", distanceTestPathCommand);
+
+    /************ Auto Tuning ************
+     *
+     * useful for tuning the autonomous PID controllers
+     *
+     */
+    PathPlannerTrajectory tuningPath = PathPlanner.loadPath("Tuning", 2.0, 3.0);
+    Command tuningCommand = new FollowPath(tuningPath, drivetrain, true, true);
+    autoChooser.addOption("Auto Tuning", tuningCommand);
+
+    /************ Drive Velocity Tuning ************
+     *
+     * useful for tuning the drive velocity PID controller
+     *
+     */
+    autoChooser.addOption(
+        "Drive Velocity Tuning",
+        Commands.sequence(
+            Commands.runOnce(drivetrain::disableFieldRelative, drivetrain),
+            Commands.deadline(
+                Commands.waitSeconds(5.0),
+                Commands.run(() -> drivetrain.drive(1.5, 0.0, 0.0, false, false), drivetrain))));
+
     Shuffleboard.getTab("MAIN").add(autoChooser.getSendableChooser());
 
+    // enable the path planner server so we can update paths without redeploying code
     if (TUNING_MODE) {
       PathPlannerServer.startServer(3061);
     }
   }
 
   private void configureDrivetrainCommands() {
+    /*
+     * Set up the default command for the drivetrain. The joysticks' values map to percentage of the
+     * maximum velocities. The velocities may be specified from either the robot's frame of
+     * reference or the field's frame of reference. In the robot's frame of reference, the positive
+     * x direction is forward; the positive y direction, left; position rotation, CCW. In the field
+     * frame of reference, the origin of the field to the lower left corner (i.e., the corner of the
+     * field to the driver's right). Zero degrees is away from the driver and increases in the CCW
+     * direction. This is why the left joystick's y axis specifies the velocity in the x direction
+     * and the left joystick's x axis specifies the velocity in the y direction.
+     */
+    drivetrain.setDefaultCommand(
+        new TeleopSwerve(drivetrain, oi::getTranslateX, oi::getTranslateY, oi::getRotate));
 
+    // lock rotation to the nearest 180° while driving
     oi.getLock180Button()
         .onTrue(
             new RotateToAngle(
@@ -450,6 +504,10 @@ public class RobotContainer {
     return autoChooser.get();
   }
 
+  /**
+   * Check if the alliance color has changed; if so, update the vision subsystem and Field2d
+   * singleton.
+   */
   public void checkAllianceColor() {
     if (DriverStation.getAlliance() != lastAlliance) {
       lastAlliance = DriverStation.getAlliance();
@@ -468,12 +526,5 @@ public class RobotContainer {
 
   public void disabledPeriodic() {
     // when the LED subsystem is pulled in, we will change the LEDs here
-  }
-
-  public static Pose2d adjustPoseForRobot(Pose2d pose) {
-    return new Pose2d(
-        pose.getX() + RobotConfig.getInstance().getRobotWidthWithBumpers() / 2,
-        pose.getY(),
-        pose.getRotation());
   }
 }
