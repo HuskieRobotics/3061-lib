@@ -24,7 +24,7 @@ import org.photonvision.targeting.PhotonPipelineResult;
  */
 public class VisionIOSim implements VisionIO {
   private static final String CAMERA_NAME = "simCamera";
-  private static final double DIAGONAL_FOV = 70; // FOV in degrees
+  private static final double DIAGONAL_FOV = 160; // FOV in degrees
   private static final int IMG_WIDTH = 1280; // image width in px
   private static final int IMG_HEIGHT = 720; // image heigh in px
   private final PhotonCamera camera = new PhotonCamera(CAMERA_NAME);
