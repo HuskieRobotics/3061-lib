@@ -46,6 +46,9 @@ import frc.robot.configs.NovaRobotConfig;
 import frc.robot.operator_interface.OISelector;
 import frc.robot.operator_interface.OperatorInterface;
 import frc.robot.subsystems.drivetrain.Drivetrain;
+import frc.robot.subsystems.subsystem.Subsystem;
+import frc.robot.subsystems.subsystem.SubsystemIO;
+import frc.robot.subsystems.subsystem.SubsystemIOTalonFX;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -65,6 +68,7 @@ public class RobotContainer {
   private Drivetrain drivetrain;
   private Alliance lastAlliance = DriverStation.Alliance.Invalid;
   private Vision vision;
+  private Subsystem subsystem;
 
   // use AdvantageKit's LoggedDashboardChooser instead of SendableChooser to ensure accurate logging
   private final LoggedDashboardChooser<Command> autoChooser =
@@ -151,6 +155,7 @@ public class RobotContainer {
               visionIOs[i] = new VisionIOPhotonVision(cameraNames[i]);
             }
             vision = new Vision(visionIOs);
+            subsystem = new Subsystem(new SubsystemIOTalonFX());
 
             if (Constants.getRobot() == Constants.RobotType.ROBOT_DEFAULT) {
               new Pneumatics(new PneumaticsIORev());
@@ -186,6 +191,8 @@ public class RobotContainer {
                           drivetrain::getPose,
                           RobotConfig.getInstance().getRobotToCameraTransforms()[0])
                     });
+            subsystem = new Subsystem(new SubsystemIO() {});
+
             break;
           }
         default:
@@ -212,6 +219,7 @@ public class RobotContainer {
         visionIOs[i] = new VisionIO() {};
       }
       vision = new Vision(visionIOs);
+      subsystem = new Subsystem(new SubsystemIO() {});
     }
 
     // disable all telemetry in the LiveWindow to reduce the processing during each iteration
@@ -315,13 +323,9 @@ public class RobotContainer {
 
     configureDrivetrainCommands();
 
-    // enable/disable vision
-    oi.getVisionIsEnabledSwitch().onTrue(Commands.runOnce(() -> vision.enable(true)));
-    oi.getVisionIsEnabledSwitch()
-        .onFalse(
-            Commands.parallel(
-                Commands.runOnce(() -> vision.enable(false), vision),
-                Commands.runOnce(drivetrain::resetPoseRotationToGyro)));
+    configureSubsystemCommands();
+
+    configureVisionCommands();
 
     // interrupt all commands by running a command that requires every subsystem. This is used to
     // recover to a known state if the robot becomes "stuck" in a command.
@@ -329,6 +333,7 @@ public class RobotContainer {
         .onTrue(
             Commands.parallel(
                 Commands.runOnce(drivetrain::disableXstance),
+                Commands.runOnce(() -> subsystem.setMotorPower(0)),
                 new TeleopSwerve(drivetrain, oi::getTranslateX, oi::getTranslateY, oi::getRotate)));
   }
 
@@ -493,6 +498,20 @@ public class RobotContainer {
     // turbo
     oi.getTurboButton().onTrue(Commands.runOnce(drivetrain::enableTurbo, drivetrain));
     oi.getTurboButton().onFalse(Commands.runOnce(drivetrain::disableTurbo, drivetrain));
+  }
+
+  private void configureSubsystemCommands() {
+    // FIXME: add commands for the subsystem
+  }
+
+  private void configureVisionCommands() {
+    // enable/disable vision
+    oi.getVisionIsEnabledSwitch().onTrue(Commands.runOnce(() -> vision.enable(true)));
+    oi.getVisionIsEnabledSwitch()
+        .onFalse(
+            Commands.parallel(
+                Commands.runOnce(() -> vision.enable(false), vision),
+                Commands.runOnce(drivetrain::resetPoseRotationToGyro)));
   }
 
   /**
