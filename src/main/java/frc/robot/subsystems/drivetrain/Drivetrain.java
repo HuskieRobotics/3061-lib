@@ -20,8 +20,11 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.lib.team3015.subsystem.AdvancedSubsystem;
+import frc.lib.team3015.subsystem.SubsystemFault;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.gyro.GyroIO;
 import frc.lib.team3061.gyro.GyroIOInputsAutoLogged;
@@ -38,7 +41,7 @@ import org.littletonrobotics.junction.Logger;
  * each with two motors and an encoder. It also consists of a Pigeon which is used to measure the
  * robot's rotation.
  */
-public class Drivetrain extends SubsystemBase {
+public class Drivetrain extends AdvancedSubsystem {
 
   private final GyroIO gyroIO;
   private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
@@ -761,6 +764,77 @@ public class Drivetrain extends SubsystemBase {
    */
   public boolean isMoveToPoseEnabled() {
     return this.isMoveToPoseEnabled;
+  }
+
+  @Override
+  protected CommandBase systemCheckCommand() {
+    return Commands.sequence(
+            // Commands.runOnce(
+            //     () -> {
+            //       modules[0].getSystemCheckCommand().schedule();
+            //       modules[1].getSystemCheckCommand().schedule();
+            //       modules[2].getSystemCheckCommand().schedule();
+            //       modules[3].getSystemCheckCommand().schedule();
+            //     },
+            //     this),
+
+            Commands.runOnce(() -> drive(0, 0, 0.5, true, false), this),
+            Commands.waitSeconds(2.0),
+            Commands.runOnce(
+                () -> {
+                  drive(0, 0, 0, true, false);
+
+                  if (gyroInputs.yawDegPerSec < 20) {
+                    addFault("[System Check] rotation rate too low", false, true);
+                  }
+                },
+                this),
+            Commands.runOnce(() -> drive(0, 0, -0.5, true, false), this),
+            Commands.waitSeconds(2.0),
+            Commands.runOnce(
+                () -> {
+                  drive(0, 0, 0, true, false);
+                  if (gyroInputs.yawDegPerSec > -20) {
+                    addFault("[System Check] rotation rate too low", false, true);
+                  }
+                },
+                this))
+        .until(
+            () -> getFaults().size() > 0
+            // || modules[0].getFaults().size() > 0
+            // || modules[1].getFaults().size() > 0
+            // || modules[2].getFaults().size() > 0
+            // || modules[3].getFaults().size() > 0
+            )
+        .andThen(Commands.runOnce(() -> drive(0, 0, 0, true, false), this));
+  }
+
+  @Override
+  public SystemStatus getSystemStatus() {
+    SystemStatus worstStatus = SystemStatus.OK;
+
+    for (SubsystemFault f : this.getFaults()) {
+      if (f.sticky || f.timestamp > Timer.getFPGATimestamp() - 10) {
+        if (f.isWarning) {
+          if (worstStatus != SystemStatus.ERROR) {
+            worstStatus = SystemStatus.WARNING;
+          }
+        } else {
+          worstStatus = SystemStatus.ERROR;
+        }
+      }
+    }
+
+    // for (SwerveModule module : swerveModules) {
+    //   SystemStatus moduleStatus = module.getSystemStatus();
+    //   if (moduleStatus == SystemStatus.ERROR) {
+    //     worstStatus = SystemStatus.ERROR;
+    //   } else if (moduleStatus == SystemStatus.WARNING && worstStatus == SystemStatus.OK) {
+    //     worstStatus = SystemStatus.WARNING;
+    //   }
+    // }
+
+    return worstStatus;
   }
 
   /**
