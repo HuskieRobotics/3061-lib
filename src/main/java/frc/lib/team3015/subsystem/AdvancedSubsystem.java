@@ -8,10 +8,10 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.motorcontrol.PWMMotorController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.team3015.subsystem.selfcheck.*;
-import frc.robot.Robot;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,29 +22,31 @@ public abstract class AdvancedSubsystem extends SubsystemBase {
     ERROR
   }
 
+  private static final String CHECK_RAN = "/CheckRan";
+
   private final List<SubsystemFault> faults = new ArrayList<>();
   private final List<SelfChecking> hardware = new ArrayList<>();
   private final String statusTable;
   private final boolean checkErrors;
 
-  public AdvancedSubsystem() {
+  protected AdvancedSubsystem() {
     this.statusTable = "SystemStatus/" + this.getName();
     CommandBase systemCheck = getSystemCheckCommand();
     systemCheck.setName(getName() + "Check");
     SmartDashboard.putData(statusTable + "/SystemCheck", systemCheck);
-    SmartDashboard.putBoolean(statusTable + "/CheckRan", false);
+    SmartDashboard.putBoolean(statusTable + CHECK_RAN, false);
     checkErrors = RobotBase.isReal();
 
     setupCallbacks();
   }
 
-  public AdvancedSubsystem(String name) {
+  protected AdvancedSubsystem(String name) {
     this.setName(name);
     this.statusTable = "SystemStatus/" + name;
     CommandBase systemCheck = getSystemCheckCommand();
     systemCheck.setName(getName() + "Check");
     SmartDashboard.putData(statusTable + "/SystemCheck", systemCheck);
-    SmartDashboard.putBoolean(statusTable + "/CheckRan", false);
+    SmartDashboard.putBoolean(statusTable + CHECK_RAN, false);
     checkErrors = RobotBase.isReal();
 
     setupCallbacks();
@@ -54,7 +56,7 @@ public abstract class AdvancedSubsystem extends SubsystemBase {
     return Commands.sequence(
         Commands.runOnce(
             () -> {
-              SmartDashboard.putBoolean(statusTable + "/CheckRan", false);
+              SmartDashboard.putBoolean(statusTable + CHECK_RAN, false);
               clearFaults();
               publishStatus();
             }),
@@ -62,13 +64,20 @@ public abstract class AdvancedSubsystem extends SubsystemBase {
         Commands.runOnce(
             () -> {
               publishStatus();
-              SmartDashboard.putBoolean(statusTable + "/CheckRan", true);
+              SmartDashboard.putBoolean(statusTable + CHECK_RAN, true);
             }));
   }
 
   private void setupCallbacks() {
-    Robot.addPeriodicCallback(this::checkForFaults, 0.25);
-    Robot.addPeriodicCallback(this::publishStatus, 1.0);
+    CommandScheduler.getInstance()
+        .schedule(
+            Commands.repeatingSequence(
+                Commands.runOnce(this::checkForFaults), Commands.waitSeconds(0.25)));
+
+    CommandScheduler.getInstance()
+        .schedule(
+            Commands.repeatingSequence(
+                Commands.runOnce(this::publishStatus), Commands.waitSeconds(1.0)));
   }
 
   private void publishStatus() {
@@ -88,10 +97,6 @@ public abstract class AdvancedSubsystem extends SubsystemBase {
     } else {
       SmartDashboard.putString(statusTable + "/LastFault", "");
     }
-  }
-
-  protected void reportPowerUsage(String device, double amps, double volts) {
-    //    BatteryUsage.reportUsage(this.getName(), device, amps, volts);
   }
 
   protected void addFault(SubsystemFault fault) {

@@ -1,6 +1,7 @@
 package frc.lib.team3015.subsystem;
 
 import edu.wpi.first.wpilibj.Timer;
+import java.util.Objects;
 
 public class SubsystemFault {
   public final String description;
@@ -25,15 +26,26 @@ public class SubsystemFault {
 
   @Override
   public boolean equals(Object other) {
-    if (other == this) {
+    if (this == other) {
       return true;
     }
 
-    if (other instanceof SubsystemFault) {
-      SubsystemFault o = (SubsystemFault) other;
-
-      return description.equals(o.description) && isWarning == o.isWarning;
+    if (other == null) {
+      return false;
     }
-    return false;
+
+    if (getClass() != other.getClass()) {
+      return false;
+    }
+
+    SubsystemFault otherSubsystemFault = (SubsystemFault) other;
+
+    return description.equals(otherSubsystemFault.description)
+        && isWarning == otherSubsystemFault.isWarning;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(description, timestamp, isWarning, sticky);
   }
 }
