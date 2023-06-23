@@ -158,9 +158,36 @@ public class FeedForwardCharacterization extends CommandBase {
 
     public void print() {
 
-      // We would prefer to use wpilib Matrix class, but it doesn't support
-      //  an arbitrary number of row (at least over 20). If it is updated in the future,
-      //  we should refactor this to use it.
+      /*
+       * We would prefer to use wpilib Matrix class, due to its dimensional safety, but it doesn't
+       * support an arbitrary number of row (at least over 20). If it is updated in the future, we
+       * should refactor this to use it.
+       */
+
+      /**
+       * The Permanent-Magnet DC Motor Feedforward Equation: V = kA * a + kV * v + kS where V is the
+       * voltage, a is the acceleration, v is the velocity, and kA, kV, and kS are corresponding
+       * constants. For more information refer to:
+       * https://docs.wpilib.org/en/latest/docs/software/advanced-controls/introduction/introduction-to-feedforward.html#the-permanent-magnet-dc-motor-feedforward-equation
+       *
+       * <p>To characterize the drivetrain, we incrementally increase the applied voltage while
+       * gathering data for acceleration and velocity, and then solve for kA, kV, and kS using
+       * least-squared regression.
+       *
+       * <p>A x = b
+       *
+       * <p>where A is an n x 3 matrix, where the first column is the measured acceleration; the
+       * second, the velocity; the third, 1. x is a 3 x 1 matrix, where the first row is kA; the
+       * second, kV; the third, kS. b is an n x 1 matrix, where each row is the applied voltage.
+       *
+       * <p>Given this system of linear equations, we solve for x using the linear least-squares
+       * method (Moore-Penrose pseudoinverse):
+       *
+       * <p>x = (A^T * A)^-1 * A^T * b
+       *
+       * <p>For more information, refer to:
+       * https://en.m.wikipedia.org/wiki/Moore–Penrose_inverse#Linear_least-squares
+       */
       SimpleMatrix aMatrix = new SimpleMatrix(accelerationData.size(), 3);
       SimpleMatrix bMatrix = new SimpleMatrix(accelerationData.size(), 1);
       SimpleMatrix xMatrix;
@@ -171,15 +198,6 @@ public class FeedForwardCharacterization extends CommandBase {
         aMatrix.set(i, 2, 1);
         bMatrix.set(i, 0, voltageData.get(i));
       }
-
-      // WPIMathJNI.solveFullPivHouseholderQr(
-      //     aMatrix.getDDRM().getData(),
-      //     aMatrix.numRows(),
-      //     aMatrix.numCols(),
-      //     bMatrix.getDDRM().getData(),
-      //     bMatrix.numRows(),
-      //     bMatrix.numCols(),
-      //     xMatrix.getDDRM().getData());
 
       xMatrix = aMatrix.transpose().mult(aMatrix).invert().mult(aMatrix.transpose()).mult(bMatrix);
 
