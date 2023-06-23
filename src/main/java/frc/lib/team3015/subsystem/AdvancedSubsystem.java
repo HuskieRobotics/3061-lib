@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.team3015.subsystem.selfcheck.*;
 import java.util.ArrayList;
 import java.util.List;
+import org.littletonrobotics.junction.Logger;
 
 public abstract class AdvancedSubsystem extends SubsystemBase {
   public enum SystemStatus {
@@ -34,7 +35,7 @@ public abstract class AdvancedSubsystem extends SubsystemBase {
     CommandBase systemCheck = getSystemCheckCommand();
     systemCheck.setName(getName() + "Check");
     SmartDashboard.putData(statusTable + "/SystemCheck", systemCheck);
-    SmartDashboard.putBoolean(statusTable + CHECK_RAN, false);
+    Logger.getInstance().recordOutput(statusTable + CHECK_RAN, false);
     checkErrors = RobotBase.isReal();
 
     setupCallbacks();
@@ -46,7 +47,7 @@ public abstract class AdvancedSubsystem extends SubsystemBase {
     CommandBase systemCheck = getSystemCheckCommand();
     systemCheck.setName(getName() + "Check");
     SmartDashboard.putData(statusTable + "/SystemCheck", systemCheck);
-    SmartDashboard.putBoolean(statusTable + CHECK_RAN, false);
+    Logger.getInstance().recordOutput(statusTable + CHECK_RAN, false);
     checkErrors = RobotBase.isReal();
 
     setupCallbacks();
@@ -56,7 +57,7 @@ public abstract class AdvancedSubsystem extends SubsystemBase {
     return Commands.sequence(
         Commands.runOnce(
             () -> {
-              SmartDashboard.putBoolean(statusTable + CHECK_RAN, false);
+              Logger.getInstance().recordOutput(statusTable + CHECK_RAN, false);
               clearFaults();
               publishStatus();
             }),
@@ -64,7 +65,7 @@ public abstract class AdvancedSubsystem extends SubsystemBase {
         Commands.runOnce(
             () -> {
               publishStatus();
-              SmartDashboard.putBoolean(statusTable + CHECK_RAN, true);
+              Logger.getInstance().recordOutput(statusTable + CHECK_RAN, true);
             }));
   }
 
@@ -82,20 +83,22 @@ public abstract class AdvancedSubsystem extends SubsystemBase {
 
   private void publishStatus() {
     SystemStatus status = getSystemStatus();
-    SmartDashboard.putString(statusTable + "/Status", status.name());
-    SmartDashboard.putBoolean(statusTable + "/SystemOK", status == SystemStatus.OK);
+    Logger.getInstance().recordOutput(statusTable + "/Status", status.name());
+    Logger.getInstance().recordOutput(statusTable + "/SystemOK", status == SystemStatus.OK);
 
     String[] faultStrings = new String[this.faults.size()];
     for (int i = 0; i < this.faults.size(); i++) {
       SubsystemFault fault = this.faults.get(i);
       faultStrings[i] = String.format("[%.2f] %s", fault.timestamp, fault.description);
     }
-    SmartDashboard.putStringArray(statusTable + "/Faults", faultStrings);
+    Logger.getInstance().recordOutput(statusTable + "/Faults", faultStrings);
+    // FIXME: integrate with Alert class
 
     if (faultStrings.length > 0) {
-      SmartDashboard.putString(statusTable + "/LastFault", faultStrings[faultStrings.length - 1]);
+      Logger.getInstance()
+          .recordOutput(statusTable + "/LastFault", faultStrings[faultStrings.length - 1]);
     } else {
-      SmartDashboard.putString(statusTable + "/LastFault", "");
+      Logger.getInstance().recordOutput(statusTable + "/LastFault", "");
     }
   }
 
