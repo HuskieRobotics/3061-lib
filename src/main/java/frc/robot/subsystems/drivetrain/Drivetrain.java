@@ -769,15 +769,22 @@ public class Drivetrain extends AdvancedSubsystem {
   @Override
   protected CommandBase systemCheckCommand() {
     return Commands.sequence(
-            // Commands.runOnce(
-            //     () -> {
-            //       modules[0].getSystemCheckCommand().schedule();
-            //       modules[1].getSystemCheckCommand().schedule();
-            //       modules[2].getSystemCheckCommand().schedule();
-            //       modules[3].getSystemCheckCommand().schedule();
-            //     },
-            //     this),
-
+            // Hack to run module system checks since modules[] does not exist when this method is
+            // called
+            Commands.runOnce(
+                () -> {
+                  swerveModules[0].getSystemCheckCommand().schedule();
+                  swerveModules[1].getSystemCheckCommand().schedule();
+                  swerveModules[2].getSystemCheckCommand().schedule();
+                  swerveModules[3].getSystemCheckCommand().schedule();
+                },
+                this),
+            Commands.waitUntil(
+                () ->
+                    swerveModules[0].getCurrentCommand() == null
+                        && swerveModules[1].getCurrentCommand() == null
+                        && swerveModules[2].getCurrentCommand() == null
+                        && swerveModules[3].getCurrentCommand() == null),
             Commands.runOnce(() -> drive(0, 0, 0.5, true, false), this),
             Commands.waitSeconds(2.0),
             Commands.runOnce(
@@ -800,12 +807,12 @@ public class Drivetrain extends AdvancedSubsystem {
                 },
                 this))
         .until(
-            () -> getFaults().size() > 0
-            // || modules[0].getFaults().size() > 0
-            // || modules[1].getFaults().size() > 0
-            // || modules[2].getFaults().size() > 0
-            // || modules[3].getFaults().size() > 0
-            )
+            () ->
+                getFaults().size() > 0
+                    || swerveModules[0].getFaults().size() > 0
+                    || swerveModules[1].getFaults().size() > 0
+                    || swerveModules[2].getFaults().size() > 0
+                    || swerveModules[3].getFaults().size() > 0)
         .andThen(Commands.runOnce(() -> drive(0, 0, 0, true, false), this));
   }
 
@@ -825,14 +832,16 @@ public class Drivetrain extends AdvancedSubsystem {
       }
     }
 
-    // for (SwerveModule module : swerveModules) {
-    //   SystemStatus moduleStatus = module.getSystemStatus();
-    //   if (moduleStatus == SystemStatus.ERROR) {
-    //     worstStatus = SystemStatus.ERROR;
-    //   } else if (moduleStatus == SystemStatus.WARNING && worstStatus == SystemStatus.OK) {
-    //     worstStatus = SystemStatus.WARNING;
-    //   }
-    // }
+    if (swerveModules != null) {
+      for (SwerveModule module : swerveModules) {
+        SystemStatus moduleStatus = module.getSystemStatus();
+        if (moduleStatus == SystemStatus.ERROR) {
+          worstStatus = SystemStatus.ERROR;
+        } else if (moduleStatus == SystemStatus.WARNING && worstStatus == SystemStatus.OK) {
+          worstStatus = SystemStatus.WARNING;
+        }
+      }
+    }
 
     return worstStatus;
   }

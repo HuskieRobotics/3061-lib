@@ -9,10 +9,13 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.Commands;
+import frc.lib.team3015.subsystem.AdvancedSubsystem;
 import org.littletonrobotics.junction.Logger;
 
 /** SwerveModule models a single swerve module. */
-public class SwerveModule {
+public class SwerveModule extends AdvancedSubsystem {
   private final SwerveModuleIO io;
   private final SwerveModuleIOInputsAutoLogged inputs = new SwerveModuleIOInputsAutoLogged();
 
@@ -31,6 +34,8 @@ public class SwerveModule {
    * @param maxVelocity the maximum drive velocity of the module in meters per second
    */
   public SwerveModule(SwerveModuleIO io, int moduleNumber, double maxVelocity) {
+    super("Mod " + moduleNumber);
+
     this.io = io;
     this.moduleNumber = moduleNumber;
     this.maxVelocity = maxVelocity;
@@ -166,5 +171,41 @@ public class SwerveModule {
    */
   public void setAngleBrakeMode(boolean enable) {
     io.setAngleBrakeMode(enable);
+  }
+
+  @Override
+  public CommandBase systemCheckCommand() {
+    return Commands.sequence(
+            Commands.run(() -> io.setAnglePosition(90.0), this).withTimeout(1.0),
+            Commands.runOnce(
+                () -> {
+                  if (inputs.anglePositionDeg < 70 || inputs.anglePositionDeg > 110) {
+                    addFault(
+                        "[System Check] Rotation Motor did not reach target position", false, true);
+                  }
+                },
+                this),
+            Commands.runOnce(() -> io.setDriveMotorPercentage(0.1), this),
+            Commands.waitSeconds(0.5),
+            Commands.runOnce(
+                () -> {
+                  if (inputs.driveVelocityMetersPerSec < 0.25) {
+                    addFault("[System Check] Drive motor encoder velocity too slow", false, true);
+                  }
+                  io.setDriveMotorPercentage(0.0);
+                },
+                this),
+            Commands.waitSeconds(0.25),
+            Commands.run(() -> io.setAnglePosition(0.0), this).withTimeout(1.0),
+            Commands.runOnce(
+                () -> {
+                  if (inputs.anglePositionDeg < -20 || inputs.anglePositionDeg > 20) {
+                    addFault(
+                        "[System Check] Rotation Motor did not reach target position", false, true);
+                  }
+                },
+                this))
+        .until(() -> !getFaults().isEmpty())
+        .andThen(Commands.runOnce(() -> io.setDriveMotorPercentage(0.0), this));
   }
 }
