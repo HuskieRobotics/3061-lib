@@ -32,11 +32,11 @@
   "source.fixAll.spotlessGradle": true
   },
   "cSpell.words": [
-    "APRILTAG",
     "algs",
+    "APRILTAG",
     "brushless",
-    "Cancoder",
     "canbus",
+    "Cancoder",
     "CANID",
     "CANIDs",
     "chargedup",
@@ -70,6 +70,7 @@
     "tunables",
     "Vandermonde",
     "VBAT",
+    "wpilib",
     "WPILOG",
     "Xstance",
     "YUYV"

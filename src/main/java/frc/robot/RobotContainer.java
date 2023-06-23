@@ -397,7 +397,8 @@ public class RobotContainer {
             true,
             new FeedForwardCharacterizationData("drive"),
             drivetrain::runCharacterizationVolts,
-            drivetrain::getCharacterizationVelocity));
+            drivetrain::getCharacterizationVelocity,
+            drivetrain::getCharacterizationAcceleration));
 
     /************ Distance Test ************
      *

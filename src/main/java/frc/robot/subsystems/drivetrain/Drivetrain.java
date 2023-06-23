@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems.drivetrain;
 
+import static frc.robot.Constants.*;
+
 import com.pathplanner.lib.PathPlannerTrajectory.PathPlannerState;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -87,6 +89,20 @@ public class Drivetrain extends SubsystemBase {
         new SwerveModulePosition(),
         new SwerveModulePosition(),
         new SwerveModulePosition()
+      };
+  private final SwerveModuleState[] swerveModuleStates =
+      new SwerveModuleState[] {
+        new SwerveModuleState(),
+        new SwerveModuleState(),
+        new SwerveModuleState(),
+        new SwerveModuleState()
+      };
+  private final SwerveModuleState[] prevSwerveModuleStates =
+      new SwerveModuleState[] {
+        new SwerveModuleState(),
+        new SwerveModuleState(),
+        new SwerveModuleState(),
+        new SwerveModuleState()
       };
   private Pose2d estimatedPoseWithoutGyro = new Pose2d();
 
@@ -421,14 +437,14 @@ public class Drivetrain extends SubsystemBase {
         Logger.getInstance()
             .recordOutput("Drivetrain/ChassisSpeedVo", chassisSpeeds.omegaRadiansPerSecond);
 
-        SwerveModuleState[] swerveModuleStates =
+        SwerveModuleState[] newSwerveModuleStates =
             kinematics.toSwerveModuleStates(chassisSpeeds, centerGravity);
         SwerveDriveKinematics.desaturateWheelSpeeds(
-            swerveModuleStates, RobotConfig.getInstance().getRobotMaxVelocity());
+            newSwerveModuleStates, RobotConfig.getInstance().getRobotMaxVelocity());
 
         for (SwerveModule swerveModule : swerveModules) {
           swerveModule.setDesiredState(
-              swerveModuleStates[swerveModule.getModuleNumber()], isOpenLoop, false);
+              newSwerveModuleStates[swerveModule.getModuleNumber()], isOpenLoop, false);
         }
         break;
 
@@ -475,9 +491,9 @@ public class Drivetrain extends SubsystemBase {
     Logger.getInstance().recordOutput("Drivetrain/AvgDriveCurrent", this.getAverageDriveCurrent());
 
     // update swerve module states and positions
-    SwerveModuleState[] states = new SwerveModuleState[4];
     for (int i = 0; i < 4; i++) {
-      states[i] = swerveModules[i].getState();
+      prevSwerveModuleStates[i] = swerveModuleStates[i];
+      swerveModuleStates[i] = swerveModules[i].getState();
       prevSwerveModulePositions[i] = swerveModulePositions[i];
       swerveModulePositions[i] = swerveModules[i].getPosition();
     }
@@ -522,7 +538,7 @@ public class Drivetrain extends SubsystemBase {
     Logger.getInstance().recordOutput("Odometry/RobotNoGyro", estimatedPoseWithoutGyro);
     Logger.getInstance().recordOutput("Odometry/Robot", poseEstimatorPose);
     Logger.getInstance().recordOutput("3DField", new Pose3d(poseEstimatorPose));
-    Logger.getInstance().recordOutput("SwerveModuleStates", states);
+    Logger.getInstance().recordOutput("SwerveModuleStates", swerveModuleStates);
     Logger.getInstance().recordOutput("Drivetrain/GyroOffset", this.gyroOffset);
   }
 
@@ -737,11 +753,22 @@ public class Drivetrain extends SubsystemBase {
    * @return the average drive velocity in meters/sec
    */
   public double getCharacterizationVelocity() {
-    double driveVelocityAverage = 0.0;
-    for (SwerveModule swerveModule : swerveModules) {
-      driveVelocityAverage += swerveModule.getState().speedMetersPerSecond;
-    }
-    return driveVelocityAverage / 4.0;
+    ChassisSpeeds speeds = kinematics.toChassisSpeeds(swerveModuleStates);
+    return Math.sqrt(Math.pow(speeds.vxMetersPerSecond, 2) + Math.pow(speeds.vyMetersPerSecond, 2));
+  }
+
+  /**
+   * Returns the average drive velocity in meters/sec.
+   *
+   * @return the average drive velocity in meters/sec
+   */
+  public double getCharacterizationAcceleration() {
+    ChassisSpeeds prevSpeeds = kinematics.toChassisSpeeds(prevSwerveModuleStates);
+    ChassisSpeeds speeds = kinematics.toChassisSpeeds(swerveModuleStates);
+    return Math.sqrt(
+            Math.pow((speeds.vxMetersPerSecond - prevSpeeds.vxMetersPerSecond), 2)
+                + Math.pow((speeds.vyMetersPerSecond - prevSpeeds.vyMetersPerSecond), 2))
+        / LOOP_PERIOD_SECS;
   }
 
   /**
