@@ -73,12 +73,14 @@ public abstract class AdvancedSubsystem extends SubsystemBase {
     CommandScheduler.getInstance()
         .schedule(
             Commands.repeatingSequence(
-                Commands.runOnce(this::checkForFaults), Commands.waitSeconds(0.25)));
+                    Commands.runOnce(this::checkForFaults), Commands.waitSeconds(0.25))
+                .ignoringDisable(true));
 
     CommandScheduler.getInstance()
         .schedule(
             Commands.repeatingSequence(
-                Commands.runOnce(this::publishStatus), Commands.waitSeconds(1.0)));
+                    Commands.runOnce(this::publishStatus), Commands.waitSeconds(1.0))
+                .ignoringDisable(true));
   }
 
   private void publishStatus() {
