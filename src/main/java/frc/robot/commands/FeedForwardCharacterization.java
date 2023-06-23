@@ -164,7 +164,7 @@ public class FeedForwardCharacterization extends CommandBase {
        * should refactor this to use it.
        */
 
-      /**
+      /*
        * The Permanent-Magnet DC Motor Feedforward Equation: V = kA * a + kV * v + kS where V is the
        * voltage, a is the acceleration, v is the velocity, and kA, kV, and kS are corresponding
        * constants. For more information refer to:
@@ -201,6 +201,19 @@ public class FeedForwardCharacterization extends CommandBase {
 
       xMatrix = aMatrix.transpose().mult(aMatrix).invert().mult(aMatrix.transpose()).mult(bMatrix);
 
+      /*
+       * Calculate the mean-squared error. The closer to 0, the better the regression. The residual
+       * vector is:
+       *
+       * <p>r = b - Ax
+       *
+       * <p>the sum of the squares of the residuals is:
+       *
+       * <p>r * r^T
+       *
+       * <p>which results in a single value (matrix of size 1x1). We divide this by the number of
+       * data points to get the mean-squared error.
+       */
       SimpleMatrix residualVector = bMatrix.minus(aMatrix.mult(xMatrix));
       SimpleMatrix residualsSquaredSum = residualVector.mult(residualVector.transpose());
       double meanSquaredError = residualsSquaredSum.get(0, 0) / accelerationData.size();
