@@ -192,7 +192,7 @@ public class SwerveModuleIOTalonFX implements SwerveModuleIO {
             mDriveMotor.getSelectedSensorVelocity(), wheelCircumference, driveGearRatio);
     inputs.driveAppliedPercentage = mDriveMotor.getMotorOutputPercent();
     inputs.driveCurrentAmps = new double[] {mDriveMotor.getStatorCurrent()};
-    inputs.driveTempCelsius = new double[] {mDriveMotor.getTemperature()};
+    inputs.driveTempCelsius = mDriveMotor.getTemperature();
 
     inputs.angleAbsolutePositionDeg = angleEncoder.getAbsolutePosition();
     inputs.anglePositionDeg =
@@ -201,7 +201,7 @@ public class SwerveModuleIOTalonFX implements SwerveModuleIO {
         Conversions.falconToRPM(mAngleMotor.getSelectedSensorVelocity(), angleGearRatio);
     inputs.angleAppliedPercentage = mAngleMotor.getMotorOutputPercent();
     inputs.angleCurrentAmps = new double[] {mAngleMotor.getStatorCurrent()};
-    inputs.angleTempCelsius = new double[] {mAngleMotor.getTemperature()};
+    inputs.angleTempCelsius = mAngleMotor.getTemperature();
 
     // update tunables
     if (driveKp.hasChanged()

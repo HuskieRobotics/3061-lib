@@ -11,14 +11,14 @@ public interface SwerveModuleIO {
     double driveVelocityMetersPerSec = 0.0;
     double driveAppliedPercentage = 0.0;
     double[] driveCurrentAmps = new double[] {};
-    double[] driveTempCelsius = new double[] {};
+    double driveTempCelsius = 0.0;
 
     double angleAbsolutePositionDeg = 0.0;
     double anglePositionDeg = 0.0;
     double angleVelocityRevPerMin = 0.0;
     double angleAppliedPercentage = 0.0;
     double[] angleCurrentAmps = new double[] {};
-    double[] angleTempCelsius = new double[] {};
+    double angleTempCelsius = 0.0;
   }
 
   /** Updates the set of loggable inputs. */

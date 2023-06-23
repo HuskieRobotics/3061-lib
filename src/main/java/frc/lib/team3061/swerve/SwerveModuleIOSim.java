@@ -100,7 +100,7 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
 
     inputs.driveAppliedPercentage = driveAppliedVolts / 12.0;
     inputs.driveCurrentAmps = new double[] {Math.abs(driveSim.getCurrentDrawAmps())};
-    inputs.driveTempCelsius = new double[] {};
+    inputs.driveTempCelsius = simulateMotorTemperature(inputs.driveTempCelsius, driveSim);
 
     inputs.angleAbsolutePositionDeg = turnAbsolutePositionRad * (180.0 / Math.PI);
     inputs.anglePositionDeg = turnRelativePositionRad * (180.0 / Math.PI);
@@ -109,7 +109,7 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
 
     inputs.angleAppliedPercentage = turnAppliedVolts / 12.0;
     inputs.angleCurrentAmps = new double[] {Math.abs(turnSim.getCurrentDrawAmps())};
-    inputs.angleTempCelsius = new double[] {};
+    inputs.angleTempCelsius = simulateMotorTemperature(inputs.angleTempCelsius, turnSim);
 
     // update the tunable PID constants
     if (driveKp.hasChanged() || driveKi.hasChanged() || driveKd.hasChanged()) {
@@ -133,6 +133,18 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
       driveAppliedVolts = MathUtil.clamp(driveAppliedVolts, -12.0, 12.0);
       driveSim.setInputVoltage(driveAppliedVolts);
     }
+  }
+
+  private double simulateMotorTemperature(double prevTemp, FlywheelSim sim) {
+    // simple model of the motor cooling down to ambient temperature
+    double temp = prevTemp - (prevTemp - 25.0) * 0.01 * LOOP_PERIOD_SECS;
+
+    // simple model of the motor heating up due to current draw
+    double currentDrawAmps = sim.getCurrentDrawAmps();
+    double currentTempRise = currentDrawAmps * currentDrawAmps * 0.00005;
+    temp += currentTempRise;
+
+    return Math.max(temp, 25.0); // don't let the motor get colder than ambient
   }
 
   /** Run the drive motor at the specified percentage of full power. */
