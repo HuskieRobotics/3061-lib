@@ -15,6 +15,7 @@ import com.ctre.phoenix.sensors.SensorTimeBase;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import frc.lib.team254.drivers.TalonFXFactory;
+import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team6328.util.TunableNumber;
 
@@ -93,6 +94,11 @@ public class SwerveModuleIOTalonFX implements SwerveModuleIO {
     configAngleEncoder(canCoderID);
     configAngleMotor(angleMotorID);
     configDriveMotor(driveMotorID);
+
+    String subsystemName = "SwerveModule" + moduleNumber;
+    FaultReporter.getInstance().registerHardware(subsystemName, "angle encoder", angleEncoder);
+    FaultReporter.getInstance().registerHardware(subsystemName, "angle motor", mAngleMotor);
+    FaultReporter.getInstance().registerHardware(subsystemName, "drive motor", mDriveMotor);
   }
 
   private void configAngleEncoder(int canCoderID) {
