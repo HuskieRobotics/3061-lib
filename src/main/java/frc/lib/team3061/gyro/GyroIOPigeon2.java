@@ -7,6 +7,7 @@ package frc.lib.team3061.gyro;
 import com.ctre.phoenix.ErrorCode;
 import com.ctre.phoenix.sensors.Pigeon2;
 import com.ctre.phoenix.sensors.PigeonIMU_StatusFrame;
+import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 
 public class GyroIOPigeon2 implements GyroIO {
@@ -16,6 +17,8 @@ public class GyroIOPigeon2 implements GyroIO {
   public GyroIOPigeon2(int id) {
     gyro = new Pigeon2(id, RobotConfig.getInstance().getCANBusName());
     this.gyro.setStatusFramePeriod(PigeonIMU_StatusFrame.CondStatus_9_SixDeg_YPR, 9);
+
+    FaultReporter.getInstance().registerHardware("Drivetrain", "gyro", gyro);
   }
 
   @Override

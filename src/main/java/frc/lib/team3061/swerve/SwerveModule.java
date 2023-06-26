@@ -11,19 +11,20 @@ import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.Commands;
-import frc.lib.team3015.subsystem.AdvancedSubsystem;
+import frc.lib.team3015.subsystem.FaultReporter;
 import org.littletonrobotics.junction.Logger;
 
 /** SwerveModule models a single swerve module. */
-public class SwerveModule extends AdvancedSubsystem {
+public class SwerveModule {
   private final SwerveModuleIO io;
   private final SwerveModuleIOInputsAutoLogged inputs = new SwerveModuleIOInputsAutoLogged();
 
   private int moduleNumber;
+  private String subsystemName;
   private double lastAngle;
   private double maxVelocity;
+  private CommandBase wrappedSystemCheckCommand;
 
-  private static final String SUBSYSTEM_NAME = "Swerve";
   private static final boolean DEBUGGING = false;
 
   /**
@@ -34,23 +35,26 @@ public class SwerveModule extends AdvancedSubsystem {
    * @param maxVelocity the maximum drive velocity of the module in meters per second
    */
   public SwerveModule(SwerveModuleIO io, int moduleNumber, double maxVelocity) {
-    super("Mod " + moduleNumber);
-
     this.io = io;
     this.moduleNumber = moduleNumber;
     this.maxVelocity = maxVelocity;
+    this.subsystemName = "SwerveModule" + moduleNumber;
 
     lastAngle = getState().angle.getDegrees();
 
     /* set DEBUGGING to true to view values in Shuffleboard. This is useful when determining the steer offset constants. */
     if (DEBUGGING) {
-      ShuffleboardTab tab = Shuffleboard.getTab(SUBSYSTEM_NAME);
+      ShuffleboardTab tab = Shuffleboard.getTab("Swerve");
       tab.addNumber(
           "Mod " + this.moduleNumber + ": Cancoder", () -> inputs.angleAbsolutePositionDeg);
       tab.addNumber("Mod " + this.moduleNumber + ": Integrated", () -> inputs.anglePositionDeg);
       tab.addNumber(
           "Mod " + this.moduleNumber + ": Velocity", () -> inputs.driveVelocityMetersPerSec);
     }
+
+    FaultReporter faultReporter = FaultReporter.getInstance();
+    this.wrappedSystemCheckCommand =
+        faultReporter.registerSystemCheck(this.subsystemName, getSystemCheckCommand());
   }
 
   /**
@@ -173,39 +177,52 @@ public class SwerveModule extends AdvancedSubsystem {
     io.setAngleBrakeMode(enable);
   }
 
-  @Override
-  public CommandBase systemCheckCommand() {
+  private CommandBase getSystemCheckCommand() {
     return Commands.sequence(
-            Commands.run(() -> io.setAnglePosition(90.0), this).withTimeout(1.0),
+            Commands.run(() -> io.setAnglePosition(90.0)).withTimeout(1.0),
             Commands.runOnce(
                 () -> {
                   if (inputs.anglePositionDeg < 70 || inputs.anglePositionDeg > 110) {
-                    addFault(
-                        "[System Check] Rotation Motor did not reach target position", false, true);
+                    FaultReporter.getInstance()
+                        .addFault(
+                            this.subsystemName,
+                            "[System Check] Rotation Motor did not reach target position",
+                            false,
+                            true);
                   }
-                },
-                this),
-            Commands.runOnce(() -> io.setDriveMotorPercentage(0.1), this),
+                }),
+            Commands.runOnce(() -> io.setDriveMotorPercentage(0.1)),
             Commands.waitSeconds(0.5),
             Commands.runOnce(
                 () -> {
                   if (inputs.driveVelocityMetersPerSec < 0.25) {
-                    addFault("[System Check] Drive motor encoder velocity too slow", false, true);
+                    FaultReporter.getInstance()
+                        .addFault(
+                            this.subsystemName,
+                            "[System Check] Drive motor encoder velocity too slow",
+                            false,
+                            true);
                   }
                   io.setDriveMotorPercentage(0.0);
-                },
-                this),
+                }),
             Commands.waitSeconds(0.25),
-            Commands.run(() -> io.setAnglePosition(0.0), this).withTimeout(1.0),
+            Commands.run(() -> io.setAnglePosition(0.0)).withTimeout(1.0),
             Commands.runOnce(
                 () -> {
                   if (inputs.anglePositionDeg < -20 || inputs.anglePositionDeg > 20) {
-                    addFault(
-                        "[System Check] Rotation Motor did not reach target position", false, true);
+                    FaultReporter.getInstance()
+                        .addFault(
+                            this.subsystemName,
+                            "[System Check] Rotation Motor did not reach target position",
+                            false,
+                            true);
                   }
-                },
-                this))
-        .until(() -> !getFaults().isEmpty())
-        .andThen(Commands.runOnce(() -> io.setDriveMotorPercentage(0.0), this));
+                }))
+        .until(() -> !FaultReporter.getInstance().getFaults(this.subsystemName).isEmpty())
+        .andThen(Commands.runOnce(() -> io.setDriveMotorPercentage(0.0)));
+  }
+
+  public CommandBase getCheckCommand() {
+    return this.wrappedSystemCheckCommand;
   }
 }

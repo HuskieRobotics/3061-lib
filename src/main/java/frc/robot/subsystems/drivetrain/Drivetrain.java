@@ -23,8 +23,8 @@ import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import frc.lib.team3015.subsystem.AdvancedSubsystem;
-import frc.lib.team3015.subsystem.SubsystemFault;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.gyro.GyroIO;
 import frc.lib.team3061.gyro.GyroIOInputsAutoLogged;
@@ -41,7 +41,7 @@ import org.littletonrobotics.junction.Logger;
  * each with two motors and an encoder. It also consists of a Pigeon which is used to measure the
  * robot's rotation.
  */
-public class Drivetrain extends AdvancedSubsystem {
+public class Drivetrain extends SubsystemBase {
 
   private final GyroIO gyroIO;
   private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
@@ -190,6 +190,9 @@ public class Drivetrain extends AdvancedSubsystem {
       tab.add("Enable XStance", new InstantCommand(this::enableXstance));
       tab.add("Disable XStance", new InstantCommand(this::disableXstance));
     }
+
+    FaultReporter faultReporter = FaultReporter.getInstance();
+    faultReporter.registerSystemCheck(SUBSYSTEM_NAME, getSystemCheckCommand());
   }
 
   /** Enables "turbo" mode (i.e., acceleration is not limited by software) */
@@ -766,25 +769,13 @@ public class Drivetrain extends AdvancedSubsystem {
     return this.isMoveToPoseEnabled;
   }
 
-  @Override
-  protected CommandBase systemCheckCommand() {
+  private CommandBase getSystemCheckCommand() {
     return Commands.sequence(
-            // Hack to run module system checks since modules[] does not exist when this method is
-            // called
-            Commands.runOnce(
-                () -> {
-                  swerveModules[0].getSystemCheckCommand().schedule();
-                  swerveModules[1].getSystemCheckCommand().schedule();
-                  swerveModules[2].getSystemCheckCommand().schedule();
-                  swerveModules[3].getSystemCheckCommand().schedule();
-                },
-                this),
-            Commands.waitUntil(
-                () ->
-                    swerveModules[0].getCurrentCommand() == null
-                        && swerveModules[1].getCurrentCommand() == null
-                        && swerveModules[2].getCurrentCommand() == null
-                        && swerveModules[3].getCurrentCommand() == null),
+            Commands.parallel(
+                swerveModules[0].getCheckCommand(),
+                swerveModules[1].getCheckCommand(),
+                swerveModules[2].getCheckCommand(),
+                swerveModules[3].getCheckCommand()),
             Commands.runOnce(() -> drive(0, 0, 0.5, true, false), this),
             Commands.waitSeconds(2.0),
             Commands.runOnce(
@@ -792,7 +783,9 @@ public class Drivetrain extends AdvancedSubsystem {
                   drive(0, 0, 0, true, false);
 
                   if (gyroInputs.yawDegPerSec < 20) {
-                    addFault("[System Check] rotation rate too low", false, true);
+                    FaultReporter.getInstance()
+                        .addFault(
+                            SUBSYSTEM_NAME, "[System Check] rotation rate too low", false, true);
                   }
                 },
                 this),
@@ -802,48 +795,14 @@ public class Drivetrain extends AdvancedSubsystem {
                 () -> {
                   drive(0, 0, 0, true, false);
                   if (gyroInputs.yawDegPerSec > -20) {
-                    addFault("[System Check] rotation rate too low", false, true);
+                    FaultReporter.getInstance()
+                        .addFault(
+                            SUBSYSTEM_NAME, "[System Check] rotation rate too low", false, true);
                   }
                 },
                 this))
-        .until(
-            () ->
-                getFaults().size() > 0
-                    || swerveModules[0].getFaults().size() > 0
-                    || swerveModules[1].getFaults().size() > 0
-                    || swerveModules[2].getFaults().size() > 0
-                    || swerveModules[3].getFaults().size() > 0)
+        .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
         .andThen(Commands.runOnce(() -> drive(0, 0, 0, true, false), this));
-  }
-
-  @Override
-  public SystemStatus getSystemStatus() {
-    SystemStatus worstStatus = SystemStatus.OK;
-
-    for (SubsystemFault f : this.getFaults()) {
-      if (f.sticky || f.timestamp > Timer.getFPGATimestamp() - 10) {
-        if (f.isWarning) {
-          if (worstStatus != SystemStatus.ERROR) {
-            worstStatus = SystemStatus.WARNING;
-          }
-        } else {
-          worstStatus = SystemStatus.ERROR;
-        }
-      }
-    }
-
-    if (swerveModules != null) {
-      for (SwerveModule module : swerveModules) {
-        SystemStatus moduleStatus = module.getSystemStatus();
-        if (moduleStatus == SystemStatus.ERROR) {
-          worstStatus = SystemStatus.ERROR;
-        } else if (moduleStatus == SystemStatus.WARNING && worstStatus == SystemStatus.OK) {
-          worstStatus = SystemStatus.WARNING;
-        }
-      }
-    }
-
-    return worstStatus;
   }
 
   /**
