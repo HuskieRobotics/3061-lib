@@ -28,14 +28,13 @@ public class FaultReporter {
 
   private static class SubsystemFaults {
     private List<SubsystemFault> faults = new ArrayList<>();
-    private CommandBase checkCommand = Commands.none();
     private List<SelfChecking> hardware = new ArrayList<>();
   }
 
   private static FaultReporter instance = null;
 
   private static final String CHECK_RAN = "/CheckRan";
-  private static final String SYSTEM_STATUS = "/SystemStatus/";
+  private static final String SYSTEM_STATUS = "SystemStatus/";
 
   private final Map<String, SubsystemFaults> subsystemsFaults = new HashMap<>();
   private final boolean checkErrors;
@@ -52,7 +51,7 @@ public class FaultReporter {
     return instance;
   }
 
-  public void registerSystemCheck(String subsystemName, CommandBase systemCheckCommand) {
+  public CommandBase registerSystemCheck(String subsystemName, CommandBase systemCheckCommand) {
     String statusTable = SYSTEM_STATUS + subsystemName;
     SubsystemFaults subsystemFaults =
         subsystemsFaults.getOrDefault(subsystemName, new SubsystemFaults());
@@ -61,10 +60,11 @@ public class FaultReporter {
         wrapSystemCheckCommand(subsystemName, systemCheckCommand);
     wrappedSystemCheckCommand.setName(subsystemName + "Check");
     SmartDashboard.putData(statusTable + "/SystemCheck", wrappedSystemCheckCommand);
-    subsystemFaults.checkCommand = wrappedSystemCheckCommand;
     Logger.getInstance().recordOutput(statusTable + CHECK_RAN, false);
 
     subsystemsFaults.put(subsystemName, subsystemFaults);
+
+    return wrappedSystemCheckCommand;
   }
 
   private CommandBase wrapSystemCheckCommand(String subsystemName, CommandBase systemCheckCommand) {

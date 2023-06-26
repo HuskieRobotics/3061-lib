@@ -23,6 +23,7 @@ public class SwerveModule {
   private String subsystemName;
   private double lastAngle;
   private double maxVelocity;
+  private CommandBase wrappedSystemCheckCommand;
 
   private static final boolean DEBUGGING = false;
 
@@ -52,7 +53,8 @@ public class SwerveModule {
     }
 
     FaultReporter faultReporter = FaultReporter.getInstance();
-    faultReporter.registerSystemCheck(this.subsystemName, getSystemCheckCommand());
+    this.wrappedSystemCheckCommand =
+        faultReporter.registerSystemCheck(this.subsystemName, getSystemCheckCommand());
   }
 
   /**
@@ -175,7 +177,7 @@ public class SwerveModule {
     io.setAngleBrakeMode(enable);
   }
 
-  public CommandBase getSystemCheckCommand() {
+  private CommandBase getSystemCheckCommand() {
     return Commands.sequence(
             Commands.run(() -> io.setAnglePosition(90.0)).withTimeout(1.0),
             Commands.runOnce(
@@ -218,5 +220,9 @@ public class SwerveModule {
                 }))
         .until(() -> !FaultReporter.getInstance().getFaults(this.subsystemName).isEmpty())
         .andThen(Commands.runOnce(() -> io.setDriveMotorPercentage(0.0)));
+  }
+
+  public CommandBase getCheckCommand() {
+    return this.wrappedSystemCheckCommand;
   }
 }
