@@ -61,7 +61,7 @@ public class FaultReporter {
     Logger.getInstance().recordOutput(statusTable + CHECK_RAN, false);
   }
 
-  public CommandBase wrapSystemCheckCommand(String subsystemName, CommandBase systemCheckCommand) {
+  private CommandBase wrapSystemCheckCommand(String subsystemName, CommandBase systemCheckCommand) {
     String statusTable = SYSTEM_STATUS + subsystemName;
     return Commands.sequence(
         Commands.runOnce(
@@ -148,7 +148,7 @@ public class FaultReporter {
     subsystemsFaults.get(subsystemName).faults.clear();
   }
 
-  public SystemStatus getSystemStatus(List<SubsystemFault> subsystemFaults) {
+  private SystemStatus getSystemStatus(List<SubsystemFault> subsystemFaults) {
     SystemStatus worstStatus = SystemStatus.OK;
 
     for (SubsystemFault f : subsystemFaults) {
