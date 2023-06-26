@@ -32,20 +32,23 @@ public class FaultReporter {
     private List<SelfChecking> hardware = new ArrayList<>();
   }
 
-  private static final FaultReporter instance = new FaultReporter();
+  private static FaultReporter instance = null;
 
   private static final String CHECK_RAN = "/CheckRan";
-  private static final String SYSTEM_STATUS = "/SystemStatus";
+  private static final String SYSTEM_STATUS = "/SystemStatus/";
 
   private final Map<String, SubsystemFaults> subsystemsFaults = new HashMap<>();
   private final boolean checkErrors;
 
-  protected FaultReporter() {
+  private FaultReporter() {
     this.checkErrors = RobotBase.isReal();
     setupCallbacks();
   }
 
   public static FaultReporter getInstance() {
+    if (instance == null) {
+      instance = new FaultReporter();
+    }
     return instance;
   }
 
@@ -54,11 +57,14 @@ public class FaultReporter {
     SubsystemFaults subsystemFaults =
         subsystemsFaults.getOrDefault(subsystemName, new SubsystemFaults());
 
-    CommandBase wrappedSystemCheckCommand = wrapSystemCheckCommand(statusTable, systemCheckCommand);
+    CommandBase wrappedSystemCheckCommand =
+        wrapSystemCheckCommand(subsystemName, systemCheckCommand);
     wrappedSystemCheckCommand.setName(subsystemName + "Check");
     SmartDashboard.putData(statusTable + "/SystemCheck", wrappedSystemCheckCommand);
     subsystemFaults.checkCommand = wrappedSystemCheckCommand;
     Logger.getInstance().recordOutput(statusTable + CHECK_RAN, false);
+
+    subsystemsFaults.put(subsystemName, subsystemFaults);
   }
 
   private CommandBase wrapSystemCheckCommand(String subsystemName, CommandBase systemCheckCommand) {
@@ -170,18 +176,21 @@ public class FaultReporter {
     SubsystemFaults subsystemFaults =
         subsystemsFaults.getOrDefault(subsystemName, new SubsystemFaults());
     subsystemFaults.hardware.add(new SelfCheckingPhoenixMotor(label, phoenixMotor));
+    subsystemsFaults.put(subsystemName, subsystemFaults);
   }
 
   public void registerHardware(String subsystemName, String label, PWMMotorController pwmMotor) {
     SubsystemFaults subsystemFaults =
         subsystemsFaults.getOrDefault(subsystemName, new SubsystemFaults());
     subsystemFaults.hardware.add(new SelfCheckingPWMMotor(label, pwmMotor));
+    subsystemsFaults.put(subsystemName, subsystemFaults);
   }
 
   public void registerHardware(String subsystemName, String label, CANSparkMax spark) {
     SubsystemFaults subsystemFaults =
         subsystemsFaults.getOrDefault(subsystemName, new SubsystemFaults());
     subsystemFaults.hardware.add(new SelfCheckingSparkMax(label, spark));
+    subsystemsFaults.put(subsystemName, subsystemFaults);
   }
 
   public void registerHardware(
@@ -189,12 +198,14 @@ public class FaultReporter {
     SubsystemFaults subsystemFaults =
         subsystemsFaults.getOrDefault(subsystemName, new SubsystemFaults());
     subsystemFaults.hardware.add(new SelfCheckingPigeon2(label, pigeon2));
+    subsystemsFaults.put(subsystemName, subsystemFaults);
   }
 
   public void registerHardware(String subsystemName, String label, CANCoder canCoder) {
     SubsystemFaults subsystemFaults =
         subsystemsFaults.getOrDefault(subsystemName, new SubsystemFaults());
     subsystemFaults.hardware.add(new SelfCheckingCANCoder(label, canCoder));
+    subsystemsFaults.put(subsystemName, subsystemFaults);
   }
 
   // Method to check for faults while the robot is operating normally
