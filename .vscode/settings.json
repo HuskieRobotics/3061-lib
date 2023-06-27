@@ -32,11 +32,11 @@
   "source.fixAll.spotlessGradle": true
   },
   "cSpell.words": [
-    "APRILTAG",
     "algs",
+    "APRILTAG",
     "brushless",
-    "Cancoder",
     "canbus",
+    "Cancoder",
     "CANID",
     "CANIDs",
     "chargedup",
@@ -44,6 +44,7 @@
     "CTRE",
     "curr",
     "DEADBAND",
+    "dtheta",
     "Feedforward",
     "gamepad",
     "gradlew",

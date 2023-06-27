@@ -21,7 +21,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.gyro.GyroIO;
-import frc.lib.team3061.gyro.GyroIOPigeon2;
+import frc.lib.team3061.gyro.GyroIOPigeon2Phoenix6;
 import frc.lib.team3061.pneumatics.Pneumatics;
 import frc.lib.team3061.pneumatics.PneumaticsIO;
 import frc.lib.team3061.pneumatics.PneumaticsIORev;
@@ -97,7 +97,7 @@ public class RobotContainer {
         case ROBOT_2023_NOVA:
         case ROBOT_2023_MK4I:
           {
-            GyroIO gyro = new GyroIOPigeon2(config.getGyroCANID());
+            GyroIO gyro = new GyroIOPigeon2Phoenix6(config.getGyroCANID());
 
             int[] driveMotorCANIDs = config.getSwerveDriveMotorCANIDs();
             int[] steerMotorCANDIDs = config.getSwerveSteerMotorCANIDs();
@@ -164,6 +164,7 @@ public class RobotContainer {
           }
         case ROBOT_SIMBOT:
           {
+            GyroIO gyro = new GyroIOPigeon2Phoenix6(config.getGyroCANID());
             SwerveModule flModule =
                 new SwerveModule(new SwerveModuleIOSim(), 0, config.getRobotMaxVelocity());
 
@@ -175,7 +176,7 @@ public class RobotContainer {
 
             SwerveModule brModule =
                 new SwerveModule(new SwerveModuleIOSim(), 3, config.getRobotMaxVelocity());
-            drivetrain = new Drivetrain(new GyroIO() {}, flModule, frModule, blModule, brModule);
+            drivetrain = new Drivetrain(gyro, flModule, frModule, blModule, brModule);
             new Pneumatics(new PneumaticsIO() {});
             AprilTagFieldLayout layout;
             try {

@@ -30,6 +30,7 @@ import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team6328.util.Alert;
 import frc.lib.team6328.util.Alert.AlertType;
 import frc.lib.team6328.util.TunableNumber;
+import frc.robot.Constants;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
@@ -95,8 +96,6 @@ public class Drivetrain extends SubsystemBase {
   private boolean isTranslationSlowMode = false;
   private boolean isRotationSlowMode = false;
 
-  private double gyroOffset;
-
   private ChassisSpeeds chassisSpeeds;
 
   private static final String SUBSYSTEM_NAME = "Drivetrain";
@@ -146,8 +145,6 @@ public class Drivetrain extends SubsystemBase {
     this.zeroGyroscope();
 
     this.isFieldRelative = true;
-
-    this.gyroOffset = 0;
 
     this.chassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
 
@@ -223,24 +220,21 @@ public class Drivetrain extends SubsystemBase {
 
   /**
    * Returns the rotation of the robot. Zero degrees is facing away from the driver station; CCW is
-   * positive. This method should always be invoked instead of obtaining the yaw directly from the
-   * Pigeon as the local offset needs to be added. If the gyro is not connected, the rotation from
-   * the estimated pose is returned.
+   * positive. If the gyro is not connected, the rotation from the estimated pose is returned.
    *
    * @return the rotation of the robot
    */
   public Rotation2d getRotation() {
     if (gyroInputs.connected) {
-      return Rotation2d.fromDegrees(gyroInputs.yawDeg + this.gyroOffset);
+      return Rotation2d.fromDegrees(gyroInputs.yawDeg);
     } else {
       return estimatedPoseWithoutGyro.getRotation();
     }
   }
 
   /**
-   * Returns the yaw of the drivetrain as reported by the gyro in degrees. This value does not
-   * include the local offset and will likely be different than value returned by the getRotation
-   * method, which should probably be invoked instead.
+   * Returns the yaw of the drivetrain as reported by the gyro in degrees. Usually, the getRotation
+   * method should be invoked instead.
    *
    * @return the yaw of the drivetrain as reported by the gyro in degrees
    */
@@ -274,13 +268,9 @@ public class Drivetrain extends SubsystemBase {
    * @param expectedYaw the rotation of the robot (in degrees)
    */
   public void setGyroOffset(double expectedYaw) {
-    // There is a delay between setting the yaw on the Pigeon and that change
-    //      taking effect. As a result, it is recommended to never set the yaw and
-    //      adjust the local offset instead.
     if (gyroInputs.connected) {
-      this.gyroOffset = expectedYaw - gyroInputs.yawDeg;
+      this.gyroIO.setYaw(expectedYaw);
     } else {
-      this.gyroOffset = 0;
       this.estimatedPoseWithoutGyro =
           new Pose2d(
               estimatedPoseWithoutGyro.getX(),
@@ -484,7 +474,7 @@ public class Drivetrain extends SubsystemBase {
 
     // if the gyro is not connected, use the swerve module positions to estimate the robot's
     // rotation
-    if (!gyroInputs.connected) {
+    if (!gyroInputs.connected || Constants.getMode() == Constants.Mode.SIM) {
       SwerveModulePosition[] moduleDeltas = new SwerveModulePosition[4];
       for (int index = 0; index < moduleDeltas.length; index++) {
         SwerveModulePosition current = swerveModulePositions[index];
@@ -493,10 +483,12 @@ public class Drivetrain extends SubsystemBase {
         moduleDeltas[index] =
             new SwerveModulePosition(
                 current.distanceMeters - previous.distanceMeters, current.angle);
+        // FIXME: I don't think this assignment is needed...
         previous.distanceMeters = current.distanceMeters;
       }
 
       Twist2d twist = kinematics.toTwist2d(moduleDeltas);
+      this.gyroIO.addYaw(Math.toDegrees(twist.dtheta));
 
       estimatedPoseWithoutGyro = estimatedPoseWithoutGyro.exp(twist);
     }
@@ -523,7 +515,6 @@ public class Drivetrain extends SubsystemBase {
     Logger.getInstance().recordOutput("Odometry/Robot", poseEstimatorPose);
     Logger.getInstance().recordOutput("3DField", new Pose3d(poseEstimatorPose));
     Logger.getInstance().recordOutput("SwerveModuleStates", states);
-    Logger.getInstance().recordOutput("Drivetrain/GyroOffset", this.gyroOffset);
   }
 
   /**
