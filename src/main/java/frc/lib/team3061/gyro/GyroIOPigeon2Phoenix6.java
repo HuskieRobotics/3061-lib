@@ -50,15 +50,24 @@ public class GyroIOPigeon2Phoenix6 implements GyroIO {
 
   @Override
   public void updateInputs(GyroIOInputs inputs) {
-    // this is a licensed method
-    BaseStatusSignal.waitForAll(
-        LOOP_PERIOD_SECS,
-        this.yawStatusSignal,
-        this.pitchStatusSignal,
-        this.rollStatusSignal,
-        this.angularVelocityXStatusSignal,
-        this.angularVelocityYStatusSignal,
-        this.angularVelocityZStatusSignal);
+    if (RobotConfig.getInstance().getPhoenix6Licensed()) {
+      // this is a licensed method
+      BaseStatusSignal.waitForAll(
+          LOOP_PERIOD_SECS,
+          this.yawStatusSignal,
+          this.pitchStatusSignal,
+          this.rollStatusSignal,
+          this.angularVelocityXStatusSignal,
+          this.angularVelocityYStatusSignal,
+          this.angularVelocityZStatusSignal);
+    } else {
+      this.yawStatusSignal.refresh();
+      this.pitchStatusSignal.refresh();
+      this.rollStatusSignal.refresh();
+      this.angularVelocityXStatusSignal.refresh();
+      this.angularVelocityYStatusSignal.refresh();
+      this.angularVelocityZStatusSignal.refresh();
+    }
 
     inputs.connected = (this.yawStatusSignal.getError() == StatusCode.OK);
     inputs.yawDeg = this.yawStatusSignal.getValue();

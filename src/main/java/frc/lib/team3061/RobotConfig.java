@@ -24,6 +24,17 @@ public abstract class RobotConfig {
   }
 
   /**
+   * Returns if the CANivore and/or CTRE CAN devices are licensed and have access to Phoenix 6 Pro
+   * features.
+   *
+   * @return true if the CANivore and/or CTRE CAN devices are licensed and have access to Phoenix 6
+   *     Pro features
+   */
+  public boolean getPhoenix6Licensed() {
+    return false;
+  }
+
+  /**
    * Returns the proportional constant for the PID controller for the angle motor on the swerve
    * module. Defaults to 0.
    *

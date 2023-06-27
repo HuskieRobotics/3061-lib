@@ -108,6 +108,11 @@ public class NovaRobotConfig extends RobotConfig {
   private static final double SQUARING_SPEED_METERS_PER_SECOND = 1.0;
 
   @Override
+  public boolean getPhoenix6Licensed() {
+    return true;
+  }
+
+  @Override
   public double getSwerveAngleKP() {
     return ANGLE_KP;
   }
