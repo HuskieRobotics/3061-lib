@@ -50,6 +50,7 @@ public class GyroIOPigeon2Phoenix6 implements GyroIO {
 
   @Override
   public void updateInputs(GyroIOInputs inputs) {
+    // this is a licensed method
     BaseStatusSignal.waitForAll(
         LOOP_PERIOD_SECS,
         this.yawStatusSignal,
