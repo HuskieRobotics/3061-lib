@@ -16,8 +16,14 @@ import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
+import com.ctre.phoenix6.sim.CANcoderSimState;
+import com.ctre.phoenix6.sim.TalonFXSimState;
+import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team6328.util.TunableNumber;
+import frc.robot.Constants;
 
 /**
  * Implementation of the SwerveModuleIO interface for MK4 Swerve Modules with two Falcon 500 motors
@@ -55,6 +61,14 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
   private VoltageOut driveVoltageRequest;
   private VelocityVoltage driveVelocityRequest;
   private PositionVoltage anglePositionRequest;
+
+  private TalonFXSimState angleMotorSimState;
+  private TalonFXSimState driveMotorSimState;
+  private CANcoderSimState angleEncoderSimState;
+  private FlywheelSim driveSim =
+      new FlywheelSim(DCMotor.getFalcon500(1), MK4_L2_DRIVE_GEAR_RATIO, 0.025);
+  private FlywheelSim turnSim =
+      new FlywheelSim(DCMotor.getFalcon500(1), MK4_L2_ANGLE_GEAR_RATIO, 0.004096955);
 
   /**
    * Make a new SwerveModuleIOTalonFX object.
@@ -103,6 +117,7 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     configAngleEncoder(canCoderID);
     configAngleMotor(angleMotorID);
     configDriveMotor(driveMotorID);
+    configSim();
   }
 
   private void configAngleEncoder(int canCoderID) {
@@ -114,7 +129,7 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
         canCoderInverted
             ? SensorDirectionValue.Clockwise_Positive
             : SensorDirectionValue.CounterClockwise_Positive;
-    angleEncoder.getConfigurator().apply(config);
+    this.angleEncoder.getConfigurator().apply(config);
   }
 
   private void configAngleMotor(int angleMotorID) {
@@ -177,6 +192,8 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
   /** Updates the set of loggable inputs. */
   @Override
   public void updateInputs(SwerveModuleIOInputs inputs) {
+    updateSim();
+
     inputs.drivePositionDeg =
         Conversions.falconRotationsToMechanismDegrees(
             this.driveMotor.getPosition().getValue(), driveGearRatio);
@@ -264,5 +281,52 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     this.angleMotor.getConfigurator().refresh(config);
     config.NeutralMode = NeutralModeValue.Coast;
     this.angleMotor.getConfigurator().apply(config);
+  }
+
+  private void configSim() {
+    if (Constants.getMode() != Constants.Mode.SIM) {
+      return;
+    }
+    this.angleEncoderSimState = this.angleEncoder.getSimState();
+    this.angleMotorSimState = this.angleMotor.getSimState();
+    this.driveMotorSimState = this.driveMotor.getSimState();
+
+    this.turnSim = new FlywheelSim(DCMotor.getFalcon500(1), angleGearRatio, 0.5);
+    this.driveSim = new FlywheelSim(DCMotor.getFalcon500(1), driveGearRatio, 0.025);
+  }
+
+  private void updateSim() {
+    if (Constants.getMode() != Constants.Mode.SIM) {
+      return;
+    }
+
+    // update the sim states supply voltage based on the simulated battery
+    this.angleEncoderSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
+    this.angleMotorSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
+    this.driveMotorSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
+
+    // update the input voltages of the models based on the outputs of the simulated TalonFXs
+    this.turnSim.setInputVoltage(this.angleMotorSimState.getMotorVoltage());
+    this.driveSim.setInputVoltage(this.driveMotorSimState.getMotorVoltage());
+
+    // update the models
+    this.driveSim.update(Constants.LOOP_PERIOD_SECS);
+    this.turnSim.update(Constants.LOOP_PERIOD_SECS);
+
+    // update the simulated TalonFXs and CANcoder based on the model outputs
+    double turnRPM = turnSim.getAngularVelocityRPM();
+    double angleEncoderRPS = turnRPM / 60;
+    double angleEncoderRotations = angleEncoderRPS * Constants.LOOP_PERIOD_SECS;
+    double angleMotorRPS = Conversions.rpmToFalconRPS(turnRPM, angleGearRatio);
+    double angleMotorRotations = angleMotorRPS * Constants.LOOP_PERIOD_SECS;
+    this.angleEncoderSimState.addPosition(angleEncoderRotations);
+    this.angleMotorSimState.addRotorPosition(angleMotorRotations);
+    this.angleMotorSimState.setRotorVelocity(angleMotorRPS);
+
+    double driveRPM = driveSim.getAngularVelocityRPM();
+    double driveMotorRPS = Conversions.rpmToFalconRPS(driveRPM, driveGearRatio);
+    double driveMotorRotations = driveMotorRPS * Constants.LOOP_PERIOD_SECS;
+    this.driveMotorSimState.addRotorPosition(driveMotorRotations);
+    this.driveMotorSimState.setRotorVelocity(driveMotorRPS);
   }
 }

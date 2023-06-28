@@ -27,7 +27,6 @@ import frc.lib.team3061.pneumatics.PneumaticsIO;
 import frc.lib.team3061.pneumatics.PneumaticsIORev;
 import frc.lib.team3061.swerve.SwerveModule;
 import frc.lib.team3061.swerve.SwerveModuleIO;
-import frc.lib.team3061.swerve.SwerveModuleIOSim;
 import frc.lib.team3061.swerve.SwerveModuleIOTalonFXPhoenix6;
 import frc.lib.team3061.vision.Vision;
 import frc.lib.team3061.vision.VisionConstants;
@@ -92,60 +91,59 @@ public class RobotContainer {
 
     // create real, simulated, or replay subsystems based on the mode and robot specified
     if (Constants.getMode() != Mode.REPLAY) {
+      int[] driveMotorCANIDs = config.getSwerveDriveMotorCANIDs();
+      int[] steerMotorCANDIDs = config.getSwerveSteerMotorCANIDs();
+      int[] steerEncoderCANDIDs = config.getSwerveSteerEncoderCANIDs();
+      double[] steerOffsets = config.getSwerveSteerOffsets();
+      SwerveModule flModule =
+          new SwerveModule(
+              new SwerveModuleIOTalonFXPhoenix6(
+                  0,
+                  driveMotorCANIDs[0],
+                  steerMotorCANDIDs[0],
+                  steerEncoderCANDIDs[0],
+                  steerOffsets[0]),
+              0,
+              config.getRobotMaxVelocity());
+
+      SwerveModule frModule =
+          new SwerveModule(
+              new SwerveModuleIOTalonFXPhoenix6(
+                  1,
+                  driveMotorCANIDs[1],
+                  steerMotorCANDIDs[1],
+                  steerEncoderCANDIDs[1],
+                  steerOffsets[1]),
+              1,
+              config.getRobotMaxVelocity());
+
+      SwerveModule blModule =
+          new SwerveModule(
+              new SwerveModuleIOTalonFXPhoenix6(
+                  2,
+                  driveMotorCANIDs[2],
+                  steerMotorCANDIDs[2],
+                  steerEncoderCANDIDs[2],
+                  steerOffsets[2]),
+              2,
+              config.getRobotMaxVelocity());
+
+      SwerveModule brModule =
+          new SwerveModule(
+              new SwerveModuleIOTalonFXPhoenix6(
+                  3,
+                  driveMotorCANIDs[3],
+                  steerMotorCANDIDs[3],
+                  steerEncoderCANDIDs[3],
+                  steerOffsets[3]),
+              3,
+              config.getRobotMaxVelocity());
       switch (Constants.getRobot()) {
         case ROBOT_DEFAULT:
         case ROBOT_2023_NOVA:
         case ROBOT_2023_MK4I:
           {
             GyroIO gyro = new GyroIOPigeon2Phoenix6(config.getGyroCANID());
-
-            int[] driveMotorCANIDs = config.getSwerveDriveMotorCANIDs();
-            int[] steerMotorCANDIDs = config.getSwerveSteerMotorCANIDs();
-            int[] steerEncoderCANDIDs = config.getSwerveSteerEncoderCANIDs();
-            double[] steerOffsets = config.getSwerveSteerOffsets();
-            SwerveModule flModule =
-                new SwerveModule(
-                    new SwerveModuleIOTalonFXPhoenix6(
-                        0,
-                        driveMotorCANIDs[0],
-                        steerMotorCANDIDs[0],
-                        steerEncoderCANDIDs[0],
-                        steerOffsets[0]),
-                    0,
-                    config.getRobotMaxVelocity());
-
-            SwerveModule frModule =
-                new SwerveModule(
-                    new SwerveModuleIOTalonFXPhoenix6(
-                        1,
-                        driveMotorCANIDs[1],
-                        steerMotorCANDIDs[1],
-                        steerEncoderCANDIDs[1],
-                        steerOffsets[1]),
-                    1,
-                    config.getRobotMaxVelocity());
-
-            SwerveModule blModule =
-                new SwerveModule(
-                    new SwerveModuleIOTalonFXPhoenix6(
-                        2,
-                        driveMotorCANIDs[2],
-                        steerMotorCANDIDs[2],
-                        steerEncoderCANDIDs[2],
-                        steerOffsets[2]),
-                    2,
-                    config.getRobotMaxVelocity());
-
-            SwerveModule brModule =
-                new SwerveModule(
-                    new SwerveModuleIOTalonFXPhoenix6(
-                        3,
-                        driveMotorCANIDs[3],
-                        steerMotorCANDIDs[3],
-                        steerEncoderCANDIDs[3],
-                        steerOffsets[3]),
-                    3,
-                    config.getRobotMaxVelocity());
 
             drivetrain = new Drivetrain(gyro, flModule, frModule, blModule, brModule);
 
@@ -165,17 +163,7 @@ public class RobotContainer {
         case ROBOT_SIMBOT:
           {
             GyroIO gyro = new GyroIOPigeon2Phoenix6(config.getGyroCANID());
-            SwerveModule flModule =
-                new SwerveModule(new SwerveModuleIOSim(), 0, config.getRobotMaxVelocity());
 
-            SwerveModule frModule =
-                new SwerveModule(new SwerveModuleIOSim(), 1, config.getRobotMaxVelocity());
-
-            SwerveModule blModule =
-                new SwerveModule(new SwerveModuleIOSim(), 2, config.getRobotMaxVelocity());
-
-            SwerveModule brModule =
-                new SwerveModule(new SwerveModuleIOSim(), 3, config.getRobotMaxVelocity());
             drivetrain = new Drivetrain(gyro, flModule, frModule, blModule, brModule);
             new Pneumatics(new PneumaticsIO() {});
             AprilTagFieldLayout layout;
