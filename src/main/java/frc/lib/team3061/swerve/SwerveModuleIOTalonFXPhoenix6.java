@@ -2,6 +2,7 @@ package frc.lib.team3061.swerve;
 
 import static frc.lib.team3061.swerve.SwerveModuleConstants.*;
 
+import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
@@ -66,6 +67,8 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
   private PositionVoltage anglePositionRequest;
 
   private StatusSignal<Double> anglePositionStatusSignal;
+  private StatusSignal<Double> angleVelocityStatusSignal;
+  private StatusSignal<Double> drivePositionStatusSignal;
   private StatusSignal<Double> driveVelocityStatusSignal;
 
   private TalonFXSimState angleMotorSimState;
@@ -163,6 +166,7 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
         (this.angleEncoder.getAbsolutePosition().getValue() - angleOffsetRot) * angleGearRatio);
 
     this.anglePositionStatusSignal = this.angleMotor.getPosition();
+    this.angleVelocityStatusSignal = this.angleMotor.getVelocity();
 
     this.anglePositionRequest = new PositionVoltage(0.0).withSlot(0);
     this.anglePositionRequest.EnableFOC = RobotConfig.getInstance().getPhoenix6Licensed();
@@ -192,6 +196,7 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
 
     this.driveMotor.setRotorPosition(0.0);
 
+    this.drivePositionStatusSignal = this.driveMotor.getPosition();
     this.driveVelocityStatusSignal = this.driveMotor.getVelocity();
 
     this.driveVoltageRequest = new VoltageOut(0.0);
@@ -206,14 +211,19 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     updateSim();
 
     anglePositionStatusSignal.refresh();
+    angleVelocityStatusSignal.refresh();
+    drivePositionStatusSignal.refresh();
     driveVelocityStatusSignal.refresh();
 
     inputs.drivePositionDeg =
         Conversions.falconRotationsToMechanismDegrees(
-            this.driveMotor.getPosition().getValue(), driveGearRatio);
+            drivePositionStatusSignal.getValue(), driveGearRatio);
     inputs.driveDistanceMeters =
         Conversions.falconRotationsToMechanismMeters(
-            this.driveMotor.getPosition().getValue(), wheelCircumference, driveGearRatio);
+            BaseStatusSignal.getLatencyCompensatedValue(
+                drivePositionStatusSignal, driveVelocityStatusSignal),
+            wheelCircumference,
+            driveGearRatio);
     inputs.driveVelocityMetersPerSec =
         Conversions.falconRPSToMechanismMPS(
             driveVelocityStatusSignal.getValue(), wheelCircumference, driveGearRatio);
@@ -225,10 +235,11 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     inputs.angleAbsolutePositionDeg = this.angleEncoder.getAbsolutePosition().getValue() * 360.0;
     inputs.anglePositionDeg =
         Conversions.falconRotationsToMechanismDegrees(
-            anglePositionStatusSignal.getValue(), angleGearRatio);
+            BaseStatusSignal.getLatencyCompensatedValue(
+                anglePositionStatusSignal, angleVelocityStatusSignal),
+            angleGearRatio);
     inputs.angleVelocityRevPerMin =
-        Conversions.falconRPSToMechanismRPM(
-            this.angleMotor.getVelocity().getValue(), angleGearRatio);
+        Conversions.falconRPSToMechanismRPM(angleVelocityStatusSignal.getValue(), angleGearRatio);
     inputs.angleAppliedPercentage = this.angleMotor.getDutyCycle().getValue() / 2.0;
     inputs.angleStatorCurrentAmps = this.angleMotor.getStatorCurrent().getValue();
     inputs.angleSupplyCurrentAmps = this.angleMotor.getSupplyCurrent().getValue();
@@ -300,8 +311,10 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
   @Override
   public List<StatusSignal<Double>> getOdometryStatusSignals() {
     ArrayList<StatusSignal<Double>> signals = new ArrayList<>();
+    signals.add(drivePositionStatusSignal);
     signals.add(driveVelocityStatusSignal);
     signals.add(anglePositionStatusSignal);
+    signals.add(angleVelocityStatusSignal);
     return signals;
   }
 

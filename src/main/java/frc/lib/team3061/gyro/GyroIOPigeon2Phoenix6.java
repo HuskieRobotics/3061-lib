@@ -6,6 +6,7 @@ package frc.lib.team3061.gyro;
 
 import static frc.robot.Constants.*;
 
+import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.Pigeon2;
@@ -58,7 +59,9 @@ public class GyroIOPigeon2Phoenix6 implements GyroIO {
     this.angularVelocityZStatusSignal.refresh();
 
     inputs.connected = (this.yawStatusSignal.getError() == StatusCode.OK);
-    inputs.yawDeg = this.yawStatusSignal.getValue();
+    inputs.yawDeg =
+        BaseStatusSignal.getLatencyCompensatedValue(
+            this.yawStatusSignal, this.angularVelocityZStatusSignal);
     inputs.pitchDeg = this.pitchStatusSignal.getValue();
     inputs.rollDeg = this.rollStatusSignal.getValue();
     inputs.rollDegPerSec = this.angularVelocityXStatusSignal.getValue();
@@ -84,6 +87,7 @@ public class GyroIOPigeon2Phoenix6 implements GyroIO {
   public List<StatusSignal<Double>> getOdometryStatusSignals() {
     ArrayList<StatusSignal<Double>> signals = new ArrayList<>();
     signals.add(this.yawStatusSignal);
+    signals.add(this.angularVelocityZStatusSignal);
     return signals;
   }
 }
