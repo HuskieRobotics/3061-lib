@@ -28,7 +28,7 @@ import frc.lib.team3061.pneumatics.PneumaticsIORev;
 import frc.lib.team3061.swerve.SwerveModule;
 import frc.lib.team3061.swerve.SwerveModuleIO;
 import frc.lib.team3061.swerve.SwerveModuleIOSim;
-import frc.lib.team3061.swerve.SwerveModuleIOTalonFX;
+import frc.lib.team3061.swerve.SwerveModuleIOTalonFXPhoenix6;
 import frc.lib.team3061.vision.Vision;
 import frc.lib.team3061.vision.VisionConstants;
 import frc.lib.team3061.vision.VisionIO;
@@ -105,7 +105,7 @@ public class RobotContainer {
             double[] steerOffsets = config.getSwerveSteerOffsets();
             SwerveModule flModule =
                 new SwerveModule(
-                    new SwerveModuleIOTalonFX(
+                    new SwerveModuleIOTalonFXPhoenix6(
                         0,
                         driveMotorCANIDs[0],
                         steerMotorCANDIDs[0],
@@ -116,7 +116,7 @@ public class RobotContainer {
 
             SwerveModule frModule =
                 new SwerveModule(
-                    new SwerveModuleIOTalonFX(
+                    new SwerveModuleIOTalonFXPhoenix6(
                         1,
                         driveMotorCANIDs[1],
                         steerMotorCANDIDs[1],
@@ -127,7 +127,7 @@ public class RobotContainer {
 
             SwerveModule blModule =
                 new SwerveModule(
-                    new SwerveModuleIOTalonFX(
+                    new SwerveModuleIOTalonFXPhoenix6(
                         2,
                         driveMotorCANIDs[2],
                         steerMotorCANDIDs[2],
@@ -138,7 +138,7 @@ public class RobotContainer {
 
             SwerveModule brModule =
                 new SwerveModule(
-                    new SwerveModuleIOTalonFX(
+                    new SwerveModuleIOTalonFXPhoenix6(
                         3,
                         driveMotorCANIDs[3],
                         steerMotorCANDIDs[3],

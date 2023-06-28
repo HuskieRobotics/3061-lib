@@ -40,16 +40,14 @@ public class SierraRobotConfig extends RobotConfig {
   private static final double ROBOT_LENGTH_WITH_BUMPERS = 0.91; // meters
 
   /* Angle Motor PID Values */
-  private static final double ANGLE_KP = 0.6;
+  private static final double ANGLE_KP = 14.414076246334309;
   private static final double ANGLE_KI = 0.0;
-  private static final double ANGLE_KD = 12.0;
-  private static final double ANGLE_KF = 0.0;
+  private static final double ANGLE_KD = 0.28828152492668624;
 
   /* Drive Motor PID Values */
-  private static final double DRIVE_KP = 0.10;
+  private static final double DRIVE_KP = 0.2402346041055719;
   private static final double DRIVE_KI = 0.0;
   private static final double DRIVE_KD = 0.0;
-  private static final double DRIVE_KF = 0.0;
 
   private static final double DRIVE_KS = 0.67841;
   private static final double DRIVE_KV = 2.27615;
@@ -108,11 +106,6 @@ public class SierraRobotConfig extends RobotConfig {
   }
 
   @Override
-  public double getSwerveAngleKF() {
-    return ANGLE_KF;
-  }
-
-  @Override
   public double getSwerveDriveKP() {
     return DRIVE_KP;
   }
@@ -125,11 +118,6 @@ public class SierraRobotConfig extends RobotConfig {
   @Override
   public double getSwerveDriveKD() {
     return DRIVE_KD;
-  }
-
-  @Override
-  public double getSwerveDriveKF() {
-    return DRIVE_KF;
   }
 
   @Override

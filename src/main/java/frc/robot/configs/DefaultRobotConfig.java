@@ -16,22 +16,22 @@ public class DefaultRobotConfig extends RobotConfig {
   private static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 7;
   private static final int FRONT_LEFT_MODULE_STEER_MOTOR = 6;
   private static final int FRONT_LEFT_MODULE_STEER_ENCODER = 8;
-  private static final double FRONT_LEFT_MODULE_STEER_OFFSET = 118.0371;
+  private static final double FRONT_LEFT_MODULE_STEER_OFFSET = 118.0371 / 360.0;
 
   private static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 13;
   private static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 12;
   private static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 14;
-  private static final double FRONT_RIGHT_MODULE_STEER_OFFSET = 102.9968;
+  private static final double FRONT_RIGHT_MODULE_STEER_OFFSET = 102.9968 / 360.0;
 
   private static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 10;
   private static final int BACK_LEFT_MODULE_STEER_MOTOR = 9;
   private static final int BACK_LEFT_MODULE_STEER_ENCODER = 11;
-  private static final double BACK_LEFT_MODULE_STEER_OFFSET = -189.7051;
+  private static final double BACK_LEFT_MODULE_STEER_OFFSET = -189.7051 / 360.0;
 
   private static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 16;
   private static final int BACK_RIGHT_MODULE_STEER_MOTOR = 15;
   private static final int BACK_RIGHT_MODULE_STEER_ENCODER = 17;
-  private static final double BACK_RIGHT_MODULE_STEER_OFFSET = 40.3335;
+  private static final double BACK_RIGHT_MODULE_STEER_OFFSET = 40.3335 / 360.0;
 
   private static final int GYRO_ID = 18;
 
@@ -44,16 +44,14 @@ public class DefaultRobotConfig extends RobotConfig {
   // FIXME: tune PID values for the angle and drive motors for the swerve modules
 
   /* Angle Motor PID Values */
-  private static final double ANGLE_KP = 0.6;
+  private static final double ANGLE_KP = 14.414076246334309;
   private static final double ANGLE_KI = 0.0;
-  private static final double ANGLE_KD = 12.0;
-  private static final double ANGLE_KF = 0.0;
+  private static final double ANGLE_KD = 0.28828152492668624;
 
   /* Drive Motor PID Values */
-  private static final double DRIVE_KP = 0.10;
+  private static final double DRIVE_KP = 0.2402346041055719;
   private static final double DRIVE_KI = 0.0;
   private static final double DRIVE_KD = 0.0;
-  private static final double DRIVE_KF = 0.0;
 
   // FIXME: characterize the drivetrain and update these constants
   private static final double DRIVE_KS = 0.55493;
@@ -111,11 +109,6 @@ public class DefaultRobotConfig extends RobotConfig {
   }
 
   @Override
-  public double getSwerveAngleKF() {
-    return ANGLE_KF;
-  }
-
-  @Override
   public double getSwerveDriveKP() {
     return DRIVE_KP;
   }
@@ -128,11 +121,6 @@ public class DefaultRobotConfig extends RobotConfig {
   @Override
   public double getSwerveDriveKD() {
     return DRIVE_KD;
-  }
-
-  @Override
-  public double getSwerveDriveKF() {
-    return DRIVE_KF;
   }
 
   @Override

@@ -99,8 +99,8 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
         driveSim.getAngularVelocityRadPerSec() * (MK4_L2_WHEEL_CIRCUMFERENCE / (2.0 * Math.PI));
 
     inputs.driveAppliedPercentage = driveAppliedVolts / 12.0;
-    inputs.driveCurrentAmps = new double[] {Math.abs(driveSim.getCurrentDrawAmps())};
-    inputs.driveTempCelsius = new double[] {};
+    inputs.driveSupplyCurrentAmps = Math.abs(driveSim.getCurrentDrawAmps());
+    inputs.driveTempCelsius = 25.0;
 
     inputs.angleAbsolutePositionDeg = turnAbsolutePositionRad * (180.0 / Math.PI);
     inputs.anglePositionDeg = turnRelativePositionRad * (180.0 / Math.PI);
@@ -108,8 +108,8 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
         turnSim.getAngularVelocityRadPerSec() * (60.0 / (2.0 * Math.PI));
 
     inputs.angleAppliedPercentage = turnAppliedVolts / 12.0;
-    inputs.angleCurrentAmps = new double[] {Math.abs(turnSim.getCurrentDrawAmps())};
-    inputs.angleTempCelsius = new double[] {};
+    inputs.angleSupplyCurrentAmps = Math.abs(turnSim.getCurrentDrawAmps());
+    inputs.angleTempCelsius = 25.0;
 
     // update the tunable PID constants
     if (driveKp.hasChanged() || driveKi.hasChanged() || driveKd.hasChanged()) {
