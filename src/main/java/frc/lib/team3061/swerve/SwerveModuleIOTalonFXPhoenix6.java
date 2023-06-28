@@ -157,6 +157,7 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
         (this.angleEncoder.getAbsolutePosition().getValue() - angleOffsetRot) * angleGearRatio);
 
     this.anglePositionRequest = new PositionVoltage(0.0).withSlot(0);
+    this.anglePositionRequest.EnableFOC = RobotConfig.getInstance().getPhoenix6Licensed();
   }
 
   private void configDriveMotor(int driveMotorID) {
