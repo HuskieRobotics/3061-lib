@@ -416,10 +416,7 @@ public class Drivetrain extends SubsystemBase {
         SwerveDriveKinematics.desaturateWheelSpeeds(
             swerveModuleStates, RobotConfig.getInstance().getRobotMaxVelocity());
 
-        for (SwerveModule swerveModule : swerveModules) {
-          swerveModule.setDesiredState(
-              swerveModuleStates[swerveModule.getModuleNumber()], isOpenLoop, false);
-        }
+        setSwerveModuleStates(swerveModuleStates, isOpenLoop, false);
         break;
 
       case CHARACTERIZATION:
@@ -514,7 +511,7 @@ public class Drivetrain extends SubsystemBase {
     Logger.getInstance().recordOutput("Odometry/RobotNoGyro", estimatedPoseWithoutGyro);
     Logger.getInstance().recordOutput("Odometry/Robot", poseEstimatorPose);
     Logger.getInstance().recordOutput("3DField", new Pose3d(poseEstimatorPose));
-    Logger.getInstance().recordOutput("SwerveModuleStates", states);
+    Logger.getInstance().recordOutput("SwerveModuleStates/Measured", states);
   }
 
   /**
@@ -527,12 +524,19 @@ public class Drivetrain extends SubsystemBase {
    * @param states the specified swerve module state for each swerve module
    */
   public void setSwerveModuleStates(SwerveModuleState[] states) {
+    setSwerveModuleStates(states, false, false);
+  }
+
+  private void setSwerveModuleStates(
+      SwerveModuleState[] states, boolean isOpenLoop, boolean forceAngle) {
     SwerveDriveKinematics.desaturateWheelSpeeds(
         states, RobotConfig.getInstance().getRobotMaxVelocity());
 
     for (SwerveModule swerveModule : swerveModules) {
-      swerveModule.setDesiredState(states[swerveModule.getModuleNumber()], false, false);
+      swerveModule.setDesiredState(states[swerveModule.getModuleNumber()], isOpenLoop, forceAngle);
     }
+
+    Logger.getInstance().recordOutput("SwerveModuleStates/Setpoints", states);
   }
 
   /**
@@ -605,9 +609,7 @@ public class Drivetrain extends SubsystemBase {
     states[2].angle = new Rotation2d(Math.PI / 2 + Math.atan(trackwidthMeters / wheelbaseMeters));
     states[3].angle =
         new Rotation2d(3.0 / 2.0 * Math.PI - Math.atan(trackwidthMeters / wheelbaseMeters));
-    for (SwerveModule swerveModule : swerveModules) {
-      swerveModule.setDesiredState(states[swerveModule.getModuleNumber()], true, true);
-    }
+    setSwerveModuleStates(states, true, true);
   }
 
   /**
