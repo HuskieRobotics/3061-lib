@@ -2,6 +2,7 @@ package frc.lib.team3061.swerve;
 
 import static frc.lib.team3061.swerve.SwerveModuleConstants.*;
 
+import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
@@ -24,6 +25,8 @@ import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team6328.util.TunableNumber;
 import frc.robot.Constants;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Implementation of the SwerveModuleIO interface for MK4 Swerve Modules with two Falcon 500 motors
@@ -61,6 +64,9 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
   private VoltageOut driveVoltageRequest;
   private VelocityVoltage driveVelocityRequest;
   private PositionVoltage anglePositionRequest;
+
+  private StatusSignal<Double> anglePositionStatusSignal;
+  private StatusSignal<Double> driveVelocityStatusSignal;
 
   private TalonFXSimState angleMotorSimState;
   private TalonFXSimState driveMotorSimState;
@@ -156,6 +162,8 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     this.angleMotor.setRotorPosition(
         (this.angleEncoder.getAbsolutePosition().getValue() - angleOffsetRot) * angleGearRatio);
 
+    this.anglePositionStatusSignal = this.angleMotor.getPosition();
+
     this.anglePositionRequest = new PositionVoltage(0.0).withSlot(0);
     this.anglePositionRequest.EnableFOC = RobotConfig.getInstance().getPhoenix6Licensed();
   }
@@ -184,6 +192,8 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
 
     this.driveMotor.setRotorPosition(0.0);
 
+    this.driveVelocityStatusSignal = this.driveMotor.getVelocity();
+
     this.driveVoltageRequest = new VoltageOut(0.0);
     this.driveVoltageRequest.EnableFOC = RobotConfig.getInstance().getPhoenix6Licensed();
     this.driveVelocityRequest = new VelocityVoltage(0).withSlot(0);
@@ -195,6 +205,9 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
   public void updateInputs(SwerveModuleIOInputs inputs) {
     updateSim();
 
+    anglePositionStatusSignal.refresh();
+    driveVelocityStatusSignal.refresh();
+
     inputs.drivePositionDeg =
         Conversions.falconRotationsToMechanismDegrees(
             this.driveMotor.getPosition().getValue(), driveGearRatio);
@@ -203,7 +216,7 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
             this.driveMotor.getPosition().getValue(), wheelCircumference, driveGearRatio);
     inputs.driveVelocityMetersPerSec =
         Conversions.falconRPSToMechanismMPS(
-            this.driveMotor.getVelocity().getValue(), wheelCircumference, driveGearRatio);
+            driveVelocityStatusSignal.getValue(), wheelCircumference, driveGearRatio);
     inputs.driveAppliedPercentage = this.driveMotor.getDutyCycle().getValue() / 2.0;
     inputs.driveStatorCurrentAmps = this.driveMotor.getStatorCurrent().getValue();
     inputs.driveSupplyCurrentAmps = this.driveMotor.getSupplyCurrent().getValue();
@@ -212,7 +225,7 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     inputs.angleAbsolutePositionDeg = this.angleEncoder.getAbsolutePosition().getValue() * 360.0;
     inputs.anglePositionDeg =
         Conversions.falconRotationsToMechanismDegrees(
-            this.angleMotor.getPosition().getValue(), angleGearRatio);
+            anglePositionStatusSignal.getValue(), angleGearRatio);
     inputs.angleVelocityRevPerMin =
         Conversions.falconRPSToMechanismRPM(
             this.angleMotor.getVelocity().getValue(), angleGearRatio);
@@ -282,6 +295,14 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     this.angleMotor.getConfigurator().refresh(config);
     config.NeutralMode = NeutralModeValue.Coast;
     this.angleMotor.getConfigurator().apply(config);
+  }
+
+  @Override
+  public List<StatusSignal<Double>> getOdometryStatusSignals() {
+    ArrayList<StatusSignal<Double>> signals = new ArrayList<>();
+    signals.add(driveVelocityStatusSignal);
+    signals.add(anglePositionStatusSignal);
+    return signals;
   }
 
   private void configSim() {

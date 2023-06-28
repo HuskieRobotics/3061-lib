@@ -6,7 +6,6 @@ package frc.lib.team3061.gyro;
 
 import static frc.robot.Constants.*;
 
-import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.Pigeon2;
@@ -14,6 +13,8 @@ import com.ctre.phoenix6.sim.Pigeon2SimState;
 import edu.wpi.first.wpilibj.RobotController;
 import frc.lib.team3061.RobotConfig;
 import frc.robot.Constants;
+import java.util.ArrayList;
+import java.util.List;
 
 public class GyroIOPigeon2Phoenix6 implements GyroIO {
   private final Pigeon2 gyro;
@@ -49,24 +50,12 @@ public class GyroIOPigeon2Phoenix6 implements GyroIO {
 
   @Override
   public void updateInputs(GyroIOInputs inputs) {
-    if (RobotConfig.getInstance().getPhoenix6Licensed()) {
-      // this is a licensed method
-      BaseStatusSignal.waitForAll(
-          LOOP_PERIOD_SECS,
-          this.yawStatusSignal,
-          this.pitchStatusSignal,
-          this.rollStatusSignal,
-          this.angularVelocityXStatusSignal,
-          this.angularVelocityYStatusSignal,
-          this.angularVelocityZStatusSignal);
-    } else {
-      this.yawStatusSignal.refresh();
-      this.pitchStatusSignal.refresh();
-      this.rollStatusSignal.refresh();
-      this.angularVelocityXStatusSignal.refresh();
-      this.angularVelocityYStatusSignal.refresh();
-      this.angularVelocityZStatusSignal.refresh();
-    }
+    this.yawStatusSignal.refresh();
+    this.pitchStatusSignal.refresh();
+    this.rollStatusSignal.refresh();
+    this.angularVelocityXStatusSignal.refresh();
+    this.angularVelocityYStatusSignal.refresh();
+    this.angularVelocityZStatusSignal.refresh();
 
     inputs.connected = (this.yawStatusSignal.getError() == StatusCode.OK);
     inputs.yawDeg = this.yawStatusSignal.getValue();
@@ -89,5 +78,12 @@ public class GyroIOPigeon2Phoenix6 implements GyroIO {
     if (Constants.getMode() == Constants.Mode.SIM) {
       this.gyroSim.addYaw(yaw);
     }
+  }
+
+  @Override
+  public List<StatusSignal<Double>> getOdometryStatusSignals() {
+    ArrayList<StatusSignal<Double>> signals = new ArrayList<>();
+    signals.add(this.yawStatusSignal);
+    return signals;
   }
 }

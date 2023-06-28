@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems.drivetrain;
 
+import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.StatusSignal;
 import com.pathplanner.lib.PathPlannerTrajectory.PathPlannerState;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -31,6 +33,8 @@ import frc.lib.team6328.util.Alert;
 import frc.lib.team6328.util.Alert.AlertType;
 import frc.lib.team6328.util.TunableNumber;
 import frc.robot.Constants;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
@@ -103,6 +107,8 @@ public class Drivetrain extends SubsystemBase {
   private static final boolean DEBUGGING = false;
 
   private final SwerveDrivePoseEstimator poseEstimator;
+  private final List<StatusSignal<Double>> odometrySignals = new ArrayList<>();
+
   private boolean brakeMode;
   private Timer brakeModeTimer = new Timer();
   private static final double BREAK_MODE_DELAY_SEC = 10.0;
@@ -149,6 +155,11 @@ public class Drivetrain extends SubsystemBase {
     this.chassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
 
     this.poseEstimator = RobotOdometry.getInstance().getPoseEstimator();
+
+    this.odometrySignals.addAll(this.gyroIO.getOdometryStatusSignals());
+    for (SwerveModule swerveModule : swerveModules) {
+      this.odometrySignals.addAll(swerveModule.getOdometryStatusSignals());
+    }
 
     // based on testing we can drive in turbo mode all the time
     this.isTurbo = true;
@@ -450,6 +461,13 @@ public class Drivetrain extends SubsystemBase {
    */
   @Override
   public void periodic() {
+
+    // synchronize all of the signals related to pose estimation
+    if (RobotConfig.getInstance().getPhoenix6Licensed()) {
+      // this is a licensed method
+      BaseStatusSignal.waitForAll(
+          Constants.LOOP_PERIOD_SECS, this.odometrySignals.toArray(new BaseStatusSignal[0]));
+    }
 
     // update and log gyro inputs
     gyroIO.updateInputs(gyroInputs);

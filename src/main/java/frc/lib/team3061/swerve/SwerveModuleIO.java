@@ -1,6 +1,11 @@
 package frc.lib.team3061.swerve;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.littletonrobotics.junction.AutoLog;
+
+import com.ctre.phoenix6.StatusSignal;
 
 /** Swerve module hardware abstraction interface. */
 public interface SwerveModuleIO {
@@ -40,4 +45,14 @@ public interface SwerveModuleIO {
 
   /** Enable or disable brake mode on the turn motor. */
   public default void setAngleBrakeMode(boolean enable) {}
+
+  /**
+   * Returns a list of status signals for the swerve module related to odometry. This can be used to
+   * synchronize the gyro and swerve modules to improve the accuracy of pose estimation.
+   *
+   * @return the status signals for the swerve module
+   */
+  public default List<StatusSignal<Double>> getOdometryStatusSignals() {
+    return new ArrayList<>();
+  }
 }
