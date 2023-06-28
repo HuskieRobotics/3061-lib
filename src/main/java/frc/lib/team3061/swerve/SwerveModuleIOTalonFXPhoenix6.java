@@ -15,6 +15,7 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
+import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
@@ -124,7 +125,7 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     }
 
     configAngleEncoder(canCoderID);
-    configAngleMotor(angleMotorID);
+    configAngleMotor(angleMotorID, canCoderID);
     configDriveMotor(driveMotorID);
     configSim();
   }
@@ -134,6 +135,7 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
 
     CANcoderConfiguration config = new CANcoderConfiguration();
     config.MagnetSensor.AbsoluteSensorRange = AbsoluteSensorRangeValue.Unsigned_0To1;
+    config.MagnetSensor.MagnetOffset = angleOffsetRot;
     config.MagnetSensor.SensorDirection =
         canCoderInverted
             ? SensorDirectionValue.Clockwise_Positive
@@ -141,7 +143,7 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     this.angleEncoder.getConfigurator().apply(config);
   }
 
-  private void configAngleMotor(int angleMotorID) {
+  private void configAngleMotor(int angleMotorID, int canCoderID) {
     this.angleMotor = new TalonFX(angleMotorID, canBusName);
 
     TalonFXConfiguration config = new TalonFXConfiguration();
@@ -155,15 +157,18 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
 
     config.MotorOutput.Inverted = angleMotorInverted;
     config.MotorOutput.NeutralMode = ANGLE_NEUTRAL_MODE;
+
     config.Slot0.kP = turnKp.get();
     config.Slot0.kI = turnKi.get();
     config.Slot0.kD = turnKd.get();
 
-    this.angleMotor.getConfigurator().apply(config);
+    config.ClosedLoopGeneral.ContinuousWrap = true;
 
-    this.angleEncoder.getAbsolutePosition().waitForUpdate(0.1);
-    this.angleMotor.setRotorPosition(
-        (this.angleEncoder.getAbsolutePosition().getValue() - angleOffsetRot) * angleGearRatio);
+    config.Feedback.FeedbackRemoteSensorID = canCoderID;
+    config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
+    config.Feedback.RotorToSensorRatio = angleGearRatio;
+
+    this.angleMotor.getConfigurator().apply(config);
 
     this.anglePositionStatusSignal = this.angleMotor.getPosition();
     this.angleVelocityStatusSignal = this.angleMotor.getVelocity();
