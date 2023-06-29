@@ -509,9 +509,8 @@ public class Drivetrain extends SubsystemBase {
     }
 
     // update the pose estimator based on the gyro and swerve module positions
-    // FIXME: should we specify the actual timestamp and not the one modified by AdvantageKit?
     poseEstimator.updateWithTime(
-        Timer.getFPGATimestamp(), this.getRotation(), swerveModulePositions);
+        Logger.getInstance().getRealTimestamp() / 1e6, this.getRotation(), swerveModulePositions);
 
     // update the brake mode based on the robot's velocity and state (enabled/disabled)
     updateBrakeMode();
