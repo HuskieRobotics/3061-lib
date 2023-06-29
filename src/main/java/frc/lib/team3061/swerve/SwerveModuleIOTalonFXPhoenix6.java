@@ -21,8 +21,10 @@ import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.ctre.phoenix6.sim.CANcoderSimState;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
+import edu.wpi.first.wpilibj.simulation.LinearSystemSim;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team6328.util.TunableNumber;
 import frc.robot.Constants;
@@ -74,8 +76,7 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
   private TalonFXSimState angleMotorSimState;
   private TalonFXSimState driveMotorSimState;
   private CANcoderSimState angleEncoderSimState;
-  private FlywheelSim driveSim =
-      new FlywheelSim(DCMotor.getFalcon500(1), MK4_L2_DRIVE_GEAR_RATIO, 0.025);
+  private LinearSystemSim driveSim;
   private FlywheelSim turnSim =
       new FlywheelSim(DCMotor.getFalcon500(1), MK4_L2_ANGLE_GEAR_RATIO, 0.004096955);
 
@@ -328,7 +329,10 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     this.driveMotorSimState = this.driveMotor.getSimState();
 
     this.turnSim = new FlywheelSim(DCMotor.getFalcon500(1), angleGearRatio, 0.5);
-    this.driveSim = new FlywheelSim(DCMotor.getFalcon500(1), driveGearRatio, 0.025);
+    this.driveSim =
+        new LinearSystemSim<>(
+            LinearSystemId.identifyVelocitySystem(
+                RobotConfig.getInstance().getDriveKV(), RobotConfig.getInstance().getDriveKA()));
   }
 
   private void updateSim() {
@@ -343,7 +347,7 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
 
     // update the input voltages of the models based on the outputs of the simulated TalonFXs
     this.turnSim.setInputVoltage(this.angleMotorSimState.getMotorVoltage());
-    this.driveSim.setInputVoltage(this.driveMotorSimState.getMotorVoltage());
+    this.driveSim.setInput(this.driveMotorSimState.getMotorVoltage());
 
     // update the models
     this.driveSim.update(Constants.LOOP_PERIOD_SECS);
@@ -359,8 +363,8 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     this.angleMotorSimState.addRotorPosition(angleMotorRotations);
     this.angleMotorSimState.setRotorVelocity(angleMotorRPS);
 
-    double driveRPM = driveSim.getAngularVelocityRPM();
-    double driveMotorRPS = Conversions.rpmToFalconRPS(driveRPM, driveGearRatio);
+    double driveMPS = driveSim.getOutput(0);
+    double driveMotorRPS = Conversions.mpsToFalconRPS(driveMPS, wheelCircumference, driveGearRatio);
     double driveMotorRotations = driveMotorRPS * Constants.LOOP_PERIOD_SECS;
     this.driveMotorSimState.addRotorPosition(driveMotorRotations);
     this.driveMotorSimState.setRotorVelocity(driveMotorRPS);
