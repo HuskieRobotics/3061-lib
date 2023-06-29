@@ -134,6 +134,7 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
 
     CANcoderConfiguration config = new CANcoderConfiguration();
     config.MagnetSensor.AbsoluteSensorRange = AbsoluteSensorRangeValue.Unsigned_0To1;
+    config.MagnetSensor.MagnetOffset = angleOffsetRot;
     config.MagnetSensor.SensorDirection =
         canCoderInverted
             ? SensorDirectionValue.Clockwise_Positive
@@ -163,7 +164,7 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
 
     this.angleEncoder.getAbsolutePosition().waitForUpdate(0.1);
     this.angleMotor.setRotorPosition(
-        (this.angleEncoder.getAbsolutePosition().getValue() - angleOffsetRot) * angleGearRatio);
+        this.angleEncoder.getAbsolutePosition().getValue() * angleGearRatio);
 
     this.anglePositionStatusSignal = this.angleMotor.getPosition();
     this.angleVelocityStatusSignal = this.angleMotor.getVelocity();
