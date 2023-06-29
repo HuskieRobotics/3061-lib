@@ -162,7 +162,8 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     config.Slot0.kI = turnKi.get();
     config.Slot0.kD = turnKd.get();
 
-    config.ClosedLoopGeneral.ContinuousWrap = true;
+    // FIXME: not working as expected yet, need to debug
+    // config.ClosedLoopGeneral.ContinuousWrap = true;
 
     config.Feedback.FeedbackRemoteSensorID = canCoderID;
     config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
@@ -238,13 +239,17 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     inputs.driveTempCelsius = this.driveMotor.getDeviceTemp().getValue();
 
     inputs.angleAbsolutePositionDeg = this.angleEncoder.getAbsolutePosition().getValue() * 360.0;
+    // since we are using the FusedCANcoder feature, the position and velocity signal for the angle
+    // motor accounts for the gear ratio; so, pass a gear ration of 1 to just convert from rotations
+    // to degrees.
     inputs.anglePositionDeg =
         Conversions.falconRotationsToMechanismDegrees(
             BaseStatusSignal.getLatencyCompensatedValue(
                 anglePositionStatusSignal, angleVelocityStatusSignal),
-            angleGearRatio);
+            1);
     inputs.angleVelocityRevPerMin =
-        Conversions.falconRPSToMechanismRPM(angleVelocityStatusSignal.getValue(), angleGearRatio);
+        Conversions.falconRPSToMechanismRPM(angleVelocityStatusSignal.getValue(), 1);
+
     inputs.angleAppliedPercentage = this.angleMotor.getDutyCycle().getValue() / 2.0;
     inputs.angleStatorCurrentAmps = this.angleMotor.getStatorCurrent().getValue();
     inputs.angleSupplyCurrentAmps = this.angleMotor.getSupplyCurrent().getValue();
@@ -359,9 +364,12 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     double angleEncoderRotations = angleEncoderRPS * Constants.LOOP_PERIOD_SECS;
     double angleMotorRPS = Conversions.rpmToFalconRPS(turnRPM, angleGearRatio);
     double angleMotorRotations = angleMotorRPS * Constants.LOOP_PERIOD_SECS;
+
+    // FIXME: not sure how to update the sim states for the encoder and turn motor when using the
+    // FusedCANcoder feature. This doesn't behave as expected.
     this.angleEncoderSimState.addPosition(angleEncoderRotations);
-    this.angleMotorSimState.addRotorPosition(angleMotorRotations);
-    this.angleMotorSimState.setRotorVelocity(angleMotorRPS);
+    this.angleMotorSimState.addRotorPosition(angleEncoderRotations);
+    this.angleMotorSimState.setRotorVelocity(angleEncoderRPS);
 
     double driveRPM = driveSim.getAngularVelocityRPM();
     double driveMotorRPS = Conversions.rpmToFalconRPS(driveRPM, driveGearRatio);
