@@ -41,9 +41,9 @@ public class NovaRobotConfig extends RobotConfig {
   private static final double ROBOT_LENGTH_WITH_BUMPERS = 0.8382; // meters // 33 in
 
   /* Angle Motor PID Values */
-  private static final double ANGLE_KP = 9.609384164222876;
+  private static final double ANGLE_KP = 9.609384164222876 * 21.43;
   private static final double ANGLE_KI = 0.0;
-  private static final double ANGLE_KD = 0.28828152492668624;
+  private static final double ANGLE_KD = 0.28828152492668624 * 21.43;
 
   /* Drive Motor PID Values */
   private static final double DRIVE_KP = 0.2402346041055719;
