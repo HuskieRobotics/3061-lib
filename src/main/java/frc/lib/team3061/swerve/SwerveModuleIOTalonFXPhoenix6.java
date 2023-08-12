@@ -216,11 +216,16 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
   public void updateInputs(SwerveModuleIOInputs inputs) {
     updateSim();
 
-    anglePositionStatusSignal.refresh();
-    angleVelocityStatusSignal.refresh();
+    // only invoke refresh if Phoenix is not licensed (if licensed, these signals have already been
+    // refreshed)
+    if (!RobotConfig.getInstance().getPhoenix6Licensed()) {
+      anglePositionStatusSignal.refresh();
+      angleVelocityStatusSignal.refresh();
+      drivePositionStatusSignal.refresh();
+      driveVelocityStatusSignal.refresh();
+    }
+
     anglePositionErrorStatusSignal.refresh();
-    drivePositionStatusSignal.refresh();
-    driveVelocityStatusSignal.refresh();
     driveVelocityErrorStatusSignal.refresh();
 
     inputs.drivePositionDeg =

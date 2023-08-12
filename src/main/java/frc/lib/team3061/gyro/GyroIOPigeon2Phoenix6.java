@@ -4,8 +4,6 @@
 
 package frc.lib.team3061.gyro;
 
-import static frc.robot.Constants.*;
-
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
@@ -51,12 +49,17 @@ public class GyroIOPigeon2Phoenix6 implements GyroIO {
 
   @Override
   public void updateInputs(GyroIOInputs inputs) {
-    this.yawStatusSignal.refresh();
+    // only invoke refresh if Phoenix is not licensed (if licensed, these signals have already been
+    // refreshed)
+    if (!RobotConfig.getInstance().getPhoenix6Licensed()) {
+      this.yawStatusSignal.refresh();
+      this.angularVelocityZStatusSignal.refresh();
+    }
+
     this.pitchStatusSignal.refresh();
     this.rollStatusSignal.refresh();
     this.angularVelocityXStatusSignal.refresh();
     this.angularVelocityYStatusSignal.refresh();
-    this.angularVelocityZStatusSignal.refresh();
 
     inputs.connected = (this.yawStatusSignal.getError() == StatusCode.OK);
     inputs.yawDeg =
