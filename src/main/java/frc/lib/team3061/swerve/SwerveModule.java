@@ -63,8 +63,6 @@ public class SwerveModule {
   public void setDesiredState(
       SwerveModuleState desiredState, boolean isOpenLoop, boolean forceAngle) {
 
-    // this optimization is specific to CTRE hardware; perhaps this responsibility should be demoted
-    // to the hardware-specific classes.
     desiredState = SwerveModuleState.optimize(desiredState, getState().angle);
 
     if (isOpenLoop) {
