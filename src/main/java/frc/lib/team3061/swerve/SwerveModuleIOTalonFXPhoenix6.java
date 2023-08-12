@@ -113,7 +113,6 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
       wheelCircumference = MK4_L2_WHEEL_CIRCUMFERENCE;
       driveGearRatio = MK4_L2_DRIVE_GEAR_RATIO;
       driveMotorInverted = MK4_L2_DRIVE_MOTOR_INVERTED;
-      ;
       angleGearRatio = MK4_L2_ANGLE_GEAR_RATIO;
       angleMotorInverted = MK4_L2_ANGLE_MOTOR_INVERTED;
       canCoderInverted = MK4_L2_CAN_CODER_INVERTED;
@@ -180,8 +179,7 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     config.Slot0.kI = turnKi.get();
     config.Slot0.kD = turnKd.get();
 
-    // FIXME: not working as expected yet, need to debug
-    // config.ClosedLoopGeneral.ContinuousWrap = true;
+    config.ClosedLoopGeneral.ContinuousWrap = true;
 
     config.Feedback.FeedbackRemoteSensorID = canCoderID;
     config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
@@ -199,10 +197,6 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
       angleMotorConfigAlert.set(true);
       angleMotorConfigAlert.setText(status.toString());
     }
-
-    // this.angleEncoder.getAbsolutePosition().waitForUpdate(0.1);
-    // this.angleMotor.setRotorPosition(
-    //     this.angleEncoder.getAbsolutePosition().getValue() * angleGearRatio);
 
     this.anglePositionStatusSignal = this.angleMotor.getPosition();
     this.angleVelocityStatusSignal = this.angleMotor.getVelocity();
@@ -441,11 +435,7 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     double turnRPM = turnSim.getAngularVelocityRPM();
     double angleEncoderRPS = turnRPM / 60;
     double angleEncoderRotations = angleEncoderRPS * Constants.LOOP_PERIOD_SECS;
-    double angleMotorRPS = Conversions.rpmToFalconRPS(turnRPM, angleGearRatio);
-    double angleMotorRotations = angleMotorRPS * Constants.LOOP_PERIOD_SECS;
 
-    // FIXME: not sure how to update the sim states for the encoder and turn motor when using the
-    // FusedCANcoder feature. This doesn't behave as expected.
     this.angleEncoderSimState.addPosition(angleEncoderRotations);
     this.angleMotorSimState.addRotorPosition(angleEncoderRotations);
     this.angleMotorSimState.setRotorVelocity(angleEncoderRPS);
