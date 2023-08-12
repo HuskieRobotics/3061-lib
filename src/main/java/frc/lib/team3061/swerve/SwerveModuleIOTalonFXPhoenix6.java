@@ -194,7 +194,6 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
     config.Feedback.RotorToSensorRatio = angleGearRatio;
 
-    this.angleMotor.getConfigurator().apply(config);
     StatusCode status = StatusCode.StatusCodeNotInitialized;
     for (int i = 0; i < 5; ++i) {
       this.angleMotor.getConfigurator().apply(config);
@@ -208,9 +207,9 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
       angleMotorConfigAlert.setText(status.toString());
     }
 
-    this.angleEncoder.getAbsolutePosition().waitForUpdate(0.1);
-    this.angleMotor.setRotorPosition(
-        this.angleEncoder.getAbsolutePosition().getValue() * angleGearRatio);
+    // this.angleEncoder.getAbsolutePosition().waitForUpdate(0.1);
+    // this.angleMotor.setRotorPosition(
+    //     this.angleEncoder.getAbsolutePosition().getValue() * angleGearRatio);
 
     this.anglePositionStatusSignal = this.angleMotor.getPosition();
     this.angleVelocityStatusSignal = this.angleMotor.getVelocity();
@@ -313,10 +312,8 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
             BaseStatusSignal.getLatencyCompensatedValue(
                 anglePositionStatusSignal, angleVelocityStatusSignal),
             1);
-            angleGearRatio);
     inputs.anglePositionErrorDeg =
-        Conversions.falconRotationsToMechanismDegrees(
-            anglePositionErrorStatusSignal.getValue(), angleGearRatio);
+        Conversions.falconRotationsToMechanismDegrees(anglePositionErrorStatusSignal.getValue(), 1);
     inputs.angleVelocityRevPerMin =
         Conversions.falconRPSToMechanismRPM(angleVelocityStatusSignal.getValue(), 1);
 
