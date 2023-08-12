@@ -20,6 +20,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.ctre.phoenix6.sim.CANcoderSimState;
 import com.ctre.phoenix6.sim.TalonFXSimState;
+import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.wpilibj.RobotController;
@@ -76,9 +77,8 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
   private TalonFXSimState angleMotorSimState;
   private TalonFXSimState driveMotorSimState;
   private CANcoderSimState angleEncoderSimState;
-  private LinearSystemSim driveSim;
-  private FlywheelSim turnSim =
-      new FlywheelSim(DCMotor.getFalcon500(1), MK4_L2_ANGLE_GEAR_RATIO, 0.004096955);
+  private LinearSystemSim<N1, N1, N1> driveSim;
+  private FlywheelSim turnSim;
 
   /**
    * Make a new SwerveModuleIOTalonFX object.
@@ -328,6 +328,8 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     this.angleMotorSimState = this.angleMotor.getSimState();
     this.driveMotorSimState = this.driveMotor.getSimState();
 
+    // replace the flywheel sim with the position system after characterizing the rotation of the
+    // swerve modules on the robot
     this.turnSim = new FlywheelSim(DCMotor.getFalcon500(1), angleGearRatio, 0.5);
     this.driveSim =
         new LinearSystemSim<>(

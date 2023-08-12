@@ -1,11 +1,9 @@
 package frc.lib.team3061.swerve;
 
+import com.ctre.phoenix6.StatusSignal;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.littletonrobotics.junction.AutoLog;
-
-import com.ctre.phoenix6.StatusSignal;
 
 /** Swerve module hardware abstraction interface. */
 public interface SwerveModuleIO {
