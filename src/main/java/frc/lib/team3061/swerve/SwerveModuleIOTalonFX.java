@@ -225,6 +225,12 @@ public class SwerveModuleIOTalonFX implements SwerveModuleIO {
     mDriveMotor.set(ControlMode.PercentOutput, percentage);
   }
 
+  /** Run the angle motor at the specified percentage of full power. */
+  @Override
+  public void setAngleMotorPercentage(double percentage) {
+    mAngleMotor.set(ControlMode.PercentOutput, percentage);
+  }
+
   /** Run the drive motor at the specified velocity. */
   @Override
   public void setDriveVelocity(double velocity) {
