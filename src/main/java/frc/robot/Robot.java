@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import com.pathplanner.lib.commands.PPSwerveControllerCommand;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.lib.team6328.util.Alert;
@@ -107,6 +109,26 @@ public class Robot extends LoggedRobot {
     CommandScheduler.getInstance()
         .onCommandFinish(
             command -> Logger.getInstance().recordOutput("Command finished", command.getName()));
+
+    // Logging of autonomous paths
+    PPSwerveControllerCommand.setLoggingCallbacks(
+        activeTrajectory ->
+            Logger.getInstance().recordOutput("PathFollowing/trajectory", activeTrajectory),
+        targetPose -> Logger.getInstance().recordOutput("PathFollowing/targetPose", targetPose),
+        setpoint -> {
+          Logger.getInstance().recordOutput("PathFollowing/targetXVel", setpoint.vxMetersPerSecond);
+          Logger.getInstance().recordOutput("PathFollowing/targetYVel", setpoint.vyMetersPerSecond);
+          Logger.getInstance()
+              .recordOutput(
+                  "PathFollowing/targetAngularVel",
+                  Units.radiansToDegrees(setpoint.omegaRadiansPerSecond));
+        },
+        (translationError, rotationError) -> {
+          Logger.getInstance().recordOutput("PathFollowing/xPosError", translationError.getX());
+          Logger.getInstance().recordOutput("PathFollowing/yPosError", translationError.getY());
+          Logger.getInstance()
+              .recordOutput("PathFollowing/rotationError", rotationError.getDegrees());
+        });
 
     // Invoke the factory method to create the RobotContainer singleton.
     robotContainer = RobotContainer.getInstance();

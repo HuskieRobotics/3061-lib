@@ -91,8 +91,6 @@ public class FollowPath extends PPSwerveControllerCommand {
     this.drivetrain.getAutoXController().reset();
     this.drivetrain.getAutoYController().reset();
     this.drivetrain.getAutoThetaController().reset();
-
-    Logger.getInstance().recordOutput("Odometry/trajectory", trajectory);
   }
 
   /**

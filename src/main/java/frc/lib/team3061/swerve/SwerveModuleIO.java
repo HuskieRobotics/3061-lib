@@ -1,11 +1,9 @@
 package frc.lib.team3061.swerve;
 
+import com.ctre.phoenix6.StatusSignal;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.littletonrobotics.junction.AutoLog;
-
-import com.ctre.phoenix6.StatusSignal;
 
 /** Swerve module hardware abstraction interface. */
 public interface SwerveModuleIO {
@@ -14,6 +12,7 @@ public interface SwerveModuleIO {
     double drivePositionDeg = 0.0;
     double driveDistanceMeters = 0.0;
     double driveVelocityMetersPerSec = 0.0;
+    double driveVelocityErrorMetersPerSec = 0.0;
     double driveAppliedPercentage = 0.0;
     double driveStatorCurrentAmps = 0.0;
     double driveSupplyCurrentAmps = 0.0;
@@ -21,6 +20,7 @@ public interface SwerveModuleIO {
 
     double angleAbsolutePositionDeg = 0.0;
     double anglePositionDeg = 0.0;
+    double anglePositionErrorDeg = 0.0;
     double angleVelocityRevPerMin = 0.0;
     double angleAppliedPercentage = 0.0;
     double angleStatorCurrentAmps = 0.0;

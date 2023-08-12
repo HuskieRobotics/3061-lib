@@ -2,6 +2,7 @@ package frc.robot.subsystems.subsystem;
 
 import static frc.robot.subsystems.subsystem.SubsystemConstants.*;
 
+import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionVoltage;
@@ -12,6 +13,8 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.swerve.Conversions;
+import frc.lib.team6328.util.Alert;
+import frc.lib.team6328.util.Alert.AlertType;
 import frc.lib.team6328.util.TunableNumber;
 
 /** TalonFX implementation of the generic SubsystemIO */
@@ -21,6 +24,9 @@ public class SubsystemIOTalonFX implements SubsystemIO {
   private VoltageOut voltageRequest;
   private TorqueCurrentFOC currentRequest;
   private PositionVoltage positionRequest;
+
+  private Alert configAlert =
+      new Alert("Failed to apply configuration for subsystem.", AlertType.ERROR);
 
   private final TunableNumber kP = new TunableNumber("Subsystem/kP", POSITION_PID_P);
   private final TunableNumber kI = new TunableNumber("Subsystem/kI", POSITION_PID_I);
@@ -123,7 +129,18 @@ public class SubsystemIOTalonFX implements SubsystemIO {
     config.Voltage.PeakForwardVoltage = kPeakOutput.get();
     config.Voltage.PeakReverseVoltage = kPeakOutput.get();
 
-    this.motor.getConfigurator().apply(config);
+    StatusCode status = StatusCode.StatusCodeNotInitialized;
+    for (int i = 0; i < 5; ++i) {
+      this.motor.getConfigurator().apply(config);
+      if (status.isOK()) {
+        configAlert.set(false);
+        break;
+      }
+    }
+    if (!status.isOK()) {
+      configAlert.set(true);
+      configAlert.setText(status.toString());
+    }
 
     this.motor.setRotorPosition(0);
 

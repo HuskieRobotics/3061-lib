@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems.drivetrain;
 
+import static frc.robot.Constants.*;
+
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.pathplanner.lib.PathPlannerTrajectory.PathPlannerState;
@@ -28,6 +30,7 @@ import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.gyro.GyroIO;
 import frc.lib.team3061.gyro.GyroIOInputsAutoLogged;
 import frc.lib.team3061.swerve.SwerveModule;
+import frc.lib.team3061.util.GeometryUtils;
 import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team6328.util.Alert;
 import frc.lib.team6328.util.Alert.AlertType;
@@ -415,6 +418,8 @@ public class Drivetrain extends SubsystemBase {
           chassisSpeeds = new ChassisSpeeds(xVelocity, yVelocity, rotationalVelocity);
         }
 
+        chassisSpeeds = convertFromDiscreteChassisSpeedsToContinuous(chassisSpeeds);
+
         Logger.getInstance()
             .recordOutput("Drivetrain/ChassisSpeedVx", chassisSpeeds.vxMetersPerSecond);
         Logger.getInstance()
@@ -509,9 +514,8 @@ public class Drivetrain extends SubsystemBase {
     }
 
     // update the pose estimator based on the gyro and swerve module positions
-    // FIXME: should we specify the actual timestamp and not the one modified by AdvantageKit?
     poseEstimator.updateWithTime(
-        Timer.getFPGATimestamp(), this.getRotation(), swerveModulePositions);
+        Logger.getInstance().getRealTimestamp() / 1e6, this.getRotation(), swerveModulePositions);
 
     // update the brake mode based on the robot's velocity and state (enabled/disabled)
     updateBrakeMode();
@@ -807,6 +811,32 @@ public class Drivetrain extends SubsystemBase {
       mod.setAngleBrakeMode(enable);
       mod.setDriveBrakeMode(enable);
     }
+  }
+
+  /**
+   * Correction for swerve second order dynamics issue. From Cache Money:
+   * https://github.com/cachemoney8096/2023-charged-up/blob/main/src/main/java/frc/robot/subsystems/drive/DriveSubsystem.java#L182
+   * who borrowed it from 254:
+   * https://github.com/Team254/FRC-2022-Public/blob/main/src/main/java/com/team254/frc2022/subsystems/Drive.java#L325
+   * Discussion:
+   * https://www.chiefdelphi.com/t/whitepaper-swerve-drive-skew-and-second-order-kinematics/416964
+   *
+   * <p>FIXME: remove this method and replace with ChassisSpeeds.fromDiscreteSpeeds once released in
+   * WPILib
+   */
+  private static ChassisSpeeds convertFromDiscreteChassisSpeedsToContinuous(
+      ChassisSpeeds discreteChassisSpeeds) {
+
+    Pose2d futureRobotPose =
+        new Pose2d(
+            discreteChassisSpeeds.vxMetersPerSecond * LOOP_PERIOD_SECS,
+            discreteChassisSpeeds.vyMetersPerSecond * LOOP_PERIOD_SECS,
+            Rotation2d.fromRadians(discreteChassisSpeeds.omegaRadiansPerSecond * LOOP_PERIOD_SECS));
+    Twist2d twistForPose = GeometryUtils.log(futureRobotPose);
+    return new ChassisSpeeds(
+        twistForPose.dx / LOOP_PERIOD_SECS,
+        twistForPose.dy / LOOP_PERIOD_SECS,
+        twistForPose.dtheta / LOOP_PERIOD_SECS);
   }
 
   private enum DriveMode {

@@ -63,10 +63,7 @@ public class SwerveModule {
   public void setDesiredState(
       SwerveModuleState desiredState, boolean isOpenLoop, boolean forceAngle) {
 
-    // with the new Continuous Mechanism Wrap, we should be able to use WPILIB's optimize method
-    // FIXME: not working as expected yet, need to debug
-    desiredState = CTREModuleState.optimize(desiredState, getState().angle);
-    // desiredState = SwerveModuleState.optimize(desiredState, getState().angle);
+    desiredState = SwerveModuleState.optimize(desiredState, getState().angle);
 
     if (isOpenLoop) {
       double percentOutput = desiredState.speedMetersPerSecond / maxVelocity;
