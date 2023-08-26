@@ -16,22 +16,22 @@ public class NovaRobotConfig extends RobotConfig {
   private static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 13;
   private static final int FRONT_LEFT_MODULE_STEER_MOTOR = 12;
   private static final int FRONT_LEFT_MODULE_STEER_ENCODER = 14;
-  private static final double FRONT_LEFT_MODULE_STEER_OFFSET = 37.53 / 360.0;
+  private static final double FRONT_LEFT_MODULE_STEER_OFFSET_ROT = 37.53 / 360.0;
 
   private static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 16;
   private static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 15;
   private static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 17;
-  private static final double FRONT_RIGHT_MODULE_STEER_OFFSET = 100.02 / 360.0;
+  private static final double FRONT_RIGHT_MODULE_STEER_OFFSET_ROT = 100.02 / 360.0;
 
   private static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 7;
   private static final int BACK_LEFT_MODULE_STEER_MOTOR = 6;
   private static final int BACK_LEFT_MODULE_STEER_ENCODER = 8;
-  private static final double BACK_LEFT_MODULE_STEER_OFFSET = 268.51 / 360.0;
+  private static final double BACK_LEFT_MODULE_STEER_OFFSET_ROT = 268.51 / 360.0;
 
   private static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 10;
   private static final int BACK_RIGHT_MODULE_STEER_MOTOR = 9;
   private static final int BACK_RIGHT_MODULE_STEER_ENCODER = 11;
-  private static final double BACK_RIGHT_MODULE_STEER_OFFSET = 8.88 / 360.0;
+  private static final double BACK_RIGHT_MODULE_STEER_OFFSET_ROT = 8.88 / 360.0;
 
   private static final int GYRO_ID = 3;
 
@@ -193,10 +193,10 @@ public class NovaRobotConfig extends RobotConfig {
   @Override
   public double[] getSwerveSteerOffsets() {
     return new double[] {
-      FRONT_LEFT_MODULE_STEER_OFFSET,
-      FRONT_RIGHT_MODULE_STEER_OFFSET,
-      BACK_LEFT_MODULE_STEER_OFFSET,
-      BACK_RIGHT_MODULE_STEER_OFFSET
+      FRONT_LEFT_MODULE_STEER_OFFSET_ROT,
+      FRONT_RIGHT_MODULE_STEER_OFFSET_ROT,
+      BACK_LEFT_MODULE_STEER_OFFSET_ROT,
+      BACK_RIGHT_MODULE_STEER_OFFSET_ROT
     };
   }
 

@@ -59,7 +59,7 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
     15. rotate the cart in a CCW direction and verify that the gyro is increasing
     16. rotate the cart in a CW direction and verify that the gyro is decreasing
     17. use Phoenix Tuner to flash the LEDs on the Falcon 500s and CANcoders to ensure that the CAN IDs are properly assigned to the front-left, front-right, back-left, and back-right positions (all of the above may behave as expected even if the modules aren't assigned to the appropriate corners)
-* Setting Steer Offsets (e.g., ```FRONT_LEFT_MODULE_STEER_OFFSET```) in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
+* Setting Steer Offsets (e.g., ```FRONT_LEFT_MODULE_STEER_OFFSET_ROT```) in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
     * set ```DEBUGGING``` in SwerveModule.java to true
     * for finding the offsets, use a piece of 1x1 metal that is straight against the forks of the front and back modules (on the left and right side) to ensure that the modules are straight
     * point the bevel gears of all the wheels in the same direction (either facing left or right), and preferably you should have the wheels facing in the direction where a positive input to the drive motor drives forward; if for some reason you set the offsets with the wheels backwards, you can change the appropriate ```DRIVE_MOTOR_INVERTED``` in ```SwerveModuleConstants``` to fix
