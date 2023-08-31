@@ -70,8 +70,9 @@ public class GyroIOPigeon2Phoenix6 implements GyroIO {
     inputs.rollDegPerSec = this.angularVelocityXStatusSignal.getValue();
     inputs.pitchDegPerSec = this.angularVelocityYStatusSignal.getValue();
     inputs.yawDegPerSec = this.angularVelocityZStatusSignal.getValue();
-
+    if (Constants.getMode() == Constants.Mode.SIM) {
     this.gyroSim.setSupplyVoltage(RobotController.getBatteryVoltage());
+    }
   }
 
   @Override
