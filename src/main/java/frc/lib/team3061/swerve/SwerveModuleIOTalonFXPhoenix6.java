@@ -145,7 +145,7 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
 
     StatusCode status = StatusCode.StatusCodeNotInitialized;
     for (int i = 0; i < 5; ++i) {
-      this.angleEncoder.getConfigurator().apply(config);
+      status = this.angleEncoder.getConfigurator().apply(config);
       if (status.isOK()) {
         angleEncoderConfigAlert.set(false);
         break;
@@ -187,7 +187,7 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
 
     StatusCode status = StatusCode.StatusCodeNotInitialized;
     for (int i = 0; i < 5; ++i) {
-      this.angleMotor.getConfigurator().apply(config);
+      status = this.angleMotor.getConfigurator().apply(config);
       if (status.isOK()) {
         angleMotorConfigAlert.set(false);
         break;
@@ -233,7 +233,7 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
 
     StatusCode status = StatusCode.StatusCodeNotInitialized;
     for (int i = 0; i < 5; ++i) {
-      this.driveMotor.getConfigurator().apply(config);
+      status = this.driveMotor.getConfigurator().apply(config);
       if (status.isOK()) {
         driveMotorConfigAlert.set(false);
         break;
