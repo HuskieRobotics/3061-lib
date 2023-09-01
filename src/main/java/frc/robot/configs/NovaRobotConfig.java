@@ -16,22 +16,22 @@ public class NovaRobotConfig extends RobotConfig {
   private static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 13;
   private static final int FRONT_LEFT_MODULE_STEER_MOTOR = 12;
   private static final int FRONT_LEFT_MODULE_STEER_ENCODER = 14;
-  private static final double FRONT_LEFT_MODULE_STEER_OFFSET_ROT = 37.53 / 360.0;
+  private static final double FRONT_LEFT_MODULE_STEER_OFFSET_ROT = 0.104004;
 
   private static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 16;
   private static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 15;
   private static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 17;
-  private static final double FRONT_RIGHT_MODULE_STEER_OFFSET_ROT = 100.02 / 360.0;
+  private static final double FRONT_RIGHT_MODULE_STEER_OFFSET_ROT = 0.284424;
 
   private static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 7;
   private static final int BACK_LEFT_MODULE_STEER_MOTOR = 6;
   private static final int BACK_LEFT_MODULE_STEER_ENCODER = 8;
-  private static final double BACK_LEFT_MODULE_STEER_OFFSET_ROT = 268.51 / 360.0;
+  private static final double BACK_LEFT_MODULE_STEER_OFFSET_ROT = 0.732666;
 
   private static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 10;
   private static final int BACK_RIGHT_MODULE_STEER_MOTOR = 9;
   private static final int BACK_RIGHT_MODULE_STEER_ENCODER = 11;
-  private static final double BACK_RIGHT_MODULE_STEER_OFFSET_ROT = 8.88 / 360.0;
+  private static final double BACK_RIGHT_MODULE_STEER_OFFSET_ROT = 0.007324;
 
   private static final int GYRO_ID = 3;
 
@@ -41,9 +41,9 @@ public class NovaRobotConfig extends RobotConfig {
   private static final double ROBOT_LENGTH_WITH_BUMPERS = 0.8382; // meters // 33 in
 
   /* Angle Motor PID Values */
-  private static final double ANGLE_KP = 9.609384164222876 * 21.43;
+  private static final double ANGLE_KP = 100.0;
   private static final double ANGLE_KI = 0.0;
-  private static final double ANGLE_KD = 0.28828152492668624 * 21.43;
+  private static final double ANGLE_KD = 0.0;
 
   /* Drive Motor PID Values */
   private static final double DRIVE_KP = 0.2402346041055719;
