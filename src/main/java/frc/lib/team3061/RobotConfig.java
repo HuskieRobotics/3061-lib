@@ -106,9 +106,9 @@ public abstract class RobotConfig {
   }
 
   /**
-   * Returns the voltage needed to hold (or “cruise”) at a given constant velocity. Defaults to 0.
+   * Returns the voltage needed to hold (or "cruise") at a given constant velocity. Defaults to 0.
    *
-   * @return the voltage needed to hold (or “cruise”) at a given constant velocity
+   * @return the voltage needed to hold (or "cruise") at a given constant velocity
    */
   public double getDriveKV() {
     return 0.0;
