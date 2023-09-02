@@ -12,7 +12,7 @@ public class SubsystemConstants {
   public static final boolean TESTING = true;
   public static final String SUBSYSTEM_NAME = "Subsystem";
 
-  public static final int MOTOR_CAN_ID = 6;
+  public static final int MOTOR_CAN_ID = 20;
   public static final double GEAR_RATIO = 100.0;
   public static final boolean MOTOR_INVERTED = false;
 
