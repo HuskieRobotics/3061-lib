@@ -65,13 +65,17 @@ public class GyroIOPigeon2Phoenix6 implements GyroIO {
     inputs.yawDeg =
         BaseStatusSignal.getLatencyCompensatedValue(
             this.yawStatusSignal, this.angularVelocityZStatusSignal);
-    inputs.pitchDeg = this.pitchStatusSignal.getValue();
-    inputs.rollDeg = this.rollStatusSignal.getValue();
+    inputs.pitchDeg =
+        BaseStatusSignal.getLatencyCompensatedValue(
+            this.pitchStatusSignal, this.angularVelocityYStatusSignal);
+    inputs.rollDeg =
+        BaseStatusSignal.getLatencyCompensatedValue(
+            this.rollStatusSignal, this.angularVelocityXStatusSignal);
     inputs.rollDegPerSec = this.angularVelocityXStatusSignal.getValue();
     inputs.pitchDegPerSec = this.angularVelocityYStatusSignal.getValue();
     inputs.yawDegPerSec = this.angularVelocityZStatusSignal.getValue();
     if (Constants.getMode() == Constants.Mode.SIM) {
-    this.gyroSim.setSupplyVoltage(RobotController.getBatteryVoltage());
+      this.gyroSim.setSupplyVoltage(RobotController.getBatteryVoltage());
     }
   }
 
