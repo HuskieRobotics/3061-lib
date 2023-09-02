@@ -8,6 +8,7 @@ import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import frc.lib.team254.drivers.TalonFXFactory;
+import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.swerve.Conversions;
 import frc.lib.team6328.util.TunableNumber;
@@ -114,5 +115,7 @@ public class SubsystemIOTalonFX implements SubsystemIO {
     motor.setSelectedSensorPosition(0);
     motor.configClosedLoopPeakOutput(0, kPeakOutput.get());
     motor.config_IntegralZone(0, kIz.get());
+
+    FaultReporter.getInstance().registerHardware(SUBSYSTEM_NAME, "subsystem motor", motor);
   }
 }
