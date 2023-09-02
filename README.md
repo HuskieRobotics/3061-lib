@@ -38,6 +38,7 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
 
 * Checking motor and encoder directions:
     * The drive motor, angle motor, and angle encoder constants in SwerveModuleConstants should be configured appropriately for the MK4 and MK4i swerve modules. However, it doesn't hurt to verify.
+    * To verify the following, the ```Subsystem``` example subsystem can be used with ```TESTING``` set to true to directly control the associated motor. Set ```MOTOR_CAN_ID``` in ```SubsystemConstants``` to the appropriate CAN ID and ensure that CAN ID is not specified for any swerve motor in ```DefaultRobotConfig```. Use Shuffleboard to set the motor power.
     * When the drive motor is supplied a positive input, it should turn the swerve module wheel such that the robot moves forward; if not, negate.
     * When the angle motor is supplied a positive input, it should rotate the swerve module wheel such that the wheel rotates in the CCW direction; if not, negate.
     * When the angle motor rotates the swerve module wheel in a CCW direction, the CANcoder should increase its reading; if not, set to negate.
