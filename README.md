@@ -41,6 +41,10 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
     * When the drive motor is supplied a positive input, it should turn the swerve module wheel such that the robot moves forward; if not, negate.
     * When the angle motor is supplied a positive input, it should rotate the swerve module wheel such that the wheel rotates in the CCW direction; if not, negate.
     * When the angle motor rotates the swerve module wheel in a CCW direction, the CANcoder should increase its reading; if not, set to negate.
+* Setting Steer Offsets (e.g., ```FRONT_LEFT_MODULE_STEER_OFFSET_ROT```) in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
+    * for finding the offsets, use a piece of 1x1 metal that is straight against the forks of the front and back modules (on the left and right side) to ensure that the modules are straight
+    * point the bevel gears of all the wheels in the same direction (either facing left or right), and preferably you should have the wheels facing in the direction where a positive input to the drive motor drives forward; if for some reason you set the offsets with the wheels backwards, you can change the appropriate ```DRIVE_MOTOR_INVERTED``` in ```SwerveModuleConstants``` to fix
+    * open Phoenix Tuner 6, for each CANcoder on a swerve module, negate and then copy the rotation value that ignores any configured offset to their respective ```STEER_OFFSET``` constants. For example, if the CANcoder rotation value is 0.104004, specify a value of -0.104004 for the corresponding constant.
 * Checking geometry:
     1. elevate the robot on a cart positioned in front of the operator console so the driver's perspective is the same as the robot's (i.e., the front of the robot facing away from the driver); we label the front, back, left, and right of the robot on the robot since which is which may be ambiguous until more of the robot is assembled
     2. position all four wheels such that they are pointing forward (bevel gears all facing the same direction as when the steer offsets were determined)
@@ -59,12 +63,6 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
     15. rotate the cart in a CCW direction and verify that the gyro is increasing
     16. rotate the cart in a CW direction and verify that the gyro is decreasing
     17. use Phoenix Tuner to flash the LEDs on the Falcon 500s and CANcoders to ensure that the CAN IDs are properly assigned to the front-left, front-right, back-left, and back-right positions (all of the above may behave as expected even if the modules aren't assigned to the appropriate corners)
-* Setting Steer Offsets (e.g., ```FRONT_LEFT_MODULE_STEER_OFFSET_ROT```) in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
-    * set ```DEBUGGING``` in SwerveModule.java to true
-    * for finding the offsets, use a piece of 1x1 metal that is straight against the forks of the front and back modules (on the left and right side) to ensure that the modules are straight
-    * point the bevel gears of all the wheels in the same direction (either facing left or right), and preferably you should have the wheels facing in the direction where a positive input to the drive motor drives forward; if for some reason you set the offsets with the wheels backwards, you can change the appropriate ```DRIVE_MOTOR_INVERTED``` in ```SwerveModuleConstants``` to fix
-    * open Shuffleboard, go to the SwerveModule tab, and see 4 indicators called "Mod 0 Cancoder", "Mod 1 Cancoder", etc. If you have already straightened the modules, copy those 4 numbers exactly (to 2 decimal places) to their respective ```STEER_OFFSET``` constants
-    * set ```DEBUGGING``` in SwerveModule.java back to false
 * Angle Motor PID Values (```ANGLE_KP```, ```ANGLE_KI```, ```ANGLE_KD```) in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
     * set ```TUNING_MODE``` in Constants.java to true
     * open Shuffleboard, go to the SmartDashboard tab, and see controls for each of the PID values; values can be changed via these controls as you interactively tune the controller
