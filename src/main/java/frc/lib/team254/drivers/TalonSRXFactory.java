@@ -34,7 +34,7 @@ public class TalonSRXFactory {
     public boolean SENSOR_PHASE = false;
 
     public int CONTROL_FRAME_PERIOD_MS = 5;
-    public int MOTION_CONTROL_FRAME_PERIOD_MS = 100;
+    public int MOTION_CONTROL_FRAME_PERIOD_MS = 3;
     public int GENERAL_STATUS_FRAME_RATE_MS = 5;
     public int FEEDBACK_STATUS_FRAME_RATE_MS = 100;
     public int QUAD_ENCODER_STATUS_FRAME_RATE_MS = 1000;

@@ -46,7 +46,7 @@ public class TalonFXFactory {
         SensorInitializationStrategy.BootToZero;
 
     public int CONTROL_FRAME_PERIOD_MS = 20; // 10
-    public int MOTION_CONTROL_FRAME_PERIOD_MS = 100;
+    public int MOTION_CONTROL_FRAME_PERIOD_MS = 3;
 
     public int GENERAL_STATUS_FRAME_RATE_MS = 10;
     public int FEEDBACK_STATUS_FRAME_RATE_MS = 49;
