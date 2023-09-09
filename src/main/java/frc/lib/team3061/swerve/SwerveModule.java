@@ -225,7 +225,7 @@ public class SwerveModule {
   public CommandBase getCheckCommand() {
     return this.wrappedSystemCheckCommand;
   }
-  
+
   /**
    * Returns a list of status signals for the swerve module related to odometry. This can be used to
    * synchronize the gyro and swerve modules to improve the accuracy of pose estimation.

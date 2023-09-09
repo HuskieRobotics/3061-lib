@@ -29,6 +29,7 @@ import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import edu.wpi.first.wpilibj.simulation.LinearSystemSim;
+import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team6328.util.Alert;
 import frc.lib.team6328.util.Alert.AlertType;
@@ -130,6 +131,11 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     configAngleMotor(angleMotorID, canCoderID);
     configDriveMotor(driveMotorID);
     configSim();
+
+    String subsystemName = "SwerveModule" + moduleNumber;
+    FaultReporter.getInstance().registerHardware(subsystemName, "angle encoder", angleEncoder);
+    FaultReporter.getInstance().registerHardware(subsystemName, "angle motor", angleMotor);
+    FaultReporter.getInstance().registerHardware(subsystemName, "drive motor", driveMotor);
   }
 
   private void configAngleEncoder(int canCoderID) {

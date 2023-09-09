@@ -1,7 +1,8 @@
 package frc.lib.team3015.subsystem;
 
-import com.ctre.phoenix.motorcontrol.can.BaseMotorController;
-import com.ctre.phoenix.sensors.CANCoder;
+import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.hardware.Pigeon2;
+import com.ctre.phoenix6.hardware.TalonFX;
 import com.revrobotics.CANSparkMax;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
@@ -171,8 +172,7 @@ public class FaultReporter {
     return worstStatus;
   }
 
-  public void registerHardware(
-      String subsystemName, String label, BaseMotorController phoenixMotor) {
+  public void registerHardware(String subsystemName, String label, TalonFX phoenixMotor) {
     SubsystemFaults subsystemFaults =
         subsystemsFaults.getOrDefault(subsystemName, new SubsystemFaults());
     subsystemFaults.hardware.add(new SelfCheckingPhoenixMotor(label, phoenixMotor));
@@ -193,15 +193,14 @@ public class FaultReporter {
     subsystemsFaults.put(subsystemName, subsystemFaults);
   }
 
-  public void registerHardware(
-      String subsystemName, String label, com.ctre.phoenix.sensors.Pigeon2 pigeon2) {
+  public void registerHardware(String subsystemName, String label, Pigeon2 pigeon2) {
     SubsystemFaults subsystemFaults =
         subsystemsFaults.getOrDefault(subsystemName, new SubsystemFaults());
     subsystemFaults.hardware.add(new SelfCheckingPigeon2(label, pigeon2));
     subsystemsFaults.put(subsystemName, subsystemFaults);
   }
 
-  public void registerHardware(String subsystemName, String label, CANCoder canCoder) {
+  public void registerHardware(String subsystemName, String label, CANcoder canCoder) {
     SubsystemFaults subsystemFaults =
         subsystemsFaults.getOrDefault(subsystemName, new SubsystemFaults());
     subsystemFaults.hardware.add(new SelfCheckingCANCoder(label, canCoder));
