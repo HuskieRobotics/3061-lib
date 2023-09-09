@@ -446,7 +446,7 @@ public class Drivetrain extends SubsystemBase {
         SwerveDriveKinematics.desaturateWheelSpeeds(
             newSwerveModuleStates, RobotConfig.getInstance().getRobotMaxVelocity());
 
-        setSwerveModuleStates(swerveModuleStates, isOpenLoop, false);
+        setSwerveModuleStates(newSwerveModuleStates, isOpenLoop, false);
         break;
 
       case CHARACTERIZATION:
@@ -548,7 +548,7 @@ public class Drivetrain extends SubsystemBase {
     Logger.getInstance().recordOutput("Odometry/RobotNoGyro", estimatedPoseWithoutGyro);
     Logger.getInstance().recordOutput("Odometry/Robot", poseEstimatorPose);
     Logger.getInstance().recordOutput("3DField", new Pose3d(poseEstimatorPose));
-    Logger.getInstance().recordOutput("SwerveModuleStates/Measured", states);
+    Logger.getInstance().recordOutput("SwerveModuleStates/Measured", swerveModuleStates);
   }
 
   /**
