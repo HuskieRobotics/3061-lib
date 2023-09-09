@@ -10,13 +10,12 @@ public interface SubsystemIO {
     double positionDeg = 0.0;
     double velocityRPM = 0.0;
     double closedLoopError = 0.0;
-    double appliedVoltage = 0.0;
     double setpoint = 0.0;
     double power = 0.0;
     String controlMode = "";
-    double[] statorCurrentAmps = new double[] {};
-    double[] tempCelsius = new double[] {};
-    double[] supplyCurrentAmps = new double[] {};
+    double statorCurrentAmps = 0.0;
+    double tempCelsius = 0.0;
+    double supplyCurrentAmps = 0.0;
   }
 
   /** Updates the set of loggable inputs. */

@@ -4,7 +4,7 @@
 
 package frc.lib.team3061.swerve;
 
-import com.ctre.phoenix.motorcontrol.NeutralMode;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 
 public final class SwerveModuleConstants {
 
@@ -47,6 +47,7 @@ public final class SwerveModuleConstants {
   public static final boolean MK4_L2_ANGLE_MOTOR_INVERTED = false;
   public static final boolean MK4_L2_CAN_CODER_INVERTED = false;
 
+  // FIXME: tune this; perhaps set to 0?
   public static final double OPEN_LOOP_RAMP = 0.25;
   public static final double CLOSED_LOOP_RAMP = 0.0;
 
@@ -56,7 +57,7 @@ public final class SwerveModuleConstants {
   public static final double ANGLE_PEAK_CURRENT_DURATION = 0.1;
   public static final boolean ANGLE_ENABLE_CURRENT_LIMIT = true;
 
-  public static final int DRIVE_CONTINUOUS_CURRENT_LIMIT = 35;
+  public static final int DRIVE_CONTINUOUS_CURRENT_LIMIT = 50;
   public static final int DRIVE_PEAK_CURRENT_LIMIT = 60;
   public static final double DRIVE_PEAK_CURRENT_DURATION = 0.1;
   public static final boolean DRIVE_ENABLE_CURRENT_LIMIT = true;
@@ -65,6 +66,6 @@ public final class SwerveModuleConstants {
   public static final int SLOT_INDEX = 0;
 
   /* Neutral Modes */
-  public static final NeutralMode ANGLE_NEUTRAL_MODE = NeutralMode.Coast;
-  public static final NeutralMode DRIVE_NEUTRAL_MODE = NeutralMode.Brake;
+  public static final NeutralModeValue ANGLE_NEUTRAL_MODE = NeutralModeValue.Coast;
+  public static final NeutralModeValue DRIVE_NEUTRAL_MODE = NeutralModeValue.Brake;
 }
