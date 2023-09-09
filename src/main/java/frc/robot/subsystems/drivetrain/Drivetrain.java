@@ -6,6 +6,8 @@ package frc.robot.subsystems.drivetrain;
 
 import static frc.robot.Constants.*;
 
+import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.StatusSignal;
 import com.pathplanner.lib.PathPlannerTrajectory.PathPlannerState;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -28,10 +30,14 @@ import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.gyro.GyroIO;
 import frc.lib.team3061.gyro.GyroIOInputsAutoLogged;
 import frc.lib.team3061.swerve.SwerveModule;
+import frc.lib.team3061.util.GeometryUtils;
 import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team6328.util.Alert;
 import frc.lib.team6328.util.Alert.AlertType;
 import frc.lib.team6328.util.TunableNumber;
+import frc.robot.Constants;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
@@ -111,8 +117,6 @@ public class Drivetrain extends SubsystemBase {
   private boolean isTranslationSlowMode = false;
   private boolean isRotationSlowMode = false;
 
-  private double gyroOffset;
-
   private ChassisSpeeds chassisSpeeds;
 
   private static final String SUBSYSTEM_NAME = "Drivetrain";
@@ -120,6 +124,8 @@ public class Drivetrain extends SubsystemBase {
   private static final boolean DEBUGGING = false;
 
   private final SwerveDrivePoseEstimator poseEstimator;
+  private final List<StatusSignal<Double>> odometrySignals = new ArrayList<>();
+
   private boolean brakeMode;
   private Timer brakeModeTimer = new Timer();
   private static final double BREAK_MODE_DELAY_SEC = 10.0;
@@ -163,11 +169,14 @@ public class Drivetrain extends SubsystemBase {
 
     this.isFieldRelative = true;
 
-    this.gyroOffset = 0;
-
     this.chassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
 
     this.poseEstimator = RobotOdometry.getInstance().getPoseEstimator();
+
+    this.odometrySignals.addAll(this.gyroIO.getOdometryStatusSignals());
+    for (SwerveModule swerveModule : swerveModules) {
+      this.odometrySignals.addAll(swerveModule.getOdometryStatusSignals());
+    }
 
     // based on testing we can drive in turbo mode all the time
     this.isTurbo = true;
@@ -239,24 +248,21 @@ public class Drivetrain extends SubsystemBase {
 
   /**
    * Returns the rotation of the robot. Zero degrees is facing away from the driver station; CCW is
-   * positive. This method should always be invoked instead of obtaining the yaw directly from the
-   * Pigeon as the local offset needs to be added. If the gyro is not connected, the rotation from
-   * the estimated pose is returned.
+   * positive. If the gyro is not connected, the rotation from the estimated pose is returned.
    *
    * @return the rotation of the robot
    */
   public Rotation2d getRotation() {
     if (gyroInputs.connected) {
-      return Rotation2d.fromDegrees(gyroInputs.yawDeg + this.gyroOffset);
+      return Rotation2d.fromDegrees(gyroInputs.yawDeg);
     } else {
       return estimatedPoseWithoutGyro.getRotation();
     }
   }
 
   /**
-   * Returns the yaw of the drivetrain as reported by the gyro in degrees. This value does not
-   * include the local offset and will likely be different than value returned by the getRotation
-   * method, which should probably be invoked instead.
+   * Returns the yaw of the drivetrain as reported by the gyro in degrees. Usually, the getRotation
+   * method should be invoked instead.
    *
    * @return the yaw of the drivetrain as reported by the gyro in degrees
    */
@@ -290,13 +296,9 @@ public class Drivetrain extends SubsystemBase {
    * @param expectedYaw the rotation of the robot (in degrees)
    */
   public void setGyroOffset(double expectedYaw) {
-    // There is a delay between setting the yaw on the Pigeon and that change
-    //      taking effect. As a result, it is recommended to never set the yaw and
-    //      adjust the local offset instead.
     if (gyroInputs.connected) {
-      this.gyroOffset = expectedYaw - gyroInputs.yawDeg;
+      this.gyroIO.setYaw(expectedYaw);
     } else {
-      this.gyroOffset = 0;
       this.estimatedPoseWithoutGyro =
           new Pose2d(
               estimatedPoseWithoutGyro.getX(),
@@ -430,6 +432,8 @@ public class Drivetrain extends SubsystemBase {
           chassisSpeeds = new ChassisSpeeds(xVelocity, yVelocity, rotationalVelocity);
         }
 
+        chassisSpeeds = convertFromDiscreteChassisSpeedsToContinuous(chassisSpeeds);
+
         Logger.getInstance()
             .recordOutput("Drivetrain/ChassisSpeedVx", chassisSpeeds.vxMetersPerSecond);
         Logger.getInstance()
@@ -442,10 +446,7 @@ public class Drivetrain extends SubsystemBase {
         SwerveDriveKinematics.desaturateWheelSpeeds(
             newSwerveModuleStates, RobotConfig.getInstance().getRobotMaxVelocity());
 
-        for (SwerveModule swerveModule : swerveModules) {
-          swerveModule.setDesiredState(
-              newSwerveModuleStates[swerveModule.getModuleNumber()], isOpenLoop, false);
-        }
+        setSwerveModuleStates(swerveModuleStates, isOpenLoop, false);
         break;
 
       case CHARACTERIZATION:
@@ -480,6 +481,13 @@ public class Drivetrain extends SubsystemBase {
   @Override
   public void periodic() {
 
+    // synchronize all of the signals related to pose estimation
+    if (RobotConfig.getInstance().getPhoenix6Licensed()) {
+      // this is a licensed method
+      BaseStatusSignal.waitForAll(
+          Constants.LOOP_PERIOD_SECS, this.odometrySignals.toArray(new BaseStatusSignal[0]));
+    }
+
     // update and log gyro inputs
     gyroIO.updateInputs(gyroInputs);
     Logger.getInstance().processInputs("Drivetrain/Gyro", gyroInputs);
@@ -500,7 +508,7 @@ public class Drivetrain extends SubsystemBase {
 
     // if the gyro is not connected, use the swerve module positions to estimate the robot's
     // rotation
-    if (!gyroInputs.connected) {
+    if (!gyroInputs.connected || Constants.getMode() == Constants.Mode.SIM) {
       SwerveModulePosition[] moduleDeltas = new SwerveModulePosition[4];
       for (int index = 0; index < moduleDeltas.length; index++) {
         SwerveModulePosition current = swerveModulePositions[index];
@@ -509,17 +517,19 @@ public class Drivetrain extends SubsystemBase {
         moduleDeltas[index] =
             new SwerveModulePosition(
                 current.distanceMeters - previous.distanceMeters, current.angle);
+        // FIXME: I don't think this assignment is needed...
         previous.distanceMeters = current.distanceMeters;
       }
 
       Twist2d twist = kinematics.toTwist2d(moduleDeltas);
+      this.gyroIO.addYaw(Math.toDegrees(twist.dtheta));
 
       estimatedPoseWithoutGyro = estimatedPoseWithoutGyro.exp(twist);
     }
 
     // update the pose estimator based on the gyro and swerve module positions
     poseEstimator.updateWithTime(
-        Timer.getFPGATimestamp(), this.getRotation(), swerveModulePositions);
+        Logger.getInstance().getRealTimestamp() / 1e6, this.getRotation(), swerveModulePositions);
 
     // update the brake mode based on the robot's velocity and state (enabled/disabled)
     updateBrakeMode();
@@ -538,8 +548,7 @@ public class Drivetrain extends SubsystemBase {
     Logger.getInstance().recordOutput("Odometry/RobotNoGyro", estimatedPoseWithoutGyro);
     Logger.getInstance().recordOutput("Odometry/Robot", poseEstimatorPose);
     Logger.getInstance().recordOutput("3DField", new Pose3d(poseEstimatorPose));
-    Logger.getInstance().recordOutput("SwerveModuleStates", swerveModuleStates);
-    Logger.getInstance().recordOutput("Drivetrain/GyroOffset", this.gyroOffset);
+    Logger.getInstance().recordOutput("SwerveModuleStates/Measured", states);
   }
 
   /**
@@ -552,12 +561,19 @@ public class Drivetrain extends SubsystemBase {
    * @param states the specified swerve module state for each swerve module
    */
   public void setSwerveModuleStates(SwerveModuleState[] states) {
+    setSwerveModuleStates(states, false, false);
+  }
+
+  private void setSwerveModuleStates(
+      SwerveModuleState[] states, boolean isOpenLoop, boolean forceAngle) {
     SwerveDriveKinematics.desaturateWheelSpeeds(
         states, RobotConfig.getInstance().getRobotMaxVelocity());
 
     for (SwerveModule swerveModule : swerveModules) {
-      swerveModule.setDesiredState(states[swerveModule.getModuleNumber()], false, false);
+      swerveModule.setDesiredState(states[swerveModule.getModuleNumber()], isOpenLoop, forceAngle);
     }
+
+    Logger.getInstance().recordOutput("SwerveModuleStates/Setpoints", states);
   }
 
   /**
@@ -630,9 +646,7 @@ public class Drivetrain extends SubsystemBase {
     states[2].angle = new Rotation2d(Math.PI / 2 + Math.atan(trackwidthMeters / wheelbaseMeters));
     states[3].angle =
         new Rotation2d(3.0 / 2.0 * Math.PI - Math.atan(trackwidthMeters / wheelbaseMeters));
-    for (SwerveModule swerveModule : swerveModules) {
-      swerveModule.setDesiredState(states[swerveModule.getModuleNumber()], true, true);
-    }
+    setSwerveModuleStates(states, true, true);
   }
 
   /**
@@ -800,7 +814,7 @@ public class Drivetrain extends SubsystemBase {
       setBrakeMode(true);
       brakeModeTimer.restart();
 
-    } else {
+    } else if (!DriverStation.isEnabled()) {
       boolean stillMoving = false;
       for (SwerveModule mod : swerveModules) {
         if (Math.abs(mod.getState().speedMetersPerSecond)
@@ -822,6 +836,32 @@ public class Drivetrain extends SubsystemBase {
       mod.setAngleBrakeMode(enable);
       mod.setDriveBrakeMode(enable);
     }
+  }
+
+  /**
+   * Correction for swerve second order dynamics issue. From Cache Money:
+   * https://github.com/cachemoney8096/2023-charged-up/blob/main/src/main/java/frc/robot/subsystems/drive/DriveSubsystem.java#L182
+   * who borrowed it from 254:
+   * https://github.com/Team254/FRC-2022-Public/blob/main/src/main/java/com/team254/frc2022/subsystems/Drive.java#L325
+   * Discussion:
+   * https://www.chiefdelphi.com/t/whitepaper-swerve-drive-skew-and-second-order-kinematics/416964
+   *
+   * <p>FIXME: remove this method and replace with ChassisSpeeds.fromDiscreteSpeeds once released in
+   * WPILib
+   */
+  private static ChassisSpeeds convertFromDiscreteChassisSpeedsToContinuous(
+      ChassisSpeeds discreteChassisSpeeds) {
+
+    Pose2d futureRobotPose =
+        new Pose2d(
+            discreteChassisSpeeds.vxMetersPerSecond * LOOP_PERIOD_SECS,
+            discreteChassisSpeeds.vyMetersPerSecond * LOOP_PERIOD_SECS,
+            Rotation2d.fromRadians(discreteChassisSpeeds.omegaRadiansPerSecond * LOOP_PERIOD_SECS));
+    Twist2d twistForPose = GeometryUtils.log(futureRobotPose);
+    return new ChassisSpeeds(
+        twistForPose.dx / LOOP_PERIOD_SECS,
+        twistForPose.dy / LOOP_PERIOD_SECS,
+        twistForPose.dtheta / LOOP_PERIOD_SECS);
   }
 
   private enum DriveMode {

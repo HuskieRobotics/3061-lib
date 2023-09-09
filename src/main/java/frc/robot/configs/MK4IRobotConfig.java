@@ -15,22 +15,22 @@ public class MK4IRobotConfig extends RobotConfig {
   private static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 13;
   private static final int FRONT_LEFT_MODULE_STEER_MOTOR = 12;
   private static final int FRONT_LEFT_MODULE_STEER_ENCODER = 14;
-  private static final double FRONT_LEFT_MODULE_STEER_OFFSET = 37.35;
+  private static final double FRONT_LEFT_MODULE_STEER_OFFSET_ROT = 37.35 / 360.0;
 
   private static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 16;
   private static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 15;
   private static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 17;
-  private static final double FRONT_RIGHT_MODULE_STEER_OFFSET = 83.49;
+  private static final double FRONT_RIGHT_MODULE_STEER_OFFSET_ROT = 83.49 / 360.0;
 
   private static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 7;
   private static final int BACK_LEFT_MODULE_STEER_MOTOR = 6;
   private static final int BACK_LEFT_MODULE_STEER_ENCODER = 8;
-  private static final double BACK_LEFT_MODULE_STEER_OFFSET = 259.62;
+  private static final double BACK_LEFT_MODULE_STEER_OFFSET_ROT = 259.62 / 360.0;
 
   private static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 10;
   private static final int BACK_RIGHT_MODULE_STEER_MOTOR = 9;
   private static final int BACK_RIGHT_MODULE_STEER_ENCODER = 11;
-  private static final double BACK_RIGHT_MODULE_STEER_OFFSET = 9.14;
+  private static final double BACK_RIGHT_MODULE_STEER_OFFSET_ROT = 9.14 / 360.0;
 
   private static final int GYRO_ID = 18;
 
@@ -40,16 +40,14 @@ public class MK4IRobotConfig extends RobotConfig {
   private static final double ROBOT_LENGTH_WITH_BUMPERS = 0.8255; // meters
 
   /* Angle Motor PID Values */
-  private static final double ANGLE_KP = 0.4;
+  private static final double ANGLE_KP = 9.609384164222876;
   private static final double ANGLE_KI = 0.0;
-  private static final double ANGLE_KD = 12.0;
-  private static final double ANGLE_KF = 0.0;
+  private static final double ANGLE_KD = 0.28828152492668624;
 
   /* Drive Motor PID Values */
-  private static final double DRIVE_KP = 0.10;
+  private static final double DRIVE_KP = 0.2402346041055719;
   private static final double DRIVE_KI = 0.0;
-  private static final double DRIVE_KD = 5.5;
-  private static final double DRIVE_KF = 0.0;
+  private static final double DRIVE_KD = 0.013212903225806451;
 
   private static final double DRIVE_KS = 0.25988;
   private static final double DRIVE_KV = 2.46330;
@@ -110,11 +108,6 @@ public class MK4IRobotConfig extends RobotConfig {
   }
 
   @Override
-  public double getSwerveAngleKF() {
-    return ANGLE_KF;
-  }
-
-  @Override
   public double getSwerveDriveKP() {
     return DRIVE_KP;
   }
@@ -127,11 +120,6 @@ public class MK4IRobotConfig extends RobotConfig {
   @Override
   public double getSwerveDriveKD() {
     return DRIVE_KD;
-  }
-
-  @Override
-  public double getSwerveDriveKF() {
-    return DRIVE_KF;
   }
 
   @Override
@@ -187,10 +175,10 @@ public class MK4IRobotConfig extends RobotConfig {
   @Override
   public double[] getSwerveSteerOffsets() {
     return new double[] {
-      FRONT_LEFT_MODULE_STEER_OFFSET,
-      FRONT_RIGHT_MODULE_STEER_OFFSET,
-      BACK_LEFT_MODULE_STEER_OFFSET,
-      BACK_RIGHT_MODULE_STEER_OFFSET
+      FRONT_LEFT_MODULE_STEER_OFFSET_ROT,
+      FRONT_RIGHT_MODULE_STEER_OFFSET_ROT,
+      BACK_LEFT_MODULE_STEER_OFFSET_ROT,
+      BACK_RIGHT_MODULE_STEER_OFFSET_ROT
     };
   }
 

@@ -4,11 +4,13 @@
 
 package frc.lib.team3061.swerve;
 
+import com.ctre.phoenix6.StatusSignal;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import java.util.List;
 import org.littletonrobotics.junction.Logger;
 
 /** SwerveModule models a single swerve module. */
@@ -61,9 +63,7 @@ public class SwerveModule {
   public void setDesiredState(
       SwerveModuleState desiredState, boolean isOpenLoop, boolean forceAngle) {
 
-    // this optimization is specific to CTRE hardware; perhaps this responsibility should be demoted
-    // to the hardware-specific classes.
-    desiredState = CTREModuleState.optimize(desiredState, getState().angle);
+    desiredState = SwerveModuleState.optimize(desiredState, getState().angle);
 
     if (isOpenLoop) {
       double percentOutput = desiredState.speedMetersPerSecond / maxVelocity;
@@ -137,7 +137,7 @@ public class SwerveModule {
    * @return the stator current of the drive motor of this swerve module
    */
   public double getDriveCurrent() {
-    return inputs.driveCurrentAmps[0];
+    return inputs.driveStatorCurrentAmps;
   }
 
   /**
@@ -166,5 +166,15 @@ public class SwerveModule {
    */
   public void setAngleBrakeMode(boolean enable) {
     io.setAngleBrakeMode(enable);
+  }
+
+  /**
+   * Returns a list of status signals for the swerve module related to odometry. This can be used to
+   * synchronize the gyro and swerve modules to improve the accuracy of pose estimation.
+   *
+   * @return the status signals for the swerve module
+   */
+  public List<StatusSignal<Double>> getOdometryStatusSignals() {
+    return io.getOdometryStatusSignals();
   }
 }

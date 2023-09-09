@@ -24,6 +24,17 @@ public abstract class RobotConfig {
   }
 
   /**
+   * Returns if the CANivore and/or CTRE CAN devices are licensed and have access to Phoenix 6 Pro
+   * features.
+   *
+   * @return true if the CANivore and/or CTRE CAN devices are licensed and have access to Phoenix 6
+   *     Pro features
+   */
+  public boolean getPhoenix6Licensed() {
+    return false;
+  }
+
+  /**
    * Returns the proportional constant for the PID controller for the angle motor on the swerve
    * module. Defaults to 0.
    *
@@ -51,17 +62,6 @@ public abstract class RobotConfig {
    * @return the derivative constant for the PID controller for the angle motor on the swerve module
    */
   public double getSwerveAngleKD() {
-    return 0.0;
-  }
-
-  /**
-   * Returns the feedforward constant for the PID controller for the angle motor on the swerve
-   * module. Defaults to 0.
-   *
-   * @return the feedforward constant for the PID controller for the angle motor on the swerve
-   *     module
-   */
-  public double getSwerveAngleKF() {
     return 0.0;
   }
 
@@ -97,17 +97,6 @@ public abstract class RobotConfig {
   }
 
   /**
-   * Returns the feedforward constant for the PID controller for the drive motor on the swerve
-   * module. Defaults to 0.
-   *
-   * @return the feedforward constant for the PID controller for the drive motor on the swerve
-   *     module
-   */
-  public double getSwerveDriveKF() {
-    return 0.0;
-  }
-
-  /**
    * Returns the voltage needed to overcome the drivetrain's static friction. Defaults to 0.
    *
    * @return the voltage needed to overcome the drivetrain's static friction
@@ -117,9 +106,9 @@ public abstract class RobotConfig {
   }
 
   /**
-   * Returns the voltage needed to hold (or “cruise”) at a given constant velocity. Defaults to 0.
+   * Returns the voltage needed to hold (or "cruise") at a given constant velocity. Defaults to 0.
    *
-   * @return the voltage needed to hold (or “cruise”) at a given constant velocity
+   * @return the voltage needed to hold (or "cruise") at a given constant velocity
    */
   public double getDriveKV() {
     return 0.0;
@@ -169,11 +158,11 @@ public abstract class RobotConfig {
   public abstract int[] getSwerveSteerEncoderCANIDs();
 
   /**
-   * Returns the swerve module offsets in the order of front left, front right, back left, and back
-   * right. Must be overridden.
+   * Returns the swerve module offsets, in units of rotations, in the order of front left, front
+   * right, back left, and back right. Must be overridden.
    *
-   * @return the swerve module offsets in the order of front left, front right, back left, and back
-   *     right
+   * @return the swerve module offsets, in units of rotations, in the order of front left, front
+   *     right, back left, and back right
    */
   public abstract double[] getSwerveSteerOffsets();
 

@@ -4,6 +4,9 @@
 
 package frc.lib.team3061.gyro;
 
+import com.ctre.phoenix6.StatusSignal;
+import java.util.ArrayList;
+import java.util.List;
 import org.littletonrobotics.junction.AutoLog;
 
 @java.lang.SuppressWarnings({"java:S1104"})
@@ -42,4 +45,29 @@ public interface GyroIO {
    * @param inputs the inputs to update
    */
   public default void updateInputs(GyroIOInputs inputs) {}
+
+  /**
+   * Sets the yaw of the gyro to the specified value in degrees.
+   *
+   * @param yaw the new yaw in degrees
+   */
+  public default void setYaw(double yaw) {}
+
+  /**
+   * Adds a yaw offset to the gyro. This is only meaningful for simulator gyros. This method should
+   * be invoked in a subsystem's periodic method.
+   *
+   * @param yaw the number of degrees to add to the gyro's yaw
+   */
+  public default void addYaw(double yaw) {}
+
+  /**
+   * Returns a list of status signals for the gyro related to odometry. This can be used to
+   * synchronize the gyro and swerve modules to improve the accuracy of pose estimation.
+   *
+   * @return the status signals for the gyro
+   */
+  public default List<StatusSignal<Double>> getOdometryStatusSignals() {
+    return new ArrayList<>();
+  }
 }
