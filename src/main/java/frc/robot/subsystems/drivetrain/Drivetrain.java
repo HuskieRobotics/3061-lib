@@ -794,7 +794,7 @@ public class Drivetrain extends SubsystemBase {
   }
 
   /**
-   * Runs forwards at the commanded voltage.
+   * Rotates swerve modules at the commanded voltage.
    *
    * @param volts the commanded voltage
    */
@@ -807,9 +807,9 @@ public class Drivetrain extends SubsystemBase {
   }
 
   /**
-   * Returns the average drive velocity in meters/sec.
+   * Returns the average rotational velocity in radians/sec.
    *
-   * @return the average drive velocity in meters/sec
+   * @return the average rotational velocity in radians/sec
    */
   public double getRotateCharacterizationVelocity() {
     double avgVelocity = 0.0;
@@ -823,9 +823,9 @@ public class Drivetrain extends SubsystemBase {
   }
 
   /**
-   * Returns the average drive velocity in meters/sec.
+   * Returns the average rotational acceleration in radians/sec^2.
    *
-   * @return the average drive velocity in meters/sec
+   * @return the average rotational acceleration in radians/sec^2
    */
   public double getRotateCharacterizationAcceleration() {
     double avgAcceleration = 0.0;
