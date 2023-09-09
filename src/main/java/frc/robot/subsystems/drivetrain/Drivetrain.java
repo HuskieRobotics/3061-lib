@@ -167,7 +167,7 @@ public class Drivetrain extends SubsystemBase {
 
     this.zeroGyroscope();
 
-    this.isFieldRelative = true;
+    this.isFieldRelative = false;
 
     this.chassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
 
