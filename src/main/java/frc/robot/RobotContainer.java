@@ -47,7 +47,6 @@ import frc.robot.operator_interface.OperatorInterface;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.subsystem.Subsystem;
 import frc.robot.subsystems.subsystem.SubsystemIO;
-import frc.robot.subsystems.subsystem.SubsystemIOTalonFX;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -153,7 +152,8 @@ public class RobotContainer {
               visionIOs[i] = new VisionIOPhotonVision(cameraNames[i]);
             }
             vision = new Vision(visionIOs);
-            subsystem = new Subsystem(new SubsystemIOTalonFX());
+            // subsystem = new Subsystem(new SubsystemIOTalonFX());
+            subsystem = new Subsystem(new SubsystemIO() {});
 
             if (Constants.getRobot() == Constants.RobotType.ROBOT_DEFAULT) {
               new Pneumatics(new PneumaticsIORev());

@@ -789,7 +789,7 @@ public class Drivetrain extends SubsystemBase {
       setBrakeMode(true);
       brakeModeTimer.restart();
 
-    } else {
+    } else if (!DriverStation.isEnabled()) {
       boolean stillMoving = false;
       for (SwerveModule mod : swerveModules) {
         if (Math.abs(mod.getState().speedMetersPerSecond)

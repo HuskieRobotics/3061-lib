@@ -16,10 +16,12 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
+import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.ctre.phoenix6.sim.CANcoderSimState;
+import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.system.plant.DCMotor;
@@ -56,9 +58,9 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
 
   private final double wheelCircumference;
   private final double driveGearRatio;
-  private final InvertedValue driveMotorInverted;
+  private final boolean driveMotorInverted;
   private final double angleGearRatio;
-  private final InvertedValue angleMotorInverted;
+  private final boolean angleMotorInverted;
   private final boolean canCoderInverted;
 
   private final String canBusName = RobotConfig.getInstance().getCANBusName();
@@ -110,34 +112,22 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
 
       wheelCircumference = MK4_L2_WHEEL_CIRCUMFERENCE;
       driveGearRatio = MK4_L2_DRIVE_GEAR_RATIO;
-      driveMotorInverted =
-          MK4_L2_DRIVE_MOTOR_INVERTED
-              ? InvertedValue.Clockwise_Positive
-              : InvertedValue.CounterClockwise_Positive;
+      driveMotorInverted = MK4_L2_DRIVE_MOTOR_INVERTED;
       angleGearRatio = MK4_L2_ANGLE_GEAR_RATIO;
-      angleMotorInverted =
-          MK4_L2_ANGLE_MOTOR_INVERTED
-              ? InvertedValue.Clockwise_Positive
-              : InvertedValue.CounterClockwise_Positive;
+      angleMotorInverted = MK4_L2_ANGLE_MOTOR_INVERTED;
       canCoderInverted = MK4_L2_CAN_CODER_INVERTED;
     } else { // MK4I
 
       wheelCircumference = MK4I_L2_WHEEL_CIRCUMFERENCE;
       driveGearRatio = MK4I_L2_DRIVE_GEAR_RATIO;
-      driveMotorInverted =
-          MK4I_L2_DRIVE_MOTOR_INVERTED
-              ? InvertedValue.Clockwise_Positive
-              : InvertedValue.CounterClockwise_Positive;
+      driveMotorInverted = MK4I_L2_DRIVE_MOTOR_INVERTED;
       angleGearRatio = MK4I_L2_ANGLE_GEAR_RATIO;
-      angleMotorInverted =
-          MK4I_L2_ANGLE_MOTOR_INVERTED
-              ? InvertedValue.Clockwise_Positive
-              : InvertedValue.CounterClockwise_Positive;
+      angleMotorInverted = MK4I_L2_ANGLE_MOTOR_INVERTED;
       canCoderInverted = MK4I_L2_CAN_CODER_INVERTED;
     }
 
     configAngleEncoder(canCoderID);
-    configAngleMotor(angleMotorID);
+    configAngleMotor(angleMotorID, canCoderID);
     configDriveMotor(driveMotorID);
     configSim();
   }
@@ -155,7 +145,7 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
 
     StatusCode status = StatusCode.StatusCodeNotInitialized;
     for (int i = 0; i < 5; ++i) {
-      this.angleEncoder.getConfigurator().apply(config);
+      status = this.angleEncoder.getConfigurator().apply(config);
       if (status.isOK()) {
         angleEncoderConfigAlert.set(false);
         break;
@@ -167,7 +157,7 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     }
   }
 
-  private void configAngleMotor(int angleMotorID) {
+  private void configAngleMotor(int angleMotorID, int canCoderID) {
     this.angleMotor = new TalonFX(angleMotorID, canBusName);
 
     TalonFXConfiguration config = new TalonFXConfiguration();
@@ -179,15 +169,25 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     currentLimits.SupplyCurrentLimitEnable = ANGLE_ENABLE_CURRENT_LIMIT;
     config.CurrentLimits = currentLimits;
 
-    config.MotorOutput.Inverted = angleMotorInverted;
+    config.MotorOutput.Inverted =
+        angleMotorInverted
+            ? InvertedValue.Clockwise_Positive
+            : InvertedValue.CounterClockwise_Positive;
     config.MotorOutput.NeutralMode = ANGLE_NEUTRAL_MODE;
+
     config.Slot0.kP = turnKp.get();
     config.Slot0.kI = turnKi.get();
     config.Slot0.kD = turnKd.get();
 
+    config.ClosedLoopGeneral.ContinuousWrap = true;
+
+    config.Feedback.FeedbackRemoteSensorID = canCoderID;
+    config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
+    config.Feedback.RotorToSensorRatio = angleGearRatio;
+
     StatusCode status = StatusCode.StatusCodeNotInitialized;
     for (int i = 0; i < 5; ++i) {
-      this.angleMotor.getConfigurator().apply(config);
+      status = this.angleMotor.getConfigurator().apply(config);
       if (status.isOK()) {
         angleMotorConfigAlert.set(false);
         break;
@@ -197,10 +197,6 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
       angleMotorConfigAlert.set(true);
       angleMotorConfigAlert.setText(status.toString());
     }
-
-    this.angleEncoder.getAbsolutePosition().waitForUpdate(0.1);
-    this.angleMotor.setRotorPosition(
-        this.angleEncoder.getAbsolutePosition().getValue() * angleGearRatio);
 
     this.anglePositionStatusSignal = this.angleMotor.getPosition();
     this.angleVelocityStatusSignal = this.angleMotor.getVelocity();
@@ -222,7 +218,10 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     currentLimits.SupplyCurrentLimitEnable = DRIVE_ENABLE_CURRENT_LIMIT;
     config.CurrentLimits = currentLimits;
 
-    config.MotorOutput.Inverted = driveMotorInverted;
+    config.MotorOutput.Inverted =
+        driveMotorInverted
+            ? InvertedValue.Clockwise_Positive
+            : InvertedValue.CounterClockwise_Positive;
     config.MotorOutput.NeutralMode = DRIVE_NEUTRAL_MODE;
     config.Slot0.kP = driveKp.get();
     config.Slot0.kI = driveKi.get();
@@ -234,7 +233,7 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
 
     StatusCode status = StatusCode.StatusCodeNotInitialized;
     for (int i = 0; i < 5; ++i) {
-      this.driveMotor.getConfigurator().apply(config);
+      status = this.driveMotor.getConfigurator().apply(config);
       if (status.isOK()) {
         driveMotorConfigAlert.set(false);
         break;
@@ -295,16 +294,19 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     inputs.driveTempCelsius = this.driveMotor.getDeviceTemp().getValue();
 
     inputs.angleAbsolutePositionDeg = this.angleEncoder.getAbsolutePosition().getValue() * 360.0;
+    // since we are using the FusedCANcoder feature, the position and velocity signal for the angle
+    // motor accounts for the gear ratio; so, pass a gear ratio of 1 to just convert from rotations
+    // to degrees.
     inputs.anglePositionDeg =
         Conversions.falconRotationsToMechanismDegrees(
             BaseStatusSignal.getLatencyCompensatedValue(
                 anglePositionStatusSignal, angleVelocityStatusSignal),
-            angleGearRatio);
+            1);
     inputs.anglePositionErrorDeg =
-        Conversions.falconRotationsToMechanismDegrees(
-            anglePositionErrorStatusSignal.getValue(), angleGearRatio);
+        Conversions.falconRotationsToMechanismDegrees(anglePositionErrorStatusSignal.getValue(), 1);
     inputs.angleVelocityRevPerMin =
-        Conversions.falconRPSToMechanismRPM(angleVelocityStatusSignal.getValue(), angleGearRatio);
+        Conversions.falconRPSToMechanismRPM(angleVelocityStatusSignal.getValue(), 1);
+
     inputs.angleAppliedPercentage = this.angleMotor.getDutyCycle().getValue() / 2.0;
     inputs.angleStatorCurrentAmps = this.angleMotor.getStatorCurrent().getValue();
     inputs.angleSupplyCurrentAmps = this.angleMotor.getSupplyCurrent().getValue();
@@ -350,8 +352,7 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
   @Override
   public void setAnglePosition(double degrees) {
     this.angleMotor.setControl(
-        anglePositionRequest.withPosition(
-            Conversions.degreesToFalconRotations(degrees, angleGearRatio)));
+        anglePositionRequest.withPosition(Conversions.degreesToFalconRotations(degrees, 1)));
   }
 
   /** Enable or disable brake mode on the drive motor. */
@@ -388,8 +389,20 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
       return;
     }
     this.angleEncoderSimState = this.angleEncoder.getSimState();
+    this.angleEncoderSimState.Orientation =
+        this.canCoderInverted
+            ? ChassisReference.Clockwise_Positive
+            : ChassisReference.CounterClockwise_Positive;
     this.angleMotorSimState = this.angleMotor.getSimState();
+    this.angleMotorSimState.Orientation =
+        this.angleMotorInverted
+            ? ChassisReference.Clockwise_Positive
+            : ChassisReference.CounterClockwise_Positive;
     this.driveMotorSimState = this.driveMotor.getSimState();
+    this.driveMotorSimState.Orientation =
+        this.driveMotorInverted
+            ? ChassisReference.Clockwise_Positive
+            : ChassisReference.CounterClockwise_Positive;
 
     // replace the flywheel sim with the position system after characterizing the rotation of the
     // swerve modules on the robot
@@ -422,11 +435,10 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     double turnRPM = turnSim.getAngularVelocityRPM();
     double angleEncoderRPS = turnRPM / 60;
     double angleEncoderRotations = angleEncoderRPS * Constants.LOOP_PERIOD_SECS;
-    double angleMotorRPS = Conversions.rpmToFalconRPS(turnRPM, angleGearRatio);
-    double angleMotorRotations = angleMotorRPS * Constants.LOOP_PERIOD_SECS;
+
     this.angleEncoderSimState.addPosition(angleEncoderRotations);
-    this.angleMotorSimState.addRotorPosition(angleMotorRotations);
-    this.angleMotorSimState.setRotorVelocity(angleMotorRPS);
+    this.angleMotorSimState.addRotorPosition(angleEncoderRotations);
+    this.angleMotorSimState.setRotorVelocity(angleEncoderRPS);
 
     double driveMPS = driveSim.getOutput(0);
     double driveMotorRPS = Conversions.mpsToFalconRPS(driveMPS, wheelCircumference, driveGearRatio);

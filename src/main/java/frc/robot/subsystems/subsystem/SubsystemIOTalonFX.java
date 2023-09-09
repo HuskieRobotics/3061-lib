@@ -131,7 +131,7 @@ public class SubsystemIOTalonFX implements SubsystemIO {
 
     StatusCode status = StatusCode.StatusCodeNotInitialized;
     for (int i = 0; i < 5; ++i) {
-      this.motor.getConfigurator().apply(config);
+      status = this.motor.getConfigurator().apply(config);
       if (status.isOK()) {
         configAlert.set(false);
         break;

@@ -8,11 +8,11 @@ public class SubsystemConstants {
     throw new IllegalStateException(CONSTRUCTOR_EXCEPTION);
   }
 
-  public static final boolean DEBUGGING = true;
-  public static final boolean TESTING = true;
+  public static final boolean DEBUGGING = false;
+  public static final boolean TESTING = false;
   public static final String SUBSYSTEM_NAME = "Subsystem";
 
-  public static final int MOTOR_CAN_ID = 6;
+  public static final int MOTOR_CAN_ID = 20;
   public static final double GEAR_RATIO = 100.0;
   public static final boolean MOTOR_INVERTED = false;
 
