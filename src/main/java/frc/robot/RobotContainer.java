@@ -376,18 +376,33 @@ public class RobotContainer {
 
     /************ Drive Characterization ************
      *
-     * useful for characterizing the drivetrain (i.e, determining kS and kV)
+     * useful for characterizing the swerve modules for driving (i.e, determining kS and kV)
      *
      */
     autoChooser.addOption(
-        "Drive Characterization",
+        "Swerve Drive Characterization",
         new FeedForwardCharacterization(
             drivetrain,
             true,
             new FeedForwardCharacterizationData("drive"),
-            drivetrain::runCharacterizationVolts,
-            drivetrain::getCharacterizationVelocity,
-            drivetrain::getCharacterizationAcceleration));
+            drivetrain::runDriveCharacterizationVolts,
+            drivetrain::getDriveCharacterizationVelocity,
+            drivetrain::getDriveCharacterizationAcceleration));
+
+    /************ Swerve Rotate Characterization ************
+     *
+     * useful for characterizing the swerve modules for rotating (i.e, determining kS and kV)
+     *
+     */
+    autoChooser.addOption(
+        "Swerve Rotate Characterization",
+        new FeedForwardCharacterization(
+            drivetrain,
+            true,
+            new FeedForwardCharacterizationData("rotate"),
+            drivetrain::runRotateCharacterizationVolts,
+            drivetrain::getRotateCharacterizationVelocity,
+            drivetrain::getRotateCharacterizationAcceleration));
 
     /************ Distance Test ************
      *

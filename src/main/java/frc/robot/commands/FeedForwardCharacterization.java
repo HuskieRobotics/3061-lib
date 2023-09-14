@@ -224,8 +224,8 @@ public class FeedForwardCharacterization extends CommandBase {
       System.out.println("\tCount=" + Integer.toString(velocityData.size()) + "");
       System.out.println(String.format("\tMSE (V^2)=%.5f", meanSquaredError));
       System.out.println(String.format("\tkS (V)=%.5f", xMatrix.get(2, 0)));
-      System.out.println(String.format("\tkV (V/(m/s))=%.5f", xMatrix.get(1, 0)));
-      System.out.println(String.format("\tkA (V/(m/s^2))=%.5f", xMatrix.get(0, 0)));
+      System.out.println(String.format("\tkV (V/(m/s) or V/(rad/s))=%.5f", xMatrix.get(1, 0)));
+      System.out.println(String.format("\tkA (V/(m/s^2) or V/(rad/s^2))=%.5f", xMatrix.get(0, 0)));
     }
   }
 }

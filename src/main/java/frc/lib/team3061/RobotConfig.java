@@ -65,6 +65,34 @@ public abstract class RobotConfig {
     return 0.0;
   }
 
+
+  /*
+   * Returns the voltage needed to overcome the swerve module's static friction. Defaults to 0.
+   * 
+   * @return the voltage needed to overcome the swerve module's static friction
+   */
+  public double getSwerveAngleKS() {
+    return 0.0;
+  }
+
+  /**
+   * Returns the voltage needed to hold (or "cruise") at a given constant velocity. Defaults to 0.
+   *
+   * @return the voltage needed to hold (or "cruise") at a given constant velocity
+   */
+  public double getSwerveAngleKV() {
+    return 0.0;
+  }
+
+  /**
+   * Returns the voltage needed to induce a given acceleration in the motor shaft. Defaults to 0.
+   *
+   * @return the voltage needed to induce a given acceleration in the motor shaft
+   */
+  public double getSwerveAngleKA() {
+    return 0.0;
+  }
+
   /**
    * Returns the proportional constant for the PID controller for the drive motor on the swerve
    * module. Defaults to 0.
