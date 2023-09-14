@@ -22,7 +22,7 @@ import org.ejml.simple.SimpleMatrix;
 public class FeedForwardCharacterization extends CommandBase {
   private static final double START_DELAY_SECS = 2.0;
   // FIXME: tune such that we hit 12 V before we run out of carpet
-  private static final double RAMP_RATE_VOLTS_PER_SECOND = 0.5;
+  private static final double RAMP_RATE_VOLTS_PER_SECOND = 1.75;
 
   private final boolean forwards;
   private final boolean isDrive;
@@ -86,6 +86,7 @@ public class FeedForwardCharacterization extends CommandBase {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
+    System.out.println("STARTED");
     timer.reset();
     timer.start();
   }
@@ -118,6 +119,7 @@ public class FeedForwardCharacterization extends CommandBase {
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
+    System.out.println("ENDED");
     if (isDrive) {
       voltageConsumerDrive.accept(0.0, 0.0);
     } else {
