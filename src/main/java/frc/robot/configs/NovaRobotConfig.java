@@ -44,6 +44,10 @@ public class NovaRobotConfig extends RobotConfig {
   private static final double ANGLE_KP = 100.0;
   private static final double ANGLE_KI = 0.0;
   private static final double ANGLE_KD = 0.0;
+  
+  private static final double ANGLE_KS = 0.17853;
+  private static final double ANGLE_KV = 0.43784;
+  private static final double ANGLE_KA = -0.00225;
 
   /* Drive Motor PID Values */
   private static final double DRIVE_KP = 0.2402346041055719;
@@ -123,6 +127,21 @@ public class NovaRobotConfig extends RobotConfig {
   @Override
   public double getSwerveAngleKD() {
     return ANGLE_KD;
+  }
+
+  @Override
+  public double getSwerveAngleKS() {
+    return ANGLE_KS;
+  }
+
+  @Override
+  public double getSwerveAngleKV() {
+    return ANGLE_KV;
+  }
+
+  @Override
+  public double getSwerveAngleKA() {
+    return ANGLE_KA;
   }
 
   @Override

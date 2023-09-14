@@ -179,6 +179,8 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     config.Slot0.kP = turnKp.get();
     config.Slot0.kI = turnKi.get();
     config.Slot0.kD = turnKd.get();
+    config.Slot0.kS = RobotConfig.getInstance().getSwerveAngleKS();
+    config.Slot0.kV = RobotConfig.getInstance().getSwerveAngleKV();
 
     config.ClosedLoopGeneral.ContinuousWrap = true;
 
