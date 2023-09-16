@@ -873,7 +873,7 @@ public class Drivetrain extends SubsystemBase {
                 swerveModules[2].getCheckCommand(),
                 swerveModules[3].getCheckCommand()),
             Commands.runOnce(() -> initialGyroPositionForSystemCheck = gyroInputs.yawDeg),
-            // FIXME: add LED flash to signal that the robot cart should be rotated
+            // FIXME: add LED flash or TalonFX sound to signal that the robot cart should be rotated
             Commands.waitSeconds(5.0),
             Commands.runOnce(
                 () -> {
@@ -888,7 +888,7 @@ public class Drivetrain extends SubsystemBase {
                   }
                 },
                 this),
-            // FIXME: add LED flash to signal that the robot cart should be rotated
+            // FIXME: add LED flash or TalonFX sound to signal that the robot cart should be rotated
             Commands.waitSeconds(5.0),
             Commands.runOnce(
                 () -> {
