@@ -56,8 +56,10 @@
     "Nivore",
     "odometry",
     "openloop",
+    "Penrose",
     "photonvision",
     "PIDF",
+    "pseudoinverse",
     "rapidreact",
     "REVPHJNI",
     "rezero",
@@ -72,6 +74,7 @@
     "tunables",
     "Vandermonde",
     "VBAT",
+    "wpilib",
     "WPILOG",
     "Xstance",
     "YUYV"
