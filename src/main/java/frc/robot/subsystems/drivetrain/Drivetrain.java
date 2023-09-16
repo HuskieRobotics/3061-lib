@@ -140,6 +140,8 @@ public class Drivetrain extends SubsystemBase {
 
   private boolean isMoveToPoseEnabled;
 
+  private double initialGyroPositionForSystemCheck = 0.0;
+
   private Alert noPoseAlert =
       new Alert("Attempted to reset pose from vision, but no pose was found.", AlertType.WARNING);
 
@@ -870,28 +872,34 @@ public class Drivetrain extends SubsystemBase {
                 swerveModules[1].getCheckCommand(),
                 swerveModules[2].getCheckCommand(),
                 swerveModules[3].getCheckCommand()),
-            Commands.runOnce(() -> drive(0, 0, 0.5, true, false), this),
-            Commands.waitSeconds(2.0),
+            Commands.runOnce(() -> initialGyroPositionForSystemCheck = gyroInputs.yawDeg),
+            // FIXME: add LED flash to signal that the robot cart should be rotated
+            Commands.waitSeconds(5.0),
             Commands.runOnce(
                 () -> {
-                  drive(0, 0, 0, true, false);
-
-                  if (gyroInputs.yawDegPerSec < 20) {
+                  if ((gyroInputs.yawDeg - initialGyroPositionForSystemCheck) < 75
+                      || (gyroInputs.yawDeg - initialGyroPositionForSystemCheck) > 105) {
                     FaultReporter.getInstance()
                         .addFault(
-                            SUBSYSTEM_NAME, "[System Check] rotation rate too low", false, true);
+                            SUBSYSTEM_NAME,
+                            "[System Check] clockwise rotation point too far from 90",
+                            false,
+                            true);
                   }
                 },
                 this),
-            Commands.runOnce(() -> drive(0, 0, -0.5, true, false), this),
-            Commands.waitSeconds(2.0),
+            // FIXME: add LED flash to signal that the robot cart should be rotated
+            Commands.waitSeconds(5.0),
             Commands.runOnce(
                 () -> {
-                  drive(0, 0, 0, true, false);
-                  if (gyroInputs.yawDegPerSec > -20) {
+                  if ((gyroInputs.yawDeg - initialGyroPositionForSystemCheck) < -105
+                      || (gyroInputs.yawDeg - initialGyroPositionForSystemCheck) > -75) {
                     FaultReporter.getInstance()
                         .addFault(
-                            SUBSYSTEM_NAME, "[System Check] rotation rate too low", false, true);
+                            SUBSYSTEM_NAME,
+                            "[System Check] counterclockwise rotation point too far from -90",
+                            false,
+                            true);
                   }
                 },
                 this))

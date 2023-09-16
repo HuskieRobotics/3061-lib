@@ -28,8 +28,8 @@ public class SwerveModule {
   private double lastAngle;
   private double maxVelocity;
   private double lastAngleMotorVelocity = 0.0;
-private CommandBase wrappedSystemCheckCommand;
-  
+  private CommandBase wrappedSystemCheckCommand;
+
   private static final boolean DEBUGGING = false;
 
   /**
