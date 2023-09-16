@@ -73,6 +73,7 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
 
   private VoltageOut driveVoltageRequest;
   private VelocityVoltage driveVelocityRequest;
+  private VoltageOut angleVoltageRequest;
   private PositionVoltage anglePositionRequest;
 
   private StatusSignal<Double> anglePositionStatusSignal;
@@ -184,6 +185,8 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     config.Slot0.kP = turnKp.get();
     config.Slot0.kI = turnKi.get();
     config.Slot0.kD = turnKd.get();
+    config.Slot0.kS = RobotConfig.getInstance().getSwerveAngleKS();
+    config.Slot0.kV = RobotConfig.getInstance().getSwerveAngleKV();
 
     config.ClosedLoopGeneral.ContinuousWrap = true;
 
@@ -208,6 +211,8 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     this.angleVelocityStatusSignal = this.angleMotor.getVelocity();
     this.anglePositionErrorStatusSignal = this.angleMotor.getClosedLoopError();
 
+    this.angleVoltageRequest = new VoltageOut(0.0);
+    this.angleVoltageRequest.EnableFOC = RobotConfig.getInstance().getPhoenix6Licensed();
     this.anglePositionRequest = new PositionVoltage(0.0).withSlot(0);
     this.anglePositionRequest.EnableFOC = RobotConfig.getInstance().getPhoenix6Licensed();
   }
@@ -347,6 +352,12 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     this.driveMotor.setControl(driveVoltageRequest.withOutput(percentage * 12.0));
   }
 
+  /** Run the angle motor at the specified percentage of full power. */
+  @Override
+  public void setAngleMotorPercentage(double percentage) {
+    this.angleMotor.setControl(angleVoltageRequest.withOutput(percentage * 12.0));
+  }
+
   /** Run the drive motor at the specified velocity. */
   @Override
   public void setDriveVelocity(double velocity) {
@@ -439,12 +450,13 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
 
     // update the simulated TalonFXs and CANcoder based on the model outputs
     double turnRPM = turnSim.getAngularVelocityRPM();
-    double angleEncoderRPS = turnRPM / 60;
+    double angleEncoderRPS = turnRPM / 60.0;
     double angleEncoderRotations = angleEncoderRPS * Constants.LOOP_PERIOD_SECS;
 
     this.angleEncoderSimState.addPosition(angleEncoderRotations);
-    this.angleMotorSimState.addRotorPosition(angleEncoderRotations);
-    this.angleMotorSimState.setRotorVelocity(angleEncoderRPS);
+    this.angleEncoderSimState.setVelocity(angleEncoderRPS);
+    this.angleMotorSimState.addRotorPosition(angleEncoderRotations / angleGearRatio);
+    this.angleMotorSimState.setRotorVelocity(angleEncoderRPS / angleGearRatio);
 
     double driveMPS = driveSim.getOutput(0);
     double driveMotorRPS = Conversions.mpsToFalconRPS(driveMPS, wheelCircumference, driveGearRatio);

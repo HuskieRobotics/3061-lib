@@ -99,6 +99,20 @@ public class Drivetrain extends SubsystemBase {
         new SwerveModulePosition(),
         new SwerveModulePosition()
       };
+  private final SwerveModuleState[] swerveModuleStates =
+      new SwerveModuleState[] {
+        new SwerveModuleState(),
+        new SwerveModuleState(),
+        new SwerveModuleState(),
+        new SwerveModuleState()
+      };
+  private final SwerveModuleState[] prevSwerveModuleStates =
+      new SwerveModuleState[] {
+        new SwerveModuleState(),
+        new SwerveModuleState(),
+        new SwerveModuleState(),
+        new SwerveModuleState()
+      };
   private Pose2d estimatedPoseWithoutGyro = new Pose2d();
 
   private boolean isFieldRelative;
@@ -156,7 +170,7 @@ public class Drivetrain extends SubsystemBase {
 
     this.zeroGyroscope();
 
-    this.isFieldRelative = true;
+    this.isFieldRelative = false;
 
     this.chassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
 
@@ -382,9 +396,9 @@ public class Drivetrain extends SubsystemBase {
    * <p>If the drive mode is X, the robot will ignore the specified velocities and turn the swerve
    * modules into the x-stance orientation.
    *
-   * <p>If the drive mode is CHARACTERIZATION, the robot will ignore the specified velocities and
-   * run the characterization routine. Refer to the FeedForwardCharacterization command class for
-   * more information.
+   * <p>If the drive mode is SWERVE_DRIVE_CHARACTERIZATION or SWERVE_ROTATE_CHARACTERIZATION, the
+   * robot will ignore the specified velocities and run the appropriate characterization routine.
+   * Refer to the FeedForwardCharacterization command class for more information.
    *
    * @param xVelocity the desired velocity in the x direction (m/s)
    * @param yVelocity the desired velocity in the y direction (m/s)
@@ -433,18 +447,26 @@ public class Drivetrain extends SubsystemBase {
         Logger.getInstance()
             .recordOutput("Drivetrain/ChassisSpeedVo", chassisSpeeds.omegaRadiansPerSecond);
 
-        SwerveModuleState[] swerveModuleStates =
+        SwerveModuleState[] newSwerveModuleStates =
             kinematics.toSwerveModuleStates(chassisSpeeds, centerGravity);
         SwerveDriveKinematics.desaturateWheelSpeeds(
-            swerveModuleStates, RobotConfig.getInstance().getRobotMaxVelocity());
+            newSwerveModuleStates, RobotConfig.getInstance().getRobotMaxVelocity());
 
-        setSwerveModuleStates(swerveModuleStates, isOpenLoop, false);
+        setSwerveModuleStates(newSwerveModuleStates, isOpenLoop, false);
         break;
 
-      case CHARACTERIZATION:
-        // In characterization mode, drive at the specified voltage (and turn to zero degrees)
+      case SWERVE_DRIVE_CHARACTERIZATION:
+        // In this characterization mode, drive at the specified voltage (and turn to zero degrees)
         for (SwerveModule swerveModule : swerveModules) {
-          swerveModule.setVoltageForCharacterization(characterizationVoltage);
+          swerveModule.setVoltageForDriveCharacterization(characterizationVoltage);
+        }
+        break;
+
+      case SWERVE_ROTATE_CHARACTERIZATION:
+        // In this characterization mode, rotate the swerve modules at the specified voltage (and
+        // don't drive)
+        for (SwerveModule swerveModule : swerveModules) {
+          swerveModule.setVoltageForRotateCharacterization(characterizationVoltage);
         }
         break;
 
@@ -491,9 +513,9 @@ public class Drivetrain extends SubsystemBase {
     Logger.getInstance().recordOutput("Drivetrain/AvgDriveCurrent", this.getAverageDriveCurrent());
 
     // update swerve module states and positions
-    SwerveModuleState[] states = new SwerveModuleState[4];
     for (int i = 0; i < 4; i++) {
-      states[i] = swerveModules[i].getState();
+      prevSwerveModuleStates[i] = swerveModuleStates[i];
+      swerveModuleStates[i] = swerveModules[i].getState();
       prevSwerveModulePositions[i] = swerveModulePositions[i];
       swerveModulePositions[i] = swerveModules[i].getPosition();
     }
@@ -540,7 +562,7 @@ public class Drivetrain extends SubsystemBase {
     Logger.getInstance().recordOutput("Odometry/RobotNoGyro", estimatedPoseWithoutGyro);
     Logger.getInstance().recordOutput("Odometry/Robot", poseEstimatorPose);
     Logger.getInstance().recordOutput("3DField", new Pose3d(poseEstimatorPose));
-    Logger.getInstance().recordOutput("SwerveModuleStates/Measured", states);
+    Logger.getInstance().recordOutput("SwerveModuleStates/Measured", swerveModuleStates);
   }
 
   /**
@@ -745,8 +767,8 @@ public class Drivetrain extends SubsystemBase {
    *
    * @param volts the commanded voltage
    */
-  public void runCharacterizationVolts(double volts) {
-    driveMode = DriveMode.CHARACTERIZATION;
+  public void runDriveCharacterizationVolts(double volts) {
+    driveMode = DriveMode.SWERVE_DRIVE_CHARACTERIZATION;
     characterizationVoltage = volts;
 
     // invoke drive which will set the characterization voltage to each module
@@ -758,12 +780,68 @@ public class Drivetrain extends SubsystemBase {
    *
    * @return the average drive velocity in meters/sec
    */
-  public double getCharacterizationVelocity() {
-    double driveVelocityAverage = 0.0;
-    for (SwerveModule swerveModule : swerveModules) {
-      driveVelocityAverage += swerveModule.getState().speedMetersPerSecond;
+  public double getDriveCharacterizationVelocity() {
+    ChassisSpeeds speeds = kinematics.toChassisSpeeds(swerveModuleStates);
+    return Math.sqrt(Math.pow(speeds.vxMetersPerSecond, 2) + Math.pow(speeds.vyMetersPerSecond, 2));
+  }
+
+  /**
+   * Returns the average drive velocity in meters/sec.
+   *
+   * @return the average drive velocity in meters/sec
+   */
+  public double getDriveCharacterizationAcceleration() {
+    ChassisSpeeds prevSpeeds = kinematics.toChassisSpeeds(prevSwerveModuleStates);
+    ChassisSpeeds speeds = kinematics.toChassisSpeeds(swerveModuleStates);
+    return Math.sqrt(
+            Math.pow((speeds.vxMetersPerSecond - prevSpeeds.vxMetersPerSecond), 2)
+                + Math.pow((speeds.vyMetersPerSecond - prevSpeeds.vyMetersPerSecond), 2))
+        / LOOP_PERIOD_SECS;
+  }
+
+  /**
+   * Rotates swerve modules at the commanded voltage.
+   *
+   * @param volts the commanded voltage
+   */
+  public void runRotateCharacterizationVolts(double volts) {
+    driveMode = DriveMode.SWERVE_ROTATE_CHARACTERIZATION;
+    characterizationVoltage = volts;
+
+    // invoke drive which will set the characterization voltage to each module
+    drive(0, 0, 0, true, false);
+  }
+
+  /**
+   * Returns the average rotational velocity in radians/sec.
+   *
+   * @return the average rotational velocity in radians/sec
+   */
+  public double getRotateCharacterizationVelocity() {
+    double avgVelocity = 0.0;
+
+    for (SwerveModule mod : swerveModules) {
+      avgVelocity += mod.getAngleMotorVelocity();
     }
-    return driveVelocityAverage / 4.0;
+
+    avgVelocity /= swerveModules.length;
+    return avgVelocity;
+  }
+
+  /**
+   * Returns the average rotational acceleration in radians/sec^2.
+   *
+   * @return the average rotational acceleration in radians/sec^2
+   */
+  public double getRotateCharacterizationAcceleration() {
+    double avgAcceleration = 0.0;
+
+    for (SwerveModule mod : swerveModules) {
+      avgAcceleration += mod.getAngleMotorAcceleration();
+    }
+
+    avgAcceleration /= swerveModules.length;
+    return avgAcceleration;
   }
 
   /**
@@ -884,6 +962,7 @@ public class Drivetrain extends SubsystemBase {
   private enum DriveMode {
     NORMAL,
     X,
-    CHARACTERIZATION
+    SWERVE_DRIVE_CHARACTERIZATION,
+    SWERVE_ROTATE_CHARACTERIZATION
   }
 }

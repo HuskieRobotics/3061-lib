@@ -4,6 +4,8 @@
 
 package frc.lib.team3061.swerve;
 
+import static frc.robot.Constants.*;
+
 import com.ctre.phoenix6.StatusSignal;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -25,8 +27,9 @@ public class SwerveModule {
   private String subsystemName;
   private double lastAngle;
   private double maxVelocity;
-  private CommandBase wrappedSystemCheckCommand;
-
+  private double lastAngleMotorVelocity = 0.0;
+private CommandBase wrappedSystemCheckCommand;
+  
   private static final boolean DEBUGGING = false;
 
   /**
@@ -103,10 +106,20 @@ public class SwerveModule {
    *
    * @param voltage the specified voltage for the drive motor
    */
-  public void setVoltageForCharacterization(double voltage) {
+  public void setVoltageForDriveCharacterization(double voltage) {
     io.setAnglePosition(0.0);
     lastAngle = 0.0;
     io.setDriveMotorPercentage(voltage / 12.0);
+  }
+
+  /**
+   * Set the angle motor to the specified voltage. This is only used for characterization via the
+   * FeedForwardCharacterization command.
+   *
+   * @param voltage the specified voltage for the angle motor
+   */
+  public void setVoltageForRotateCharacterization(double voltage) {
+    io.setAngleMotorPercentage(voltage / 12.0);
   }
 
   /**
@@ -155,6 +168,7 @@ public class SwerveModule {
    * <p>This method must be invoked by the drivetrain subsystem's periodic method.
    */
   public void updateAndProcessInputs() {
+    this.lastAngleMotorVelocity = inputs.angleVelocityRevPerMin;
     io.updateInputs(inputs);
     Logger.getInstance().processInputs("Mod" + moduleNumber, inputs);
   }
@@ -224,6 +238,25 @@ public class SwerveModule {
 
   public CommandBase getCheckCommand() {
     return this.wrappedSystemCheckCommand;
+  }
+
+  /**
+   * Get the velocity of the angle motor in radians per second.
+   *
+   * @return the velocity of the angle motor in radians per second
+   */
+  public double getAngleMotorVelocity() {
+    return inputs.angleVelocityRevPerMin * 2.0 * Math.PI / 60.0;
+  }
+
+  /**
+   * Get the acceleration of the angle motor in radians per second^2.
+   *
+   * @return the acceleration of the angle motor in radians per second^2
+   */
+  public double getAngleMotorAcceleration() {
+    return ((inputs.angleVelocityRevPerMin - this.lastAngleMotorVelocity) / 60.0 * 2.0 * Math.PI)
+        / LOOP_PERIOD_SECS;
   }
 
   /**
