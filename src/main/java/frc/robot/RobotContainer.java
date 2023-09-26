@@ -435,6 +435,30 @@ public class RobotContainer {
                 Commands.waitSeconds(5.0),
                 Commands.run(() -> drivetrain.drive(1.5, 0.0, 0.0, false, false), drivetrain))));
 
+    /************ Swerve Rotation Tuning ************
+     *
+     * useful for tuning the drive velocity PID controller
+     *
+     */
+    autoChooser.addOption(
+        "Swerve Rotation Tuning",
+        Commands.sequence(
+            Commands.runOnce(drivetrain::enableFieldRelative, drivetrain),
+            Commands.repeatingSequence(
+                Commands.deadline(
+                    Commands.waitSeconds(0.5),
+                    Commands.run(() -> drivetrain.drive(0.1, 0.1, 0.0, true, false), drivetrain)),
+                Commands.deadline(
+                    Commands.waitSeconds(0.5),
+                    Commands.run(() -> drivetrain.drive(-0.1, 0.1, 0.0, true, false), drivetrain)),
+                Commands.deadline(
+                    Commands.waitSeconds(0.5),
+                    Commands.run(() -> drivetrain.drive(-0.1, -0.1, 0.0, true, false), drivetrain)),
+                Commands.deadline(
+                    Commands.waitSeconds(0.5),
+                    Commands.run(
+                        () -> drivetrain.drive(0.1, -0.1, 0.0, true, false), drivetrain)))));
+
     Shuffleboard.getTab("MAIN").add(autoChooser.getSendableChooser());
 
     // enable the path planner server so we can update paths without redeploying code
