@@ -431,13 +431,36 @@ public class RobotContainer {
         "Drive Velocity Tuning",
         Commands.sequence(
             Commands.runOnce(drivetrain::disableFieldRelative, drivetrain),
-            Commands.deadline(
-                Commands.waitSeconds(5.0),
-                Commands.run(() -> drivetrain.drive(1.5, 0.0, 0.0, false, false), drivetrain))));
+            Commands.repeatingSequence(
+                Commands.deadline(
+                    Commands.waitSeconds(2.0),
+                    Commands.run(() -> drivetrain.drive(2.0, 0.0, 0.0, false, false), drivetrain)),
+                Commands.deadline(
+                    Commands.waitSeconds(2.0),
+                    Commands.run(() -> drivetrain.drive(-2.0, 0.0, 0.0, false, false), drivetrain)),
+                Commands.deadline(
+                    Commands.waitSeconds(2.0),
+                    Commands.run(() -> drivetrain.drive(1.0, 0.0, 0.0, false, false), drivetrain)),
+                Commands.deadline(
+                    Commands.waitSeconds(0.5),
+                    Commands.run(() -> drivetrain.drive(4.0, 0.0, 0.0, false, false), drivetrain)),
+                Commands.deadline(
+                    Commands.waitSeconds(2.0),
+                    Commands.run(() -> drivetrain.drive(1.0, 0.0, 0.0, false, false), drivetrain)),
+                Commands.deadline(
+                    Commands.waitSeconds(2.0),
+                    Commands.run(() -> drivetrain.drive(-1.0, 0.0, 0.0, false, false), drivetrain)),
+                Commands.deadline(
+                    Commands.waitSeconds(0.5),
+                    Commands.run(() -> drivetrain.drive(-4.0, 0.0, 0.0, false, false), drivetrain)),
+                Commands.deadline(
+                    Commands.waitSeconds(2.0),
+                    Commands.run(
+                        () -> drivetrain.drive(-1.0, 0.0, 0.0, false, false), drivetrain)))));
 
     /************ Swerve Rotation Tuning ************
      *
-     * useful for tuning the drive velocity PID controller
+     * useful for tuning the swerve module rotation PID controller
      *
      */
     autoChooser.addOption(
