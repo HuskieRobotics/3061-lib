@@ -433,13 +433,13 @@ public class RobotContainer {
             Commands.runOnce(drivetrain::disableFieldRelative, drivetrain),
             Commands.repeatingSequence(
                 Commands.deadline(
-                    Commands.waitSeconds(2.0),
+                    Commands.waitSeconds(1.0),
                     Commands.run(() -> drivetrain.drive(2.0, 0.0, 0.0, false, false), drivetrain)),
                 Commands.deadline(
-                    Commands.waitSeconds(2.0),
-                    Commands.run(() -> drivetrain.drive(-2.0, 0.0, 0.0, false, false), drivetrain)),
+                    Commands.waitSeconds(1.0),
+                    Commands.run(() -> drivetrain.drive(-0.5, 0.0, 0.0, false, false), drivetrain)),
                 Commands.deadline(
-                    Commands.waitSeconds(2.0),
+                    Commands.waitSeconds(1.0),
                     Commands.run(() -> drivetrain.drive(1.0, 0.0, 0.0, false, false), drivetrain)),
                 Commands.deadline(
                     Commands.waitSeconds(0.5),
