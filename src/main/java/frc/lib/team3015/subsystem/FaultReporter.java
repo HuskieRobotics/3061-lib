@@ -98,6 +98,7 @@ public class FaultReporter {
                     Commands.runOnce(this::publishStatus), Commands.waitSeconds(1.0))
                 .ignoringDisable(true));
   }
+  
 
   private void publishStatus() {
     for (Map.Entry<String, SubsystemFaults> entry : subsystemsFaults.entrySet()) {
