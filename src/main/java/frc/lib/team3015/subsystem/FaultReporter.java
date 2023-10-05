@@ -12,6 +12,8 @@ import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.lib.team3015.subsystem.selfcheck.*;
+import frc.lib.team6328.util.Alert;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -98,7 +100,6 @@ public class FaultReporter {
                     Commands.runOnce(this::publishStatus), Commands.waitSeconds(1.0))
                 .ignoringDisable(true));
   }
-  
 
   private void publishStatus() {
     for (Map.Entry<String, SubsystemFaults> entry : subsystemsFaults.entrySet()) {
@@ -132,6 +133,15 @@ public class FaultReporter {
     List<SubsystemFault> subsystemFaults = subsystemsFaults.get(subsystemName).faults;
     if (!subsystemFaults.contains(fault)) {
       subsystemFaults.add(fault);
+      // the "fault.isWarning ? WARNING : ERROR" is probably to get out of the if statement
+      // but just to make sure I used the if to limit confusion.
+      Alert alert;
+      if (fault.isWarning) {
+        alert = new Alert(fault.description, subsystemName, Alert.AlertType.WARNING);
+      } else {
+        alert = new Alert(fault.description, subsystemName, Alert.AlertType.ERROR);
+      }
+      alert.set(true);
     }
   }
 
