@@ -308,7 +308,7 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     inputs.driveVelocityErrorMetersPerSec =
         Conversions.falconRPSToMechanismMPS(
             driveVelocityErrorStatusSignal.getValue(), wheelCircumference, driveGearRatio);
-    inputs.driveAppliedPercentage = this.driveMotor.getDutyCycle().getValue() / 2.0;
+    inputs.driveAppliedPercentage = this.driveMotor.getDutyCycle().getValue();
     inputs.driveStatorCurrentAmps = this.driveMotor.getStatorCurrent().getValue();
     inputs.driveSupplyCurrentAmps = this.driveMotor.getSupplyCurrent().getValue();
     inputs.driveTempCelsius = this.driveMotor.getDeviceTemp().getValue();
@@ -330,7 +330,7 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     inputs.angleVelocityRevPerMin =
         Conversions.falconRPSToMechanismRPM(angleVelocityStatusSignal.getValue(), 1);
 
-    inputs.angleAppliedPercentage = this.angleMotor.getDutyCycle().getValue() / 2.0;
+    inputs.angleAppliedPercentage = this.angleMotor.getDutyCycle().getValue();
     inputs.angleStatorCurrentAmps = this.angleMotor.getStatorCurrent().getValue();
     inputs.angleSupplyCurrentAmps = this.angleMotor.getSupplyCurrent().getValue();
     inputs.angleTempCelsius = this.angleMotor.getDeviceTemp().getValue();
