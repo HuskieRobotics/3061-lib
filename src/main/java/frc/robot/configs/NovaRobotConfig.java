@@ -50,9 +50,9 @@ public class NovaRobotConfig extends RobotConfig {
   private static final double ANGLE_KA = 0.001;
 
   /* Drive Motor PID Values */
-  private static final double DRIVE_KP = 0.2402346041055719;
+  private static final double DRIVE_KP = 0.005;
   private static final double DRIVE_KI = 0.0;
-  private static final double DRIVE_KD = 0.013212903225806451;
+  private static final double DRIVE_KD = 0.0;
 
   private static final double DRIVE_KS = 0.37182;
   private static final double DRIVE_KV = 2.72624;
