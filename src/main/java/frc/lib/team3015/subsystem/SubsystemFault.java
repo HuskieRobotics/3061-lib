@@ -26,26 +26,6 @@ public class SubsystemFault {
     this.isWarning = isWarning;
     this.sticky = sticky;
 
-    /* //alert code implemented in faultreporter now, but not deleting just in case for now
-    if (isWarning) {
-      Alert alert = new Alert(description, Alert.AlertType.WARNING);
-
-      // is there a specific condition that we should look at for when to make this alert NOT show
-      // up?
-      alert.set(true);
-    } else {
-      // if not a warning, is it more serious or does the other one consider a warning to be the
-      // most serious?
-
-      Alert alert = new Alert(description, Alert.AlertType.ERROR);
-
-      // same here as above
-      alert.set(true);
-    }
-    */
-  }
-  
-
   @Override
   public boolean equals(Object other) {
     if (this == other) {

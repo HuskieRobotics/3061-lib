@@ -118,7 +118,6 @@ public class FaultReporter {
         faultStrings[i] = String.format("[%.2f] %s", fault.timestamp, fault.description);
       }
       Logger.getInstance().recordOutput(statusTable + "/Faults", faultStrings);
-      // FIXME: integrate with Alert class
 
       if (faultStrings.length > 0) {
         Logger.getInstance()
@@ -133,8 +132,7 @@ public class FaultReporter {
     List<SubsystemFault> subsystemFaults = subsystemsFaults.get(subsystemName).faults;
     if (!subsystemFaults.contains(fault)) {
       subsystemFaults.add(fault);
-      // the "fault.isWarning ? WARNING : ERROR" is probably to get out of the if statement
-      // but just to make sure I used the if to limit confusion.
+
       Alert alert;
       if (fault.isWarning) {
         alert = new Alert(fault.description, subsystemName, Alert.AlertType.WARNING);
