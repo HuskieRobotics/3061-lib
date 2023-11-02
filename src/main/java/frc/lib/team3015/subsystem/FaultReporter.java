@@ -132,14 +132,6 @@ public class FaultReporter {
     List<SubsystemFault> subsystemFaults = subsystemsFaults.get(subsystemName).faults;
     if (!subsystemFaults.contains(fault)) {
       subsystemFaults.add(fault);
-
-      Alert alert;
-      if (fault.isWarning) {
-        alert = new Alert(fault.description, subsystemName, Alert.AlertType.WARNING);
-      } else {
-        alert = new Alert(fault.description, subsystemName, Alert.AlertType.ERROR);
-      }
-      alert.set(true);
     }
   }
 

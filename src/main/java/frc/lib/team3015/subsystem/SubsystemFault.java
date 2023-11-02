@@ -9,6 +9,7 @@ public class SubsystemFault {
   public final double timestamp;
   public final boolean isWarning;
   public final boolean sticky;
+  public final Alert alert;
 
   public SubsystemFault(String description, boolean isWarning) {
     // default sticky to true
@@ -25,6 +26,10 @@ public class SubsystemFault {
     this.timestamp = Timer.getFPGATimestamp();
     this.isWarning = isWarning;
     this.sticky = sticky;
+    this.alert =
+        new Alert(description, isWarning ? Alert.AlertType.WARNING : Alert.AlertType.ERROR);
+    this.alert.set(true);
+  }
 
   @Override
   public boolean equals(Object other) {
