@@ -871,38 +871,7 @@ public class Drivetrain extends SubsystemBase {
                 swerveModules[0].getCheckCommand(),
                 swerveModules[1].getCheckCommand(),
                 swerveModules[2].getCheckCommand(),
-                swerveModules[3].getCheckCommand()),
-            Commands.runOnce(() -> initialGyroPositionForSystemCheck = gyroInputs.yawDeg),
-            // FIXME: add LED flash or TalonFX sound to signal that the robot cart should be rotated
-            Commands.waitSeconds(5.0),
-            Commands.runOnce(
-                () -> {
-                  if ((gyroInputs.yawDeg - initialGyroPositionForSystemCheck) < 75
-                      || (gyroInputs.yawDeg - initialGyroPositionForSystemCheck) > 105) {
-                    FaultReporter.getInstance()
-                        .addFault(
-                            SUBSYSTEM_NAME,
-                            "[System Check] clockwise rotation point too far from 90",
-                            false,
-                            true);
-                  }
-                },
-                this),
-            // FIXME: add LED flash or TalonFX sound to signal that the robot cart should be rotated
-            Commands.waitSeconds(5.0),
-            Commands.runOnce(
-                () -> {
-                  if ((gyroInputs.yawDeg - initialGyroPositionForSystemCheck) < -105
-                      || (gyroInputs.yawDeg - initialGyroPositionForSystemCheck) > -75) {
-                    FaultReporter.getInstance()
-                        .addFault(
-                            SUBSYSTEM_NAME,
-                            "[System Check] counterclockwise rotation point too far from -90",
-                            false,
-                            true);
-                  }
-                },
-                this))
+                swerveModules[3].getCheckCommand()))
         .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
         .andThen(Commands.runOnce(() -> drive(0, 0, 0, true, false), this));
   }
