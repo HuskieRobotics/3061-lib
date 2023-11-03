@@ -867,7 +867,7 @@ public class Drivetrain extends SubsystemBase {
 
   private CommandBase getSystemCheckCommand() {
     return Commands.sequence(
-            Commands.parallel(
+            Commands.sequence(
                 swerveModules[0].getCheckCommand(),
                 swerveModules[1].getCheckCommand(),
                 swerveModules[2].getCheckCommand(),

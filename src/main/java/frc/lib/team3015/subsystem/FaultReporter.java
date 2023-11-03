@@ -137,8 +137,7 @@ public class FaultReporter {
 
       Alert alert =
           new Alert(
-              subsystemName,
-              fault.description,
+              subsystemName + ": " + fault.description,
               fault.isWarning ? Alert.AlertType.WARNING : Alert.AlertType.ERROR);
       alert.set(true);
       subsystemAlerts.add(alert);

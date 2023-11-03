@@ -196,11 +196,13 @@ public class SwerveModule {
             Commands.run(() -> io.setAnglePosition(90.0)).withTimeout(1.0),
             Commands.runOnce(
                 () -> {
-                  if (inputs.anglePositionDeg < 70 || inputs.anglePositionDeg > 110) {
+                  double angle = inputs.anglePositionDeg % 360;
+                  if (angle < 88 || angle > 92) {
                     FaultReporter.getInstance()
                         .addFault(
                             this.subsystemName,
-                            "[System Check] Rotation Motor did not reach target position",
+                            "[System Check] Rotation Motor did not reach target position of 90 deg "
+                                + angle,
                             false,
                             true);
                   }
@@ -223,11 +225,13 @@ public class SwerveModule {
             Commands.run(() -> io.setAnglePosition(0.0)).withTimeout(1.0),
             Commands.runOnce(
                 () -> {
-                  if (inputs.anglePositionDeg < -20 || inputs.anglePositionDeg > 20) {
+                  double angle = inputs.anglePositionDeg % 360;
+                  if (angle < -2 || angle > 2) {
                     FaultReporter.getInstance()
                         .addFault(
                             this.subsystemName,
-                            "[System Check] Rotation Motor did not reach target position",
+                            "[System Check] Rotation Motor did not reach target position of 0 deg "
+                                + angle,
                             false,
                             true);
                   }
