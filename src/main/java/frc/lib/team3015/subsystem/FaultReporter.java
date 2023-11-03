@@ -13,7 +13,6 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.lib.team3015.subsystem.selfcheck.*;
 import frc.lib.team6328.util.Alert;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +30,7 @@ public class FaultReporter {
 
   private static class SubsystemFaults {
     private List<SubsystemFault> faults = new ArrayList<>();
+    private List<Alert> faultAlerts = new ArrayList<>();
     private List<SelfChecking> hardware = new ArrayList<>();
   }
 
@@ -129,9 +129,19 @@ public class FaultReporter {
   }
 
   public void addFault(String subsystemName, SubsystemFault fault) {
-    List<SubsystemFault> subsystemFaults = subsystemsFaults.get(subsystemName).faults;
+    SubsystemFaults subsystems = subsystemsFaults.get(subsystemName);
+    List<SubsystemFault> subsystemFaults = subsystems.faults;
+    List<Alert> subsystemAlerts = subsystems.faultAlerts;
     if (!subsystemFaults.contains(fault)) {
       subsystemFaults.add(fault);
+
+      Alert alert =
+          new Alert(
+              subsystemName,
+              fault.description,
+              fault.isWarning ? Alert.AlertType.WARNING : Alert.AlertType.ERROR);
+      alert.set(true);
+      subsystemAlerts.add(alert);
     }
   }
 
