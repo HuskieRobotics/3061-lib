@@ -4,7 +4,10 @@ import static frc.robot.subsystems.subsystem.SubsystemConstants.*;
 
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team6328.util.TunableNumber;
 import org.littletonrobotics.junction.Logger;
 
@@ -39,6 +42,8 @@ public class Subsystem extends SubsystemBase {
       ShuffleboardTab tab = Shuffleboard.getTab(SUBSYSTEM_NAME);
       tab.add(SUBSYSTEM_NAME, this);
     }
+
+    FaultReporter.getInstance().registerSystemCheck(SUBSYSTEM_NAME, getSystemCheckCommand());
   }
 
   /**
@@ -91,5 +96,35 @@ public class Subsystem extends SubsystemBase {
    */
   public void setMotorPosition(double position) {
     io.setMotorPosition(position, POSITION_FEEDFORWARD);
+  }
+
+  private CommandBase getSystemCheckCommand() {
+    return Commands.sequence(
+            Commands.run(() -> io.setMotorPower(0.3)).withTimeout(1.0),
+            Commands.runOnce(
+                () -> {
+                  if (inputs.velocityRPM < 2.0) {
+                    FaultReporter.getInstance()
+                        .addFault(
+                            SUBSYSTEM_NAME,
+                            "[System Check] Subsystem motor not moving as fast as expected",
+                            false,
+                            true);
+                  }
+                }),
+            Commands.run(() -> io.setMotorPower(-0.2)).withTimeout(1.0),
+            Commands.runOnce(
+                () -> {
+                  if (inputs.velocityRPM > -2.0) {
+                    FaultReporter.getInstance()
+                        .addFault(
+                            SUBSYSTEM_NAME,
+                            "[System Check] Subsystem motor moving too slow or in the wrong direction",
+                            false,
+                            true);
+                  }
+                }))
+        .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
+        .andThen(Commands.runOnce(() -> io.setMotorPower(0.0)));
   }
 }

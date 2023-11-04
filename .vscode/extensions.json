@@ -2,6 +2,7 @@
     "recommendations": [
         "richardwillis.vscode-spotless-gradle",
         "sonarsource.sonarlint-vscode",
-        "streetsidesoftware.code-spell-checker"
+        "streetsidesoftware.code-spell-checker",
+        "onlyutkarsh.git-config-user-profiles"
     ]
 }

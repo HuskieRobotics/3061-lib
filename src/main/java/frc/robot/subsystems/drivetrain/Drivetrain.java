@@ -24,8 +24,11 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.gyro.GyroIO;
 import frc.lib.team3061.gyro.GyroIOInputsAutoLogged;
@@ -136,6 +139,8 @@ public class Drivetrain extends SubsystemBase {
 
   private boolean isMoveToPoseEnabled;
 
+  private double initialGyroPositionForSystemCheck = 0.0;
+
   private Alert noPoseAlert =
       new Alert("Attempted to reset pose from vision, but no pose was found.", AlertType.WARNING);
 
@@ -211,6 +216,9 @@ public class Drivetrain extends SubsystemBase {
       tab.add("Enable XStance", new InstantCommand(this::enableXstance));
       tab.add("Disable XStance", new InstantCommand(this::disableXstance));
     }
+
+    FaultReporter faultReporter = FaultReporter.getInstance();
+    faultReporter.registerSystemCheck(SUBSYSTEM_NAME, getSystemCheckCommand());
   }
 
   /** Enables "turbo" mode (i.e., acceleration is not limited by software) */
@@ -835,6 +843,17 @@ public class Drivetrain extends SubsystemBase {
    */
   public boolean isMoveToPoseEnabled() {
     return this.isMoveToPoseEnabled;
+  }
+
+  private CommandBase getSystemCheckCommand() {
+    return Commands.sequence(
+            Commands.sequence(
+                swerveModules[0].getCheckCommand(),
+                swerveModules[1].getCheckCommand(),
+                swerveModules[2].getCheckCommand(),
+                swerveModules[3].getCheckCommand()))
+        .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
+        .andThen(Commands.runOnce(() -> drive(0, 0, 0, true, false), this));
   }
 
   /**
