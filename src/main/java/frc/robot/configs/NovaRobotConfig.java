@@ -45,18 +45,18 @@ public class NovaRobotConfig extends RobotConfig {
   private static final double ANGLE_KI = 0.0;
   private static final double ANGLE_KD = 0.0;
 
-  private static final double ANGLE_KS = 0.17853;
-  private static final double ANGLE_KV = 0.43784;
-  private static final double ANGLE_KA = 0.001;
+  private static final double ANGLE_KS = 0.1891233333;
+  private static final double ANGLE_KV = 0.4399866667;
+  private static final double ANGLE_KA = 0.001663333333;
 
   /* Drive Motor PID Values */
   private static final double DRIVE_KP = 0.2402346041055719;
   private static final double DRIVE_KI = 0.0;
   private static final double DRIVE_KD = 0.013212903225806451;
 
-  private static final double DRIVE_KS = 0.37182;
-  private static final double DRIVE_KV = 2.72624;
-  private static final double DRIVE_KA = 0.001;
+  private static final double DRIVE_KS = 0.4004375;
+  private static final double DRIVE_KV = 2.7637325;
+  private static final double DRIVE_KA = 0.0139575;
 
   private static final SwerveType SWERVE_TYPE = SwerveType.MK4I;
 

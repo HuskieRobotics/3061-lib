@@ -134,7 +134,6 @@ public class Drivetrain extends SubsystemBase {
   private static final double BREAK_MODE_DELAY_SEC = 10.0;
 
   private DriveMode driveMode = DriveMode.NORMAL;
-  private double characterizationVoltage = 0.0;
 
   private boolean isTurbo;
 
@@ -457,21 +456,6 @@ public class Drivetrain extends SubsystemBase {
         setSwerveModuleStates(newSwerveModuleStates, isOpenLoop, false);
         break;
 
-      case SWERVE_DRIVE_CHARACTERIZATION:
-        // In this characterization mode, drive at the specified voltage (and turn to zero degrees)
-        for (SwerveModule swerveModule : swerveModules) {
-          swerveModule.setVoltageForDriveCharacterization(characterizationVoltage);
-        }
-        break;
-
-      case SWERVE_ROTATE_CHARACTERIZATION:
-        // In this characterization mode, rotate the swerve modules at the specified voltage (and
-        // don't drive)
-        for (SwerveModule swerveModule : swerveModules) {
-          swerveModule.setVoltageForRotateCharacterization(characterizationVoltage);
-        }
-        break;
-
       case X:
         this.setXStance();
         break;
@@ -770,11 +754,9 @@ public class Drivetrain extends SubsystemBase {
    * @param volts the commanded voltage
    */
   public void runDriveCharacterizationVolts(double volts) {
-    driveMode = DriveMode.SWERVE_DRIVE_CHARACTERIZATION;
-    characterizationVoltage = volts;
-
-    // invoke drive which will set the characterization voltage to each module
-    drive(0, 0, 0, true, false);
+    for (SwerveModule swerveModule : swerveModules) {
+      swerveModule.setVoltageForDriveCharacterization(volts);
+    }
   }
 
   /**
@@ -807,11 +789,9 @@ public class Drivetrain extends SubsystemBase {
    * @param volts the commanded voltage
    */
   public void runRotateCharacterizationVolts(double volts) {
-    driveMode = DriveMode.SWERVE_ROTATE_CHARACTERIZATION;
-    characterizationVoltage = volts;
-
-    // invoke drive which will set the characterization voltage to each module
-    drive(0, 0, 0, true, false);
+    for (SwerveModule swerveModule : swerveModules) {
+      swerveModule.setVoltageForRotateCharacterization(volts);
+    }
   }
 
   /**
@@ -938,8 +918,6 @@ public class Drivetrain extends SubsystemBase {
 
   private enum DriveMode {
     NORMAL,
-    X,
-    SWERVE_DRIVE_CHARACTERIZATION,
-    SWERVE_ROTATE_CHARACTERIZATION
+    X
   }
 }
