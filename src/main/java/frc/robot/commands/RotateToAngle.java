@@ -6,7 +6,7 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.Command;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team6328.util.TunableNumber;
 import frc.robot.subsystems.drivetrain.Drivetrain;
@@ -24,7 +24,7 @@ import org.littletonrobotics.junction.Logger;
  *
  * <p>At End: nothing (the drivetrain is left in whatever state it was in when the command finished)
  */
-public class RotateToAngle extends CommandBase {
+public class RotateToAngle extends Command {
   private final Drivetrain drivetrain;
   private final DoubleSupplier targetAngleSupplier;
   private final DoubleSupplier translationXSupplier;

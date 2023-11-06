@@ -12,7 +12,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
-import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.lib.team3015.subsystem.FaultReporter;
 import java.util.List;
@@ -28,7 +28,7 @@ public class SwerveModule {
   private double lastAngle;
   private double maxVelocity;
   private double lastAngleMotorVelocity = 0.0;
-  private CommandBase wrappedSystemCheckCommand;
+  private Command wrappedSystemCheckCommand;
 
   private static final boolean DEBUGGING = false;
 
@@ -191,7 +191,7 @@ public class SwerveModule {
     io.setAngleBrakeMode(enable);
   }
 
-  private CommandBase getSystemCheckCommand() {
+  private Command getSystemCheckCommand() {
     return Commands.sequence(
             Commands.run(() -> io.setAnglePosition(90.0)).withTimeout(1.0),
             Commands.runOnce(
@@ -240,7 +240,7 @@ public class SwerveModule {
         .andThen(Commands.runOnce(() -> io.setDriveMotorPercentage(0.0)));
   }
 
-  public CommandBase getCheckCommand() {
+  public Command getCheckCommand() {
     return this.wrappedSystemCheckCommand;
   }
 

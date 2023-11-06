@@ -8,7 +8,7 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.motorcontrol.PWMMotorController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.lib.team3015.subsystem.selfcheck.*;
@@ -54,12 +54,12 @@ public class FaultReporter {
     return instance;
   }
 
-  public CommandBase registerSystemCheck(String subsystemName, CommandBase systemCheckCommand) {
+  public Command registerSystemCheck(String subsystemName, Command systemCheckCommand) {
     String statusTable = SYSTEM_STATUS + subsystemName;
     SubsystemFaults subsystemFaults =
         subsystemsFaults.getOrDefault(subsystemName, new SubsystemFaults());
 
-    CommandBase wrappedSystemCheckCommand =
+    Command wrappedSystemCheckCommand =
         wrapSystemCheckCommand(subsystemName, systemCheckCommand);
     wrappedSystemCheckCommand.setName(subsystemName + "Check");
     SmartDashboard.putData(statusTable + "/SystemCheck", wrappedSystemCheckCommand);
@@ -70,7 +70,7 @@ public class FaultReporter {
     return wrappedSystemCheckCommand;
   }
 
-  private CommandBase wrapSystemCheckCommand(String subsystemName, CommandBase systemCheckCommand) {
+  private Command wrapSystemCheckCommand(String subsystemName, Command systemCheckCommand) {
     String statusTable = SYSTEM_STATUS + subsystemName;
     return Commands.sequence(
         Commands.runOnce(

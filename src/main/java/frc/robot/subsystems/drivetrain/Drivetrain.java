@@ -24,7 +24,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
-import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -845,7 +845,7 @@ public class Drivetrain extends SubsystemBase {
     return this.isMoveToPoseEnabled;
   }
 
-  private CommandBase getSystemCheckCommand() {
+  private Command getSystemCheckCommand() {
     return Commands.sequence(
             Commands.sequence(
                 swerveModules[0].getCheckCommand(),

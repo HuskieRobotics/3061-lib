@@ -4,7 +4,7 @@ import static frc.robot.subsystems.subsystem.SubsystemConstants.*;
 
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
-import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.team3015.subsystem.FaultReporter;
@@ -98,7 +98,7 @@ public class Subsystem extends SubsystemBase {
     io.setMotorPosition(position, POSITION_FEEDFORWARD);
   }
 
-  private CommandBase getSystemCheckCommand() {
+  private Command getSystemCheckCommand() {
     return Commands.sequence(
             Commands.run(() -> io.setMotorPower(0.3)).withTimeout(1.0),
             Commands.runOnce(

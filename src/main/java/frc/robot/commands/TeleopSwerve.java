@@ -1,6 +1,6 @@
 package frc.robot.commands;
 
-import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.Command;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team6328.util.TunableNumber;
 import frc.robot.Constants;
@@ -21,7 +21,7 @@ import org.littletonrobotics.junction.Logger;
  *
  * <p>At End: stops the drivetrain
  */
-public class TeleopSwerve extends CommandBase {
+public class TeleopSwerve extends Command {
 
   private final Drivetrain drivetrain;
   private final DoubleSupplier translationXSupplier;

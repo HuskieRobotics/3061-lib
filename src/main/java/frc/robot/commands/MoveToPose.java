@@ -4,7 +4,7 @@ import com.pathplanner.lib.PathConstraints;
 import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.commands.PPSwerveControllerCommand;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.Command;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team6328.util.Alert;
 import frc.lib.team6328.util.Alert.AlertType;
@@ -34,7 +34,7 @@ import org.littletonrobotics.junction.Logger;
  *
  * <p>At End: stops the drivetrain, sets trajectory to null
  */
-public class MoveToPose extends CommandBase {
+public class MoveToPose extends Command {
   private Supplier<Pose2d> endPoseSupplier;
   private Drivetrain drivetrain;
   private double minTrajectoryTraversalTime;
