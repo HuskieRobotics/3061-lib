@@ -139,8 +139,6 @@ public class Drivetrain extends SubsystemBase {
 
   private boolean isMoveToPoseEnabled;
 
-  private double initialGyroPositionForSystemCheck = 0.0;
-
   private Alert noPoseAlert =
       new Alert("Attempted to reset pose from vision, but no pose was found.", AlertType.WARNING);
 
@@ -415,50 +413,46 @@ public class Drivetrain extends SubsystemBase {
       boolean isOpenLoop,
       boolean overrideFieldRelative) {
 
-    switch (driveMode) {
-      case NORMAL:
-        // get the slow-mode multiplier from the config
-        double slowModeMultiplier = RobotConfig.getInstance().getRobotSlowModeMultiplier();
-        // if translation or rotation is in slow mode, multiply the x and y velocities by the
-        // slow-mode multiplier
-        if (isTranslationSlowMode) {
-          xVelocity *= slowModeMultiplier;
-          yVelocity *= slowModeMultiplier;
-        }
-        // if rotation is in slow mode, multiply the rotational velocity by the slow-mode multiplier
-        if (isRotationSlowMode) {
-          rotationalVelocity *= slowModeMultiplier;
-        }
+    if (driveMode == DriveMode.NORMAL) {
+      // get the slow-mode multiplier from the config
+      double slowModeMultiplier = RobotConfig.getInstance().getRobotSlowModeMultiplier();
+      // if translation or rotation is in slow mode, multiply the x and y velocities by the
+      // slow-mode multiplier
+      if (isTranslationSlowMode) {
+        xVelocity *= slowModeMultiplier;
+        yVelocity *= slowModeMultiplier;
+      }
+      // if rotation is in slow mode, multiply the rotational velocity by the slow-mode multiplier
+      if (isRotationSlowMode) {
+        rotationalVelocity *= slowModeMultiplier;
+      }
 
-        if (isFieldRelative || overrideFieldRelative) {
-          chassisSpeeds =
-              ChassisSpeeds.fromFieldRelativeSpeeds(
-                  xVelocity, yVelocity, rotationalVelocity, getRotation());
+      if (isFieldRelative || overrideFieldRelative) {
+        chassisSpeeds =
+            ChassisSpeeds.fromFieldRelativeSpeeds(
+                xVelocity, yVelocity, rotationalVelocity, getRotation());
 
-        } else {
-          chassisSpeeds = new ChassisSpeeds(xVelocity, yVelocity, rotationalVelocity);
-        }
+      } else {
+        chassisSpeeds = new ChassisSpeeds(xVelocity, yVelocity, rotationalVelocity);
+      }
 
-        chassisSpeeds = convertFromDiscreteChassisSpeedsToContinuous(chassisSpeeds);
+      chassisSpeeds = convertFromDiscreteChassisSpeedsToContinuous(chassisSpeeds);
 
-        Logger.getInstance()
-            .recordOutput("Drivetrain/ChassisSpeedVx", chassisSpeeds.vxMetersPerSecond);
-        Logger.getInstance()
-            .recordOutput("Drivetrain/ChassisSpeedVy", chassisSpeeds.vyMetersPerSecond);
-        Logger.getInstance()
-            .recordOutput("Drivetrain/ChassisSpeedVo", chassisSpeeds.omegaRadiansPerSecond);
+      Logger.getInstance()
+          .recordOutput("Drivetrain/ChassisSpeedVx", chassisSpeeds.vxMetersPerSecond);
+      Logger.getInstance()
+          .recordOutput("Drivetrain/ChassisSpeedVy", chassisSpeeds.vyMetersPerSecond);
+      Logger.getInstance()
+          .recordOutput("Drivetrain/ChassisSpeedVo", chassisSpeeds.omegaRadiansPerSecond);
 
-        SwerveModuleState[] newSwerveModuleStates =
-            kinematics.toSwerveModuleStates(chassisSpeeds, centerGravity);
-        SwerveDriveKinematics.desaturateWheelSpeeds(
-            newSwerveModuleStates, RobotConfig.getInstance().getRobotMaxVelocity());
+      SwerveModuleState[] newSwerveModuleStates =
+          kinematics.toSwerveModuleStates(chassisSpeeds, centerGravity);
+      SwerveDriveKinematics.desaturateWheelSpeeds(
+          newSwerveModuleStates, RobotConfig.getInstance().getRobotMaxVelocity());
 
-        setSwerveModuleStates(newSwerveModuleStates, isOpenLoop, false);
-        break;
-
-      case X:
-        this.setXStance();
-        break;
+      setSwerveModuleStates(newSwerveModuleStates, isOpenLoop, false);
+    } else { // X stance
+      this.setXStance();
     }
   }
 
