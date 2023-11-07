@@ -10,6 +10,7 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.sim.Pigeon2SimState;
 import edu.wpi.first.wpilibj.RobotController;
+import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 import frc.robot.Constants;
 import java.util.ArrayList;
@@ -39,6 +40,8 @@ public class GyroIOPigeon2Phoenix6 implements GyroIO {
     this.angularVelocityYStatusSignal.setUpdateFrequency(100);
     this.angularVelocityZStatusSignal = this.gyro.getAngularVelocityZ();
     this.angularVelocityZStatusSignal.setUpdateFrequency(100);
+
+    FaultReporter.getInstance().registerHardware("Drivetrain", "gyro", gyro);
 
     if (Constants.getMode() == Constants.Mode.SIM) {
       this.gyroSim = this.gyro.getSimState();

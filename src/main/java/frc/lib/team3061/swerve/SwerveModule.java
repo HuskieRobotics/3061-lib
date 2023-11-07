@@ -12,6 +12,9 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.Commands;
+import frc.lib.team3015.subsystem.FaultReporter;
 import java.util.List;
 import org.littletonrobotics.junction.Logger;
 
@@ -21,11 +24,12 @@ public class SwerveModule {
   private final SwerveModuleIOInputsAutoLogged inputs = new SwerveModuleIOInputsAutoLogged();
 
   private int moduleNumber;
+  private String subsystemName;
   private double lastAngle;
   private double maxVelocity;
   private double lastAngleMotorVelocity = 0.0;
+  private CommandBase wrappedSystemCheckCommand;
 
-  private static final String SUBSYSTEM_NAME = "Swerve";
   private static final boolean DEBUGGING = false;
 
   /**
@@ -39,18 +43,23 @@ public class SwerveModule {
     this.io = io;
     this.moduleNumber = moduleNumber;
     this.maxVelocity = maxVelocity;
+    this.subsystemName = "SwerveModule" + moduleNumber;
 
     lastAngle = getState().angle.getDegrees();
 
     /* set DEBUGGING to true to view values in Shuffleboard. This is useful when determining the steer offset constants. */
     if (DEBUGGING) {
-      ShuffleboardTab tab = Shuffleboard.getTab(SUBSYSTEM_NAME);
+      ShuffleboardTab tab = Shuffleboard.getTab("Swerve");
       tab.addNumber(
           "Mod " + this.moduleNumber + ": Cancoder", () -> inputs.angleAbsolutePositionDeg);
       tab.addNumber("Mod " + this.moduleNumber + ": Integrated", () -> inputs.anglePositionDeg);
       tab.addNumber(
           "Mod " + this.moduleNumber + ": Velocity", () -> inputs.driveVelocityMetersPerSec);
     }
+
+    FaultReporter faultReporter = FaultReporter.getInstance();
+    this.wrappedSystemCheckCommand =
+        faultReporter.registerSystemCheck(this.subsystemName, getSystemCheckCommand());
   }
 
   /**
@@ -180,6 +189,59 @@ public class SwerveModule {
    */
   public void setAngleBrakeMode(boolean enable) {
     io.setAngleBrakeMode(enable);
+  }
+
+  private CommandBase getSystemCheckCommand() {
+    return Commands.sequence(
+            Commands.run(() -> io.setAnglePosition(90.0)).withTimeout(1.0),
+            Commands.runOnce(
+                () -> {
+                  double angle = inputs.anglePositionDeg % 360;
+                  if (angle < 88 || angle > 92) {
+                    FaultReporter.getInstance()
+                        .addFault(
+                            this.subsystemName,
+                            "[System Check] Rotation Motor did not reach target position of 90 deg "
+                                + angle,
+                            false,
+                            true);
+                  }
+                }),
+            Commands.runOnce(() -> io.setDriveMotorPercentage(0.1)),
+            Commands.waitSeconds(0.5),
+            Commands.runOnce(
+                () -> {
+                  if (inputs.driveVelocityMetersPerSec < 0.25) {
+                    FaultReporter.getInstance()
+                        .addFault(
+                            this.subsystemName,
+                            "[System Check] Drive motor encoder velocity too slow",
+                            false,
+                            true);
+                  }
+                  io.setDriveMotorPercentage(0.0);
+                }),
+            Commands.waitSeconds(0.25),
+            Commands.run(() -> io.setAnglePosition(0.0)).withTimeout(1.0),
+            Commands.runOnce(
+                () -> {
+                  double angle = inputs.anglePositionDeg % 360;
+                  if (angle < -2 || angle > 2) {
+                    FaultReporter.getInstance()
+                        .addFault(
+                            this.subsystemName,
+                            "[System Check] Rotation Motor did not reach target position of 0 deg "
+                                + angle,
+                            false,
+                            true);
+                  }
+                }))
+        .until(() -> !FaultReporter.getInstance().getFaults(this.subsystemName).isEmpty())
+        .andThen(Commands.runOnce(() -> io.setDriveMotorPercentage(0.0)));
+  }
+
+  public CommandBase getCheckCommand() {
+    return this.wrappedSystemCheckCommand;
   }
 
   /**

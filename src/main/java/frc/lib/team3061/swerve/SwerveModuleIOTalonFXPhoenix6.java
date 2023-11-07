@@ -24,11 +24,11 @@ import com.ctre.phoenix6.sim.CANcoderSimState;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 import edu.wpi.first.math.numbers.N1;
-import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import edu.wpi.first.wpilibj.simulation.LinearSystemSim;
+import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team6328.util.Alert;
 import frc.lib.team6328.util.Alert.AlertType;
@@ -95,7 +95,8 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
   private TalonFXSimState driveMotorSimState;
   private CANcoderSimState angleEncoderSimState;
   private LinearSystemSim<N1, N1, N1> driveSim;
-  private FlywheelSim turnSim;
+  private LinearSystemSim<N2, N1, N1> turnSim;
+  private double lastSimAnglePositionRot = 0.0;
 
   /**
    * Make a new SwerveModuleIOTalonFX object.
@@ -133,6 +134,11 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     configAngleMotor(angleMotorID, canCoderID);
     configDriveMotor(driveMotorID);
     configSim();
+
+    String subsystemName = "SwerveModule" + moduleNumber;
+    FaultReporter.getInstance().registerHardware(subsystemName, "angle encoder", angleEncoder);
+    FaultReporter.getInstance().registerHardware(subsystemName, "angle motor", angleMotor);
+    FaultReporter.getInstance().registerHardware(subsystemName, "drive motor", driveMotor);
   }
 
   private void configAngleEncoder(int canCoderID) {
@@ -433,9 +439,12 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
             ? ChassisReference.Clockwise_Positive
             : ChassisReference.CounterClockwise_Positive;
 
-    // replace the flywheel sim with the position system after characterizing the rotation of the
-    // swerve modules on the robot
-    this.turnSim = new FlywheelSim(DCMotor.getFalcon500(1), angleGearRatio, 0.5);
+    this.turnSim =
+        new LinearSystemSim<>(
+            LinearSystemId.identifyPositionSystem(
+                RobotConfig.getInstance().getSwerveAngleKV(),
+                RobotConfig.getInstance().getSwerveAngleKA()));
+
     this.driveSim =
         new LinearSystemSim<>(
             LinearSystemId.identifyVelocitySystem(
@@ -453,7 +462,7 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     this.driveMotorSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
 
     // update the input voltages of the models based on the outputs of the simulated TalonFXs
-    this.turnSim.setInputVoltage(this.angleMotorSimState.getMotorVoltage());
+    this.turnSim.setInput(this.angleMotorSimState.getMotorVoltage());
     this.driveSim.setInput(this.driveMotorSimState.getMotorVoltage());
 
     // update the models
@@ -461,11 +470,13 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     this.turnSim.update(Constants.LOOP_PERIOD_SECS);
 
     // update the simulated TalonFXs and CANcoder based on the model outputs
-    double turnRPM = turnSim.getAngularVelocityRPM();
-    double angleEncoderRPS = turnRPM / 60.0;
-    double angleEncoderRotations = angleEncoderRPS * Constants.LOOP_PERIOD_SECS;
+    double turnRadians = turnSim.getOutput(0);
+    double angleEncoderRotations = turnRadians / (2 * Math.PI);
+    double angleEncoderRPS =
+        (angleEncoderRotations - lastSimAnglePositionRot) / Constants.LOOP_PERIOD_SECS;
+    lastSimAnglePositionRot = angleEncoderRotations;
 
-    this.angleEncoderSimState.addPosition(angleEncoderRotations);
+    this.angleEncoderSimState.setRawPosition(angleEncoderRotations);
     this.angleEncoderSimState.setVelocity(angleEncoderRPS);
     this.angleMotorSimState.addRotorPosition(angleEncoderRotations / angleGearRatio);
     this.angleMotorSimState.setRotorVelocity(angleEncoderRPS / angleGearRatio);

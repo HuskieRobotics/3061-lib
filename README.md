@@ -121,3 +121,4 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
 * AdvantageKit-enabled pneumatics classes from Mechanical Advantage's 2022 [robot code](https://github.com/Mechanical-Advantage/RobotCode2022)
 * FaultReporter (originally AdvancedSubsystem), SubsystemFault, SelfChecking classes from [Ranger Robotics](https://github.com/3015RangerRobotics/2023Public)
 * Talon factories from Citrus Circuits 2022 [robot code](https://github.com/frc1678/C2022)
+* FaultReporter (originally AdvancedSubsystem), SubsystemFault, SelfChecking classes from Ranger Robotics 2023 [robot code](https://github.com/3015RangerRobotics/2023Public)

@@ -65,10 +65,9 @@ public abstract class RobotConfig {
     return 0.0;
   }
 
-
   /*
    * Returns the voltage needed to overcome the swerve module's static friction. Defaults to 0.
-   * 
+   *
    * @return the voltage needed to overcome the swerve module's static friction
    */
   public double getSwerveAngleKS() {
