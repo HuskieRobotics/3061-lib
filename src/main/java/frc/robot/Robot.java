@@ -5,6 +5,8 @@
 package frc.robot;
 
 import com.pathplanner.lib.commands.PPSwerveControllerCommand;
+import com.pathplanner.lib.pathfinding.Pathfinding;
+
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -40,6 +42,9 @@ public class Robot extends LoggedRobot {
    */
   @Override
   public void robotInit() {
+    // DO THIS FIRST
+    Pathfinding.setPathfinder(new LocalADStarAK());
+
     final String GIT_DIRTY = "GitDirty";
 
     // from AdvantageKit Robot Configuration docs
