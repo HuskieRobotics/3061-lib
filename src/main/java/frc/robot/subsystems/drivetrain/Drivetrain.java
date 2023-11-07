@@ -447,8 +447,6 @@ public class Drivetrain extends SubsystemBase {
 
       SwerveModuleState[] newSwerveModuleStates =
           kinematics.toSwerveModuleStates(chassisSpeeds, centerGravity);
-      SwerveDriveKinematics.desaturateWheelSpeeds(
-          newSwerveModuleStates, RobotConfig.getInstance().getRobotMaxVelocity());
 
       setSwerveModuleStates(newSwerveModuleStates, isOpenLoop, false);
     } else { // X stance
