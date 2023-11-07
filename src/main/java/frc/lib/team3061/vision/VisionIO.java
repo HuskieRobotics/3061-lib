@@ -41,11 +41,11 @@ public interface VisionIO {
     }
 
     public void fromLog(LogTable table) {
-      byte[] photonPacketBytes = table.getRaw("photonPacketBytes", new byte[0]);
+      byte[] photonPacketBytes = table.get("photonPacketBytes", new byte[0]);
       lastResult = new PhotonPipelineResult();
       lastResult.createFromPacket(new Packet(photonPacketBytes));
 
-      lastTimestamp = table.getDouble("lastTimestamp", 0.0);
+      lastTimestamp = table.get("lastTimestamp", 0.0);
     }
   }
 

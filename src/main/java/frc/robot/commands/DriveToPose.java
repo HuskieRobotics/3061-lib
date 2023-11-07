@@ -154,7 +154,6 @@ public class DriveToPose extends Command {
     // the calculate method has not yet been invoked.
     running = true;
 
-
     // Update from tunable numbers
     if (driveKp.hasChanged()
         || driveKd.hasChanged()

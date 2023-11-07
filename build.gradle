@@ -75,7 +75,7 @@ dependencies {
 
     def akitJson = new groovy.json.JsonSlurper().parseText(new File(projectDir.getAbsolutePath() + "/vendordeps/AdvantageKit.json").text)
     annotationProcessor "org.littletonrobotics.akit.junction:junction-autolog:$akitJson.version"
-    
+
     implementation "gov.nist.math:jama:1.0.3"
 }
 
@@ -179,4 +179,3 @@ gversion {
 
 project.compileJava.dependsOn(createVersionFile)
 build.dependsOn(spotlessApply)
-
