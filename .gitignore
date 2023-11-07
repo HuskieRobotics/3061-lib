@@ -43,7 +43,6 @@ src/main/java/frc/robot/BuildConstants.java
 
 # Log file
 *.log
-*.wpilog
 
 # BlueJ files
 *.ctxt
@@ -161,6 +160,15 @@ gradle-app.setting
 .settings/
 bin/
 
+# IntelliJ
+*.iml
+*.ipr
+*.iws
+.idea/
+out/
+
+# Fleet
+.fleet
+
 # Simulation GUI and other tools window save file
 *-window.json
-
