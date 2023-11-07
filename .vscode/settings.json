@@ -34,6 +34,7 @@
   "cSpell.words": [
     "algs",
     "APRILTAG",
+    "bezier",
     "brushless",
     "canbus",
     "Cancoder",
@@ -56,6 +57,8 @@
     "Nivore",
     "odometry",
     "openloop",
+    "pathfind",
+    "pathfinding",
     "Penrose",
     "photonvision",
     "PIDF",
