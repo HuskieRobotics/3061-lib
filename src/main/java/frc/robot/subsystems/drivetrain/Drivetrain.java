@@ -139,8 +139,6 @@ public class Drivetrain extends SubsystemBase {
 
   private boolean isMoveToPoseEnabled;
 
-  private double initialGyroPositionForSystemCheck = 0.0;
-
   private Alert noPoseAlert =
       new Alert("Attempted to reset pose from vision, but no pose was found.", AlertType.WARNING);
 
@@ -441,12 +439,9 @@ public class Drivetrain extends SubsystemBase {
 
         chassisSpeeds = convertFromDiscreteChassisSpeedsToContinuous(chassisSpeeds);
 
-        Logger.getInstance()
-            .recordOutput("Drivetrain/ChassisSpeedVx", chassisSpeeds.vxMetersPerSecond);
-        Logger.getInstance()
-            .recordOutput("Drivetrain/ChassisSpeedVy", chassisSpeeds.vyMetersPerSecond);
-        Logger.getInstance()
-            .recordOutput("Drivetrain/ChassisSpeedVo", chassisSpeeds.omegaRadiansPerSecond);
+        Logger.recordOutput("Drivetrain/ChassisSpeedVx", chassisSpeeds.vxMetersPerSecond);
+        Logger.recordOutput("Drivetrain/ChassisSpeedVy", chassisSpeeds.vyMetersPerSecond);
+        Logger.recordOutput("Drivetrain/ChassisSpeedVo", chassisSpeeds.omegaRadiansPerSecond);
 
         SwerveModuleState[] newSwerveModuleStates =
             kinematics.toSwerveModuleStates(chassisSpeeds, centerGravity);
@@ -490,13 +485,13 @@ public class Drivetrain extends SubsystemBase {
 
     // update and log gyro inputs
     gyroIO.updateInputs(gyroInputs);
-    Logger.getInstance().processInputs("Drivetrain/Gyro", gyroInputs);
+    Logger.processInputs("Drivetrain/Gyro", gyroInputs);
 
     // update and log the swerve modules inputs
     for (SwerveModule swerveModule : swerveModules) {
       swerveModule.updateAndProcessInputs();
     }
-    Logger.getInstance().recordOutput("Drivetrain/AvgDriveCurrent", this.getAverageDriveCurrent());
+    Logger.recordOutput("Drivetrain/AvgDriveCurrent", this.getAverageDriveCurrent());
 
     // update swerve module states and positions
     for (int i = 0; i < 4; i++) {
@@ -529,7 +524,7 @@ public class Drivetrain extends SubsystemBase {
 
     // update the pose estimator based on the gyro and swerve module positions
     poseEstimator.updateWithTime(
-        Logger.getInstance().getRealTimestamp() / 1e6, this.getRotation(), swerveModulePositions);
+        Logger.getRealTimestamp() / 1e6, this.getRotation(), swerveModulePositions);
 
     // update the brake mode based on the robot's velocity and state (enabled/disabled)
     updateBrakeMode();
@@ -545,10 +540,10 @@ public class Drivetrain extends SubsystemBase {
 
     // log poses, 3D geometry, and swerve module states, gyro offset
     Pose2d poseEstimatorPose = poseEstimator.getEstimatedPosition();
-    Logger.getInstance().recordOutput("Odometry/RobotNoGyro", estimatedPoseWithoutGyro);
-    Logger.getInstance().recordOutput("Odometry/Robot", poseEstimatorPose);
-    Logger.getInstance().recordOutput("3DField", new Pose3d(poseEstimatorPose));
-    Logger.getInstance().recordOutput("SwerveModuleStates/Measured", swerveModuleStates);
+    Logger.recordOutput("Odometry/RobotNoGyro", estimatedPoseWithoutGyro);
+    Logger.recordOutput("Odometry/Robot", poseEstimatorPose);
+    Logger.recordOutput("3DField", new Pose3d(poseEstimatorPose));
+    Logger.recordOutput("SwerveModuleStates/Measured", swerveModuleStates);
   }
 
   /**
@@ -573,7 +568,7 @@ public class Drivetrain extends SubsystemBase {
       swerveModule.setDesiredState(states[swerveModule.getModuleNumber()], isOpenLoop, forceAngle);
     }
 
-    Logger.getInstance().recordOutput("SwerveModuleStates/Setpoints", states);
+    Logger.recordOutput("SwerveModuleStates/Setpoints", states);
   }
 
   /**

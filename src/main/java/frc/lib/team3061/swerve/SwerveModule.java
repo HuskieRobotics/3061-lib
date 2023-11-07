@@ -170,7 +170,7 @@ public class SwerveModule {
   public void updateAndProcessInputs() {
     this.lastAngleMotorVelocity = inputs.angleVelocityRevPerMin;
     io.updateInputs(inputs);
-    Logger.getInstance().processInputs("Mod" + moduleNumber, inputs);
+    Logger.processInputs("Mod" + moduleNumber, inputs);
   }
 
   /**

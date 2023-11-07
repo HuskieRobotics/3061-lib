@@ -60,12 +60,12 @@ public class Pneumatics extends SubsystemBase {
   @Override
   public void periodic() {
     io.updateInputs(inputs);
-    Logger.getInstance().processInputs("Pneumatics", inputs);
+    Logger.processInputs("Pneumatics", inputs);
 
     calculateAveragePressure();
 
     // Log pressure
-    Logger.getInstance().recordOutput("PressurePsi", pressureSmoothedPsi);
+    Logger.recordOutput("PressurePsi", pressureSmoothedPsi);
 
     // Detect if dump value is open
     if (inputs.highPressurePSI > 3) {

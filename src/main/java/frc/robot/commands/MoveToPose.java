@@ -76,7 +76,7 @@ public class MoveToPose extends Command {
 
   @Override
   public void initialize() {
-    Logger.getInstance().recordOutput("ActiveCommands/MoveToPose", true);
+    Logger.recordOutput("ActiveCommands/MoveToPose", true);
 
     // reset the theta controller such that old accumulated ID values aren't used with the new
     // trajectory
@@ -132,9 +132,9 @@ public class MoveToPose extends Command {
       this.ppSwerveControllerCommand.initialize();
 
       double afterCalc = Logger.getInstance().getRealTimestamp();
-      Logger.getInstance().recordOutput("Odometry/trajectoryCalcTime", afterCalc - beforeCalc);
+      Logger.recordOutput("Odometry/trajectoryCalcTime", afterCalc - beforeCalc);
 
-      Logger.getInstance().recordOutput("Odometry/trajectory", trajectory);
+      Logger.recordOutput("Odometry/trajectory", trajectory);
     }
   }
 
@@ -182,7 +182,7 @@ public class MoveToPose extends Command {
     this.trajectory = null;
     this.ppSwerveControllerCommand = null;
 
-    Logger.getInstance().recordOutput("ActiveCommands/MoveToPose", false);
+    Logger.recordOutput("ActiveCommands/MoveToPose", false);
   }
 
   /**
@@ -210,7 +210,7 @@ public class MoveToPose extends Command {
 
     Pose2d translatedEndPose = Field2d.getInstance().mapPoseToCurrentAlliance(endPose);
 
-    Logger.getInstance().recordOutput("MoveToPose/endPose", translatedEndPose);
+    Logger.recordOutput("MoveToPose/endPose", translatedEndPose);
 
     return translatedEndPose;
   }

@@ -94,7 +94,7 @@ public class RotateToAngle extends Command {
    */
   @Override
   public void initialize() {
-    Logger.getInstance().recordOutput("ActiveCommands/RotateToAngle", true);
+    Logger.recordOutput("ActiveCommands/RotateToAngle", true);
 
     Pose2d currentPose = drivetrain.getPose();
     thetaController.reset(currentPose.getRotation().getRadians());
@@ -105,7 +105,7 @@ public class RotateToAngle extends Command {
         Units.degreesToRadians(this.targetAngleSupplier.getAsDouble()) - Math.PI,
         Units.degreesToRadians(this.targetAngleSupplier.getAsDouble()) + Math.PI);
 
-    Logger.getInstance().recordOutput("RotateToAngle/AngleDeg", targetAngleSupplier.getAsDouble());
+    Logger.recordOutput("RotateToAngle/AngleDeg", targetAngleSupplier.getAsDouble());
   }
 
   /**
@@ -167,6 +167,6 @@ public class RotateToAngle extends Command {
    */
   @Override
   public void end(boolean interrupted) {
-    Logger.getInstance().recordOutput("ActiveCommands/RotateToAngle", false);
+    Logger.recordOutput("ActiveCommands/RotateToAngle", false);
   }
 }

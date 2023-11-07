@@ -255,7 +255,7 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
       driveMotorConfigAlert.setText(status.toString());
     }
 
-    this.driveMotor.setRotorPosition(0.0);
+    this.driveMotor.setPosition(0.0);
 
     this.drivePositionStatusSignal = this.driveMotor.getPosition();
     this.driveVelocityStatusSignal = this.driveMotor.getVelocity();

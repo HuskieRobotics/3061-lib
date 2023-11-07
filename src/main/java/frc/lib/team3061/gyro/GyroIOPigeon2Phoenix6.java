@@ -64,7 +64,7 @@ public class GyroIOPigeon2Phoenix6 implements GyroIO {
     this.angularVelocityXStatusSignal.refresh();
     this.angularVelocityYStatusSignal.refresh();
 
-    inputs.connected = (this.yawStatusSignal.getError() == StatusCode.OK);
+    inputs.connected = (this.yawStatusSignal.getStatus() == StatusCode.OK);
     inputs.yawDeg =
         BaseStatusSignal.getLatencyCompensatedValue(
             this.yawStatusSignal, this.angularVelocityZStatusSignal);

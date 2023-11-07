@@ -32,9 +32,6 @@ public class SelfCheckingPhoenixMotor implements SelfChecking {
     if (motor.getFault_FusedSensorOutOfSync().getValue()) {
       faults.add(new SubsystemFault(String.format("[%s]: Remote sensor is out of sync", label)));
     }
-    if (motor.getFault_MissingRemoteSensor().getValue()) {
-      faults.add(new SubsystemFault(String.format("[%s]: Remote sensor is missing", label)));
-    }
     if (motor.getFault_OverSupplyV().getValue()) {
       faults.add(new SubsystemFault(String.format("[%s]: Supply voltage exceeded limit", label)));
     }

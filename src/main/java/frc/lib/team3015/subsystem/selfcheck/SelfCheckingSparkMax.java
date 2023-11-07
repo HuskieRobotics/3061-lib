@@ -1,5 +1,9 @@
 package frc.lib.team3015.subsystem.selfcheck;
 
+/*
+
+FIXME: enable when Rev releases 2024 support
+
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.REVLibError;
 import frc.lib.team3015.subsystem.SubsystemFault;
@@ -27,3 +31,4 @@ public class SelfCheckingSparkMax implements SelfChecking {
     return faults;
   }
 }
+*/

@@ -53,10 +53,10 @@ public class SelfCheckingPigeon2 implements SelfChecking {
       faults.add(
           new SubsystemFault(String.format("[%s]: Accelerometer values are saturated", label)));
     }
-    if (pigeon.getFault_SaturatedGyrosscope().getValue()) {
+    if (pigeon.getFault_SaturatedGyroscope().getValue()) {
       faults.add(new SubsystemFault(String.format("[%s]: Gyro values are saturated", label)));
     }
-    if (pigeon.getFault_SaturatedMagneter().getValue()) {
+    if (pigeon.getFault_SaturatedMagnetometer().getValue()) {
       faults.add(
           new SubsystemFault(String.format("[%s]: Magnetometer values are saturated", label)));
     }

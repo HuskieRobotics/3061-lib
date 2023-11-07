@@ -50,40 +50,38 @@ public class Robot extends LoggedRobot {
     // from AdvantageKit Robot Configuration docs
     // (https://github.com/Mechanical-Advantage/AdvantageKit/blob/main/docs/START-LOGGING.md#robot-configuration)
 
-    Logger logger = Logger.getInstance();
-
     // Set a metadata value
-    logger.recordMetadata("RuntimeType", getRuntimeType().toString());
-    logger.recordMetadata("ProjectName", BuildConstants.MAVEN_NAME);
-    logger.recordMetadata("BuildDate", BuildConstants.BUILD_DATE);
-    logger.recordMetadata("GitSHA", BuildConstants.GIT_SHA);
-    logger.recordMetadata("GitDate", BuildConstants.GIT_DATE);
-    logger.recordMetadata("GitBranch", BuildConstants.GIT_BRANCH);
+    Logger.recordMetadata("RuntimeType", getRuntimeType().toString());
+    Logger.recordMetadata("ProjectName", BuildConstants.MAVEN_NAME);
+    Logger.recordMetadata("BuildDate", BuildConstants.BUILD_DATE);
+    Logger.recordMetadata("GitSHA", BuildConstants.GIT_SHA);
+    Logger.recordMetadata("GitDate", BuildConstants.GIT_DATE);
+    Logger.recordMetadata("GitBranch", BuildConstants.GIT_BRANCH);
     switch (BuildConstants.DIRTY) {
       case 0:
-        logger.recordMetadata(GIT_DIRTY, "All changes committed");
+        Logger.recordMetadata(GIT_DIRTY, "All changes committed");
         break;
       case 1:
-        logger.recordMetadata(GIT_DIRTY, "Uncommitted changes");
+        Logger.recordMetadata(GIT_DIRTY, "Uncommitted changes");
         break;
       default:
-        logger.recordMetadata(GIT_DIRTY, "Unknown");
+        Logger.recordMetadata(GIT_DIRTY, "Unknown");
         break;
     }
 
     switch (Constants.getMode()) {
       case REAL:
-        logger.addDataReceiver(new WPILOGWriter("/media/sda1"));
+        Logger.addDataReceiver(new WPILOGWriter("/media/sda1"));
 
         // Provide log data over the network, viewable in Advantage Scope.
-        logger.addDataReceiver(new NT4Publisher());
+        Logger.addDataReceiver(new NT4Publisher());
 
         LoggedPowerDistribution.getInstance();
         break;
 
       case SIM:
-        logger.addDataReceiver(new WPILOGWriter(""));
-        logger.addDataReceiver(new NT4Publisher());
+        Logger.addDataReceiver(new WPILOGWriter(""));
+        Logger.addDataReceiver(new NT4Publisher());
         break;
 
       case REPLAY:
@@ -94,43 +92,43 @@ public class Robot extends LoggedRobot {
         String path = LogFileUtil.findReplayLog();
 
         // Read log file for replay
-        logger.setReplaySource(new WPILOGReader(path));
+        Logger.setReplaySource(new WPILOGReader(path));
 
         // Save replay results to a new log with the "_sim" suffix
-        logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(path, "_sim")));
+        Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(path, "_sim")));
         break;
     }
 
     // Start logging! No more data receivers, replay sources, or metadata values may be added.
-    logger.start();
+    Logger.start();
 
     // Alternative logging of scheduled commands
     CommandScheduler.getInstance()
         .onCommandInitialize(
-            command -> Logger.getInstance().recordOutput("Command initialized", command.getName()));
+            command -> Logger.recordOutput("Command initialized", command.getName()));
     CommandScheduler.getInstance()
         .onCommandInterrupt(
-            command -> Logger.getInstance().recordOutput("Command interrupted", command.getName()));
+            command -> Logger.recordOutput("Command interrupted", command.getName()));
     CommandScheduler.getInstance()
         .onCommandFinish(
-            command -> Logger.getInstance().recordOutput("Command finished", command.getName()));
+            command -> Logger.recordOutput("Command finished", command.getName()));
 
     // Logging of autonomous paths
     PPSwerveControllerCommand.setLoggingCallbacks(
         activeTrajectory ->
-            Logger.getInstance().recordOutput("PathFollowing/trajectory", activeTrajectory),
-        targetPose -> Logger.getInstance().recordOutput("PathFollowing/targetPose", targetPose),
+            Logger.recordOutput("PathFollowing/trajectory", activeTrajectory),
+        targetPose -> Logger.recordOutput("PathFollowing/targetPose", targetPose),
         setpoint -> {
-          Logger.getInstance().recordOutput("PathFollowing/targetXVel", setpoint.vxMetersPerSecond);
-          Logger.getInstance().recordOutput("PathFollowing/targetYVel", setpoint.vyMetersPerSecond);
+          Logger.recordOutput("PathFollowing/targetXVel", setpoint.vxMetersPerSecond);
+          Logger.recordOutput("PathFollowing/targetYVel", setpoint.vyMetersPerSecond);
           Logger.getInstance()
               .recordOutput(
                   "PathFollowing/targetAngularVel",
                   Units.radiansToDegrees(setpoint.omegaRadiansPerSecond));
         },
         (translationError, rotationError) -> {
-          Logger.getInstance().recordOutput("PathFollowing/xPosError", translationError.getX());
-          Logger.getInstance().recordOutput("PathFollowing/yPosError", translationError.getY());
+          Logger.recordOutput("PathFollowing/xPosError", translationError.getX());
+          Logger.recordOutput("PathFollowing/yPosError", translationError.getY());
           Logger.getInstance()
               .recordOutput("PathFollowing/rotationError", rotationError.getDegrees());
         });
@@ -156,7 +154,7 @@ public class Robot extends LoggedRobot {
      */
     CommandScheduler.getInstance().run();
 
-    logReceiverQueueAlert.set(Logger.getInstance().getReceiverQueueFault());
+    logReceiverQueueAlert.set(Logger.getReceiverQueueFault());
   }
 
   /** This method is invoked periodically when the robot is in the disabled state. */

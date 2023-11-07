@@ -3,7 +3,7 @@ package frc.lib.team3015.subsystem;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.revrobotics.CANSparkMax;
+//import com.revrobotics.CANSparkMax;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.motorcontrol.PWMMotorController;
@@ -63,7 +63,7 @@ public class FaultReporter {
         wrapSystemCheckCommand(subsystemName, systemCheckCommand);
     wrappedSystemCheckCommand.setName(subsystemName + "Check");
     SmartDashboard.putData(statusTable + "/SystemCheck", wrappedSystemCheckCommand);
-    Logger.getInstance().recordOutput(statusTable + CHECK_RAN, false);
+    Logger.recordOutput(statusTable + CHECK_RAN, false);
 
     subsystemsFaults.put(subsystemName, subsystemFaults);
 
@@ -75,7 +75,7 @@ public class FaultReporter {
     return Commands.sequence(
         Commands.runOnce(
             () -> {
-              Logger.getInstance().recordOutput(statusTable + CHECK_RAN, false);
+              Logger.recordOutput(statusTable + CHECK_RAN, false);
               clearFaults(subsystemName);
               publishStatus();
             }),
@@ -83,7 +83,7 @@ public class FaultReporter {
         Commands.runOnce(
             () -> {
               publishStatus();
-              Logger.getInstance().recordOutput(statusTable + CHECK_RAN, true);
+              Logger.recordOutput(statusTable + CHECK_RAN, true);
             }));
   }
 
@@ -109,21 +109,20 @@ public class FaultReporter {
       SystemStatus status = getSystemStatus(subsystemFaults.faults);
 
       String statusTable = SYSTEM_STATUS + subsystemName;
-      Logger.getInstance().recordOutput(statusTable + "/Status", status.name());
-      Logger.getInstance().recordOutput(statusTable + "/SystemOK", status == SystemStatus.OK);
+      Logger.recordOutput(statusTable + "/Status", status.name());
+      Logger.recordOutput(statusTable + "/SystemOK", status == SystemStatus.OK);
 
       String[] faultStrings = new String[subsystemFaults.faults.size()];
       for (int i = 0; i < subsystemFaults.faults.size(); i++) {
         SubsystemFault fault = subsystemFaults.faults.get(i);
         faultStrings[i] = String.format("[%.2f] %s", fault.timestamp, fault.description);
       }
-      Logger.getInstance().recordOutput(statusTable + "/Faults", faultStrings);
+      Logger.recordOutput(statusTable + "/Faults", faultStrings);
 
       if (faultStrings.length > 0) {
-        Logger.getInstance()
-            .recordOutput(statusTable + "/LastFault", faultStrings[faultStrings.length - 1]);
+        Logger.recordOutput(statusTable + "/LastFault", faultStrings[faultStrings.length - 1]);
       } else {
-        Logger.getInstance().recordOutput(statusTable + "/LastFault", "");
+        Logger.recordOutput(statusTable + "/LastFault", "");
       }
     }
   }
@@ -196,12 +195,15 @@ public class FaultReporter {
     subsystemsFaults.put(subsystemName, subsystemFaults);
   }
 
+  // FIXME: enable when Rev releases 2024 support
+  /*
   public void registerHardware(String subsystemName, String label, CANSparkMax spark) {
     SubsystemFaults subsystemFaults =
         subsystemsFaults.getOrDefault(subsystemName, new SubsystemFaults());
     subsystemFaults.hardware.add(new SelfCheckingSparkMax(label, spark));
     subsystemsFaults.put(subsystemName, subsystemFaults);
   }
+ */
 
   public void registerHardware(String subsystemName, String label, Pigeon2 pigeon2) {
     SubsystemFaults subsystemFaults =

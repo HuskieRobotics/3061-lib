@@ -53,7 +53,7 @@ public class Subsystem extends SubsystemBase {
   @Override
   public void periodic() {
     io.updateInputs(inputs);
-    Logger.getInstance().processInputs("Subsystem", inputs);
+    Logger.processInputs("Subsystem", inputs);
 
     // when testing, set the motor power, current, or position based on the Tunables (if non-zero)
     if (TESTING) {

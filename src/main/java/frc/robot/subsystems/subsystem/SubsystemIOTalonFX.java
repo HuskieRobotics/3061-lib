@@ -143,7 +143,7 @@ public class SubsystemIOTalonFX implements SubsystemIO {
       configAlert.setText(status.toString());
     }
 
-    this.motor.setRotorPosition(0);
+    this.motor.setPosition(0);
 
     this.voltageRequest = new VoltageOut(0.0);
     this.voltageRequest.EnableFOC = RobotConfig.getInstance().getPhoenix6Licensed();

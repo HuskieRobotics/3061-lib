@@ -125,7 +125,7 @@ public class DriveToPose extends Command {
    */
   @Override
   public void initialize() {
-    Logger.getInstance().recordOutput("ActiveCommands/DriveToPose", true);
+    Logger.recordOutput("ActiveCommands/DriveToPose", true);
 
     // Reset all controllers
     Pose2d currentPose = drivetrain.getPose();
@@ -137,7 +137,7 @@ public class DriveToPose extends Command {
     thetaController.setTolerance(thetaTolerance.get());
     this.targetPose = poseSupplier.get();
 
-    Logger.getInstance().recordOutput("DriveToPose/targetPose", targetPose);
+    Logger.recordOutput("DriveToPose/targetPose", targetPose);
 
     this.timer.restart();
   }
@@ -212,9 +212,9 @@ public class DriveToPose extends Command {
    */
   @Override
   public boolean isFinished() {
-    Logger.getInstance().recordOutput("DriveToPose/xErr", xController.atGoal());
-    Logger.getInstance().recordOutput("DriveToPose/yErr", yController.atGoal());
-    Logger.getInstance().recordOutput("DriveToPose/tErr", thetaController.atGoal());
+    Logger.recordOutput("DriveToPose/xErr", xController.atGoal());
+    Logger.recordOutput("DriveToPose/yErr", yController.atGoal());
+    Logger.recordOutput("DriveToPose/tErr", thetaController.atGoal());
 
     // check that running is true (i.e., the calculate method has been invoked on the PID
     // controllers) and that each of the controllers is at their goal. This is important since these
@@ -234,6 +234,6 @@ public class DriveToPose extends Command {
   public void end(boolean interrupted) {
     drivetrain.stop();
     running = false;
-    Logger.getInstance().recordOutput("ActiveCommands/DriveToPose", false);
+    Logger.recordOutput("ActiveCommands/DriveToPose", false);
   }
 }
