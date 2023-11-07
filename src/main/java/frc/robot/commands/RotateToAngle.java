@@ -144,7 +144,7 @@ public class RotateToAngle extends Command {
     double xVelocity = xPercentage * RobotConfig.getInstance().getRobotMaxVelocity();
     double yVelocity = yPercentage * RobotConfig.getInstance().getRobotMaxVelocity();
 
-    drivetrain.drive(xVelocity, yVelocity, thetaVelocity, true, false);
+    drivetrain.drive(xVelocity, yVelocity, thetaVelocity, true, drivetrain.getFieldRelative());
   }
 
   /**

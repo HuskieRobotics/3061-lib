@@ -4,10 +4,8 @@
 
 package frc.robot;
 
-import com.pathplanner.lib.commands.PPSwerveControllerCommand;
 import com.pathplanner.lib.pathfinding.Pathfinding;
-
-import edu.wpi.first.math.util.Units;
+import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.lib.team6328.util.Alert;
@@ -110,28 +108,20 @@ public class Robot extends LoggedRobot {
         .onCommandInterrupt(
             command -> Logger.recordOutput("Command interrupted", command.getName()));
     CommandScheduler.getInstance()
-        .onCommandFinish(
-            command -> Logger.recordOutput("Command finished", command.getName()));
+        .onCommandFinish(command -> Logger.recordOutput("Command finished", command.getName()));
 
     // Logging of autonomous paths
-    PPSwerveControllerCommand.setLoggingCallbacks(
-        activeTrajectory ->
-            Logger.recordOutput("PathFollowing/trajectory", activeTrajectory),
-        targetPose -> Logger.recordOutput("PathFollowing/targetPose", targetPose),
-        setpoint -> {
-          Logger.recordOutput("PathFollowing/targetXVel", setpoint.vxMetersPerSecond);
-          Logger.recordOutput("PathFollowing/targetYVel", setpoint.vyMetersPerSecond);
-          Logger.getInstance()
-              .recordOutput(
-                  "PathFollowing/targetAngularVel",
-                  Units.radiansToDegrees(setpoint.omegaRadiansPerSecond));
-        },
-        (translationError, rotationError) -> {
-          Logger.recordOutput("PathFollowing/xPosError", translationError.getX());
-          Logger.recordOutput("PathFollowing/yPosError", translationError.getY());
-          Logger.getInstance()
-              .recordOutput("PathFollowing/rotationError", rotationError.getDegrees());
-        });
+    // Logging callback for current robot pose
+    PathPlannerLogging.setLogCurrentPoseCallback(
+        pose -> Logger.recordOutput("PathFollowing/currentPose", pose));
+
+    // Logging callback for target robot pose
+    PathPlannerLogging.setLogTargetPoseCallback(
+        pose -> Logger.recordOutput("PathFollowing/targetPose", pose));
+
+    // Logging callback for the active path, this is sent as a list of poses
+    PathPlannerLogging.setLogActivePathCallback(
+        poses -> Logger.recordOutput("PathFollowing/activePath", poses));
 
     // Invoke the factory method to create the RobotContainer singleton.
     robotContainer = RobotContainer.getInstance();

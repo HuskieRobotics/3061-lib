@@ -8,7 +8,10 @@ import static frc.robot.Constants.*;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
-import com.pathplanner.lib.PathPlannerTrajectory.PathPlannerState;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
+import com.pathplanner.lib.util.PIDConstants;
+import com.pathplanner.lib.util.ReplanningConfig;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -217,6 +220,48 @@ public class Drivetrain extends SubsystemBase {
 
     FaultReporter faultReporter = FaultReporter.getInstance();
     faultReporter.registerSystemCheck(SUBSYSTEM_NAME, getSystemCheckCommand());
+
+    AutoBuilder.configureHolonomic(
+        this::getPose, // Robot pose supplier
+        this::resetPose, // Method to reset odometry (will be called if your auto has a starting
+        // pose)
+        this::getRobotRelativeSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+        this::driveRobotRelative, // Method that will drive the robot given ROBOT RELATIVE
+        // ChassisSpeeds
+        new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in
+            // your Constants class
+            new PIDConstants(
+                RobotConfig.getInstance().getAutoDriveKP(),
+                RobotConfig.getInstance().getAutoDriveKI(),
+                RobotConfig.getInstance().getAutoDriveKD()), // Translation PID constants
+            new PIDConstants(
+                RobotConfig.getInstance().getAutoTurnKP(),
+                RobotConfig.getInstance().getAutoTurnKI(),
+                RobotConfig.getInstance().getAutoTurnKD()), // Rotation PID constants
+            RobotConfig.getInstance().getAutoMaxSpeed(), // Max module speed, in m/s
+            new Translation2d(
+                    RobotConfig.getInstance().getWheelbase(),
+                    RobotConfig.getInstance().getTrackwidth())
+                .getNorm(), // Drive base radius in meters. Distance from robot center to furthest
+            // module.
+            new ReplanningConfig() // Default path replanning config. See the API for the options
+            // here
+            ),
+        this // Reference to this subsystem to set requirements
+        );
+  }
+
+  public ChassisSpeeds getRobotRelativeSpeeds() {
+    return this.chassisSpeeds;
+  }
+
+  public void driveRobotRelative(ChassisSpeeds chassisSpeeds) {
+    this.drive(
+        chassisSpeeds.vxMetersPerSecond,
+        chassisSpeeds.vyMetersPerSecond,
+        chassisSpeeds.omegaRadiansPerSecond,
+        false,
+        false);
   }
 
   /** Enables "turbo" mode (i.e., acceleration is not limited by software) */
@@ -331,19 +376,15 @@ public class Drivetrain extends SubsystemBase {
    *
    * @param state the specified PathPlanner state to which is set the odometry
    */
-  public void resetOdometry(PathPlannerState state) {
-    setGyroOffset(state.holonomicRotation.getDegrees());
+  public void resetPose(Pose2d pose) {
+    setGyroOffset(pose.getRotation().getDegrees());
 
     for (int i = 0; i < 4; i++) {
       swerveModulePositions[i] = swerveModules[i].getPosition();
     }
 
-    estimatedPoseWithoutGyro =
-        new Pose2d(state.poseMeters.getTranslation(), state.holonomicRotation);
-    poseEstimator.resetPosition(
-        this.getRotation(),
-        swerveModulePositions,
-        new Pose2d(state.poseMeters.getTranslation(), state.holonomicRotation));
+    estimatedPoseWithoutGyro = new Pose2d(pose.getTranslation(), pose.getRotation());
+    poseEstimator.resetPosition(this.getRotation(), swerveModulePositions, pose);
   }
 
   /**
@@ -411,49 +452,45 @@ public class Drivetrain extends SubsystemBase {
       double yVelocity,
       double rotationalVelocity,
       boolean isOpenLoop,
-      boolean overrideFieldRelative) {
+      boolean isFieldRelative) {
 
-    switch (driveMode) {
-      case NORMAL:
-        // get the slow-mode multiplier from the config
-        double slowModeMultiplier = RobotConfig.getInstance().getRobotSlowModeMultiplier();
-        // if translation or rotation is in slow mode, multiply the x and y velocities by the
-        // slow-mode multiplier
-        if (isTranslationSlowMode) {
-          xVelocity *= slowModeMultiplier;
-          yVelocity *= slowModeMultiplier;
-        }
-        // if rotation is in slow mode, multiply the rotational velocity by the slow-mode multiplier
-        if (isRotationSlowMode) {
-          rotationalVelocity *= slowModeMultiplier;
-        }
+    if (driveMode == DriveMode.NORMAL) {
+      // get the slow-mode multiplier from the config
+      double slowModeMultiplier = RobotConfig.getInstance().getRobotSlowModeMultiplier();
+      // if translation or rotation is in slow mode, multiply the x and y velocities by the
+      // slow-mode multiplier
+      if (isTranslationSlowMode) {
+        xVelocity *= slowModeMultiplier;
+        yVelocity *= slowModeMultiplier;
+      }
+      // if rotation is in slow mode, multiply the rotational velocity by the slow-mode multiplier
+      if (isRotationSlowMode) {
+        rotationalVelocity *= slowModeMultiplier;
+      }
 
-        if (isFieldRelative || overrideFieldRelative) {
-          chassisSpeeds =
-              ChassisSpeeds.fromFieldRelativeSpeeds(
-                  xVelocity, yVelocity, rotationalVelocity, getRotation());
+      if (isFieldRelative) {
+        chassisSpeeds =
+            ChassisSpeeds.fromFieldRelativeSpeeds(
+                xVelocity, yVelocity, rotationalVelocity, getRotation());
 
-        } else {
-          chassisSpeeds = new ChassisSpeeds(xVelocity, yVelocity, rotationalVelocity);
-        }
+      } else {
+        chassisSpeeds = new ChassisSpeeds(xVelocity, yVelocity, rotationalVelocity);
+      }
 
-        chassisSpeeds = convertFromDiscreteChassisSpeedsToContinuous(chassisSpeeds);
+      chassisSpeeds = convertFromDiscreteChassisSpeedsToContinuous(chassisSpeeds);
 
-        Logger.recordOutput("Drivetrain/ChassisSpeedVx", chassisSpeeds.vxMetersPerSecond);
-        Logger.recordOutput("Drivetrain/ChassisSpeedVy", chassisSpeeds.vyMetersPerSecond);
-        Logger.recordOutput("Drivetrain/ChassisSpeedVo", chassisSpeeds.omegaRadiansPerSecond);
+      Logger.recordOutput("Drivetrain/ChassisSpeedVx", chassisSpeeds.vxMetersPerSecond);
+      Logger.recordOutput("Drivetrain/ChassisSpeedVy", chassisSpeeds.vyMetersPerSecond);
+      Logger.recordOutput("Drivetrain/ChassisSpeedVo", chassisSpeeds.omegaRadiansPerSecond);
 
-        SwerveModuleState[] newSwerveModuleStates =
-            kinematics.toSwerveModuleStates(chassisSpeeds, centerGravity);
-        SwerveDriveKinematics.desaturateWheelSpeeds(
-            newSwerveModuleStates, RobotConfig.getInstance().getRobotMaxVelocity());
+      SwerveModuleState[] newSwerveModuleStates =
+          kinematics.toSwerveModuleStates(chassisSpeeds, centerGravity);
+      SwerveDriveKinematics.desaturateWheelSpeeds(
+          newSwerveModuleStates, RobotConfig.getInstance().getRobotMaxVelocity());
 
-        setSwerveModuleStates(newSwerveModuleStates, isOpenLoop, false);
-        break;
-
-      case X:
-        this.setXStance();
-        break;
+      setSwerveModuleStates(newSwerveModuleStates, isOpenLoop, false);
+    } else {
+      this.setXStance();
     }
   }
 

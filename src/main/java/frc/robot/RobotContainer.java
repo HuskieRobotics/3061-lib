@@ -4,13 +4,10 @@
 
 package frc.robot;
 
-import static frc.robot.Constants.*;
 import static frc.robot.FieldRegionConstants.*;
 
-import com.pathplanner.lib.PathPlanner;
-import com.pathplanner.lib.PathPlannerTrajectory;
-import com.pathplanner.lib.commands.FollowPathWithEvents;
-import com.pathplanner.lib.server.PathPlannerServer;
+import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -36,7 +33,6 @@ import frc.lib.team3061.vision.VisionIOSim;
 import frc.robot.Constants.Mode;
 import frc.robot.commands.FeedForwardCharacterization;
 import frc.robot.commands.FeedForwardCharacterization.FeedForwardCharacterizationData;
-import frc.robot.commands.FollowPath;
 import frc.robot.commands.RotateToAngle;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.configs.DefaultRobotConfig;
@@ -49,9 +45,7 @@ import frc.robot.subsystems.subsystem.Subsystem;
 import frc.robot.subsystems.subsystem.SubsystemIO;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -64,7 +58,7 @@ public class RobotContainer {
   private OperatorInterface oi = new OperatorInterface() {};
   private RobotConfig config;
   private Drivetrain drivetrain;
-  private Alliance lastAlliance = DriverStation.Alliance.Invalid;
+  private Alliance lastAlliance = DriverStation.Alliance.Red;
   private Vision vision;
   private Subsystem subsystem;
 
@@ -74,8 +68,6 @@ public class RobotContainer {
 
   // RobotContainer singleton
   private static RobotContainer robotContainer = new RobotContainer();
-
-  private final Map<String, Command> autoEventMap = new HashMap<>();
 
   /**
    * Create the container for the robot. Contains subsystems, operator interface (OI) devices, and
@@ -329,8 +321,13 @@ public class RobotContainer {
   /** Use this method to define your commands for autonomous mode. */
   private void configureAutoCommands() {
     // Waypoints
-    autoEventMap.put("event1", Commands.print("passed marker 1"));
-    autoEventMap.put("event2", Commands.print("passed marker 2"));
+    NamedCommands.registerCommand("event1", Commands.print("passed marker 1"));
+    NamedCommands.registerCommand("event2", Commands.print("passed marker 2"));
+    NamedCommands.registerCommand(
+        "enableXStance", Commands.runOnce(drivetrain::enableXstance, drivetrain));
+    NamedCommands.registerCommand(
+        "disableXStance", Commands.runOnce(drivetrain::disableXstance, drivetrain));
+    NamedCommands.registerCommand("wait5Seconds", Commands.waitSeconds(5.0));
 
     // build auto path commands
 
@@ -342,22 +339,7 @@ public class RobotContainer {
      * demonstration of PathPlanner path group with event markers
      *
      */
-    List<PathPlannerTrajectory> auto1Paths =
-        PathPlanner.loadPathGroup(
-            "TestPath", config.getAutoMaxSpeed(), config.getAutoMaxAcceleration());
-    Command autoTest =
-        Commands.sequence(
-            new FollowPathWithEvents(
-                new FollowPath(auto1Paths.get(0), drivetrain, true, true),
-                auto1Paths.get(0).getMarkers(),
-                autoEventMap),
-            Commands.runOnce(drivetrain::enableXstance, drivetrain),
-            Commands.waitSeconds(5.0),
-            Commands.runOnce(drivetrain::disableXstance, drivetrain),
-            new FollowPathWithEvents(
-                new FollowPath(auto1Paths.get(1), drivetrain, false, true),
-                auto1Paths.get(1).getMarkers(),
-                autoEventMap));
+    Command autoTest = new PathPlannerAuto("TestPath");
     autoChooser.addOption("Test Path", autoTest);
 
     /************ Start Point ************
@@ -366,12 +348,10 @@ public class RobotContainer {
      *
      */
 
-    PathPlannerTrajectory startPointPath =
-        PathPlanner.loadPath(
-            "StartPoint", config.getAutoMaxSpeed(), config.getAutoMaxAcceleration());
     Command startPoint =
         Commands.runOnce(
-            () -> drivetrain.resetOdometry(startPointPath.getInitialState()), drivetrain);
+            () -> drivetrain.resetPose(PathPlannerAuto.getStaringPoseFromAutoFile("StartPoint")),
+            drivetrain);
     autoChooser.addOption("Start Point", startPoint);
 
     /************ Drive Characterization ************
@@ -409,8 +389,7 @@ public class RobotContainer {
      * used for empirically determining the wheel diameter
      *
      */
-    PathPlannerTrajectory distanceTestPath = PathPlanner.loadPath("DistanceTest", 2, 2);
-    Command distanceTestPathCommand = new FollowPath(distanceTestPath, drivetrain, true, true);
+    Command distanceTestPathCommand = new PathPlannerAuto("DistanceTest");
     autoChooser.addOption("Distance Path", distanceTestPathCommand);
 
     /************ Auto Tuning ************
@@ -418,8 +397,7 @@ public class RobotContainer {
      * useful for tuning the autonomous PID controllers
      *
      */
-    PathPlannerTrajectory tuningPath = PathPlanner.loadPath("Tuning", 2.0, 3.0);
-    Command tuningCommand = new FollowPath(tuningPath, drivetrain, true, true);
+    Command tuningCommand = new PathPlannerAuto("Tuning");
     autoChooser.addOption("Auto Tuning", tuningCommand);
 
     /************ Drive Velocity Tuning ************
@@ -436,11 +414,6 @@ public class RobotContainer {
                 Commands.run(() -> drivetrain.drive(1.5, 0.0, 0.0, false, false), drivetrain))));
 
     Shuffleboard.getTab("MAIN").add(autoChooser.getSendableChooser());
-
-    // enable the path planner server so we can update paths without redeploying code
-    if (TUNING_MODE) {
-      PathPlannerServer.startServer(3061);
-    }
   }
 
   private void configureDrivetrainCommands() {
@@ -533,8 +506,9 @@ public class RobotContainer {
    * singleton.
    */
   public void checkAllianceColor() {
-    if (DriverStation.getAlliance() != lastAlliance) {
-      lastAlliance = DriverStation.getAlliance();
+    Optional<Alliance> alliance = DriverStation.getAlliance();
+    if (alliance.isPresent() && alliance.get() != lastAlliance) {
+      lastAlliance = alliance.get();
       vision.updateAlliance(lastAlliance);
       Field2d.getInstance().updateAlliance(lastAlliance);
     }

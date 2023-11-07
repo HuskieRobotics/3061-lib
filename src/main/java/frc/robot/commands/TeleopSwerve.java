@@ -130,7 +130,7 @@ public class TeleopSwerve extends Command {
     lastYVelocity = yVelocity;
     lastAngularVelocity = rotationalVelocity;
 
-    drivetrain.drive(xVelocity, yVelocity, rotationalVelocity, true, false);
+    drivetrain.drive(xVelocity, yVelocity, rotationalVelocity, true, drivetrain.getFieldRelative());
   }
 
   /**

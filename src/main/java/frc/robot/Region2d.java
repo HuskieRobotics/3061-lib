@@ -18,7 +18,7 @@ import org.littletonrobotics.junction.Logger;
 public class Region2d {
   private Path2D shape;
   private HashMap<Region2d, Translation2d> transitionMap;
-  private DriverStation.Alliance alliance = DriverStation.Alliance.Invalid;
+  private DriverStation.Alliance alliance = DriverStation.Alliance.Red;
 
   /**
    * Create a Region2d, a polygon, from an array of Translation2d specifying vertices of a polygon.
@@ -45,32 +45,27 @@ public class Region2d {
   public void logPoints() {
     // log the bounding rectangle of the region
     Rectangle2D rect = this.shape.getBounds2D();
-    Logger.getInstance()
-        .recordOutput("Region2d/point0", new Pose2d(rect.getX(), rect.getY(), new Rotation2d()));
-    Logger.getInstance()
-        .recordOutput(
-            "Region2d/point1",
-            new Pose2d(rect.getX() + rect.getWidth(), rect.getY(), new Rotation2d()));
-    Logger.getInstance()
-        .recordOutput(
-            "Region2d/point2",
-            new Pose2d(rect.getX(), rect.getY() + rect.getHeight(), new Rotation2d()));
-    Logger.getInstance()
-        .recordOutput(
-            "Region2d/point3",
-            new Pose2d(
-                rect.getX() + rect.getWidth(), rect.getY() + rect.getHeight(), new Rotation2d()));
+    Logger.recordOutput("Region2d/point0", new Pose2d(rect.getX(), rect.getY(), new Rotation2d()));
+    Logger.recordOutput(
+        "Region2d/point1",
+        new Pose2d(rect.getX() + rect.getWidth(), rect.getY(), new Rotation2d()));
+    Logger.recordOutput(
+        "Region2d/point2",
+        new Pose2d(rect.getX(), rect.getY() + rect.getHeight(), new Rotation2d()));
+    Logger.recordOutput(
+        "Region2d/point3",
+        new Pose2d(
+            rect.getX() + rect.getWidth(), rect.getY() + rect.getHeight(), new Rotation2d()));
 
     // assume that there are at most 4 neighbors
     for (int i = 0; i < 4; i++) {
-      Logger.getInstance().recordOutput("Region2d/transition" + i, new Pose2d());
+      Logger.recordOutput("Region2d/transition" + i, new Pose2d());
     }
     int i = 0;
     for (Entry<Region2d, Translation2d> entry : transitionMap.entrySet()) {
       Translation2d point = entry.getValue();
-      Logger.getInstance()
-          .recordOutput(
-              "Region2d/transition" + i, new Pose2d(point.getX(), point.getY(), new Rotation2d()));
+      Logger.recordOutput(
+          "Region2d/transition" + i, new Pose2d(point.getX(), point.getY(), new Rotation2d()));
       i++;
     }
   }
