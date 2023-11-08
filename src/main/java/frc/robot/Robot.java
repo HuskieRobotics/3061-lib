@@ -78,7 +78,6 @@ public class Robot extends LoggedRobot {
         break;
 
       case SIM:
-        Logger.addDataReceiver(new WPILOGWriter(""));
         Logger.addDataReceiver(new NT4Publisher());
         break;
 
