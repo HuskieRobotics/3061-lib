@@ -7,7 +7,6 @@ package frc.robot;
 import static frc.robot.FieldRegionConstants.*;
 
 import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -20,7 +19,6 @@ import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.gyro.GyroIO;
 import frc.lib.team3061.gyro.GyroIOPigeon2Phoenix6;
 import frc.lib.team3061.pneumatics.Pneumatics;
-import frc.lib.team3061.pneumatics.PneumaticsIO;
 import frc.lib.team3061.pneumatics.PneumaticsIORev;
 import frc.lib.team3061.swerve.SwerveModule;
 import frc.lib.team3061.swerve.SwerveModuleIO;
@@ -157,7 +155,7 @@ public class RobotContainer {
             GyroIO gyro = new GyroIOPigeon2Phoenix6(config.getGyroCANID());
 
             drivetrain = new Drivetrain(gyro, flModule, frModule, blModule, brModule);
-            new Pneumatics(new PneumaticsIO() {});
+            // new Pneumatics(new PneumaticsIO() {});
             AprilTagFieldLayout layout;
             try {
               layout = new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
@@ -172,7 +170,7 @@ public class RobotContainer {
                           drivetrain::getPose,
                           RobotConfig.getInstance().getRobotToCameraTransforms()[0])
                     });
-            subsystem = new Subsystem(new SubsystemIO() {});
+            // subsystem = new Subsystem(new SubsystemIO() {});
 
             break;
           }
@@ -339,8 +337,9 @@ public class RobotContainer {
      * demonstration of PathPlanner path group with event markers
      *
      */
-    Command autoTest = new PathPlannerAuto("TestPath");
-    autoChooser.addOption("Test Path", autoTest);
+    // FIXME: create TestPath auto
+    // Command autoTest = new PathPlannerAuto("TestPath");
+    // autoChooser.addOption("Test Path", autoTest);
 
     /************ Start Point ************
      *
@@ -348,11 +347,12 @@ public class RobotContainer {
      *
      */
 
-    Command startPoint =
-        Commands.runOnce(
-            () -> drivetrain.resetPose(PathPlannerAuto.getStaringPoseFromAutoFile("StartPoint")),
-            drivetrain);
-    autoChooser.addOption("Start Point", startPoint);
+    // FIXME: create StartPoint auto
+    // Command startPoint =
+    //     Commands.runOnce(
+    //         () -> drivetrain.resetPose(PathPlannerAuto.getStaringPoseFromAutoFile("StartPoint")),
+    //         drivetrain);
+    // autoChooser.addOption("Start Point", startPoint);
 
     /************ Drive Characterization ************
      *
@@ -389,16 +389,18 @@ public class RobotContainer {
      * used for empirically determining the wheel diameter
      *
      */
-    Command distanceTestPathCommand = new PathPlannerAuto("DistanceTest");
-    autoChooser.addOption("Distance Path", distanceTestPathCommand);
+    // FIXME: create DistanceTest auto
+    // Command distanceTestPathCommand = new PathPlannerAuto("DistanceTest");
+    // autoChooser.addOption("Distance Path", distanceTestPathCommand);
 
     /************ Auto Tuning ************
      *
      * useful for tuning the autonomous PID controllers
      *
      */
-    Command tuningCommand = new PathPlannerAuto("Tuning");
-    autoChooser.addOption("Auto Tuning", tuningCommand);
+    // FIXME: create Tuning auto
+    // Command tuningCommand = new PathPlannerAuto("Tuning");
+    // autoChooser.addOption("Auto Tuning", tuningCommand);
 
     /************ Drive Velocity Tuning ************
      *
