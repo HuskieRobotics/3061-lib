@@ -54,7 +54,7 @@ public class SubsystemIOTalonFX implements SubsystemIO {
         Conversions.falconRPSToMechanismRPM(motor.getRotorVelocity().getValue(), GEAR_RATIO);
     inputs.closedLoopError = motor.getClosedLoopError().getValue();
     inputs.setpoint = motor.getClosedLoopReference().getValue();
-    inputs.power = motor.getDutyCycle().getValue() / 2.0;
+    inputs.power = motor.getDutyCycle().getValue();
     inputs.controlMode = motor.getControlMode().toString();
     inputs.statorCurrentAmps = motor.getStatorCurrent().getValue();
     inputs.tempCelsius = motor.getDeviceTemp().getValue();
