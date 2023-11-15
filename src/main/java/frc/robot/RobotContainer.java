@@ -13,6 +13,7 @@ import com.pathplanner.lib.commands.FollowPathWithEvents;
 import com.pathplanner.lib.server.PathPlannerServer;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -39,6 +40,7 @@ import frc.robot.commands.FeedForwardCharacterization.FeedForwardCharacterizatio
 import frc.robot.commands.FollowPath;
 import frc.robot.commands.RotateToAngle;
 import frc.robot.commands.TeleopSwerve;
+import frc.robot.commands.ToggleSwitchablePort;
 import frc.robot.configs.DefaultRobotConfig;
 import frc.robot.configs.MK4IRobotConfig;
 import frc.robot.configs.NovaRobotConfig;
@@ -54,6 +56,7 @@ import java.util.List;
 import java.util.Map;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
+
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
  * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
@@ -67,10 +70,12 @@ public class RobotContainer {
   private Alliance lastAlliance = DriverStation.Alliance.Invalid;
   private Vision vision;
   private Subsystem subsystem;
+  private PowerDistribution powerDistribution;
 
   // use AdvantageKit's LoggedDashboardChooser instead of SendableChooser to ensure accurate logging
   private final LoggedDashboardChooser<Command> autoChooser =
       new LoggedDashboardChooser<>("Auto Routine");
+
 
   // RobotContainer singleton
   private static RobotContainer robotContainer = new RobotContainer();
@@ -88,6 +93,7 @@ public class RobotContainer {
      */
     createRobotConfig();
 
+    powerDistribution = new PowerDistribution();
     // create real, simulated, or replay subsystems based on the mode and robot specified
     if (Constants.getMode() != Mode.REPLAY) {
       int[] driveMotorCANIDs = config.getSwerveDriveMotorCANIDs();
@@ -481,6 +487,13 @@ public class RobotContainer {
                     Commands.waitSeconds(0.5),
                     Commands.run(
                         () -> drivetrain.drive(0.1, -0.1, 0.0, true, false), drivetrain)))));
+
+    
+
+  /*
+   * This is a test command that will toggle the switchable port on the power distribution panel.
+  */
+    autoChooser.addOption("toggle switchable port", new ToggleSwitchablePort(powerDistribution));
 
     Shuffleboard.getTab("MAIN").add(autoChooser.getSendableChooser());
 
