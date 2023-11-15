@@ -40,7 +40,7 @@ public class SelfCheckingCANCoder implements SelfChecking {
     }
 
     this.statusSignal.refresh();
-    if (this.statusSignal.getError() != StatusCode.OK) {
+    if (this.statusSignal.getStatus() != StatusCode.OK) {
       faults.add(new SubsystemFault(String.format("[%s]: device is unreachable", label)));
     }
 
