@@ -488,14 +488,14 @@ public class RobotContainer {
                     Commands.run(
                         () -> drivetrain.drive(0.1, -0.1, 0.0, true, false), drivetrain)))));
 
-    
+  Shuffleboard.getTab("MAIN").add(autoChooser.getSendableChooser());
 
   /*
    * This is a test command that will toggle the switchable port on the power distribution panel.
   */
-    autoChooser.addOption("toggle switchable port", new ToggleSwitchablePort(powerDistribution));
+  Shuffleboard.getTab("Main").add(new ToggleSwitchablePort(powerDistribution));
 
-    Shuffleboard.getTab("MAIN").add(autoChooser.getSendableChooser());
+  
 
     // enable the path planner server so we can update paths without redeploying code
     if (TUNING_MODE) {
