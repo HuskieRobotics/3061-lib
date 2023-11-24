@@ -6,11 +6,12 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import frc.lib.team3061.gyro.GyroIO.GyroIOInputs;
+import frc.lib.team3061.gyro.GyroIOInputsAutoLogged;
 import org.littletonrobotics.junction.AutoLog;
 
 @java.lang.SuppressWarnings({"java:S1104"})
 public interface DrivetrainIO {
+  @AutoLog
   public static class SwerveIOInputs {
     public double driveDistanceMeters = 0.0;
     public double driveVelocityMetersPerSec = 0.0;
@@ -32,15 +33,27 @@ public interface DrivetrainIO {
     public double steerTempCelsius = 0.0;
   }
 
+  // FIXME: if AdvantageKit doesn't support AutoLog of SwerveModuleState[] and other AutoLog stuff
+  //  decompose this class into parts to eliminate run-time warnings
+
   /** Contains all of the input data received from hardware. */
   @AutoLog
   public static class DrivetrainIOInputs {
-    SwerveIOInputs[] swerveInputs = {
-      new SwerveIOInputs(), new SwerveIOInputs(), new SwerveIOInputs(), new SwerveIOInputs()
+    SwerveIOInputsAutoLogged[] swerveInputs = {
+      new SwerveIOInputsAutoLogged(),
+      new SwerveIOInputsAutoLogged(),
+      new SwerveIOInputsAutoLogged(),
+      new SwerveIOInputsAutoLogged()
     }; // FL, FR, BL, BR
 
-    ChassisSpeeds targetChassisSpeeds = new ChassisSpeeds();
-    ChassisSpeeds measuredChassisSpeeds = new ChassisSpeeds();
+    double targetVXMetersPerSec = 0.0;
+    double targetVYMetersPerSec = 0.0;
+    double targetAngularVelocityRadPerSec = 0.0;
+
+    double measuredVXMetersPerSec = 0.0;
+    double measuredVYMetersPerSec = 0.0;
+    double measuredAngularVelocityRadPerSec = 0.0;
+
     SwerveModuleState[] swerveReferenceStates = new SwerveModuleState[4];
     SwerveModuleState[] swerveMeasuredStates = new SwerveModuleState[4];
 
@@ -51,7 +64,7 @@ public interface DrivetrainIO {
     double averageDriveCurrent = 0.0;
     Rotation2d rotation = new Rotation2d();
 
-    GyroIOInputs gyro = new GyroIOInputs();
+    GyroIOInputsAutoLogged gyro = new GyroIOInputsAutoLogged();
   }
 
   /** Updates the set of loggable inputs. */

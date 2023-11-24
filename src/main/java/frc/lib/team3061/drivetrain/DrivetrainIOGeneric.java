@@ -15,7 +15,6 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.swerve.SwerveModuleIO;
 import frc.lib.team3061.gyro.GyroIO;
-import frc.lib.team3061.gyro.GyroIOInputsAutoLogged;
 import frc.lib.team3061.util.RobotOdometry;
 import frc.robot.Constants;
 import java.util.ArrayList;
@@ -24,7 +23,7 @@ import org.littletonrobotics.junction.Logger;
 
 public class DrivetrainIOGeneric implements DrivetrainIO {
   private final GyroIO gyroIO;
-  private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
+  private double robotRotationDeg = 0.0;
 
   private final double trackwidthMeters = RobotConfig.getInstance().getTrackwidth();
   private final double wheelbaseMeters = RobotConfig.getInstance().getWheelbase();
@@ -127,8 +126,7 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
     }
 
     // update and log gyro inputs
-    gyroIO.updateInputs(gyroInputs);
-    Logger.processInputs("Drivetrain/Gyro", gyroInputs);
+    gyroIO.updateInputs(inputs.gyro);
 
     // update and log the swerve modules inputs
     for (int i = 0; i < this.swerveModules.length; i++) {
@@ -151,7 +149,7 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
 
     // if the gyro is not connected, use the swerve module positions to estimate the robot's
     // rotation
-    if (!gyroInputs.connected || Constants.getMode() == Constants.Mode.SIM) {
+    if (!inputs.gyro.connected || Constants.getMode() == Constants.Mode.SIM) {
       SwerveModulePosition[] moduleDeltas = new SwerveModulePosition[4];
       for (int index = 0; index < moduleDeltas.length; index++) {
         SwerveModulePosition current = swerveModulePositions[index];
@@ -168,6 +166,9 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
       this.gyroIO.addYaw(Math.toDegrees(twist.dtheta));
 
       estimatedPoseWithoutGyro = estimatedPoseWithoutGyro.exp(twist);
+      this.robotRotationDeg = estimatedPoseWithoutGyro.getRotation().getDegrees();
+    } else {
+      this.robotRotationDeg = inputs.gyro.yawDeg;
     }
 
     inputs.swerveMeasuredStates = this.swerveModuleStates;
@@ -175,23 +176,27 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
 
     // update the pose estimator based on the gyro and swerve module positions
     this.poseEstimator.updateWithTime(
-        Logger.getRealTimestamp() / 1e6, this.getRotation(), swerveModulePositions);
+        Logger.getRealTimestamp() / 1e6,
+        Rotation2d.fromDegrees(this.robotRotationDeg),
+        swerveModulePositions);
 
     // log poses, 3D geometry, and swerve module states, gyro offset
     inputs.robotPoseWithoutGyro = estimatedPoseWithoutGyro;
     inputs.robotPose = poseEstimator.getEstimatedPosition();
     inputs.robotPose3D = new Pose3d(inputs.robotPose);
 
-    inputs.targetChassisSpeeds = this.targetChassisSpeeds;
-    inputs.measuredChassisSpeeds = kinematics.toChassisSpeeds(this.swerveModuleStates);
+    inputs.targetVXMetersPerSec = this.targetChassisSpeeds.vxMetersPerSecond;
+    inputs.targetVYMetersPerSec = this.targetChassisSpeeds.vyMetersPerSecond;
+    inputs.targetAngularVelocityRadPerSec = this.targetChassisSpeeds.omegaRadiansPerSecond;
+
+    ChassisSpeeds measuredChassisSpeeds = kinematics.toChassisSpeeds(this.swerveModuleStates);
+    inputs.measuredVXMetersPerSec = measuredChassisSpeeds.vxMetersPerSecond;
+    inputs.measuredVYMetersPerSec = measuredChassisSpeeds.vyMetersPerSecond;
+    inputs.measuredAngularVelocityRadPerSec = measuredChassisSpeeds.omegaRadiansPerSecond;
 
     inputs.averageDriveCurrent = this.getAverageDriveCurrent(inputs);
 
-    if (gyroInputs.connected) {
-      inputs.rotation = Rotation2d.fromDegrees(gyroInputs.yawDeg);
-    } else {
-      inputs.rotation = estimatedPoseWithoutGyro.getRotation();
-    }
+    inputs.rotation = Rotation2d.fromDegrees(this.robotRotationDeg);
   }
 
   @Override
@@ -216,7 +221,10 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
 
     this.targetChassisSpeeds =
         ChassisSpeeds.fromFieldRelativeSpeeds(
-            xVelocity, yVelocity, rotationalVelocity, getRotation());
+            xVelocity,
+            yVelocity,
+            rotationalVelocity,
+            Rotation2d.fromDegrees(this.robotRotationDeg));
 
     this.targetChassisSpeeds =
         ChassisSpeeds.discretize(this.targetChassisSpeeds, Constants.LOOP_PERIOD_SECS);
@@ -231,7 +239,8 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
       double xVelocity, double yVelocity, Rotation2d targetDirection, boolean isOpenLoop) {
     // FIXME: add support for holding a rotation angle
     this.targetChassisSpeeds =
-        ChassisSpeeds.fromFieldRelativeSpeeds(xVelocity, yVelocity, 0.0, getRotation());
+        ChassisSpeeds.fromFieldRelativeSpeeds(
+            xVelocity, yVelocity, 0.0, Rotation2d.fromDegrees(this.robotRotationDeg));
 
     this.targetChassisSpeeds =
         ChassisSpeeds.discretize(this.targetChassisSpeeds, Constants.LOOP_PERIOD_SECS);
@@ -274,15 +283,12 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
 
   @Override
   public void setGyroOffset(double expectedYaw) {
-    if (this.gyroInputs.connected) {
-      this.gyroIO.setYaw(expectedYaw);
-    } else {
-      this.estimatedPoseWithoutGyro =
-          new Pose2d(
-              estimatedPoseWithoutGyro.getX(),
-              estimatedPoseWithoutGyro.getY(),
-              Rotation2d.fromDegrees(expectedYaw));
-    }
+    this.gyroIO.setYaw(expectedYaw);
+    this.estimatedPoseWithoutGyro =
+        new Pose2d(
+            estimatedPoseWithoutGyro.getX(),
+            estimatedPoseWithoutGyro.getY(),
+            Rotation2d.fromDegrees(expectedYaw));
   }
 
   @Override
@@ -294,7 +300,8 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
   public void resetPose(Pose2d pose) {
     setGyroOffset(pose.getRotation().getDegrees());
     this.estimatedPoseWithoutGyro = new Pose2d(pose.getTranslation(), pose.getRotation());
-    this.poseEstimator.resetPosition(this.getRotation(), swerveModulePositions, pose);
+    this.poseEstimator.resetPosition(
+        Rotation2d.fromDegrees(this.robotRotationDeg), swerveModulePositions, pose);
   }
 
   @Override
@@ -363,20 +370,6 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
 
       this.swerveModules[i].setAnglePosition(angle);
       steerMotorsLastAngle[i] = angle;
-    }
-  }
-
-  /**
-   * Returns the rotation of the robot. Zero degrees is facing away from the driver station; CCW is
-   * positive. If the gyro is not connected, the rotation from the estimated pose is returned.
-   *
-   * @return the rotation of the robot
-   */
-  private Rotation2d getRotation() {
-    if (gyroInputs.connected) {
-      return Rotation2d.fromDegrees(gyroInputs.yawDeg);
-    } else {
-      return estimatedPoseWithoutGyro.getRotation();
     }
   }
 }

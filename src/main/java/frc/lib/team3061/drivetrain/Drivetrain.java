@@ -31,6 +31,7 @@ import frc.lib.team6328.util.Alert;
 import frc.lib.team6328.util.Alert.AlertType;
 import frc.lib.team6328.util.TunableNumber;
 import java.util.function.Supplier;
+import org.littletonrobotics.junction.Logger;
 
 /**
  * This subsystem models the robot's drivetrain mechanism. It consists of a four MK4 swerve modules,
@@ -145,7 +146,10 @@ public class Drivetrain extends SubsystemBase {
   }
 
   public ChassisSpeeds getRobotRelativeSpeeds() {
-    return this.inputs.measuredChassisSpeeds;
+    return new ChassisSpeeds(
+        this.inputs.measuredVXMetersPerSec,
+        this.inputs.measuredVYMetersPerSec,
+        this.inputs.measuredAngularVelocityRadPerSec);
   }
 
   public void driveRobotRelative(ChassisSpeeds chassisSpeeds) {
@@ -362,12 +366,26 @@ public class Drivetrain extends SubsystemBase {
    */
   @Override
   public void periodic() {
-    this.prevSpeeds = this.inputs.measuredChassisSpeeds;
+    this.prevSpeeds =
+        new ChassisSpeeds(
+            this.inputs.measuredVXMetersPerSec,
+            this.inputs.measuredVYMetersPerSec,
+            this.inputs.measuredAngularVelocityRadPerSec);
     for (int i = 0; i < this.inputs.swerveInputs.length; i++) {
       this.prevSteerVelocitiesRevPerMin[i] = this.inputs.swerveInputs[i].steerVelocityRevPerMin;
     }
 
     this.io.updateInputs(this.inputs);
+    Logger.processInputs(SUBSYSTEM_NAME, this.inputs);
+    Logger.processInputs(SUBSYSTEM_NAME + "/Gyro", this.inputs.gyro);
+    Logger.processInputs(SUBSYSTEM_NAME + "/FL", this.inputs.swerveInputs[0]);
+    Logger.processInputs(SUBSYSTEM_NAME + "/FR", this.inputs.swerveInputs[1]);
+    Logger.processInputs(SUBSYSTEM_NAME + "/BL", this.inputs.swerveInputs[2]);
+    Logger.processInputs(SUBSYSTEM_NAME + "/BR", this.inputs.swerveInputs[3]);
+    Logger.recordOutput(
+        SUBSYSTEM_NAME + "/MeasuredSwerveModuleStates", this.inputs.swerveMeasuredStates);
+    Logger.recordOutput(
+        SUBSYSTEM_NAME + "/ReferenceSwerveModuleStates", this.inputs.swerveReferenceStates);
 
     // update the brake mode based on the robot's velocity and state (enabled/disabled)
     updateBrakeMode();
@@ -486,7 +504,7 @@ public class Drivetrain extends SubsystemBase {
    * @return the desired velocity of the drivetrain in the x direction (units of m/s)
    */
   public double getVelocityX() {
-    return this.inputs.measuredChassisSpeeds.vxMetersPerSecond;
+    return this.inputs.measuredVXMetersPerSec;
   }
 
   /**
@@ -495,7 +513,7 @@ public class Drivetrain extends SubsystemBase {
    * @return the desired velocity of the drivetrain in the y direction (units of m/s)
    */
   public double getVelocityY() {
-    return this.inputs.measuredChassisSpeeds.vyMetersPerSecond;
+    return this.inputs.measuredVYMetersPerSec;
   }
 
   /**
@@ -549,8 +567,9 @@ public class Drivetrain extends SubsystemBase {
    * @return the average drive velocity in meters/sec
    */
   public double getDriveCharacterizationVelocity() {
-    ChassisSpeeds speeds = this.inputs.measuredChassisSpeeds;
-    return Math.sqrt(Math.pow(speeds.vxMetersPerSecond, 2) + Math.pow(speeds.vyMetersPerSecond, 2));
+    return Math.sqrt(
+        Math.pow(this.inputs.measuredVXMetersPerSec, 2)
+            + Math.pow(this.inputs.measuredVYMetersPerSec, 2));
   }
 
   /**
@@ -559,10 +578,10 @@ public class Drivetrain extends SubsystemBase {
    * @return the average drive velocity in meters/sec
    */
   public double getDriveCharacterizationAcceleration() {
-    ChassisSpeeds speeds = this.inputs.measuredChassisSpeeds;
     return Math.sqrt(
-            Math.pow((speeds.vxMetersPerSecond - this.prevSpeeds.vxMetersPerSecond), 2)
-                + Math.pow((speeds.vyMetersPerSecond - this.prevSpeeds.vyMetersPerSecond), 2))
+            Math.pow((this.inputs.measuredVXMetersPerSec - this.prevSpeeds.vxMetersPerSecond), 2)
+                + Math.pow(
+                    (this.inputs.measuredVYMetersPerSec - this.prevSpeeds.vyMetersPerSecond), 2))
         / LOOP_PERIOD_SECS;
   }
 
@@ -647,9 +666,8 @@ public class Drivetrain extends SubsystemBase {
     } else if (!DriverStation.isEnabled()) {
       boolean stillMoving = false;
       double velocityLimit = RobotConfig.getInstance().getRobotMaxCoastVelocity();
-      if (Math.abs(this.inputs.measuredChassisSpeeds.omegaRadiansPerSecond) > velocityLimit
-          || Math.abs(this.inputs.measuredChassisSpeeds.vxMetersPerSecond) > velocityLimit
-          || Math.abs(this.inputs.measuredChassisSpeeds.vyMetersPerSecond) > velocityLimit) {
+      if (Math.abs(this.inputs.measuredVXMetersPerSec) > velocityLimit
+          || Math.abs(this.inputs.measuredVYMetersPerSec) > velocityLimit) {
         stillMoving = true;
         brakeModeTimer.restart();
       }
