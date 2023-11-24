@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.subsystems.drivetrain;
+package frc.lib.team3061.drivetrain;
 
 import static frc.robot.Constants.*;
 
@@ -34,9 +34,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.gyro.GyroIO;
-import frc.lib.team3061.gyro.GyroIOInputsAutoLogged;
 import frc.lib.team3061.swerve.SwerveModule;
-import frc.lib.team3061.util.GeometryUtils;
 import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team6328.util.Alert;
 import frc.lib.team6328.util.Alert.AlertType;
@@ -54,8 +52,7 @@ import org.littletonrobotics.junction.Logger;
  */
 public class Drivetrain extends SubsystemBase {
 
-  private final GyroIO gyroIO;
-  private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
+  private final DrivetrainIO io;
 
   private final TunableNumber autoDriveKp =
       new TunableNumber("AutoDrive/DriveKp", RobotConfig.getInstance().getAutoDriveKP());
@@ -77,8 +74,6 @@ public class Drivetrain extends SubsystemBase {
   private final PIDController autoThetaController =
       new PIDController(autoTurnKp.get(), autoTurnKi.get(), autoTurnKd.get());
 
-  private final double trackwidthMeters = RobotConfig.getInstance().getTrackwidth();
-  private final double wheelbaseMeters = RobotConfig.getInstance().getWheelbase();
   private final SwerveDriveKinematics kinematics =
       RobotConfig.getInstance().getSwerveDriveKinematics();
 
@@ -155,11 +150,13 @@ public class Drivetrain extends SubsystemBase {
    * @param brModule the back right swerve module
    */
   public Drivetrain(
+      DrivetrainIO io,
       GyroIO gyroIO,
       SwerveModule flModule,
       SwerveModule frModule,
       SwerveModule blModule,
       SwerveModule brModule) {
+    this.io = io;
     this.gyroIO = gyroIO;
     this.swerveModules[0] = flModule;
     this.swerveModules[1] = frModule;
@@ -346,15 +343,7 @@ public class Drivetrain extends SubsystemBase {
    * @param expectedYaw the rotation of the robot (in degrees)
    */
   public void setGyroOffset(double expectedYaw) {
-    if (gyroInputs.connected) {
-      this.gyroIO.setYaw(expectedYaw);
-    } else {
-      this.estimatedPoseWithoutGyro =
-          new Pose2d(
-              estimatedPoseWithoutGyro.getX(),
-              estimatedPoseWithoutGyro.getY(),
-              Rotation2d.fromDegrees(expectedYaw));
-    }
+    this.io.setGyroOffset(expectedYaw);
   }
 
   /**
@@ -469,25 +458,13 @@ public class Drivetrain extends SubsystemBase {
       }
 
       if (isFieldRelative) {
-        chassisSpeeds =
-            ChassisSpeeds.fromFieldRelativeSpeeds(
-                xVelocity, yVelocity, rotationalVelocity, getRotation());
+        this.io.driveFieldRelative(xVelocity, yVelocity, rotationalVelocity, isOpenLoop);
 
       } else {
-        chassisSpeeds = new ChassisSpeeds(xVelocity, yVelocity, rotationalVelocity);
+        this.io.driveRobotRelative(xVelocity, yVelocity, rotationalVelocity, isOpenLoop);
       }
-
-      chassisSpeeds = convertFromDiscreteChassisSpeedsToContinuous(chassisSpeeds);
-
-      Logger.recordOutput("Drivetrain/ChassisSpeedVx", chassisSpeeds.vxMetersPerSecond);
-      Logger.recordOutput("Drivetrain/ChassisSpeedVy", chassisSpeeds.vyMetersPerSecond);
-      Logger.recordOutput("Drivetrain/ChassisSpeedVo", chassisSpeeds.omegaRadiansPerSecond);
-
-      SwerveModuleState[] newSwerveModuleStates =
-          kinematics.toSwerveModuleStates(chassisSpeeds, centerGravity);
-      setSwerveModuleStates(newSwerveModuleStates, isOpenLoop, false);
     } else {
-      this.setXStance();
+      this.io.holdXStance();
     }
   }
 
@@ -496,9 +473,7 @@ public class Drivetrain extends SubsystemBase {
    * after this method is invoked.
    */
   public void stop() {
-    chassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
-    SwerveModuleState[] states = kinematics.toSwerveModuleStates(chassisSpeeds, centerGravity);
-    setSwerveModuleStates(states);
+    this.io.driveRobotRelative(0.0, 0.0, 0.0, false);
   }
 
   /**
@@ -581,31 +556,6 @@ public class Drivetrain extends SubsystemBase {
   }
 
   /**
-   * Sets each of the swerve modules based on the specified corresponding swerve module state.
-   * Incorporates the configured feedforward when setting each swerve module. The order of the
-   * states in the array must be front left, front right, back left, back right.
-   *
-   * <p>This method is invoked by the FollowPath autonomous command.
-   *
-   * @param states the specified swerve module state for each swerve module
-   */
-  public void setSwerveModuleStates(SwerveModuleState[] states) {
-    setSwerveModuleStates(states, false, false);
-  }
-
-  private void setSwerveModuleStates(
-      SwerveModuleState[] states, boolean isOpenLoop, boolean forceAngle) {
-    SwerveDriveKinematics.desaturateWheelSpeeds(
-        states, RobotConfig.getInstance().getRobotMaxVelocity());
-
-    for (SwerveModule swerveModule : swerveModules) {
-      swerveModule.setDesiredState(states[swerveModule.getModuleNumber()], isOpenLoop, forceAngle);
-    }
-
-    Logger.recordOutput("SwerveModuleStates/Setpoints", states);
-  }
-
-  /**
    * Returns true if field relative mode is enabled
    *
    * @return true if field relative mode is enabled
@@ -663,22 +613,6 @@ public class Drivetrain extends SubsystemBase {
   }
 
   /**
-   * Sets the swerve modules in the x-stance orientation. In this orientation the wheels are aligned
-   * to make an 'X'. This prevents the robot from rolling on an inclined surface and makes it more
-   * difficult for other robots to push the robot, which is useful when shooting.
-   */
-  public void setXStance() {
-    chassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
-    SwerveModuleState[] states = kinematics.toSwerveModuleStates(chassisSpeeds, centerGravity);
-    states[0].angle = new Rotation2d(Math.PI / 2 - Math.atan(trackwidthMeters / wheelbaseMeters));
-    states[1].angle = new Rotation2d(Math.PI / 2 + Math.atan(trackwidthMeters / wheelbaseMeters));
-    states[2].angle = new Rotation2d(Math.PI / 2 + Math.atan(trackwidthMeters / wheelbaseMeters));
-    states[3].angle =
-        new Rotation2d(3.0 / 2.0 * Math.PI - Math.atan(trackwidthMeters / wheelbaseMeters));
-    setSwerveModuleStates(states, true, true);
-  }
-
-  /**
    * Puts the drivetrain into the x-stance orientation. In this orientation the wheels are aligned
    * to make an 'X'. This prevents the robot from rolling on an inclined surface and makes it more
    * difficult for other robots to push the robot, which is useful when shooting. The robot cannot
@@ -686,7 +620,7 @@ public class Drivetrain extends SubsystemBase {
    */
   public void enableXstance() {
     this.driveMode = DriveMode.X;
-    this.setXStance();
+    this.io.holdXStance();
   }
 
   /** Disables x-stance, allowing the robot to be driven. */
@@ -917,32 +851,6 @@ public class Drivetrain extends SubsystemBase {
       mod.setAngleBrakeMode(enable);
       mod.setDriveBrakeMode(enable);
     }
-  }
-
-  /**
-   * Correction for swerve second order dynamics issue. From Cache Money:
-   * https://github.com/cachemoney8096/2023-charged-up/blob/main/src/main/java/frc/robot/subsystems/drive/DriveSubsystem.java#L182
-   * who borrowed it from 254:
-   * https://github.com/Team254/FRC-2022-Public/blob/main/src/main/java/com/team254/frc2022/subsystems/Drive.java#L325
-   * Discussion:
-   * https://www.chiefdelphi.com/t/whitepaper-swerve-drive-skew-and-second-order-kinematics/416964
-   *
-   * <p>FIXME: remove this method and replace with ChassisSpeeds.fromDiscreteSpeeds once released in
-   * WPILib
-   */
-  private static ChassisSpeeds convertFromDiscreteChassisSpeedsToContinuous(
-      ChassisSpeeds discreteChassisSpeeds) {
-
-    Pose2d futureRobotPose =
-        new Pose2d(
-            discreteChassisSpeeds.vxMetersPerSecond * LOOP_PERIOD_SECS,
-            discreteChassisSpeeds.vyMetersPerSecond * LOOP_PERIOD_SECS,
-            Rotation2d.fromRadians(discreteChassisSpeeds.omegaRadiansPerSecond * LOOP_PERIOD_SECS));
-    Twist2d twistForPose = GeometryUtils.log(futureRobotPose);
-    return new ChassisSpeeds(
-        twistForPose.dx / LOOP_PERIOD_SECS,
-        twistForPose.dy / LOOP_PERIOD_SECS,
-        twistForPose.dtheta / LOOP_PERIOD_SECS);
   }
 
   private enum DriveMode {
