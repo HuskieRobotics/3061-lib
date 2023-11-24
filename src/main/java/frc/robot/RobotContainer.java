@@ -17,12 +17,13 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.Drivetrain;
+import frc.lib.team3061.drivetrain.DrivetrainIO;
+import frc.lib.team3061.drivetrain.DrivetrainIOGeneric;
 import frc.lib.team3061.gyro.GyroIO;
 import frc.lib.team3061.gyro.GyroIOPigeon2Phoenix6;
 import frc.lib.team3061.pneumatics.Pneumatics;
 import frc.lib.team3061.pneumatics.PneumaticsIORev;
 import frc.lib.team3061.swerve.SwerveModule;
-import frc.lib.team3061.swerve.SwerveModuleIO;
 import frc.lib.team3061.swerve.SwerveModuleIOTalonFXPhoenix6;
 import frc.lib.team3061.vision.Vision;
 import frc.lib.team3061.vision.VisionConstants;
@@ -133,8 +134,9 @@ public class RobotContainer {
         case ROBOT_2023_MK4I:
           {
             GyroIO gyro = new GyroIOPigeon2Phoenix6(config.getGyroCANID());
-
-            drivetrain = new Drivetrain(gyro, flModule, frModule, blModule, brModule);
+            DrivetrainIO drivetrainIO =
+                new DrivetrainIOGeneric(gyro, flModule, frModule, blModule, brModule);
+            drivetrain = new Drivetrain(drivetrainIO);
 
             String[] cameraNames = config.getCameraNames();
             VisionIO[] visionIOs = new VisionIO[cameraNames.length];
@@ -153,8 +155,10 @@ public class RobotContainer {
         case ROBOT_SIMBOT:
           {
             GyroIO gyro = new GyroIOPigeon2Phoenix6(config.getGyroCANID());
+            DrivetrainIO drivetrainIO =
+                new DrivetrainIOGeneric(gyro, flModule, frModule, blModule, brModule);
+            drivetrain = new Drivetrain(drivetrainIO);
 
-            drivetrain = new Drivetrain(gyro, flModule, frModule, blModule, brModule);
             // new Pneumatics(new PneumaticsIO() {});
             AprilTagFieldLayout layout;
             try {
@@ -179,18 +183,7 @@ public class RobotContainer {
       }
 
     } else {
-      SwerveModule flModule =
-          new SwerveModule(new SwerveModuleIO() {}, 0, config.getRobotMaxVelocity());
-
-      SwerveModule frModule =
-          new SwerveModule(new SwerveModuleIO() {}, 1, config.getRobotMaxVelocity());
-
-      SwerveModule blModule =
-          new SwerveModule(new SwerveModuleIO() {}, 2, config.getRobotMaxVelocity());
-
-      SwerveModule brModule =
-          new SwerveModule(new SwerveModuleIO() {}, 3, config.getRobotMaxVelocity());
-      drivetrain = new Drivetrain(new GyroIO() {}, flModule, frModule, blModule, brModule);
+      drivetrain = new Drivetrain(new DrivetrainIO() {});
 
       String[] cameraNames = config.getCameraNames();
       VisionIO[] visionIOs = new VisionIO[cameraNames.length];

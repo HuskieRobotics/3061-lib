@@ -4,46 +4,32 @@
 
 package frc.lib.team3061.drivetrain;
 
+import static frc.lib.team3061.drivetrain.DrivetrainConstants.*;
 import static frc.robot.Constants.*;
 
-import com.ctre.phoenix6.BaseStatusSignal;
-import com.ctre.phoenix6.StatusSignal;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
-import frc.lib.team3061.gyro.GyroIO;
-import frc.lib.team3061.swerve.SwerveModule;
-import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team6328.util.Alert;
 import frc.lib.team6328.util.Alert.AlertType;
 import frc.lib.team6328.util.TunableNumber;
-import frc.robot.Constants;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Supplier;
-import org.littletonrobotics.junction.Logger;
 
 /**
  * This subsystem models the robot's drivetrain mechanism. It consists of a four MK4 swerve modules,
@@ -53,6 +39,7 @@ import org.littletonrobotics.junction.Logger;
 public class Drivetrain extends SubsystemBase {
 
   private final DrivetrainIO io;
+  private final DrivetrainIOInputsAutoLogged inputs = new DrivetrainIOInputsAutoLogged();
 
   private final TunableNumber autoDriveKp =
       new TunableNumber("AutoDrive/DriveKp", RobotConfig.getInstance().getAutoDriveKP());
@@ -74,58 +61,10 @@ public class Drivetrain extends SubsystemBase {
   private final PIDController autoThetaController =
       new PIDController(autoTurnKp.get(), autoTurnKi.get(), autoTurnKd.get());
 
-  private final SwerveDriveKinematics kinematics =
-      RobotConfig.getInstance().getSwerveDriveKinematics();
-
-  private final SwerveModule[] swerveModules = new SwerveModule[4]; // FL, FR, BL, BR
-
-  // some of this code is from the SDS example code
-
-  private Translation2d centerGravity;
-
-  private final SwerveModulePosition[] swerveModulePositions =
-      new SwerveModulePosition[] {
-        new SwerveModulePosition(),
-        new SwerveModulePosition(),
-        new SwerveModulePosition(),
-        new SwerveModulePosition()
-      };
-  private final SwerveModulePosition[] prevSwerveModulePositions =
-      new SwerveModulePosition[] {
-        new SwerveModulePosition(),
-        new SwerveModulePosition(),
-        new SwerveModulePosition(),
-        new SwerveModulePosition()
-      };
-  private final SwerveModuleState[] swerveModuleStates =
-      new SwerveModuleState[] {
-        new SwerveModuleState(),
-        new SwerveModuleState(),
-        new SwerveModuleState(),
-        new SwerveModuleState()
-      };
-  private final SwerveModuleState[] prevSwerveModuleStates =
-      new SwerveModuleState[] {
-        new SwerveModuleState(),
-        new SwerveModuleState(),
-        new SwerveModuleState(),
-        new SwerveModuleState()
-      };
-  private Pose2d estimatedPoseWithoutGyro = new Pose2d();
-
   private boolean isFieldRelative;
 
   private boolean isTranslationSlowMode = false;
   private boolean isRotationSlowMode = false;
-
-  private ChassisSpeeds chassisSpeeds;
-
-  private static final String SUBSYSTEM_NAME = "Drivetrain";
-  private static final boolean TESTING = false;
-  private static final boolean DEBUGGING = false;
-
-  private final SwerveDrivePoseEstimator poseEstimator;
-  private final List<StatusSignal<Double>> odometrySignals = new ArrayList<>();
 
   private boolean brakeMode;
   private Timer brakeModeTimer = new Timer();
@@ -140,45 +79,23 @@ public class Drivetrain extends SubsystemBase {
   private Alert noPoseAlert =
       new Alert("Attempted to reset pose from vision, but no pose was found.", AlertType.WARNING);
 
+  private ChassisSpeeds prevSpeeds = new ChassisSpeeds();
+  private double prevFrontLeftSteerVelocityRadSec = 0.0;
+  private double prevFrontRightSteerVelocityRadSec = 0.0;
+  private double prevBackLeftSteerVelocityRadSec = 0.0;
+  private double prevBackRightSteerVelocityRadSec = 0.0;
+
   /**
    * Creates a new Drivetrain subsystem.
    *
-   * @param gyroIO the abstracted interface for the gyro for the drivetrain
-   * @param flModule the front left swerve module
-   * @param frModule the front right swerve module
-   * @param blModule the back left swerve module
-   * @param brModule the back right swerve module
+   * @param io the abstracted interface for the drivetrain
    */
-  public Drivetrain(
-      DrivetrainIO io,
-      GyroIO gyroIO,
-      SwerveModule flModule,
-      SwerveModule frModule,
-      SwerveModule blModule,
-      SwerveModule brModule) {
+  public Drivetrain(DrivetrainIO io) {
     this.io = io;
-    this.gyroIO = gyroIO;
-    this.swerveModules[0] = flModule;
-    this.swerveModules[1] = frModule;
-    this.swerveModules[2] = blModule;
-    this.swerveModules[3] = brModule;
 
     this.autoThetaController.enableContinuousInput(-Math.PI, Math.PI);
 
-    this.centerGravity = new Translation2d(); // default to (0,0)
-
-    this.zeroGyroscope();
-
     this.isFieldRelative = false;
-
-    this.chassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
-
-    this.poseEstimator = RobotOdometry.getInstance().getPoseEstimator();
-
-    this.odometrySignals.addAll(this.gyroIO.getOdometryStatusSignals());
-    for (SwerveModule swerveModule : swerveModules) {
-      this.odometrySignals.addAll(swerveModule.getOdometryStatusSignals());
-    }
 
     // based on testing we can drive in turbo mode all the time
     this.isTurbo = true;
@@ -195,25 +112,6 @@ public class Drivetrain extends SubsystemBase {
         .addBoolean("Field-Relative Enabled?", () -> this.isFieldRelative)
         .withPosition(8, 0)
         .withSize(1, 1);
-
-    if (DEBUGGING) {
-      ShuffleboardTab tab = Shuffleboard.getTab(SUBSYSTEM_NAME);
-      tab.add(SUBSYSTEM_NAME, this);
-      tab.addNumber("vx", this::getVelocityX);
-      tab.addNumber("vy", this::getVelocityY);
-      tab.addNumber("Pose Est X", () -> poseEstimator.getEstimatedPosition().getX());
-      tab.addNumber("Pose Est Y", () -> poseEstimator.getEstimatedPosition().getY());
-      tab.addNumber(
-          "Pose Est Rot", () -> poseEstimator.getEstimatedPosition().getRotation().getDegrees());
-      tab.addNumber("CoG X", () -> this.centerGravity.getX());
-      tab.addNumber("CoG Y", () -> this.centerGravity.getY());
-    }
-
-    if (TESTING) {
-      ShuffleboardTab tab = Shuffleboard.getTab(SUBSYSTEM_NAME);
-      tab.add("Enable XStance", new InstantCommand(this::enableXstance));
-      tab.add("Disable XStance", new InstantCommand(this::disableXstance));
-    }
 
     FaultReporter faultReporter = FaultReporter.getInstance();
     faultReporter.registerSystemCheck(SUBSYSTEM_NAME, getSystemCheckCommand());
@@ -249,7 +147,7 @@ public class Drivetrain extends SubsystemBase {
   }
 
   public ChassisSpeeds getRobotRelativeSpeeds() {
-    return this.chassisSpeeds;
+    return this.inputs.measuredChassisSpeeds;
   }
 
   public void driveRobotRelative(ChassisSpeeds chassisSpeeds) {
@@ -300,11 +198,7 @@ public class Drivetrain extends SubsystemBase {
    * @return the rotation of the robot
    */
   public Rotation2d getRotation() {
-    if (gyroInputs.connected) {
-      return Rotation2d.fromDegrees(gyroInputs.yawDeg);
-    } else {
-      return estimatedPoseWithoutGyro.getRotation();
-    }
+    return this.inputs.rotation;
   }
 
   /**
@@ -314,7 +208,7 @@ public class Drivetrain extends SubsystemBase {
    * @return the yaw of the drivetrain as reported by the gyro in degrees
    */
   public double getYaw() {
-    return gyroInputs.yawDeg;
+    return this.inputs.gyro.yawDeg;
   }
 
   /**
@@ -323,7 +217,7 @@ public class Drivetrain extends SubsystemBase {
    * @return the pitch of the drivetrain as reported by the gyro in degrees
    */
   public double getPitch() {
-    return gyroInputs.pitchDeg;
+    return this.inputs.gyro.pitchDeg;
   }
 
   /**
@@ -332,7 +226,7 @@ public class Drivetrain extends SubsystemBase {
    * @return the roll of the drivetrain as reported by the gyro in degrees
    */
   public double getRoll() {
-    return gyroInputs.rollDeg;
+    return this.inputs.gyro.rollDeg;
   }
 
   /**
@@ -354,7 +248,7 @@ public class Drivetrain extends SubsystemBase {
    * @return the pose of the robot
    */
   public Pose2d getPose() {
-    return poseEstimator.getEstimatedPosition();
+    return this.inputs.robotPose;
   }
 
   /**
@@ -366,14 +260,7 @@ public class Drivetrain extends SubsystemBase {
    * @param state the specified PathPlanner state to which is set the odometry
    */
   public void resetPose(Pose2d pose) {
-    setGyroOffset(pose.getRotation().getDegrees());
-
-    for (int i = 0; i < 4; i++) {
-      swerveModulePositions[i] = swerveModules[i].getPosition();
-    }
-
-    estimatedPoseWithoutGyro = new Pose2d(pose.getTranslation(), pose.getRotation());
-    poseEstimator.resetPosition(this.getRotation(), swerveModulePositions, pose);
+    this.io.resetPose(pose);
   }
 
   /**
@@ -382,14 +269,7 @@ public class Drivetrain extends SubsystemBase {
    * estimator.
    */
   public void resetPoseRotationToGyro() {
-    for (int i = 0; i < 4; i++) {
-      swerveModulePositions[i] = swerveModules[i].getPosition();
-    }
-
-    poseEstimator.resetPosition(
-        this.getRotation(),
-        swerveModulePositions,
-        new Pose2d(this.getPose().getTranslation(), this.getRotation()));
+    this.io.resetPose(new Pose2d(this.getPose().getTranslation(), this.getRotation()));
   }
 
   /**
@@ -403,8 +283,7 @@ public class Drivetrain extends SubsystemBase {
     Pose3d pose = poseSupplier.get();
     if (pose != null) {
       noPoseAlert.set(false);
-      setGyroOffset(pose.toPose2d().getRotation().getDegrees());
-      poseEstimator.resetPosition(this.getRotation(), swerveModulePositions, pose.toPose2d());
+      this.io.resetPose(pose.toPose2d());
     } else {
       noPoseAlert.set(true);
     }
@@ -446,12 +325,14 @@ public class Drivetrain extends SubsystemBase {
     if (driveMode == DriveMode.NORMAL) {
       // get the slow-mode multiplier from the config
       double slowModeMultiplier = RobotConfig.getInstance().getRobotSlowModeMultiplier();
+
       // if translation or rotation is in slow mode, multiply the x and y velocities by the
       // slow-mode multiplier
       if (isTranslationSlowMode) {
         xVelocity *= slowModeMultiplier;
         yVelocity *= slowModeMultiplier;
       }
+
       // if rotation is in slow mode, multiply the rotational velocity by the slow-mode multiplier
       if (isRotationSlowMode) {
         rotationalVelocity *= slowModeMultiplier;
@@ -459,7 +340,6 @@ public class Drivetrain extends SubsystemBase {
 
       if (isFieldRelative) {
         this.io.driveFieldRelative(xVelocity, yVelocity, rotationalVelocity, isOpenLoop);
-
       } else {
         this.io.driveRobotRelative(xVelocity, yVelocity, rotationalVelocity, isOpenLoop);
       }
@@ -484,56 +364,13 @@ public class Drivetrain extends SubsystemBase {
    */
   @Override
   public void periodic() {
+    this.prevSpeeds = this.inputs.measuredChassisSpeeds;
+    this.prevFrontLeftSteerVelocityRadSec = this.inputs.frontLeft.steerVelocityRadiansPerSec;
+    this.prevFrontRightSteerVelocityRadSec = this.inputs.frontRight.steerVelocityRadiansPerSec;
+    this.prevBackLeftSteerVelocityRadSec = this.inputs.backLeft.steerVelocityRadiansPerSec;
+    this.prevBackRightSteerVelocityRadSec = this.inputs.backRight.steerVelocityRadiansPerSec;
 
-    // synchronize all of the signals related to pose estimation
-    if (RobotConfig.getInstance().getPhoenix6Licensed()) {
-      // this is a licensed method
-      BaseStatusSignal.waitForAll(
-          Constants.LOOP_PERIOD_SECS, this.odometrySignals.toArray(new BaseStatusSignal[0]));
-    }
-
-    // update and log gyro inputs
-    gyroIO.updateInputs(gyroInputs);
-    Logger.processInputs("Drivetrain/Gyro", gyroInputs);
-
-    // update and log the swerve modules inputs
-    for (SwerveModule swerveModule : swerveModules) {
-      swerveModule.updateAndProcessInputs();
-    }
-    Logger.recordOutput("Drivetrain/AvgDriveCurrent", this.getAverageDriveCurrent());
-
-    // update swerve module states and positions
-    for (int i = 0; i < 4; i++) {
-      prevSwerveModuleStates[i] = swerveModuleStates[i];
-      swerveModuleStates[i] = swerveModules[i].getState();
-      prevSwerveModulePositions[i] = swerveModulePositions[i];
-      swerveModulePositions[i] = swerveModules[i].getPosition();
-    }
-
-    // if the gyro is not connected, use the swerve module positions to estimate the robot's
-    // rotation
-    if (!gyroInputs.connected || Constants.getMode() == Constants.Mode.SIM) {
-      SwerveModulePosition[] moduleDeltas = new SwerveModulePosition[4];
-      for (int index = 0; index < moduleDeltas.length; index++) {
-        SwerveModulePosition current = swerveModulePositions[index];
-        SwerveModulePosition previous = prevSwerveModulePositions[index];
-
-        moduleDeltas[index] =
-            new SwerveModulePosition(
-                current.distanceMeters - previous.distanceMeters, current.angle);
-        // FIXME: I don't think this assignment is needed...
-        previous.distanceMeters = current.distanceMeters;
-      }
-
-      Twist2d twist = kinematics.toTwist2d(moduleDeltas);
-      this.gyroIO.addYaw(Math.toDegrees(twist.dtheta));
-
-      estimatedPoseWithoutGyro = estimatedPoseWithoutGyro.exp(twist);
-    }
-
-    // update the pose estimator based on the gyro and swerve module positions
-    poseEstimator.updateWithTime(
-        Logger.getRealTimestamp() / 1e6, this.getRotation(), swerveModulePositions);
+    this.io.updateInputs(this.inputs);
 
     // update the brake mode based on the robot's velocity and state (enabled/disabled)
     updateBrakeMode();
@@ -546,13 +383,6 @@ public class Drivetrain extends SubsystemBase {
     if (autoTurnKp.hasChanged() || autoTurnKi.hasChanged() || autoTurnKd.hasChanged()) {
       autoThetaController.setPID(autoTurnKp.get(), autoTurnKi.get(), autoTurnKd.get());
     }
-
-    // log poses, 3D geometry, and swerve module states, gyro offset
-    Pose2d poseEstimatorPose = poseEstimator.getEstimatedPosition();
-    Logger.recordOutput("Odometry/RobotNoGyro", estimatedPoseWithoutGyro);
-    Logger.recordOutput("Odometry/Robot", poseEstimatorPose);
-    Logger.recordOutput("3DField", new Pose3d(poseEstimatorPose));
-    Logger.recordOutput("SwerveModuleStates/Measured", swerveModuleStates);
   }
 
   /**
@@ -638,19 +468,19 @@ public class Drivetrain extends SubsystemBase {
   }
 
   /**
-   * Sets the robot's center of gravity about which it will rotate. The origin is at the center of
-   * the robot. The positive x direction is forward; the positive y direction, left.
+   * Sets the robot's center of rotation. The origin is at the center of the robot. The positive x
+   * direction is forward; the positive y direction, left.
    *
-   * @param x the x coordinate of the robot's center of gravity (in meters)
-   * @param y the y coordinate of the robot's center of gravity (in meters)
+   * @param x the x coordinate of the robot's center of rotation (in meters)
+   * @param y the y coordinate of the robot's center of rotation (in meters)
    */
-  public void setCenterGravity(double x, double y) {
-    this.centerGravity = new Translation2d(x, y);
+  public void setCenterOfRotation(double x, double y) {
+    io.setCenterOfRotation(new Translation2d(x, y));
   }
 
-  /** Resets the robot's center of gravity about which it will rotate to the center of the robot. */
-  public void resetCenterGravity() {
-    setCenterGravity(0.0, 0.0);
+  /** Resets the robot's center of rotation to the center of the robot. */
+  public void resetCenterOfRotation() {
+    setCenterOfRotation(0.0, 0.0);
   }
 
   /**
@@ -659,7 +489,7 @@ public class Drivetrain extends SubsystemBase {
    * @return the desired velocity of the drivetrain in the x direction (units of m/s)
    */
   public double getVelocityX() {
-    return chassisSpeeds.vxMetersPerSecond;
+    return this.inputs.measuredChassisSpeeds.vxMetersPerSecond;
   }
 
   /**
@@ -668,7 +498,7 @@ public class Drivetrain extends SubsystemBase {
    * @return the desired velocity of the drivetrain in the y direction (units of m/s)
    */
   public double getVelocityY() {
-    return chassisSpeeds.vyMetersPerSecond;
+    return this.inputs.measuredChassisSpeeds.vyMetersPerSecond;
   }
 
   /**
@@ -677,11 +507,7 @@ public class Drivetrain extends SubsystemBase {
    * @return the average current of the swerve module drive motors in amps
    */
   public double getAverageDriveCurrent() {
-    double totalCurrent = 0.0;
-    for (SwerveModule module : swerveModules) {
-      totalCurrent += Math.abs(module.getDriveCurrent());
-    }
-    return totalCurrent / swerveModules.length;
+    return this.inputs.averageDriveCurrent;
   }
 
   /**
@@ -690,7 +516,7 @@ public class Drivetrain extends SubsystemBase {
    * @return the PID controller used to control the robot's x position during autonomous
    */
   public PIDController getAutoXController() {
-    return autoXController;
+    return this.autoXController;
   }
 
   /**
@@ -699,7 +525,7 @@ public class Drivetrain extends SubsystemBase {
    * @return the PID controller used to control the robot's y position during autonomous
    */
   public PIDController getAutoYController() {
-    return autoYController;
+    return this.autoYController;
   }
 
   /**
@@ -708,7 +534,7 @@ public class Drivetrain extends SubsystemBase {
    * @return the PID controller used to control the robot's rotation during autonomous
    */
   public PIDController getAutoThetaController() {
-    return autoThetaController;
+    return this.autoThetaController;
   }
 
   /**
@@ -717,9 +543,7 @@ public class Drivetrain extends SubsystemBase {
    * @param volts the commanded voltage
    */
   public void runDriveCharacterizationVolts(double volts) {
-    for (SwerveModule swerveModule : swerveModules) {
-      swerveModule.setVoltageForDriveCharacterization(volts);
-    }
+    this.io.setDriveMotorVoltage(volts);
   }
 
   /**
@@ -728,7 +552,7 @@ public class Drivetrain extends SubsystemBase {
    * @return the average drive velocity in meters/sec
    */
   public double getDriveCharacterizationVelocity() {
-    ChassisSpeeds speeds = kinematics.toChassisSpeeds(swerveModuleStates);
+    ChassisSpeeds speeds = this.inputs.measuredChassisSpeeds;
     return Math.sqrt(Math.pow(speeds.vxMetersPerSecond, 2) + Math.pow(speeds.vyMetersPerSecond, 2));
   }
 
@@ -738,11 +562,10 @@ public class Drivetrain extends SubsystemBase {
    * @return the average drive velocity in meters/sec
    */
   public double getDriveCharacterizationAcceleration() {
-    ChassisSpeeds prevSpeeds = kinematics.toChassisSpeeds(prevSwerveModuleStates);
-    ChassisSpeeds speeds = kinematics.toChassisSpeeds(swerveModuleStates);
+    ChassisSpeeds speeds = this.inputs.measuredChassisSpeeds;
     return Math.sqrt(
-            Math.pow((speeds.vxMetersPerSecond - prevSpeeds.vxMetersPerSecond), 2)
-                + Math.pow((speeds.vyMetersPerSecond - prevSpeeds.vyMetersPerSecond), 2))
+            Math.pow((speeds.vxMetersPerSecond - this.prevSpeeds.vxMetersPerSecond), 2)
+                + Math.pow((speeds.vyMetersPerSecond - this.prevSpeeds.vyMetersPerSecond), 2))
         / LOOP_PERIOD_SECS;
   }
 
@@ -752,9 +575,7 @@ public class Drivetrain extends SubsystemBase {
    * @param volts the commanded voltage
    */
   public void runRotateCharacterizationVolts(double volts) {
-    for (SwerveModule swerveModule : swerveModules) {
-      swerveModule.setVoltageForRotateCharacterization(volts);
-    }
+    this.io.setSteerMotorVoltage(volts);
   }
 
   /**
@@ -764,12 +585,11 @@ public class Drivetrain extends SubsystemBase {
    */
   public double getRotateCharacterizationVelocity() {
     double avgVelocity = 0.0;
-
-    for (SwerveModule mod : swerveModules) {
-      avgVelocity += mod.getAngleMotorVelocity();
-    }
-
-    avgVelocity /= swerveModules.length;
+    avgVelocity += this.inputs.frontLeft.steerVelocityRadiansPerSec;
+    avgVelocity += this.inputs.frontRight.steerVelocityRadiansPerSec;
+    avgVelocity += this.inputs.backLeft.steerVelocityRadiansPerSec;
+    avgVelocity += this.inputs.backRight.steerVelocityRadiansPerSec;
+    avgVelocity /= 4.0;
     return avgVelocity;
   }
 
@@ -780,12 +600,15 @@ public class Drivetrain extends SubsystemBase {
    */
   public double getRotateCharacterizationAcceleration() {
     double avgAcceleration = 0.0;
-
-    for (SwerveModule mod : swerveModules) {
-      avgAcceleration += mod.getAngleMotorAcceleration();
-    }
-
-    avgAcceleration /= swerveModules.length;
+    avgAcceleration +=
+        this.inputs.frontLeft.steerVelocityRadiansPerSec - this.prevFrontLeftSteerVelocityRadSec;
+    avgAcceleration +=
+        this.inputs.frontRight.steerVelocityRadiansPerSec - this.prevFrontRightSteerVelocityRadSec;
+    avgAcceleration +=
+        this.inputs.backLeft.steerVelocityRadiansPerSec - this.prevBackLeftSteerVelocityRadSec;
+    avgAcceleration +=
+        this.inputs.backRight.steerVelocityRadiansPerSec - this.prevBackRightSteerVelocityRadSec;
+    avgAcceleration /= 4.0;
     return avgAcceleration;
   }
 
@@ -809,12 +632,8 @@ public class Drivetrain extends SubsystemBase {
   }
 
   private Command getSystemCheckCommand() {
-    return Commands.sequence(
-            Commands.sequence(
-                swerveModules[0].getCheckCommand(),
-                swerveModules[1].getCheckCommand(),
-                swerveModules[2].getCheckCommand(),
-                swerveModules[3].getCheckCommand()))
+    // FIXME: add system check commands
+    return Commands.sequence(Commands.sequence(Commands.waitSeconds(0.25)))
         .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
         .andThen(Commands.runOnce(() -> drive(0, 0, 0, true, false), this));
   }
@@ -831,12 +650,12 @@ public class Drivetrain extends SubsystemBase {
 
     } else if (!DriverStation.isEnabled()) {
       boolean stillMoving = false;
-      for (SwerveModule mod : swerveModules) {
-        if (Math.abs(mod.getState().speedMetersPerSecond)
-            > RobotConfig.getInstance().getRobotMaxCoastVelocity()) {
-          stillMoving = true;
-          brakeModeTimer.restart();
-        }
+      double velocityLimit = RobotConfig.getInstance().getRobotMaxCoastVelocity();
+      if (Math.abs(this.inputs.measuredChassisSpeeds.omegaRadiansPerSecond) > velocityLimit
+          || Math.abs(this.inputs.measuredChassisSpeeds.vxMetersPerSecond) > velocityLimit
+          || Math.abs(this.inputs.measuredChassisSpeeds.vyMetersPerSecond) > velocityLimit) {
+        stillMoving = true;
+        brakeModeTimer.restart();
       }
 
       if (brakeMode && !stillMoving && brakeModeTimer.hasElapsed(BREAK_MODE_DELAY_SEC)) {
@@ -847,10 +666,7 @@ public class Drivetrain extends SubsystemBase {
   }
 
   private void setBrakeMode(boolean enable) {
-    for (SwerveModule mod : swerveModules) {
-      mod.setAngleBrakeMode(enable);
-      mod.setDriveBrakeMode(enable);
-    }
+    this.io.setBrakeMode(enable);
   }
 
   private enum DriveMode {

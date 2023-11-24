@@ -35,7 +35,7 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
 
   // some of this code is from the SDS example code
 
-  private Translation2d centerGravity;
+  private Translation2d centerOfRotation;
 
   private final SwerveModulePosition[] swerveModulePositions =
       new SwerveModulePosition[] {
@@ -73,10 +73,10 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
         new SwerveModuleState()
       };
 
-  private ChassisSpeeds chassisSpeeds;
+  private ChassisSpeeds targetChassisSpeeds;
 
   private final SwerveDrivePoseEstimator poseEstimator;
-  private Pose2d estimatedPoseWithoutGyro;
+  private Pose2d estimatedPoseWithoutGyro = new Pose2d();
 
   private final List<StatusSignal<Double>> odometrySignals = new ArrayList<>();
 
@@ -101,11 +101,11 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
     this.swerveModules[2] = blModule;
     this.swerveModules[3] = brModule;
 
-    this.centerGravity = new Translation2d(); // default to (0,0)
+    this.centerOfRotation = new Translation2d(); // default to (0,0)
 
     this.setGyroOffset(0.0);
 
-    this.chassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
+    this.targetChassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
 
     this.poseEstimator = RobotOdometry.getInstance().getPoseEstimator();
 
@@ -135,7 +135,7 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
     }
 
     // update swerve module states and positions
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < this.swerveModuleStates.length; i++) {
       prevSwerveModuleStates[i] = swerveModuleStates[i];
       swerveModuleStates[i] = swerveModules[i].getState();
       prevSwerveModulePositions[i] = swerveModulePositions[i];
@@ -167,7 +167,7 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
     inputs.swerveReferenceStates = this.swerveReferenceStates;
 
     // update the pose estimator based on the gyro and swerve module positions
-    poseEstimator.updateWithTime(
+    this.poseEstimator.updateWithTime(
         Logger.getRealTimestamp() / 1e6, this.getRotation(), swerveModulePositions);
 
     // log poses, 3D geometry, and swerve module states, gyro offset
@@ -175,16 +175,23 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
     inputs.robotPose = poseEstimator.getEstimatedPosition();
     inputs.robotPose3D = new Pose3d(inputs.robotPose);
 
-    inputs.chassisSpeeds = this.chassisSpeeds;
+    inputs.targetChassisSpeeds = this.targetChassisSpeeds;
+    inputs.measuredChassisSpeeds = kinematics.toChassisSpeeds(this.swerveModuleStates);
 
     inputs.averageDriveCurrent = this.getAverageDriveCurrent();
+
+    if (gyroInputs.connected) {
+      inputs.rotation = Rotation2d.fromDegrees(gyroInputs.yawDeg);
+    } else {
+      inputs.rotation = estimatedPoseWithoutGyro.getRotation();
+    }
   }
 
   @Override
   public void holdXStance() {
-    this.chassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
+    this.targetChassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
     this.swerveReferenceStates =
-        kinematics.toSwerveModuleStates(this.chassisSpeeds, this.centerGravity);
+        kinematics.toSwerveModuleStates(this.targetChassisSpeeds, this.centerOfRotation);
     this.swerveReferenceStates[0].angle =
         new Rotation2d(Math.PI / 2 - Math.atan(trackwidthMeters / wheelbaseMeters));
     this.swerveReferenceStates[1].angle =
@@ -200,13 +207,15 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
   public void driveFieldRelative(
       double xVelocity, double yVelocity, double rotationalVelocity, boolean isOpenLoop) {
 
-    this.chassisSpeeds =
+    this.targetChassisSpeeds =
         ChassisSpeeds.fromFieldRelativeSpeeds(
             xVelocity, yVelocity, rotationalVelocity, getRotation());
 
-    this.chassisSpeeds = ChassisSpeeds.discretize(chassisSpeeds, Constants.LOOP_PERIOD_SECS);
+    this.targetChassisSpeeds =
+        ChassisSpeeds.discretize(this.targetChassisSpeeds, Constants.LOOP_PERIOD_SECS);
 
-    this.swerveReferenceStates = kinematics.toSwerveModuleStates(chassisSpeeds, centerGravity);
+    this.swerveReferenceStates =
+        kinematics.toSwerveModuleStates(this.targetChassisSpeeds, centerOfRotation);
     setSwerveModuleStates(this.swerveReferenceStates, isOpenLoop, false);
   }
 
@@ -214,12 +223,14 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
   public void driveFieldRelativeFacingAngle(
       double xVelocity, double yVelocity, Rotation2d targetDirection, boolean isOpenLoop) {
     // FIXME: add support for holding a rotation angle
-    this.chassisSpeeds =
+    this.targetChassisSpeeds =
         ChassisSpeeds.fromFieldRelativeSpeeds(xVelocity, yVelocity, 0.0, getRotation());
 
-    this.chassisSpeeds = ChassisSpeeds.discretize(chassisSpeeds, Constants.LOOP_PERIOD_SECS);
+    this.targetChassisSpeeds =
+        ChassisSpeeds.discretize(this.targetChassisSpeeds, Constants.LOOP_PERIOD_SECS);
 
-    this.swerveReferenceStates = kinematics.toSwerveModuleStates(chassisSpeeds, centerGravity);
+    this.swerveReferenceStates =
+        kinematics.toSwerveModuleStates(this.targetChassisSpeeds, centerOfRotation);
     setSwerveModuleStates(this.swerveReferenceStates, isOpenLoop, false);
   }
 
@@ -235,19 +246,22 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
   @Override
   public void driveRobotRelative(
       double xVelocity, double yVelocity, double rotationalVelocity, boolean isOpenLoop) {
-    this.chassisSpeeds = new ChassisSpeeds(xVelocity, yVelocity, rotationalVelocity);
-    this.chassisSpeeds = ChassisSpeeds.discretize(chassisSpeeds, Constants.LOOP_PERIOD_SECS);
+    this.targetChassisSpeeds = new ChassisSpeeds(xVelocity, yVelocity, rotationalVelocity);
+    this.targetChassisSpeeds =
+        ChassisSpeeds.discretize(this.targetChassisSpeeds, Constants.LOOP_PERIOD_SECS);
 
-    this.swerveReferenceStates = kinematics.toSwerveModuleStates(chassisSpeeds, centerGravity);
+    this.swerveReferenceStates =
+        kinematics.toSwerveModuleStates(this.targetChassisSpeeds, centerOfRotation);
     setSwerveModuleStates(this.swerveReferenceStates, isOpenLoop, false);
   }
 
   @Override
   public void setChassisSpeeds(ChassisSpeeds speeds, boolean isOpenLoop) {
-    this.chassisSpeeds.omegaRadiansPerSecond = speeds.omegaRadiansPerSecond;
-    this.chassisSpeeds.vxMetersPerSecond = speeds.vxMetersPerSecond;
-    this.chassisSpeeds.vyMetersPerSecond = speeds.vyMetersPerSecond;
-    this.swerveReferenceStates = kinematics.toSwerveModuleStates(this.chassisSpeeds, centerGravity);
+    this.targetChassisSpeeds.omegaRadiansPerSecond = speeds.omegaRadiansPerSecond;
+    this.targetChassisSpeeds.vxMetersPerSecond = speeds.vxMetersPerSecond;
+    this.targetChassisSpeeds.vyMetersPerSecond = speeds.vyMetersPerSecond;
+    this.swerveReferenceStates =
+        kinematics.toSwerveModuleStates(this.targetChassisSpeeds, centerOfRotation);
     setSwerveModuleStates(this.swerveReferenceStates, isOpenLoop, false);
   }
 
@@ -261,6 +275,45 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
               estimatedPoseWithoutGyro.getX(),
               estimatedPoseWithoutGyro.getY(),
               Rotation2d.fromDegrees(expectedYaw));
+    }
+  }
+
+  @Override
+  public void setCenterOfRotation(Translation2d centerOfRotation) {
+    this.centerOfRotation = centerOfRotation;
+  }
+
+  @Override
+  public void resetPose(Pose2d pose) {
+    setGyroOffset(pose.getRotation().getDegrees());
+
+    for (int i = 0; i < this.swerveModules.length; i++) {
+      this.swerveModulePositions[i] = this.swerveModules[i].getPosition();
+    }
+
+    this.estimatedPoseWithoutGyro = new Pose2d(pose.getTranslation(), pose.getRotation());
+    this.poseEstimator.resetPosition(this.getRotation(), swerveModulePositions, pose);
+  }
+
+  @Override
+  public void setDriveMotorVoltage(double volts) {
+    for (SwerveModule swerveModule : this.swerveModules) {
+      swerveModule.setVoltageForDriveCharacterization(volts);
+    }
+  }
+
+  @Override
+  public void setSteerMotorVoltage(double volts) {
+    for (SwerveModule swerveModule : this.swerveModules) {
+      swerveModule.setVoltageForRotateCharacterization(volts);
+    }
+  }
+
+  @Override
+  public void setBrakeMode(boolean enable) {
+    for (SwerveModule mod : this.swerveModules) {
+      mod.setAngleBrakeMode(enable);
+      mod.setDriveBrakeMode(enable);
     }
   }
 
