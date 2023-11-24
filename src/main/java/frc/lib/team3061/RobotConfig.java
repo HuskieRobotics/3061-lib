@@ -3,7 +3,7 @@ package frc.lib.team3061;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import frc.lib.team3061.swerve.SwerveModuleConstants.SwerveType;
+import frc.lib.team3061.drivetrain.swerve.SwerveModuleConstants.SwerveType;
 
 @java.lang.SuppressWarnings({"java:S3010", "java:S3400"})
 public abstract class RobotConfig {

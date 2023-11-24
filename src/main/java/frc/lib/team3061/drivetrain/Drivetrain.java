@@ -26,6 +26,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
+import frc.lib.team3061.drivetrain.DrivetrainIO.SwerveIOInputs;
 import frc.lib.team6328.util.Alert;
 import frc.lib.team6328.util.Alert.AlertType;
 import frc.lib.team6328.util.TunableNumber;
@@ -80,10 +81,7 @@ public class Drivetrain extends SubsystemBase {
       new Alert("Attempted to reset pose from vision, but no pose was found.", AlertType.WARNING);
 
   private ChassisSpeeds prevSpeeds = new ChassisSpeeds();
-  private double prevFrontLeftSteerVelocityRadSec = 0.0;
-  private double prevFrontRightSteerVelocityRadSec = 0.0;
-  private double prevBackLeftSteerVelocityRadSec = 0.0;
-  private double prevBackRightSteerVelocityRadSec = 0.0;
+  private double[] prevSteerVelocitiesRevPerMin = new double[4];
 
   /**
    * Creates a new Drivetrain subsystem.
@@ -365,10 +363,9 @@ public class Drivetrain extends SubsystemBase {
   @Override
   public void periodic() {
     this.prevSpeeds = this.inputs.measuredChassisSpeeds;
-    this.prevFrontLeftSteerVelocityRadSec = this.inputs.frontLeft.steerVelocityRadiansPerSec;
-    this.prevFrontRightSteerVelocityRadSec = this.inputs.frontRight.steerVelocityRadiansPerSec;
-    this.prevBackLeftSteerVelocityRadSec = this.inputs.backLeft.steerVelocityRadiansPerSec;
-    this.prevBackRightSteerVelocityRadSec = this.inputs.backRight.steerVelocityRadiansPerSec;
+    for (int i = 0; i < this.inputs.swerveInputs.length; i++) {
+      this.prevSteerVelocitiesRevPerMin[i] = this.inputs.swerveInputs[i].steerVelocityRevPerMin;
+    }
 
     this.io.updateInputs(this.inputs);
 
@@ -585,11 +582,11 @@ public class Drivetrain extends SubsystemBase {
    */
   public double getRotateCharacterizationVelocity() {
     double avgVelocity = 0.0;
-    avgVelocity += this.inputs.frontLeft.steerVelocityRadiansPerSec;
-    avgVelocity += this.inputs.frontRight.steerVelocityRadiansPerSec;
-    avgVelocity += this.inputs.backLeft.steerVelocityRadiansPerSec;
-    avgVelocity += this.inputs.backRight.steerVelocityRadiansPerSec;
-    avgVelocity /= 4.0;
+    for (SwerveIOInputs swerveInputs : this.inputs.swerveInputs) {
+      avgVelocity += swerveInputs.steerVelocityRevPerMin;
+    }
+    avgVelocity /= this.inputs.swerveInputs.length;
+    avgVelocity *= (2.0 * Math.PI) / 60.0;
     return avgVelocity;
   }
 
@@ -600,16 +597,15 @@ public class Drivetrain extends SubsystemBase {
    */
   public double getRotateCharacterizationAcceleration() {
     double avgAcceleration = 0.0;
-    avgAcceleration +=
-        this.inputs.frontLeft.steerVelocityRadiansPerSec - this.prevFrontLeftSteerVelocityRadSec;
-    avgAcceleration +=
-        this.inputs.frontRight.steerVelocityRadiansPerSec - this.prevFrontRightSteerVelocityRadSec;
-    avgAcceleration +=
-        this.inputs.backLeft.steerVelocityRadiansPerSec - this.prevBackLeftSteerVelocityRadSec;
-    avgAcceleration +=
-        this.inputs.backRight.steerVelocityRadiansPerSec - this.prevBackRightSteerVelocityRadSec;
-    avgAcceleration /= 4.0;
-    return avgAcceleration;
+    for (int i = 0; i < this.inputs.swerveInputs.length; i++) {
+      avgAcceleration +=
+          Math.abs(
+              this.inputs.swerveInputs[i].steerVelocityRevPerMin
+                  - this.prevSteerVelocitiesRevPerMin[i]);
+    }
+    avgAcceleration /= this.inputs.swerveInputs.length;
+    avgAcceleration *= (2.0 * Math.PI) / 60.0;
+    return avgAcceleration / LOOP_PERIOD_SECS;
   }
 
   /**

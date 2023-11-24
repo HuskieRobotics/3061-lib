@@ -2,7 +2,7 @@
  * Initially from https://github.com/Team364/BaseFalconSwerve
  */
 
-package frc.lib.team3061.swerve;
+package frc.lib.team3061.drivetrain.swerve;
 
 import com.ctre.phoenix6.signals.NeutralModeValue;
 

@@ -13,9 +13,9 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.lib.team3061.RobotConfig;
+import frc.lib.team3061.drivetrain.swerve.SwerveModuleIO;
 import frc.lib.team3061.gyro.GyroIO;
 import frc.lib.team3061.gyro.GyroIOInputsAutoLogged;
-import frc.lib.team3061.swerve.SwerveModule;
 import frc.lib.team3061.util.RobotOdometry;
 import frc.robot.Constants;
 import java.util.ArrayList;
@@ -31,7 +31,7 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
   private final SwerveDriveKinematics kinematics =
       RobotConfig.getInstance().getSwerveDriveKinematics();
 
-  private final SwerveModule[] swerveModules = new SwerveModule[4]; // FL, FR, BL, BR
+  private final SwerveModuleIO[] swerveModules = new SwerveModuleIO[4]; // FL, FR, BL, BR
 
   // some of this code is from the SDS example code
 
@@ -75,6 +75,8 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
 
   private ChassisSpeeds targetChassisSpeeds;
 
+  private double[] steerMotorsLastAngle = new double[4];
+
   private final SwerveDrivePoseEstimator poseEstimator;
   private Pose2d estimatedPoseWithoutGyro = new Pose2d();
 
@@ -91,10 +93,10 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
    */
   public DrivetrainIOGeneric(
       GyroIO gyroIO,
-      SwerveModule flModule,
-      SwerveModule frModule,
-      SwerveModule blModule,
-      SwerveModule brModule) {
+      SwerveModuleIO flModule,
+      SwerveModuleIO frModule,
+      SwerveModuleIO blModule,
+      SwerveModuleIO brModule) {
     this.gyroIO = gyroIO;
     this.swerveModules[0] = flModule;
     this.swerveModules[1] = frModule;
@@ -110,7 +112,7 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
     this.poseEstimator = RobotOdometry.getInstance().getPoseEstimator();
 
     this.odometrySignals.addAll(this.gyroIO.getOdometryStatusSignals());
-    for (SwerveModule swerveModule : swerveModules) {
+    for (SwerveModuleIO swerveModule : swerveModules) {
       this.odometrySignals.addAll(swerveModule.getOdometryStatusSignals());
     }
   }
@@ -129,17 +131,22 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
     Logger.processInputs("Drivetrain/Gyro", gyroInputs);
 
     // update and log the swerve modules inputs
-    for (SwerveModule swerveModule : swerveModules) {
-      // FIXME: invoke updateInputs on the IO class instead
-      swerveModule.updateAndProcessInputs();
+    for (int i = 0; i < this.swerveModules.length; i++) {
+      this.swerveModules[i].updateInputs(inputs.swerveInputs[i]);
     }
 
     // update swerve module states and positions
     for (int i = 0; i < this.swerveModuleStates.length; i++) {
       prevSwerveModuleStates[i] = swerveModuleStates[i];
-      swerveModuleStates[i] = swerveModules[i].getState();
+      swerveModuleStates[i] =
+          new SwerveModuleState(
+              inputs.swerveInputs[i].driveVelocityMetersPerSec,
+              Rotation2d.fromDegrees(inputs.swerveInputs[i].steerPositionDeg));
       prevSwerveModulePositions[i] = swerveModulePositions[i];
-      swerveModulePositions[i] = swerveModules[i].getPosition();
+      swerveModulePositions[i] =
+          new SwerveModulePosition(
+              inputs.swerveInputs[i].driveDistanceMeters,
+              Rotation2d.fromDegrees(inputs.swerveInputs[i].steerPositionDeg));
     }
 
     // if the gyro is not connected, use the swerve module positions to estimate the robot's
@@ -178,7 +185,7 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
     inputs.targetChassisSpeeds = this.targetChassisSpeeds;
     inputs.measuredChassisSpeeds = kinematics.toChassisSpeeds(this.swerveModuleStates);
 
-    inputs.averageDriveCurrent = this.getAverageDriveCurrent();
+    inputs.averageDriveCurrent = this.getAverageDriveCurrent(inputs);
 
     if (gyroInputs.connected) {
       inputs.rotation = Rotation2d.fromDegrees(gyroInputs.yawDeg);
@@ -286,34 +293,31 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
   @Override
   public void resetPose(Pose2d pose) {
     setGyroOffset(pose.getRotation().getDegrees());
-
-    for (int i = 0; i < this.swerveModules.length; i++) {
-      this.swerveModulePositions[i] = this.swerveModules[i].getPosition();
-    }
-
     this.estimatedPoseWithoutGyro = new Pose2d(pose.getTranslation(), pose.getRotation());
     this.poseEstimator.resetPosition(this.getRotation(), swerveModulePositions, pose);
   }
 
   @Override
-  public void setDriveMotorVoltage(double volts) {
-    for (SwerveModule swerveModule : this.swerveModules) {
-      swerveModule.setVoltageForDriveCharacterization(volts);
+  public void setDriveMotorVoltage(double voltage) {
+    for (int i = 0; i < this.swerveModules.length; i++) {
+      this.swerveModules[i].setAnglePosition(0.0);
+      steerMotorsLastAngle[i] = 0.0;
+      this.swerveModules[i].setDriveMotorVoltage(voltage);
     }
   }
 
   @Override
-  public void setSteerMotorVoltage(double volts) {
-    for (SwerveModule swerveModule : this.swerveModules) {
-      swerveModule.setVoltageForRotateCharacterization(volts);
+  public void setSteerMotorVoltage(double voltage) {
+    for (SwerveModuleIO swerveModule : this.swerveModules) {
+      swerveModule.setAngleMotorVoltage(voltage);
     }
   }
 
   @Override
   public void setBrakeMode(boolean enable) {
-    for (SwerveModule mod : this.swerveModules) {
-      mod.setAngleBrakeMode(enable);
-      mod.setDriveBrakeMode(enable);
+    for (SwerveModuleIO swerveModule : this.swerveModules) {
+      swerveModule.setAngleBrakeMode(enable);
+      swerveModule.setDriveBrakeMode(enable);
     }
   }
 
@@ -322,21 +326,43 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
    *
    * @return the average current of the swerve module drive motors in amps
    */
-  private double getAverageDriveCurrent() {
+  private double getAverageDriveCurrent(DrivetrainIOInputs inputs) {
     double totalCurrent = 0.0;
-    for (SwerveModule module : swerveModules) {
-      totalCurrent += Math.abs(module.getDriveCurrent());
+    for (SwerveIOInputs swerveInputs : inputs.swerveInputs) {
+      totalCurrent += swerveInputs.driveStatorCurrentAmps;
     }
-    return totalCurrent / swerveModules.length;
+    return totalCurrent / inputs.swerveInputs.length;
   }
 
   private void setSwerveModuleStates(
       SwerveModuleState[] states, boolean isOpenLoop, boolean forceAngle) {
-    SwerveDriveKinematics.desaturateWheelSpeeds(
-        states, RobotConfig.getInstance().getRobotMaxVelocity());
+    double maxVelocity = RobotConfig.getInstance().getRobotMaxVelocity();
 
-    for (SwerveModule swerveModule : swerveModules) {
-      swerveModule.setDesiredState(states[swerveModule.getModuleNumber()], isOpenLoop, forceAngle);
+    SwerveDriveKinematics.desaturateWheelSpeeds(states, maxVelocity);
+
+    for (int i = 0; i < this.swerveModules.length; i++) {
+      states[i] = SwerveModuleState.optimize(states[i], swerveModuleStates[i].angle);
+
+      if (isOpenLoop) {
+        this.swerveModules[i].setDriveMotorVoltage(
+            states[i].speedMetersPerSecond / maxVelocity * 12.0);
+      } else {
+        this.swerveModules[i].setDriveVelocity(states[i].speedMetersPerSecond);
+      }
+
+      // Unless the angle is forced (e.g., X-stance), don't rotate the module if speed is less then
+      // 1%. This prevents jittering if the controller isn't tuned perfectly. Perhaps more
+      // importantly, it allows for smooth repeated movement as the wheel direction doesn't reset
+      // during pauses (e.g., multi-segmented auto paths).
+      double angle;
+      if (!forceAngle && Math.abs(states[i].speedMetersPerSecond) <= (maxVelocity * 0.01)) {
+        angle = this.steerMotorsLastAngle[i];
+      } else {
+        angle = states[i].angle.getDegrees();
+      }
+
+      this.swerveModules[i].setAnglePosition(angle);
+      steerMotorsLastAngle[i] = angle;
     }
   }
 

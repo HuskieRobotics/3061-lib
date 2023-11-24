@@ -9,35 +9,35 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.lib.team3061.gyro.GyroIO.GyroIOInputs;
 import org.littletonrobotics.junction.AutoLog;
 
+@java.lang.SuppressWarnings({"java:S1104"})
 public interface DrivetrainIO {
   public static class SwerveIOInputs {
-    double driveDistanceMeters = 0.0;
-    double driveVelocityMetersPerSec = 0.0;
-    double driveVelocityReferenceMetersPerSec = 0.0;
-    double driveVelocityErrorMetersPerSec = 0.0;
-    double driveAppliedVolts = 0.0;
-    double driveStatorCurrentAmps = 0.0;
-    double driveSupplyCurrentAmps = 0.0;
-    double driveTempCelsius = 0.0;
+    public double driveDistanceMeters = 0.0;
+    public double driveVelocityMetersPerSec = 0.0;
+    public double driveVelocityReferenceMetersPerSec = 0.0;
+    public double driveVelocityErrorMetersPerSec = 0.0;
+    public double driveAppliedVolts = 0.0;
+    public double driveStatorCurrentAmps = 0.0;
+    public double driveSupplyCurrentAmps = 0.0;
+    public double driveTempCelsius = 0.0;
 
-    double steerAbsolutePositionDeg = 0.0;
-    double steerPositionDeg = 0.0;
-    double steerPositionReferenceDeg = 0.0;
-    double steerPositionErrorDeg = 0.0;
-    double steerVelocityRadiansPerSec = 0.0;
-    double steerAppliedVolts = 0.0;
-    double steerStatorCurrentAmps = 0.0;
-    double steerSupplyCurrentAmps = 0.0;
-    double steerTempCelsius = 0.0;
+    public double steerAbsolutePositionDeg = 0.0;
+    public double steerPositionDeg = 0.0;
+    public double steerPositionReferenceDeg = 0.0;
+    public double steerPositionErrorDeg = 0.0;
+    public double steerVelocityRevPerMin = 0.0;
+    public double steerAppliedVolts = 0.0;
+    public double steerStatorCurrentAmps = 0.0;
+    public double steerSupplyCurrentAmps = 0.0;
+    public double steerTempCelsius = 0.0;
   }
 
   /** Contains all of the input data received from hardware. */
   @AutoLog
   public static class DrivetrainIOInputs {
-    SwerveIOInputs frontLeft = new SwerveIOInputs();
-    SwerveIOInputs frontRight = new SwerveIOInputs();
-    SwerveIOInputs backLeft = new SwerveIOInputs();
-    SwerveIOInputs backRight = new SwerveIOInputs();
+    SwerveIOInputs[] swerveInputs = {
+      new SwerveIOInputs(), new SwerveIOInputs(), new SwerveIOInputs(), new SwerveIOInputs()
+    }; // FL, FR, BL, BR
 
     ChassisSpeeds targetChassisSpeeds = new ChassisSpeeds();
     ChassisSpeeds measuredChassisSpeeds = new ChassisSpeeds();
