@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.Drivetrain;
 import frc.lib.team3061.drivetrain.DrivetrainIO;
+import frc.lib.team3061.drivetrain.DrivetrainIOCTRE;
 import frc.lib.team3061.drivetrain.DrivetrainIOGeneric;
 import frc.lib.team3061.drivetrain.swerve.SwerveModuleIO;
 import frc.lib.team3061.drivetrain.swerve.SwerveModuleIOTalonFXPhoenix6;
@@ -37,6 +38,7 @@ import frc.robot.commands.RotateToAngle;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.configs.DefaultRobotConfig;
 import frc.robot.configs.MK4IRobotConfig;
+import frc.robot.configs.NovaCTRERobotConfig;
 import frc.robot.configs.NovaRobotConfig;
 import frc.robot.operator_interface.OISelector;
 import frc.robot.operator_interface.OperatorInterface;
@@ -81,49 +83,11 @@ public class RobotContainer {
 
     // create real, simulated, or replay subsystems based on the mode and robot specified
     if (Constants.getMode() != Mode.REPLAY) {
-      int[] driveMotorCANIDs = config.getSwerveDriveMotorCANIDs();
-      int[] steerMotorCANDIDs = config.getSwerveSteerMotorCANIDs();
-      int[] steerEncoderCANDIDs = config.getSwerveSteerEncoderCANIDs();
-      double[] steerOffsets = config.getSwerveSteerOffsets();
-      SwerveModuleIO flModule =
-          new SwerveModuleIOTalonFXPhoenix6(
-              0,
-              driveMotorCANIDs[0],
-              steerMotorCANDIDs[0],
-              steerEncoderCANDIDs[0],
-              steerOffsets[0]);
 
-      SwerveModuleIO frModule =
-          new SwerveModuleIOTalonFXPhoenix6(
-              1,
-              driveMotorCANIDs[1],
-              steerMotorCANDIDs[1],
-              steerEncoderCANDIDs[1],
-              steerOffsets[1]);
-
-      SwerveModuleIO blModule =
-          new SwerveModuleIOTalonFXPhoenix6(
-              2,
-              driveMotorCANIDs[2],
-              steerMotorCANDIDs[2],
-              steerEncoderCANDIDs[2],
-              steerOffsets[2]);
-
-      SwerveModuleIO brModule =
-          new SwerveModuleIOTalonFXPhoenix6(
-              3,
-              driveMotorCANIDs[3],
-              steerMotorCANDIDs[3],
-              steerEncoderCANDIDs[3],
-              steerOffsets[3]);
       switch (Constants.getRobot()) {
-        case ROBOT_DEFAULT:
-        case ROBOT_2023_NOVA:
-        case ROBOT_2023_MK4I:
+        case ROBOT_2023_NOVA_CTRE:
           {
-            GyroIO gyro = new GyroIOPigeon2Phoenix6(config.getGyroCANID());
-            DrivetrainIO drivetrainIO =
-                new DrivetrainIOGeneric(gyro, flModule, frModule, blModule, brModule);
+            DrivetrainIO drivetrainIO = new DrivetrainIOCTRE();
             drivetrain = new Drivetrain(drivetrainIO);
 
             String[] cameraNames = config.getCameraNames();
@@ -134,17 +98,89 @@ public class RobotContainer {
             vision = new Vision(visionIOs);
             // subsystem = new Subsystem(new SubsystemIOTalonFX());
             subsystem = new Subsystem(new SubsystemIO() {});
+            break;
+          }
+        case ROBOT_DEFAULT:
+        case ROBOT_2023_NOVA:
+        case ROBOT_2023_MK4I:
+        case ROBOT_SIMBOT:
+          {
+            int[] driveMotorCANIDs = config.getSwerveDriveMotorCANIDs();
+            int[] steerMotorCANDIDs = config.getSwerveSteerMotorCANIDs();
+            int[] steerEncoderCANDIDs = config.getSwerveSteerEncoderCANIDs();
+            double[] steerOffsets = config.getSwerveSteerOffsets();
+            SwerveModuleIO flModule =
+                new SwerveModuleIOTalonFXPhoenix6(
+                    0,
+                    driveMotorCANIDs[0],
+                    steerMotorCANDIDs[0],
+                    steerEncoderCANDIDs[0],
+                    steerOffsets[0]);
+
+            SwerveModuleIO frModule =
+                new SwerveModuleIOTalonFXPhoenix6(
+                    1,
+                    driveMotorCANIDs[1],
+                    steerMotorCANDIDs[1],
+                    steerEncoderCANDIDs[1],
+                    steerOffsets[1]);
+
+            SwerveModuleIO blModule =
+                new SwerveModuleIOTalonFXPhoenix6(
+                    2,
+                    driveMotorCANIDs[2],
+                    steerMotorCANDIDs[2],
+                    steerEncoderCANDIDs[2],
+                    steerOffsets[2]);
+
+            SwerveModuleIO brModule =
+                new SwerveModuleIOTalonFXPhoenix6(
+                    3,
+                    driveMotorCANIDs[3],
+                    steerMotorCANDIDs[3],
+                    steerEncoderCANDIDs[3],
+                    steerOffsets[3]);
+
+            GyroIO gyro = new GyroIOPigeon2Phoenix6(config.getGyroCANID());
+            DrivetrainIO drivetrainIO =
+                new DrivetrainIOGeneric(gyro, flModule, frModule, blModule, brModule);
+            drivetrain = new Drivetrain(drivetrainIO);
+
+            // subsystem = new Subsystem(new SubsystemIOTalonFX());
+            subsystem = new Subsystem(new SubsystemIO() {});
 
             if (Constants.getRobot() == Constants.RobotType.ROBOT_DEFAULT) {
               new Pneumatics(new PneumaticsIORev());
             }
+
+            if (Constants.getRobot() == Constants.RobotType.ROBOT_SIMBOT) {
+              AprilTagFieldLayout layout;
+              try {
+                layout = new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
+              } catch (IOException e) {
+                layout = new AprilTagFieldLayout(new ArrayList<>(), 16.4592, 8.2296);
+              }
+              vision =
+                  new Vision(
+                      new VisionIO[] {
+                        new VisionIOSim(
+                            layout,
+                            drivetrain::getPose,
+                            RobotConfig.getInstance().getRobotToCameraTransforms()[0])
+                      });
+            } else {
+              String[] cameraNames = config.getCameraNames();
+              VisionIO[] visionIOs = new VisionIO[cameraNames.length];
+              for (int i = 0; i < visionIOs.length; i++) {
+                visionIOs[i] = new VisionIOPhotonVision(cameraNames[i]);
+              }
+              vision = new Vision(visionIOs);
+            }
             break;
           }
-        case ROBOT_SIMBOT:
+        case ROBOT_SIMBOT_CTRE:
           {
-            GyroIO gyro = new GyroIOPigeon2Phoenix6(config.getGyroCANID());
-            DrivetrainIO drivetrainIO =
-                new DrivetrainIOGeneric(gyro, flModule, frModule, blModule, brModule);
+            DrivetrainIO drivetrainIO = new DrivetrainIOCTRE();
             drivetrain = new Drivetrain(drivetrainIO);
 
             // new Pneumatics(new PneumaticsIO() {});
@@ -200,6 +236,10 @@ public class RobotContainer {
     switch (Constants.getRobot()) {
       case ROBOT_DEFAULT:
         config = new DefaultRobotConfig();
+        break;
+      case ROBOT_2023_NOVA_CTRE:
+      case ROBOT_SIMBOT_CTRE:
+        config = new NovaCTRERobotConfig();
         break;
       case ROBOT_2023_NOVA:
       case ROBOT_SIMBOT:
