@@ -6,11 +6,11 @@ package frc.lib.team3061.drivetrain.swerve;
 
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
-public final class SwerveModuleConstants {
+public final class SwerveConstants {
 
   private static final String CONSTRUCTOR_EXCEPTION = "constant class";
 
-  private SwerveModuleConstants() {
+  private SwerveConstants() {
     throw new IllegalStateException(CONSTRUCTOR_EXCEPTION);
   }
 

@@ -5,7 +5,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import frc.lib.team3061.RobotConfig;
-import frc.lib.team3061.drivetrain.swerve.SwerveModuleConstants.SwerveType;
+import frc.lib.team3061.drivetrain.swerve.SwerveConstants.SwerveType;
 
 /*
  * Refer to the README for how to represent your robot's configuration. For more information on
@@ -16,22 +16,22 @@ public class NovaRobotConfig extends RobotConfig {
   private static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 13;
   private static final int FRONT_LEFT_MODULE_STEER_MOTOR = 12;
   private static final int FRONT_LEFT_MODULE_STEER_ENCODER = 14;
-  private static final double FRONT_LEFT_MODULE_STEER_OFFSET_ROT = -0.104492;
+  private static final double FRONT_LEFT_MODULE_STEER_OFFSET_ROT = -0.104492; // -0.604492;
 
   private static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 16;
   private static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 15;
   private static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 17;
-  private static final double FRONT_RIGHT_MODULE_STEER_OFFSET_ROT = -0.277832;
+  private static final double FRONT_RIGHT_MODULE_STEER_OFFSET_ROT = -0.277832; // -0.277832;
 
   private static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 7;
   private static final int BACK_LEFT_MODULE_STEER_MOTOR = 6;
   private static final int BACK_LEFT_MODULE_STEER_ENCODER = 8;
-  private static final double BACK_LEFT_MODULE_STEER_OFFSET_ROT = -0.749512;
+  private static final double BACK_LEFT_MODULE_STEER_OFFSET_ROT = -0.749512; // -0.249512;
 
   private static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 10;
   private static final int BACK_RIGHT_MODULE_STEER_MOTOR = 9;
   private static final int BACK_RIGHT_MODULE_STEER_ENCODER = 11;
-  private static final double BACK_RIGHT_MODULE_STEER_OFFSET_ROT = -0.024414;
+  private static final double BACK_RIGHT_MODULE_STEER_OFFSET_ROT = -0.024414; // -0.024414;
 
   private static final int GYRO_ID = 3;
 

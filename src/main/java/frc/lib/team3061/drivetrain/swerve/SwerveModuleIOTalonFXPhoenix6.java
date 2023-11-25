@@ -1,6 +1,6 @@
 package frc.lib.team3061.drivetrain.swerve;
 
-import static frc.lib.team3061.drivetrain.swerve.SwerveModuleConstants.*;
+import static frc.lib.team3061.drivetrain.swerve.SwerveConstants.*;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
@@ -31,7 +31,7 @@ import edu.wpi.first.wpilibj.simulation.LinearSystemSim;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.DrivetrainIO.SwerveIOInputs;
-import frc.lib.team3061.drivetrain.swerve.SwerveModuleConstants.SwerveType;
+import frc.lib.team3061.drivetrain.swerve.SwerveConstants.SwerveType;
 import frc.lib.team6328.util.Alert;
 import frc.lib.team6328.util.Alert.AlertType;
 import frc.lib.team6328.util.TunableNumber;

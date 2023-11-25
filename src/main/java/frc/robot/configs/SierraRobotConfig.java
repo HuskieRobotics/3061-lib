@@ -4,7 +4,7 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import frc.lib.team3061.RobotConfig;
-import frc.lib.team3061.drivetrain.swerve.SwerveModuleConstants.SwerveType;
+import frc.lib.team3061.drivetrain.swerve.SwerveConstants.SwerveType;
 
 /*
  * Refer to the README for how to represent your robot's configuration. For more information on
