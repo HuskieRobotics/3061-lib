@@ -235,9 +235,8 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
 
     this.targetChassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
 
-    // replace the SwerveDrivePoseEstimator created by SwerveDrivetrain with our singleton
-    this.m_odometry = RobotOdometry.getInstance().getPoseEstimator();
-    RobotOdometry.getInstance().setLock(this.m_stateLock);
+    // specify that we will be using CTRE's custom odometry instead of 3061 lib's default
+    RobotOdometry.getInstance().setCustomOdometry(this);
   }
 
   @Override
@@ -504,5 +503,19 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
       totalCurrent += swerveInputs.driveStatorCurrentAmps;
     }
     return totalCurrent / inputs.swerveInputs.length;
+  }
+
+  public Pose2d getEstimatedPosition() {
+    return this.m_odometry.getEstimatedPosition();
+  }
+
+  public void resetPosition(
+      Rotation2d gyroAngle, SwerveModulePosition[] modulePositions, Pose2d poseMeters) {
+    this.m_odometry.resetPosition(gyroAngle, modulePositions, poseMeters);
+  }
+
+  public Pose2d updateWithTime(
+      double currentTimeSeconds, Rotation2d gyroAngle, SwerveModulePosition[] modulePositions) {
+    return this.m_odometry.updateWithTime(currentTimeSeconds, gyroAngle, modulePositions);
   }
 }

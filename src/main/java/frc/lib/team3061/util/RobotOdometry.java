@@ -8,7 +8,9 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import frc.lib.team3061.RobotConfig;
-import java.util.concurrent.locks.ReadWriteLock;
+import frc.lib.team3061.drivetrain.DrivetrainIOCTRE;
+
+@java.lang.SuppressWarnings({"java:S6548"})
 
 /**
  * Singleton class for SwerveDrivePoseEstimator that allows it to be shared by subsystems
@@ -16,9 +18,8 @@ import java.util.concurrent.locks.ReadWriteLock;
  */
 public class RobotOdometry {
   private static final RobotOdometry robotOdometry = new RobotOdometry();
-  private SwerveDrivePoseEstimator estimator;
-  private boolean lockRequired = false;
-  private ReadWriteLock lock = null;
+  private SwerveDrivePoseEstimator estimator = null;
+  private DrivetrainIOCTRE customOdometry = null;
   private SwerveModulePosition[] defaultPositions =
       new SwerveModulePosition[] {
         new SwerveModulePosition(),
@@ -37,43 +38,30 @@ public class RobotOdometry {
   }
 
   public Pose2d getEstimatedPosition() {
-    if (lockRequired) {
-      try {
-        this.lock.writeLock().lock();
-        return this.estimator.getEstimatedPosition();
-      } finally {
-        this.lock.writeLock().unlock();
-      }
-    } else {
+    if (this.customOdometry == null) {
       return this.estimator.getEstimatedPosition();
+    } else {
+      return this.customOdometry.getEstimatedPosition();
     }
   }
 
   public void resetPosition(
       Rotation2d gyroAngle, SwerveModulePosition[] modulePositions, Pose2d poseMeters) {
-    if (lockRequired) {
-      try {
-        this.lock.writeLock().lock();
-        this.estimator.resetPosition(gyroAngle, modulePositions, poseMeters);
-      } finally {
-        this.lock.writeLock().unlock();
-      }
-    } else {
+    if (this.customOdometry == null) {
       this.estimator.resetPosition(gyroAngle, modulePositions, poseMeters);
+
+    } else {
+      this.customOdometry.resetPosition(gyroAngle, modulePositions, poseMeters);
     }
   }
 
   public Pose2d updateWithTime(
       double currentTimeSeconds, Rotation2d gyroAngle, SwerveModulePosition[] modulePositions) {
-    if (lockRequired) {
-      try {
-        this.lock.writeLock().lock();
-        return this.estimator.updateWithTime(currentTimeSeconds, gyroAngle, modulePositions);
-      } finally {
-        this.lock.writeLock().unlock();
-      }
-    } else {
+    if (this.customOdometry == null) {
       return this.estimator.updateWithTime(currentTimeSeconds, gyroAngle, modulePositions);
+
+    } else {
+      return this.customOdometry.updateWithTime(currentTimeSeconds, gyroAngle, modulePositions);
     }
   }
 
@@ -81,41 +69,18 @@ public class RobotOdometry {
       Pose2d visionRobotPoseMeters,
       double timestampSeconds,
       Matrix<N3, N1> visionMeasurementStdDevs) {
-    if (lockRequired) {
-      try {
-        this.lock.writeLock().lock();
-        this.estimator.addVisionMeasurement(
-            visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
-      } finally {
-        this.lock.writeLock().unlock();
-      }
-    } else {
+    if (this.customOdometry == null) {
       this.estimator.addVisionMeasurement(
+          visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
+
+    } else {
+      this.customOdometry.addVisionMeasurement(
           visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
     }
   }
 
-  /**
-   * Returns the SwerveDrivePoseEstimator object. If locking is required and this object is used
-   * directly, the locking condition will be violated and operations will no longer be properly
-   * synchronized. Currently, only the DrivetrainIOCTRE class should invoke this method as it shares
-   * its lock with this singleton.
-   *
-   * @return the pose estimator
-   */
-  public SwerveDrivePoseEstimator getPoseEstimator() {
-    return this.estimator;
-  }
-
-  /**
-   * Ideally this singleton would create its own lock. However, the lock managed by the
-   * SwerveDrivetrain class must be used.
-   *
-   * @param lock
-   */
-  public void setLock(ReadWriteLock lock) {
-    this.lockRequired = true;
-    this.lock = lock;
+  public void setCustomOdometry(DrivetrainIOCTRE customOdometry) {
+    this.customOdometry = customOdometry;
   }
 
   public static RobotOdometry getInstance() {
