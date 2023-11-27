@@ -7,7 +7,6 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFieldLayout.OriginPosition;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -51,7 +50,7 @@ public class Vision extends SubsystemBase {
   private boolean isEnabled = true;
   private boolean isVisionUpdating = false;
 
-  private SwerveDrivePoseEstimator poseEstimator;
+  private RobotOdometry odometry;
   private final TunableNumber poseDifferenceThreshold =
       new TunableNumber("Vision/VisionPoseThreshold", POSE_DIFFERENCE_THRESHOLD_METERS);
   private final TunableNumber stdDevSlope = new TunableNumber("Vision/stdDevSlope", 0.10);
@@ -85,7 +84,7 @@ public class Vision extends SubsystemBase {
     }
 
     // retrieve a reference to the pose estimator singleton
-    this.poseEstimator = RobotOdometry.getInstance().getPoseEstimator();
+    this.odometry = RobotOdometry.getInstance();
 
     // add an indicator to the main Shuffleboard tab to indicate whether vision is updating in order
     // to alert the drive team if it is not.
@@ -160,11 +159,7 @@ public class Vision extends SubsystemBase {
 
         // only update the pose estimator if the pose from the vision data is close to the estimated
         // robot pose
-        if (poseEstimator
-                .getEstimatedPosition()
-                .minus(robotPose.toPose2d())
-                .getTranslation()
-                .getNorm()
+        if (odometry.getEstimatedPosition().minus(robotPose.toPose2d()).getTranslation().getNorm()
             < MAX_POSE_DIFFERENCE_METERS) {
 
           // only update the pose estimator if the vision subsystem is enabled
@@ -172,7 +167,7 @@ public class Vision extends SubsystemBase {
             // when updating the pose estimator, specify standard deviations based on the distance
             // from the robot to the AprilTag (the greater the distance, the less confident we are
             // in the measurement)
-            poseEstimator.addVisionMeasurement(
+            odometry.addVisionMeasurement(
                 robotPose.toPose2d(),
                 ios[i].lastTimestamp,
                 getStandardDeviations(poseAndDistance.distanceToAprilTag));
@@ -231,11 +226,7 @@ public class Vision extends SubsystemBase {
     for (int i = 0; i < visionIOs.length; i++) {
       Pose3d robotPose = getRobotPose(i).robotPose;
       if (robotPose != null
-          && poseEstimator
-                  .getEstimatedPosition()
-                  .minus(robotPose.toPose2d())
-                  .getTranslation()
-                  .getNorm()
+          && odometry.getEstimatedPosition().minus(robotPose.toPose2d()).getTranslation().getNorm()
               < poseDifferenceThreshold.get()) {
         Logger.recordOutput("Vision/posesInLine", true);
         return true;

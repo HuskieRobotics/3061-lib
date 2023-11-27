@@ -237,6 +237,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
 
     // replace the SwerveDrivePoseEstimator created by SwerveDrivetrain with our singleton
     this.m_odometry = RobotOdometry.getInstance().getPoseEstimator();
+    RobotOdometry.getInstance().setLock(this.m_stateLock);
   }
 
   @Override

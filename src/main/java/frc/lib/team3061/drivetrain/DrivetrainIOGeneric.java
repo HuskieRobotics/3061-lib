@@ -2,7 +2,6 @@ package frc.lib.team3061.drivetrain;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
-import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -76,7 +75,7 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
 
   private double[] steerMotorsLastAngle = new double[4];
 
-  private final SwerveDrivePoseEstimator poseEstimator;
+  private final RobotOdometry odometry;
   private Pose2d estimatedPoseWithoutGyro = new Pose2d();
 
   private final List<StatusSignal<Double>> odometrySignals = new ArrayList<>();
@@ -108,7 +107,7 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
 
     this.targetChassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
 
-    this.poseEstimator = RobotOdometry.getInstance().getPoseEstimator();
+    this.odometry = RobotOdometry.getInstance();
 
     this.odometrySignals.addAll(this.gyroIO.getOdometryStatusSignals());
     for (SwerveModuleIO swerveModule : swerveModules) {
@@ -175,14 +174,14 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
     inputs.swerveReferenceStates = this.swerveReferenceStates;
 
     // update the pose estimator based on the gyro and swerve module positions
-    this.poseEstimator.updateWithTime(
+    this.odometry.updateWithTime(
         Logger.getRealTimestamp() / 1e6,
         Rotation2d.fromDegrees(this.robotRotationDeg),
         swerveModulePositions);
 
     // log poses, 3D geometry, and swerve module states, gyro offset
     inputs.robotPoseWithoutGyro = estimatedPoseWithoutGyro;
-    inputs.robotPose = poseEstimator.getEstimatedPosition();
+    inputs.robotPose = odometry.getEstimatedPosition();
     inputs.robotPose3D = new Pose3d(inputs.robotPose);
 
     inputs.targetVXMetersPerSec = this.targetChassisSpeeds.vxMetersPerSecond;
@@ -300,7 +299,7 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
   public void resetPose(Pose2d pose) {
     setGyroOffset(pose.getRotation().getDegrees());
     this.estimatedPoseWithoutGyro = new Pose2d(pose.getTranslation(), pose.getRotation());
-    this.poseEstimator.resetPosition(
+    this.odometry.resetPosition(
         Rotation2d.fromDegrees(this.robotRotationDeg), swerveModulePositions, pose);
   }
 
