@@ -3,6 +3,7 @@ package frc.lib.team3061.drivetrain;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -196,6 +197,25 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
         frontRight,
         backLeft,
         backRight);
+
+    // configure current limits
+    for (SwerveModule swerveModule : this.Modules) {
+      CurrentLimitsConfigs currentLimits = new CurrentLimitsConfigs();
+      swerveModule.getDriveMotor().getConfigurator().refresh(currentLimits);
+      currentLimits.SupplyCurrentLimit = SwerveConstants.DRIVE_CONTINUOUS_CURRENT_LIMIT;
+      currentLimits.SupplyCurrentThreshold = SwerveConstants.DRIVE_PEAK_CURRENT_LIMIT;
+      currentLimits.SupplyTimeThreshold = SwerveConstants.DRIVE_PEAK_CURRENT_DURATION;
+      currentLimits.SupplyCurrentLimitEnable = SwerveConstants.DRIVE_ENABLE_CURRENT_LIMIT;
+      swerveModule.getDriveMotor().getConfigurator().apply(currentLimits);
+
+      currentLimits = new CurrentLimitsConfigs();
+      swerveModule.getSteerMotor().getConfigurator().refresh(currentLimits);
+      currentLimits.SupplyCurrentLimit = SwerveConstants.ANGLE_CONTINUOUS_CURRENT_LIMIT;
+      currentLimits.SupplyCurrentThreshold = SwerveConstants.ANGLE_PEAK_CURRENT_LIMIT;
+      currentLimits.SupplyTimeThreshold = SwerveConstants.ANGLE_PEAK_CURRENT_DURATION;
+      currentLimits.SupplyCurrentLimitEnable = SwerveConstants.ANGLE_ENABLE_CURRENT_LIMIT;
+      swerveModule.getSteerMotor().getConfigurator().apply(currentLimits);
+    }
 
     this.pitchStatusSignal = this.m_pigeon2.getPitch();
     this.pitchStatusSignal.setUpdateFrequency(100);
