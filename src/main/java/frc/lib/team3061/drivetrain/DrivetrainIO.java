@@ -37,7 +37,7 @@ public interface DrivetrainIO {
   //  decompose this class into parts to eliminate run-time warnings
 
   /** Contains all of the input data received from hardware. */
-  @AutoLog
+  //@AutoLog
   public static class DrivetrainIOInputs {
     SwerveIOInputsAutoLogged[] swerveInputs = {
       new SwerveIOInputsAutoLogged(),

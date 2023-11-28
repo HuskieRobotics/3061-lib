@@ -26,6 +26,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
+import frc.lib.team3061.drivetrain.DrivetrainIO.DrivetrainIOInputs;
 import frc.lib.team3061.drivetrain.DrivetrainIO.SwerveIOInputs;
 import frc.lib.team6328.util.Alert;
 import frc.lib.team6328.util.Alert.AlertType;
@@ -41,7 +42,7 @@ import org.littletonrobotics.junction.Logger;
 public class Drivetrain extends SubsystemBase {
 
   private final DrivetrainIO io;
-  private final DrivetrainIOInputsAutoLogged inputs = new DrivetrainIOInputsAutoLogged();
+  private final DrivetrainIOInputs inputs = new DrivetrainIO.DrivetrainIOInputs();
 
   private final TunableNumber autoDriveKp =
       new TunableNumber("AutoDrive/DriveKp", RobotConfig.getInstance().getAutoDriveKP());
@@ -376,7 +377,7 @@ public class Drivetrain extends SubsystemBase {
     }
 
     this.io.updateInputs(this.inputs);
-    Logger.processInputs(SUBSYSTEM_NAME, this.inputs);
+    //Logger.processInputs(SUBSYSTEM_NAME, this.inputs);
     Logger.processInputs(SUBSYSTEM_NAME + "/Gyro", this.inputs.gyro);
     Logger.processInputs(SUBSYSTEM_NAME + "/FL", this.inputs.swerveInputs[0]);
     Logger.processInputs(SUBSYSTEM_NAME + "/FR", this.inputs.swerveInputs[1]);
