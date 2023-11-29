@@ -5,7 +5,6 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.lib.team3061.gyro.GyroIOInputsAutoLogged;
 import org.littletonrobotics.junction.AutoLog;
 
@@ -33,19 +32,9 @@ public interface DrivetrainIO {
     public double steerTempCelsius = 0.0;
   }
 
-  // FIXME: if AdvantageKit doesn't support AutoLog of SwerveModuleState[] and other AutoLog stuff
-  //  decompose this class into parts to eliminate run-time warnings
-
   /** Contains all of the input data received from hardware. */
-  //@AutoLog
+  @AutoLog
   public static class DrivetrainIOInputs {
-    SwerveIOInputsAutoLogged[] swerveInputs = {
-      new SwerveIOInputsAutoLogged(),
-      new SwerveIOInputsAutoLogged(),
-      new SwerveIOInputsAutoLogged(),
-      new SwerveIOInputsAutoLogged()
-    }; // FL, FR, BL, BR
-
     double targetVXMetersPerSec = 0.0;
     double targetVYMetersPerSec = 0.0;
     double targetAngularVelocityRadPerSec = 0.0;
@@ -54,8 +43,9 @@ public interface DrivetrainIO {
     double measuredVYMetersPerSec = 0.0;
     double measuredAngularVelocityRadPerSec = 0.0;
 
-    SwerveModuleState[] swerveReferenceStates = new SwerveModuleState[4];
-    SwerveModuleState[] swerveMeasuredStates = new SwerveModuleState[4];
+    // FIXME: enable when supported by AdvantageKit
+    // SwerveModuleState[] swerveReferenceStates = new SwerveModuleState[4];
+    // SwerveModuleState[] swerveMeasuredStates = new SwerveModuleState[4];
 
     Pose2d robotPoseWithoutGyro = new Pose2d();
     Pose2d robotPose = new Pose2d();
@@ -63,12 +53,23 @@ public interface DrivetrainIO {
 
     double averageDriveCurrent = 0.0;
     Rotation2d rotation = new Rotation2d();
+  }
+
+  public static class DrivetrainIOInputsCollection {
+    SwerveIOInputsAutoLogged[] swerve = {
+      new SwerveIOInputsAutoLogged(),
+      new SwerveIOInputsAutoLogged(),
+      new SwerveIOInputsAutoLogged(),
+      new SwerveIOInputsAutoLogged()
+    }; // FL, FR, BL, BR
 
     GyroIOInputsAutoLogged gyro = new GyroIOInputsAutoLogged();
+
+    DrivetrainIOInputsAutoLogged drivetrain = new DrivetrainIOInputsAutoLogged();
   }
 
   /** Updates the set of loggable inputs. */
-  public default void updateInputs(DrivetrainIOInputs inputs) {}
+  public default void updateInputs(DrivetrainIOInputsCollection inputs) {}
 
   /**
    * Sets the swerve modules in the x-stance orientation. In this orientation the wheels are aligned

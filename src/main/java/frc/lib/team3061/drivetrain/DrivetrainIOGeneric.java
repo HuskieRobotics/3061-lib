@@ -116,7 +116,7 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
   }
 
   @Override
-  public void updateInputs(DrivetrainIOInputs inputs) {
+  public void updateInputs(DrivetrainIOInputsCollection inputs) {
     // synchronize all of the signals related to pose estimation
     if (RobotConfig.getInstance().getPhoenix6Licensed()) {
       // this is a licensed method
@@ -129,7 +129,7 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
 
     // update and log the swerve modules inputs
     for (int i = 0; i < this.swerveModules.length; i++) {
-      this.swerveModules[i].updateInputs(inputs.swerveInputs[i]);
+      this.swerveModules[i].updateInputs(inputs.swerve[i]);
     }
 
     // update swerve module states and positions
@@ -137,13 +137,13 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
       prevSwerveModuleStates[i] = swerveModuleStates[i];
       swerveModuleStates[i] =
           new SwerveModuleState(
-              inputs.swerveInputs[i].driveVelocityMetersPerSec,
-              Rotation2d.fromDegrees(inputs.swerveInputs[i].steerPositionDeg));
+              inputs.swerve[i].driveVelocityMetersPerSec,
+              Rotation2d.fromDegrees(inputs.swerve[i].steerPositionDeg));
       prevSwerveModulePositions[i] = swerveModulePositions[i];
       swerveModulePositions[i] =
           new SwerveModulePosition(
-              inputs.swerveInputs[i].driveDistanceMeters,
-              Rotation2d.fromDegrees(inputs.swerveInputs[i].steerPositionDeg));
+              inputs.swerve[i].driveDistanceMeters,
+              Rotation2d.fromDegrees(inputs.swerve[i].steerPositionDeg));
     }
 
     // if the gyro is not connected, use the swerve module positions to estimate the robot's
@@ -170,8 +170,9 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
       this.robotRotationDeg = inputs.gyro.yawDeg;
     }
 
-    inputs.swerveMeasuredStates = this.swerveModuleStates;
-    inputs.swerveReferenceStates = this.swerveReferenceStates;
+    // FIXME: enable when supported by AdvantageKit
+    // inputs.drivetrain.swerveMeasuredStates = this.swerveModuleStates;
+    // inputs.drivetrain.swerveReferenceStates = this.swerveReferenceStates;
 
     // update the pose estimator based on the gyro and swerve module positions
     this.odometry.updateWithTime(
@@ -180,22 +181,24 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
         swerveModulePositions);
 
     // log poses, 3D geometry, and swerve module states, gyro offset
-    inputs.robotPoseWithoutGyro = estimatedPoseWithoutGyro;
-    inputs.robotPose = odometry.getEstimatedPosition();
-    inputs.robotPose3D = new Pose3d(inputs.robotPose);
+    inputs.drivetrain.robotPoseWithoutGyro = estimatedPoseWithoutGyro;
+    inputs.drivetrain.robotPose = odometry.getEstimatedPosition();
+    inputs.drivetrain.robotPose3D = new Pose3d(inputs.drivetrain.robotPose);
 
-    inputs.targetVXMetersPerSec = this.targetChassisSpeeds.vxMetersPerSecond;
-    inputs.targetVYMetersPerSec = this.targetChassisSpeeds.vyMetersPerSecond;
-    inputs.targetAngularVelocityRadPerSec = this.targetChassisSpeeds.omegaRadiansPerSecond;
+    inputs.drivetrain.targetVXMetersPerSec = this.targetChassisSpeeds.vxMetersPerSecond;
+    inputs.drivetrain.targetVYMetersPerSec = this.targetChassisSpeeds.vyMetersPerSecond;
+    inputs.drivetrain.targetAngularVelocityRadPerSec =
+        this.targetChassisSpeeds.omegaRadiansPerSecond;
 
     ChassisSpeeds measuredChassisSpeeds = kinematics.toChassisSpeeds(this.swerveModuleStates);
-    inputs.measuredVXMetersPerSec = measuredChassisSpeeds.vxMetersPerSecond;
-    inputs.measuredVYMetersPerSec = measuredChassisSpeeds.vyMetersPerSecond;
-    inputs.measuredAngularVelocityRadPerSec = measuredChassisSpeeds.omegaRadiansPerSecond;
+    inputs.drivetrain.measuredVXMetersPerSec = measuredChassisSpeeds.vxMetersPerSecond;
+    inputs.drivetrain.measuredVYMetersPerSec = measuredChassisSpeeds.vyMetersPerSecond;
+    inputs.drivetrain.measuredAngularVelocityRadPerSec =
+        measuredChassisSpeeds.omegaRadiansPerSecond;
 
-    inputs.averageDriveCurrent = this.getAverageDriveCurrent(inputs);
+    inputs.drivetrain.averageDriveCurrent = this.getAverageDriveCurrent(inputs);
 
-    inputs.rotation = Rotation2d.fromDegrees(this.robotRotationDeg);
+    inputs.drivetrain.rotation = Rotation2d.fromDegrees(this.robotRotationDeg);
   }
 
   @Override
@@ -332,12 +335,12 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
    *
    * @return the average current of the swerve module drive motors in amps
    */
-  private double getAverageDriveCurrent(DrivetrainIOInputs inputs) {
+  private double getAverageDriveCurrent(DrivetrainIOInputsCollection inputs) {
     double totalCurrent = 0.0;
-    for (SwerveIOInputs swerveInputs : inputs.swerveInputs) {
+    for (SwerveIOInputs swerveInputs : inputs.swerve) {
       totalCurrent += swerveInputs.driveStatorCurrentAmps;
     }
-    return totalCurrent / inputs.swerveInputs.length;
+    return totalCurrent / inputs.swerve.length;
   }
 
   private void setSwerveModuleStates(

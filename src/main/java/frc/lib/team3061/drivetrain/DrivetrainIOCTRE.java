@@ -240,37 +240,39 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   }
 
   @Override
-  public void updateInputs(DrivetrainIOInputs inputs) {
+  public void updateInputs(DrivetrainIOInputsCollection inputs) {
 
     // update and log gyro inputs
     this.updateGyroInputs(inputs.gyro);
 
     // update and log the swerve modules inputs
     for (int i = 0; i < swerveModulesSignals.length; i++) {
-      this.updateSwerveModuleInputs(
-          inputs.swerveInputs[i], this.Modules[i], swerveModulesSignals[i]);
+      this.updateSwerveModuleInputs(inputs.swerve[i], this.Modules[i], swerveModulesSignals[i]);
     }
 
-    inputs.swerveMeasuredStates = this.getState().ModuleStates;
-    inputs.swerveReferenceStates = swerveReferenceStates;
+    // FIXME: enable when supported by AdvatageKit
+    // inputs.swerveMeasuredStates = this.getState().ModuleStates;
+    // inputs.swerveReferenceStates = swerveReferenceStates;
 
     // log poses, 3D geometry, and swerve module states, gyro offset
-    inputs.robotPose = this.getState().Pose;
-    inputs.robotPose3D = new Pose3d(this.getState().Pose);
+    inputs.drivetrain.robotPose = this.getState().Pose;
+    inputs.drivetrain.robotPose3D = new Pose3d(this.getState().Pose);
 
-    inputs.targetVXMetersPerSec = this.targetChassisSpeeds.vxMetersPerSecond;
-    inputs.targetVYMetersPerSec = this.targetChassisSpeeds.vyMetersPerSecond;
-    inputs.targetAngularVelocityRadPerSec = this.targetChassisSpeeds.omegaRadiansPerSecond;
+    inputs.drivetrain.targetVXMetersPerSec = this.targetChassisSpeeds.vxMetersPerSecond;
+    inputs.drivetrain.targetVYMetersPerSec = this.targetChassisSpeeds.vyMetersPerSecond;
+    inputs.drivetrain.targetAngularVelocityRadPerSec =
+        this.targetChassisSpeeds.omegaRadiansPerSecond;
 
     ChassisSpeeds measuredChassisSpeeds =
         m_kinematics.toChassisSpeeds(this.getState().ModuleStates);
-    inputs.measuredVXMetersPerSec = measuredChassisSpeeds.vxMetersPerSecond;
-    inputs.measuredVYMetersPerSec = measuredChassisSpeeds.vyMetersPerSecond;
-    inputs.measuredAngularVelocityRadPerSec = measuredChassisSpeeds.omegaRadiansPerSecond;
+    inputs.drivetrain.measuredVXMetersPerSec = measuredChassisSpeeds.vxMetersPerSecond;
+    inputs.drivetrain.measuredVYMetersPerSec = measuredChassisSpeeds.vyMetersPerSecond;
+    inputs.drivetrain.measuredAngularVelocityRadPerSec =
+        measuredChassisSpeeds.omegaRadiansPerSecond;
 
-    inputs.averageDriveCurrent = this.getAverageDriveCurrent(inputs);
+    inputs.drivetrain.averageDriveCurrent = this.getAverageDriveCurrent(inputs);
 
-    inputs.rotation = this.getState().Pose.getRotation();
+    inputs.drivetrain.rotation = this.getState().Pose.getRotation();
 
     if (Constants.getMode() == Constants.Mode.SIM) {
       updateSimState(Constants.LOOP_PERIOD_SECS, 12.0);
@@ -497,12 +499,12 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
    *
    * @return the average current of the swerve module drive motors in amps
    */
-  private double getAverageDriveCurrent(DrivetrainIOInputs inputs) {
+  private double getAverageDriveCurrent(DrivetrainIOInputsCollection inputs) {
     double totalCurrent = 0.0;
-    for (SwerveIOInputs swerveInputs : inputs.swerveInputs) {
+    for (SwerveIOInputs swerveInputs : inputs.swerve) {
       totalCurrent += swerveInputs.driveStatorCurrentAmps;
     }
-    return totalCurrent / inputs.swerveInputs.length;
+    return totalCurrent / inputs.swerve.length;
   }
 
   public Pose2d getEstimatedPosition() {
