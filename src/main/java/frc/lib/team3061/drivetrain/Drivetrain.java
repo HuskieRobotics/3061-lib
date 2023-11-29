@@ -381,7 +381,7 @@ public class Drivetrain extends SubsystemBase {
     }
 
     this.io.updateInputs(this.inputs);
-    // Logger.processInputs(SUBSYSTEM_NAME, this.inputs);
+    Logger.processInputs(SUBSYSTEM_NAME, this.inputs.drivetrain);
     Logger.processInputs(SUBSYSTEM_NAME + "/Gyro", this.inputs.gyro);
     Logger.processInputs(SUBSYSTEM_NAME + "/FL", this.inputs.swerve[0]);
     Logger.processInputs(SUBSYSTEM_NAME + "/FR", this.inputs.swerve[1]);
