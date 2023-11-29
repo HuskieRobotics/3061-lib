@@ -255,8 +255,9 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     // inputs.swerveReferenceStates = swerveReferenceStates;
 
     // log poses, 3D geometry, and swerve module states, gyro offset
-    inputs.drivetrain.robotPose = this.getState().Pose;
-    inputs.drivetrain.robotPose3D = new Pose3d(this.getState().Pose);
+    inputs.drivetrain.robotPose =
+        new Pose2d(this.getState().Pose.getTranslation(), this.getState().Pose.getRotation());
+    inputs.drivetrain.robotPose3D = new Pose3d(inputs.drivetrain.robotPose);
 
     inputs.drivetrain.targetVXMetersPerSec = this.targetChassisSpeeds.vxMetersPerSecond;
     inputs.drivetrain.targetVYMetersPerSec = this.targetChassisSpeeds.vyMetersPerSecond;

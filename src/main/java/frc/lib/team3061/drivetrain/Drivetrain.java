@@ -30,6 +30,7 @@ import frc.lib.team3061.drivetrain.DrivetrainIO.SwerveIOInputs;
 import frc.lib.team6328.util.Alert;
 import frc.lib.team6328.util.Alert.AlertType;
 import frc.lib.team6328.util.TunableNumber;
+import frc.robot.Constants;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
@@ -367,13 +368,16 @@ public class Drivetrain extends SubsystemBase {
    */
   @Override
   public void periodic() {
-    this.prevSpeeds =
-        new ChassisSpeeds(
-            this.inputs.drivetrain.measuredVXMetersPerSec,
-            this.inputs.drivetrain.measuredVYMetersPerSec,
-            this.inputs.drivetrain.measuredAngularVelocityRadPerSec);
-    for (int i = 0; i < this.inputs.swerve.length; i++) {
-      this.prevSteerVelocitiesRevPerMin[i] = this.inputs.swerve[i].steerVelocityRevPerMin;
+    // FIXME: document that TUNING_MODE must be set to true when doing characterization
+    if (Constants.TUNING_MODE) {
+      this.prevSpeeds =
+          new ChassisSpeeds(
+              this.inputs.drivetrain.measuredVXMetersPerSec,
+              this.inputs.drivetrain.measuredVYMetersPerSec,
+              this.inputs.drivetrain.measuredAngularVelocityRadPerSec);
+      for (int i = 0; i < this.inputs.swerve.length; i++) {
+        this.prevSteerVelocitiesRevPerMin[i] = this.inputs.swerve[i].steerVelocityRevPerMin;
+      }
     }
 
     this.io.updateInputs(this.inputs);
