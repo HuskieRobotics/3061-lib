@@ -96,6 +96,10 @@ public class FullOperatorConsoleOI implements OperatorInterface {
   }
 
   // Operator Panel
+  @Override
+  public Trigger getDemoButton() {
+    return translateJoystickButtons[2];
+  }
 
   @Override
   public Trigger getVisionIsEnabledSwitch() {

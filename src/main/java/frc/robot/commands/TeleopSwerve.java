@@ -86,9 +86,22 @@ public class TeleopSwerve extends Command {
 
     // invert the controller input and apply the deadband and exponential function to make the robot
     // more responsive to small changes in the controller
-    double xPercentage = modifyAxis(translationXSupplier.getAsDouble(), joystickPower.get());
-    double yPercentage = modifyAxis(translationYSupplier.getAsDouble(), joystickPower.get());
-    double rotationPercentage = modifyAxis(rotationSupplier.getAsDouble(), joystickPower.get());
+    double xPercentage =
+        modifyAxis(
+            Math.abs(translationXSupplier.getAsDouble()) > .25
+                ? translationXSupplier.getAsDouble()
+                : 0,
+            joystickPower.get());
+    double yPercentage =
+        modifyAxis(
+            Math.abs(translationYSupplier.getAsDouble()) > .25
+                ? translationYSupplier.getAsDouble()
+                : 0,
+            joystickPower.get());
+    double rotationPercentage =
+        modifyAxis(
+            Math.abs(rotationSupplier.getAsDouble()) > .25 ? rotationSupplier.getAsDouble() : 0,
+            joystickPower.get());
 
     double xVelocity = xPercentage * maxVelocityMetersPerSecond;
     double yVelocity = yPercentage * maxVelocityMetersPerSecond;

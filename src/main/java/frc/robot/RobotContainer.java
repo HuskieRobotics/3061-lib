@@ -32,6 +32,7 @@ import frc.lib.team3061.vision.VisionIO;
 import frc.lib.team3061.vision.VisionIOPhotonVision;
 import frc.lib.team3061.vision.VisionIOSim;
 import frc.robot.Constants.Mode;
+import frc.robot.commands.Demo;
 import frc.robot.commands.FeedForwardCharacterization;
 import frc.robot.commands.FeedForwardCharacterization.FeedForwardCharacterizationData;
 import frc.robot.commands.RotateToAngle;
@@ -499,7 +500,7 @@ public class RobotContainer {
      */
     drivetrain.setDefaultCommand(
         new TeleopSwerve(drivetrain, oi::getTranslateX, oi::getTranslateY, oi::getRotate));
-
+    oi.getDemoButton().toggleOnTrue(new Demo(drivetrain));
     // lock rotation to the nearest 180° while driving
     oi.getLock180Button()
         .onTrue(
