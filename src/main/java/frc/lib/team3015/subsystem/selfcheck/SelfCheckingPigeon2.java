@@ -15,7 +15,7 @@ public class SelfCheckingPigeon2 implements SelfChecking {
   public SelfCheckingPigeon2(String label, Pigeon2 pigeon) {
     this.label = label;
     this.pigeon = pigeon;
-    this.statusSignal = this.pigeon.getSupplyVoltage();
+    this.statusSignal = this.pigeon.getSupplyVoltage().clone();
   }
 
   @Override

@@ -211,10 +211,10 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
       angleMotorConfigAlert.setText(status.toString());
     }
 
-    this.anglePositionStatusSignal = this.angleMotor.getPosition();
-    this.angleVelocityStatusSignal = this.angleMotor.getVelocity();
-    this.anglePositionErrorStatusSignal = this.angleMotor.getClosedLoopError();
-    this.anglePositionReferenceStatusSignal = this.angleMotor.getClosedLoopReference();
+    this.anglePositionStatusSignal = this.angleMotor.getPosition().clone();
+    this.angleVelocityStatusSignal = this.angleMotor.getVelocity().clone();
+    this.anglePositionErrorStatusSignal = this.angleMotor.getClosedLoopError().clone();
+    this.anglePositionReferenceStatusSignal = this.angleMotor.getClosedLoopReference().clone();
 
     this.angleVoltageRequest = new VoltageOut(0.0);
     this.angleVoltageRequest.EnableFOC = RobotConfig.getInstance().getPhoenix6Licensed();
@@ -267,10 +267,10 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
 
     this.driveMotor.setPosition(0.0);
 
-    this.drivePositionStatusSignal = this.driveMotor.getPosition();
-    this.driveVelocityStatusSignal = this.driveMotor.getVelocity();
-    this.driveVelocityErrorStatusSignal = this.driveMotor.getClosedLoopError();
-    this.driveVelocityReferenceStatusSignal = this.driveMotor.getClosedLoopReference();
+    this.drivePositionStatusSignal = this.driveMotor.getPosition().clone();
+    this.driveVelocityStatusSignal = this.driveMotor.getVelocity().clone();
+    this.driveVelocityErrorStatusSignal = this.driveMotor.getClosedLoopError().clone();
+    this.driveVelocityReferenceStatusSignal = this.driveMotor.getClosedLoopReference().clone();
 
     this.driveVoltageRequest = new VoltageOut(0.0);
     this.driveVoltageRequest.EnableFOC = RobotConfig.getInstance().getPhoenix6Licensed();

@@ -15,7 +15,7 @@ public class SelfCheckingCANCoder implements SelfChecking {
   public SelfCheckingCANCoder(String label, CANcoder canCoder) {
     this.label = label;
     this.canCoder = canCoder;
-    this.statusSignal = this.canCoder.getSupplyVoltage();
+    this.statusSignal = this.canCoder.getSupplyVoltage().clone();
   }
 
   @Override

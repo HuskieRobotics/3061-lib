@@ -28,17 +28,17 @@ public class GyroIOPigeon2Phoenix6 implements GyroIO {
 
   public GyroIOPigeon2Phoenix6(int id) {
     gyro = new Pigeon2(id, RobotConfig.getInstance().getCANBusName());
-    this.yawStatusSignal = this.gyro.getYaw();
+    this.yawStatusSignal = this.gyro.getYaw().clone();
     this.yawStatusSignal.setUpdateFrequency(100);
-    this.pitchStatusSignal = this.gyro.getPitch();
+    this.pitchStatusSignal = this.gyro.getPitch().clone();
     this.pitchStatusSignal.setUpdateFrequency(100);
-    this.rollStatusSignal = this.gyro.getRoll();
+    this.rollStatusSignal = this.gyro.getRoll().clone();
     this.rollStatusSignal.setUpdateFrequency(100);
-    this.angularVelocityXStatusSignal = this.gyro.getAngularVelocityXWorld();
+    this.angularVelocityXStatusSignal = this.gyro.getAngularVelocityXWorld().clone();
     this.angularVelocityXStatusSignal.setUpdateFrequency(100);
-    this.angularVelocityYStatusSignal = this.gyro.getAngularVelocityYWorld();
+    this.angularVelocityYStatusSignal = this.gyro.getAngularVelocityYWorld().clone();
     this.angularVelocityYStatusSignal.setUpdateFrequency(100);
-    this.angularVelocityZStatusSignal = this.gyro.getAngularVelocityZWorld();
+    this.angularVelocityZStatusSignal = this.gyro.getAngularVelocityZWorld().clone();
     this.angularVelocityZStatusSignal.setUpdateFrequency(100);
 
     FaultReporter.getInstance().registerHardware("Drivetrain", "gyro", gyro);

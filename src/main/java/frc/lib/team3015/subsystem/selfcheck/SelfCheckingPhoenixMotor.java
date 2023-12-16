@@ -15,7 +15,7 @@ public class SelfCheckingPhoenixMotor implements SelfChecking {
   public SelfCheckingPhoenixMotor(String label, TalonFX motor) {
     this.label = label;
     this.motor = motor;
-    this.statusSignal = this.motor.getSupplyVoltage();
+    this.statusSignal = this.motor.getSupplyVoltage().clone();
   }
 
   @Override

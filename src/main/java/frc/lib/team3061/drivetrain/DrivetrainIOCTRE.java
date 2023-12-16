@@ -230,13 +230,13 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
       swerveModule.getSteerMotor().getConfigurator().apply(currentLimits);
     }
 
-    this.pitchStatusSignal = this.m_pigeon2.getPitch();
+    this.pitchStatusSignal = this.m_pigeon2.getPitch().clone();
     this.pitchStatusSignal.setUpdateFrequency(100);
-    this.rollStatusSignal = this.m_pigeon2.getRoll();
+    this.rollStatusSignal = this.m_pigeon2.getRoll().clone();
     this.rollStatusSignal.setUpdateFrequency(100);
-    this.angularVelocityXStatusSignal = this.m_pigeon2.getAngularVelocityXWorld();
+    this.angularVelocityXStatusSignal = this.m_pigeon2.getAngularVelocityXWorld().clone();
     this.angularVelocityXStatusSignal.setUpdateFrequency(100);
-    this.angularVelocityYStatusSignal = this.m_pigeon2.getAngularVelocityYWorld();
+    this.angularVelocityYStatusSignal = this.m_pigeon2.getAngularVelocityYWorld().clone();
     this.angularVelocityYStatusSignal.setUpdateFrequency(100);
 
     for (int i = 0; i < swerveModulesSignals.length; i++) {
