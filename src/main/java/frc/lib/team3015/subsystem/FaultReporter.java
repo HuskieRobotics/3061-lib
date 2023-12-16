@@ -3,7 +3,7 @@ package frc.lib.team3015.subsystem;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.hardware.TalonFX;
-// import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkMax;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.motorcontrol.PWMMotorController;
@@ -194,15 +194,12 @@ public class FaultReporter {
     subsystemsFaults.put(subsystemName, subsystemFaults);
   }
 
-  // FIXME: enable when Rev releases 2024 support
-  /*
-   public void registerHardware(String subsystemName, String label, CANSparkMax spark) {
-     SubsystemFaults subsystemFaults =
-         subsystemsFaults.getOrDefault(subsystemName, new SubsystemFaults());
-     subsystemFaults.hardware.add(new SelfCheckingSparkMax(label, spark));
-     subsystemsFaults.put(subsystemName, subsystemFaults);
-   }
-  */
+  public void registerHardware(String subsystemName, String label, CANSparkMax spark) {
+    SubsystemFaults subsystemFaults =
+        subsystemsFaults.getOrDefault(subsystemName, new SubsystemFaults());
+    subsystemFaults.hardware.add(new SelfCheckingSparkMax(label, spark));
+    subsystemsFaults.put(subsystemName, subsystemFaults);
+  }
 
   public void registerHardware(String subsystemName, String label, Pigeon2 pigeon2) {
     SubsystemFaults subsystemFaults =
