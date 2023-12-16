@@ -7,6 +7,7 @@ package frc.robot;
 import static frc.robot.FieldRegionConstants.*;
 
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -368,12 +369,13 @@ public class RobotContainer {
      *
      */
 
-    // FIXME: create StartPoint auto
-    // Command startPoint =
-    //     Commands.runOnce(
-    //         () -> drivetrain.resetPose(PathPlannerAuto.getStaringPoseFromAutoFile("StartPoint")),
-    //         drivetrain);
-    // autoChooser.addOption("Start Point", startPoint);
+    Command startPoint =
+        Commands.runOnce(
+            () ->
+                drivetrain.resetPose(
+                    PathPlannerPath.fromPathFile("StartPoint").getPreviewStartingHolonomicPose()),
+            drivetrain);
+    autoChooser.addOption("Start Point", startPoint);
 
     /************ Drive Characterization ************
      *
