@@ -170,9 +170,8 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
       this.robotRotationDeg = inputs.gyro.yawDeg;
     }
 
-    // FIXME: enable when supported by AdvantageKit
-    // inputs.drivetrain.swerveMeasuredStates = this.swerveModuleStates;
-    // inputs.drivetrain.swerveReferenceStates = this.swerveReferenceStates;
+    inputs.drivetrain.swerveMeasuredStates = this.swerveModuleStates;
+    inputs.drivetrain.swerveReferenceStates = this.swerveReferenceStates;
 
     // update the pose estimator based on the gyro and swerve module positions
     this.odometry.updateWithTime(

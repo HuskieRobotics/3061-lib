@@ -5,6 +5,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.lib.team3061.gyro.GyroIOInputsAutoLogged;
 import org.littletonrobotics.junction.AutoLog;
 
@@ -43,9 +44,8 @@ public interface DrivetrainIO {
     double measuredVYMetersPerSec = 0.0;
     double measuredAngularVelocityRadPerSec = 0.0;
 
-    // FIXME: enable when supported by AdvantageKit
-    // SwerveModuleState[] swerveReferenceStates = new SwerveModuleState[4];
-    // SwerveModuleState[] swerveMeasuredStates = new SwerveModuleState[4];
+    SwerveModuleState[] swerveReferenceStates = new SwerveModuleState[4];
+    SwerveModuleState[] swerveMeasuredStates = new SwerveModuleState[4];
 
     Pose2d robotPoseWithoutGyro = new Pose2d();
     Pose2d robotPose = new Pose2d();

@@ -267,9 +267,8 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     }
     Logger.recordOutput("Drivetrain/swerveInputsTime", Logger.getRealTimestamp() - timestamp);
 
-    // FIXME: enable when supported by AdvatageKit
-    // inputs.swerveMeasuredStates = this.getState().ModuleStates;
-    // inputs.swerveReferenceStates = swerveReferenceStates;
+    inputs.drivetrain.swerveMeasuredStates = this.getState().ModuleStates;
+    inputs.drivetrain.swerveReferenceStates = swerveReferenceStates;
 
     timestamp = Logger.getRealTimestamp();
 
@@ -326,10 +325,11 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   }
 
   private void updateGyroInputs(GyroIOInputs inputs) {
-    this.pitchStatusSignal.refresh();
-    this.rollStatusSignal.refresh();
-    this.angularVelocityXStatusSignal.refresh();
-    this.angularVelocityYStatusSignal.refresh();
+    BaseStatusSignal.refreshAll(
+        this.pitchStatusSignal,
+        this.rollStatusSignal,
+        this.angularVelocityXStatusSignal,
+        this.angularVelocityYStatusSignal);
 
     inputs.connected = (this.m_yawGetter.getStatus() == StatusCode.OK);
     inputs.yawDeg =
@@ -349,12 +349,13 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
       SwerveIOInputs inputs, SwerveModule module, SwerveModuleSignals signals) {
 
     double timestamp = Logger.getRealTimestamp();
-    signals.steerVelocityStatusSignal.refresh();
-    signals.steerPositionErrorStatusSignal.refresh();
-    signals.steerPositionReferenceStatusSignal.refresh();
-    signals.drivePositionStatusSignal.refresh();
-    signals.driveVelocityErrorStatusSignal.refresh();
-    signals.driveVelocityReferenceStatusSignal.refresh();
+    BaseStatusSignal.refreshAll(
+        signals.steerVelocityStatusSignal,
+        signals.steerPositionErrorStatusSignal,
+        signals.steerPositionReferenceStatusSignal,
+        signals.drivePositionStatusSignal,
+        signals.driveVelocityErrorStatusSignal,
+        signals.driveVelocityReferenceStatusSignal);
     Logger.recordOutput("Drivetrain/swerve/refresh", Logger.getRealTimestamp() - timestamp);
 
     timestamp = Logger.getRealTimestamp();

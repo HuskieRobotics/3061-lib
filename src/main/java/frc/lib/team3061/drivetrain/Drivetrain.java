@@ -387,13 +387,12 @@ public class Drivetrain extends SubsystemBase {
     Logger.processInputs(SUBSYSTEM_NAME + "/FR", this.inputs.swerve[1]);
     Logger.processInputs(SUBSYSTEM_NAME + "/BL", this.inputs.swerve[2]);
     Logger.processInputs(SUBSYSTEM_NAME + "/BR", this.inputs.swerve[3]);
-    // FIXME: enable when supported by AdvantageKit
-    // Logger.recordOutput(
-    //     SUBSYSTEM_NAME + "/MeasuredSwerveModuleStates",
-    // this.inputs.drivetrain.swerveMeasuredStates);
-    // Logger.recordOutput(
-    //     SUBSYSTEM_NAME + "/ReferenceSwerveModuleStates",
-    // this.inputs.drivetrain.swerveReferenceStates);
+    Logger.recordOutput(
+        SUBSYSTEM_NAME + "/MeasuredSwerveModuleStates",
+        this.inputs.drivetrain.swerveMeasuredStates);
+    Logger.recordOutput(
+        SUBSYSTEM_NAME + "/ReferenceSwerveModuleStates",
+        this.inputs.drivetrain.swerveReferenceStates);
 
     // update the brake mode based on the robot's velocity and state (enabled/disabled)
     updateBrakeMode();
