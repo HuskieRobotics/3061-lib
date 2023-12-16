@@ -55,14 +55,16 @@ public class GyroIOPigeon2Phoenix6 implements GyroIO {
     // only invoke refresh if Phoenix is not licensed (if licensed, these signals have already been
     // refreshed)
     if (!RobotConfig.getInstance().getPhoenix6Licensed()) {
-      this.yawStatusSignal.refresh();
-      this.angularVelocityZStatusSignal.refresh();
+      BaseStatusSignal.refreshAll(this.yawStatusSignal, this.angularVelocityZStatusSignal);
+    } else {
+      BaseStatusSignal.refreshAll(
+          this.yawStatusSignal,
+          this.angularVelocityZStatusSignal,
+          this.pitchStatusSignal,
+          this.rollStatusSignal,
+          this.angularVelocityXStatusSignal,
+          this.angularVelocityYStatusSignal);
     }
-
-    this.pitchStatusSignal.refresh();
-    this.rollStatusSignal.refresh();
-    this.angularVelocityXStatusSignal.refresh();
-    this.angularVelocityYStatusSignal.refresh();
 
     inputs.connected = (this.yawStatusSignal.getStatus() == StatusCode.OK);
     inputs.yawDeg =

@@ -286,16 +286,22 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     // only invoke refresh if Phoenix is not licensed (if licensed, these signals have already been
     // refreshed)
     if (!RobotConfig.getInstance().getPhoenix6Licensed()) {
-      anglePositionStatusSignal.refresh();
-      angleVelocityStatusSignal.refresh();
-      drivePositionStatusSignal.refresh();
-      driveVelocityStatusSignal.refresh();
+      BaseStatusSignal.refreshAll(
+          anglePositionStatusSignal,
+          angleVelocityStatusSignal,
+          drivePositionStatusSignal,
+          driveVelocityStatusSignal);
+    } else {
+      BaseStatusSignal.refreshAll(
+          anglePositionStatusSignal,
+          angleVelocityStatusSignal,
+          drivePositionStatusSignal,
+          driveVelocityStatusSignal,
+          anglePositionErrorStatusSignal,
+          anglePositionReferenceStatusSignal,
+          driveVelocityErrorStatusSignal,
+          driveVelocityReferenceStatusSignal);
     }
-
-    anglePositionErrorStatusSignal.refresh();
-    anglePositionReferenceStatusSignal.refresh();
-    driveVelocityErrorStatusSignal.refresh();
-    driveVelocityReferenceStatusSignal.refresh();
 
     inputs.driveDistanceMeters =
         Conversions.falconRotationsToMechanismMeters(
