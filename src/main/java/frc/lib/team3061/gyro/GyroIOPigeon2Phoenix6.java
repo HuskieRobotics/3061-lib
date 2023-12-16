@@ -34,11 +34,11 @@ public class GyroIOPigeon2Phoenix6 implements GyroIO {
     this.pitchStatusSignal.setUpdateFrequency(100);
     this.rollStatusSignal = this.gyro.getRoll();
     this.rollStatusSignal.setUpdateFrequency(100);
-    this.angularVelocityXStatusSignal = this.gyro.getAngularVelocityX();
+    this.angularVelocityXStatusSignal = this.gyro.getAngularVelocityXWorld();
     this.angularVelocityXStatusSignal.setUpdateFrequency(100);
-    this.angularVelocityYStatusSignal = this.gyro.getAngularVelocityY();
+    this.angularVelocityYStatusSignal = this.gyro.getAngularVelocityYWorld();
     this.angularVelocityYStatusSignal.setUpdateFrequency(100);
-    this.angularVelocityZStatusSignal = this.gyro.getAngularVelocityZ();
+    this.angularVelocityZStatusSignal = this.gyro.getAngularVelocityZWorld();
     this.angularVelocityZStatusSignal.setUpdateFrequency(100);
 
     FaultReporter.getInstance().registerHardware("Drivetrain", "gyro", gyro);

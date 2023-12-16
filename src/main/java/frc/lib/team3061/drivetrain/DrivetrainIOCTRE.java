@@ -10,8 +10,9 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrain;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.ClosedLoopOutputType;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
-import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants.SwerveModuleSteerFeedbackType;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants.SteerFeedbackType;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstantsFactory;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -30,6 +31,7 @@ import frc.lib.team3061.gyro.GyroIO.GyroIOInputs;
 import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team6328.util.TunableNumber;
 import frc.robot.Constants;
+import org.littletonrobotics.junction.Logger;
 
 public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
 
@@ -89,6 +91,15 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
           RobotConfig.getInstance().getDriveKV(),
           RobotConfig.getInstance().getDriveKS());
 
+  // The closed-loop output type to use for the steer motors
+  // This affects the PID/FF gains for the steer motors
+  private static final ClosedLoopOutputType steerClosedLoopOutput =
+      ClosedLoopOutputType.TorqueCurrentFOC;
+  // The closed-loop output type to use for the drive motors
+  // This affects the PID/FF gains for the drive motors
+  private static final ClosedLoopOutputType driveClosedLoopOutput =
+      ClosedLoopOutputType.TorqueCurrentFOC;
+
   private static final double COUPLE_RATIO = 0.0;
   private static final double STEER_INERTIA = 0.00001;
   private static final double DRIVE_INERTIA = 0.001;
@@ -107,10 +118,12 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
           .withSlipCurrent(800)
           .withSteerMotorGains(steerGains)
           .withDriveMotorGains(driveGains)
+          .withSteerMotorClosedLoopOutput(steerClosedLoopOutput)
+          .withDriveMotorClosedLoopOutput(driveClosedLoopOutput)
           .withSpeedAt12VoltsMps(RobotConfig.getInstance().getRobotMaxVelocity())
           .withSteerInertia(STEER_INERTIA)
           .withDriveInertia(DRIVE_INERTIA)
-          .withFeedbackSource(SwerveModuleSteerFeedbackType.FusedCANcoder)
+          .withFeedbackSource(SteerFeedbackType.FusedCANcoder)
           .withCouplingGearRatio(
               COUPLE_RATIO) // Every 1 rotation of the azimuth results in couple ratio drive turns
           .withSteerMotorInverted(SwerveConstants.MK4I_L2_ANGLE_MOTOR_INVERTED);
@@ -221,9 +234,9 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     this.pitchStatusSignal.setUpdateFrequency(100);
     this.rollStatusSignal = this.m_pigeon2.getRoll();
     this.rollStatusSignal.setUpdateFrequency(100);
-    this.angularVelocityXStatusSignal = this.m_pigeon2.getAngularVelocityX();
+    this.angularVelocityXStatusSignal = this.m_pigeon2.getAngularVelocityXWorld();
     this.angularVelocityXStatusSignal.setUpdateFrequency(100);
-    this.angularVelocityYStatusSignal = this.m_pigeon2.getAngularVelocityY();
+    this.angularVelocityYStatusSignal = this.m_pigeon2.getAngularVelocityYWorld();
     this.angularVelocityYStatusSignal.setUpdateFrequency(100);
 
     for (int i = 0; i < swerveModulesSignals.length; i++) {
@@ -243,16 +256,22 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   public void updateInputs(DrivetrainIOInputsCollection inputs) {
 
     // update and log gyro inputs
+    double timestamp = Logger.getRealTimestamp();
     this.updateGyroInputs(inputs.gyro);
+    Logger.recordOutput("Drivetrain/gyroInputsTime", Logger.getRealTimestamp() - timestamp);
 
     // update and log the swerve modules inputs
+    timestamp = Logger.getRealTimestamp();
     for (int i = 0; i < swerveModulesSignals.length; i++) {
       this.updateSwerveModuleInputs(inputs.swerve[i], this.Modules[i], swerveModulesSignals[i]);
     }
+    Logger.recordOutput("Drivetrain/swerveInputsTime", Logger.getRealTimestamp() - timestamp);
 
     // FIXME: enable when supported by AdvatageKit
     // inputs.swerveMeasuredStates = this.getState().ModuleStates;
     // inputs.swerveReferenceStates = swerveReferenceStates;
+
+    timestamp = Logger.getRealTimestamp();
 
     // log poses, 3D geometry, and swerve module states, gyro offset
     inputs.drivetrain.robotPose =
@@ -274,6 +293,8 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     inputs.drivetrain.averageDriveCurrent = this.getAverageDriveCurrent(inputs);
 
     inputs.drivetrain.rotation = this.getState().Pose.getRotation();
+
+    Logger.recordOutput("Drivetrain/inputsTime", Logger.getRealTimestamp() - timestamp);
 
     if (Constants.getMode() == Constants.Mode.SIM) {
       updateSimState(Constants.LOOP_PERIOD_SECS, 12.0);
@@ -312,7 +333,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
 
     inputs.connected = (this.m_yawGetter.getStatus() == StatusCode.OK);
     inputs.yawDeg =
-        BaseStatusSignal.getLatencyCompensatedValue(this.m_yawGetter, this.m_angularZGetter);
+        BaseStatusSignal.getLatencyCompensatedValue(this.m_yawGetter, this.m_angularVelocity);
     inputs.pitchDeg =
         BaseStatusSignal.getLatencyCompensatedValue(
             this.pitchStatusSignal, this.angularVelocityYStatusSignal);
@@ -321,22 +342,27 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
             this.rollStatusSignal, this.angularVelocityXStatusSignal);
     inputs.rollDegPerSec = this.angularVelocityXStatusSignal.getValue();
     inputs.pitchDegPerSec = this.angularVelocityYStatusSignal.getValue();
-    inputs.yawDegPerSec = this.m_angularZGetter.getValue();
+    inputs.yawDegPerSec = this.m_angularVelocity.getValue();
   }
 
   private void updateSwerveModuleInputs(
       SwerveIOInputs inputs, SwerveModule module, SwerveModuleSignals signals) {
 
+    double timestamp = Logger.getRealTimestamp();
     signals.steerVelocityStatusSignal.refresh();
     signals.steerPositionErrorStatusSignal.refresh();
     signals.steerPositionReferenceStatusSignal.refresh();
     signals.drivePositionStatusSignal.refresh();
     signals.driveVelocityErrorStatusSignal.refresh();
     signals.driveVelocityReferenceStatusSignal.refresh();
+    Logger.recordOutput("Drivetrain/swerve/refresh", Logger.getRealTimestamp() - timestamp);
 
+    timestamp = Logger.getRealTimestamp();
     SwerveModulePosition position = module.getPosition(false);
     SwerveModuleState state = module.getCurrentState();
+    Logger.recordOutput("Drivetrain/swerve/position", Logger.getRealTimestamp() - timestamp);
 
+    timestamp = Logger.getRealTimestamp();
     inputs.driveDistanceMeters = position.distanceMeters;
     inputs.driveVelocityMetersPerSec = state.speedMetersPerSecond;
     inputs.driveVelocityReferenceMetersPerSec =
@@ -353,9 +379,13 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     inputs.driveStatorCurrentAmps = module.getDriveMotor().getStatorCurrent().getValue();
     inputs.driveSupplyCurrentAmps = module.getDriveMotor().getSupplyCurrent().getValue();
     inputs.driveTempCelsius = module.getDriveMotor().getDeviceTemp().getValue();
+    Logger.recordOutput("Drivetrain/swerve/drive", Logger.getRealTimestamp() - timestamp);
 
+    timestamp = Logger.getRealTimestamp();
     inputs.steerAbsolutePositionDeg = module.getCANcoder().getAbsolutePosition().getValue() * 360.0;
+    Logger.recordOutput("Drivetrain/swerve/CANcoder", Logger.getRealTimestamp() - timestamp);
 
+    timestamp = Logger.getRealTimestamp();
     // since we are using the FusedCANcoder feature, the position and velocity signal for the angle
     // motor accounts for the gear ratio; so, pass a gear ratio of 1 to just convert from rotations
     // to degrees.
@@ -373,6 +403,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     inputs.steerStatorCurrentAmps = module.getSteerMotor().getStatorCurrent().getValue();
     inputs.steerSupplyCurrentAmps = module.getSteerMotor().getSupplyCurrent().getValue();
     inputs.steerTempCelsius = module.getSteerMotor().getDeviceTemp().getValue();
+    Logger.recordOutput("Drivetrain/swerve/steer", Logger.getRealTimestamp() - timestamp);
   }
 
   @Override
@@ -391,12 +422,23 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
                 xVelocity, yVelocity, rotationalVelocity, this.getState().Pose.getRotation()),
             Constants.LOOP_PERIOD_SECS);
 
-    this.setControl(
-        this.driveFieldCentricRequest
-            .withIsOpenLoop(isOpenLoop)
-            .withVelocityX(xVelocity)
-            .withVelocityY(yVelocity)
-            .withRotationalRate(rotationalVelocity));
+    if (isOpenLoop) {
+      this.setControl(
+          this.driveFieldCentricRequest
+              .withDriveRequestType(SwerveModule.DriveRequestType.OpenLoopVoltage)
+              .withSteerRequestType(SwerveModule.SteerRequestType.MotionMagicExpo)
+              .withVelocityX(xVelocity)
+              .withVelocityY(yVelocity)
+              .withRotationalRate(rotationalVelocity));
+    } else {
+      this.setControl(
+          this.driveFieldCentricRequest
+              .withDriveRequestType(SwerveModule.DriveRequestType.Velocity)
+              .withSteerRequestType(SwerveModule.SteerRequestType.MotionMagicExpo)
+              .withVelocityX(xVelocity)
+              .withVelocityY(yVelocity)
+              .withRotationalRate(rotationalVelocity));
+    }
   }
 
   @Override
@@ -408,12 +450,23 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
                 xVelocity, yVelocity, 0.0, getState().Pose.getRotation()),
             Constants.LOOP_PERIOD_SECS);
 
-    this.setControl(
-        this.driveFacingAngleRequest
-            .withIsOpenLoop(isOpenLoop)
-            .withVelocityX(xVelocity)
-            .withVelocityY(yVelocity)
-            .withTargetDirection(targetDirection));
+    if (isOpenLoop) {
+      this.setControl(
+          this.driveFacingAngleRequest
+              .withDriveRequestType(SwerveModule.DriveRequestType.OpenLoopVoltage)
+              .withSteerRequestType(SwerveModule.SteerRequestType.MotionMagicExpo)
+              .withVelocityX(xVelocity)
+              .withVelocityY(yVelocity)
+              .withTargetDirection(targetDirection));
+    } else {
+      this.setControl(
+          this.driveFacingAngleRequest
+              .withDriveRequestType(SwerveModule.DriveRequestType.Velocity)
+              .withSteerRequestType(SwerveModule.SteerRequestType.MotionMagicExpo)
+              .withVelocityX(xVelocity)
+              .withVelocityY(yVelocity)
+              .withTargetDirection(targetDirection));
+    }
   }
 
   @Override
@@ -431,12 +484,23 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
             new ChassisSpeeds(xVelocity, yVelocity, rotationalVelocity),
             Constants.LOOP_PERIOD_SECS);
 
-    this.setControl(
-        this.driveRobotCentricRequest
-            .withIsOpenLoop(isOpenLoop)
-            .withVelocityX(xVelocity)
-            .withVelocityY(yVelocity)
-            .withRotationalRate(rotationalVelocity));
+    if (isOpenLoop) {
+      this.setControl(
+          this.driveRobotCentricRequest
+              .withDriveRequestType(SwerveModule.DriveRequestType.OpenLoopVoltage)
+              .withSteerRequestType(SwerveModule.SteerRequestType.MotionMagicExpo)
+              .withVelocityX(xVelocity)
+              .withVelocityY(yVelocity)
+              .withRotationalRate(rotationalVelocity));
+    } else {
+      this.setControl(
+          this.driveRobotCentricRequest
+              .withDriveRequestType(SwerveModule.DriveRequestType.Velocity)
+              .withSteerRequestType(SwerveModule.SteerRequestType.MotionMagicExpo)
+              .withVelocityX(xVelocity)
+              .withVelocityY(yVelocity)
+              .withRotationalRate(rotationalVelocity));
+    }
   }
 
   @Override
@@ -445,11 +509,21 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     this.targetChassisSpeeds.vxMetersPerSecond = speeds.vxMetersPerSecond;
     this.targetChassisSpeeds.vyMetersPerSecond = speeds.vyMetersPerSecond;
 
-    this.setControl(
-        this.applyChassisSpeedsRequest
-            .withIsOpenLoop(isOpenLoop)
-            .withSpeeds(speeds)
-            .withCenterOfRotation(this.centerOfRotation));
+    if (isOpenLoop) {
+      this.setControl(
+          this.applyChassisSpeedsRequest
+              .withDriveRequestType(SwerveModule.DriveRequestType.OpenLoopVoltage)
+              .withSteerRequestType(SwerveModule.SteerRequestType.MotionMagicExpo)
+              .withSpeeds(speeds)
+              .withCenterOfRotation(this.centerOfRotation));
+    } else {
+      this.setControl(
+          this.applyChassisSpeedsRequest
+              .withDriveRequestType(SwerveModule.DriveRequestType.Velocity)
+              .withSteerRequestType(SwerveModule.SteerRequestType.MotionMagicExpo)
+              .withSpeeds(speeds)
+              .withCenterOfRotation(this.centerOfRotation));
+    }
   }
 
   @Override
