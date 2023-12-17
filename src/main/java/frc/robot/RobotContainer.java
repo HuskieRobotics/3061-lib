@@ -7,6 +7,7 @@ package frc.robot;
 import static frc.robot.FieldRegionConstants.*;
 
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -341,8 +342,8 @@ public class RobotContainer {
   /** Use this method to define your commands for autonomous mode. */
   private void configureAutoCommands() {
     // Waypoints
-    NamedCommands.registerCommand("event1", Commands.print("passed marker 1"));
-    NamedCommands.registerCommand("event2", Commands.print("passed marker 2"));
+    NamedCommands.registerCommand("command1", Commands.print("passed marker 1"));
+    NamedCommands.registerCommand("command2", Commands.print("passed marker 2"));
     NamedCommands.registerCommand(
         "enableXStance", Commands.runOnce(drivetrain::enableXstance, drivetrain));
     NamedCommands.registerCommand(
@@ -359,9 +360,8 @@ public class RobotContainer {
      * demonstration of PathPlanner path group with event markers
      *
      */
-    // FIXME: create TestPath auto
-    // Command autoTest = new PathPlannerAuto("TestPath");
-    // autoChooser.addOption("Test Path", autoTest);
+    Command autoTest = new PathPlannerAuto("TestAuto");
+    autoChooser.addOption("Test Auto", autoTest);
 
     /************ Start Point ************
      *
@@ -412,18 +412,16 @@ public class RobotContainer {
      * used for empirically determining the wheel diameter
      *
      */
-    // FIXME: create DistanceTest auto
-    // Command distanceTestPathCommand = new PathPlannerAuto("DistanceTest");
-    // autoChooser.addOption("Distance Path", distanceTestPathCommand);
+    Command distanceTestPathCommand = new PathPlannerAuto("DistanceTest");
+    autoChooser.addOption("Distance Path", distanceTestPathCommand);
 
     /************ Auto Tuning ************
      *
      * useful for tuning the autonomous PID controllers
      *
      */
-    // FIXME: create Tuning auto
-    // Command tuningCommand = new PathPlannerAuto("Tuning");
-    // autoChooser.addOption("Auto Tuning", tuningCommand);
+    Command tuningCommand = new PathPlannerAuto("Tuning");
+    autoChooser.addOption("Auto Tuning", tuningCommand);
 
     /************ Drive Velocity Tuning ************
      *
