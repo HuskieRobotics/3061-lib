@@ -94,11 +94,11 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   // The closed-loop output type to use for the steer motors
   // This affects the PID/FF gains for the steer motors
   private static final ClosedLoopOutputType steerClosedLoopOutput =
-      ClosedLoopOutputType.TorqueCurrentFOC;
+      ClosedLoopOutputType.Voltage;
   // The closed-loop output type to use for the drive motors
   // This affects the PID/FF gains for the drive motors
   private static final ClosedLoopOutputType driveClosedLoopOutput =
-      ClosedLoopOutputType.TorqueCurrentFOC;
+      ClosedLoopOutputType.Voltage;
 
   private static final double COUPLE_RATIO = 0.0;
   private static final double STEER_INERTIA = 0.00001;
