@@ -1,5 +1,7 @@
 package frc.lib.team3061.drivetrain;
 
+import static frc.lib.team3061.drivetrain.swerve.SwerveConstants.*;
+
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
@@ -81,24 +83,23 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
           RobotConfig.getInstance().getSwerveAngleKP(),
           RobotConfig.getInstance().getSwerveAngleKI(),
           RobotConfig.getInstance().getSwerveAngleKD(),
-          RobotConfig.getInstance().getSwerveAngleKV(),
-          RobotConfig.getInstance().getSwerveAngleKS());
-  private static final CustomSlotGains driveGains =
+          RobotConfig.getInstance().getSwerveAngleKV()  * 2 * Math.PI,
+          RobotConfig.getInstance().getSwerveAngleKS()  * 2 * Math.PI);
+  // FIXME: clean this up
+          private static final CustomSlotGains driveGains =
       new CustomSlotGains(
           RobotConfig.getInstance().getSwerveDriveKP(),
           RobotConfig.getInstance().getSwerveDriveKI(),
           RobotConfig.getInstance().getSwerveDriveKD(),
-          RobotConfig.getInstance().getDriveKV(),
-          RobotConfig.getInstance().getDriveKS());
+          RobotConfig.getInstance().getDriveKV() / Conversions.mpsToFalconRPS(1.0, MK4I_L2_WHEEL_CIRCUMFERENCE, MK4I_L2_DRIVE_GEAR_RATIO),
+          RobotConfig.getInstance().getDriveKS()/ Conversions.mpsToFalconRPS(1.0, MK4I_L2_WHEEL_CIRCUMFERENCE, MK4I_L2_DRIVE_GEAR_RATIO));
 
   // The closed-loop output type to use for the steer motors
   // This affects the PID/FF gains for the steer motors
-  private static final ClosedLoopOutputType steerClosedLoopOutput =
-      ClosedLoopOutputType.Voltage;
+  private static final ClosedLoopOutputType steerClosedLoopOutput = ClosedLoopOutputType.Voltage;
   // The closed-loop output type to use for the drive motors
   // This affects the PID/FF gains for the drive motors
-  private static final ClosedLoopOutputType driveClosedLoopOutput =
-      ClosedLoopOutputType.Voltage;
+  private static final ClosedLoopOutputType driveClosedLoopOutput = ClosedLoopOutputType.Voltage;
 
   private static final double COUPLE_RATIO = 0.0;
   private static final double STEER_INERTIA = 0.00001;
