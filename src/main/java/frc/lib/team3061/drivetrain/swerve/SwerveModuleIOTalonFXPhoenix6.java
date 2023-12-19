@@ -189,8 +189,11 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     config.Slot0.kP = turnKp.get();
     config.Slot0.kI = turnKi.get();
     config.Slot0.kD = turnKd.get();
-    config.Slot0.kS = RobotConfig.getInstance().getSwerveAngleKS() * 2 * Math.PI;
-    config.Slot0.kV = RobotConfig.getInstance().getSwerveAngleKV() * 2 * Math.PI;
+    config.Slot0.kS = RobotConfig.getInstance().getSwerveAngleKS();
+    config.Slot0.kV =
+        RobotConfig.getInstance().getSwerveAngleKV()
+            * 2
+            * Math.PI; // convert from V/(radians/s) to V/(rotations/s)
 
     config.ClosedLoopGeneral.ContinuousWrap = true;
 
@@ -242,9 +245,7 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     config.Slot0.kP = driveKp.get();
     config.Slot0.kI = driveKi.get();
     config.Slot0.kD = driveKd.get();
-    config.Slot0.kS =
-        RobotConfig.getInstance().getDriveKS()
-            / Conversions.mpsToFalconRPS(1.0, wheelCircumference, driveGearRatio);
+    config.Slot0.kS = RobotConfig.getInstance().getDriveKS();
     config.Slot0.kV =
         RobotConfig.getInstance().getDriveKV()
             / Conversions.mpsToFalconRPS(1.0, wheelCircumference, driveGearRatio);

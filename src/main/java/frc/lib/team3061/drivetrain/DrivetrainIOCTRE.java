@@ -83,16 +83,22 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
           RobotConfig.getInstance().getSwerveAngleKP(),
           RobotConfig.getInstance().getSwerveAngleKI(),
           RobotConfig.getInstance().getSwerveAngleKD(),
-          RobotConfig.getInstance().getSwerveAngleKV()  * 2 * Math.PI,
-          RobotConfig.getInstance().getSwerveAngleKS()  * 2 * Math.PI);
+          RobotConfig.getInstance().getSwerveAngleKV()
+              * 2
+              * Math.PI, // convert from V/(radians/s) to V/(rotations/s)
+          RobotConfig.getInstance().getSwerveAngleKS());
   // FIXME: clean this up
-          private static final CustomSlotGains driveGains =
+  private static final CustomSlotGains driveGains =
       new CustomSlotGains(
           RobotConfig.getInstance().getSwerveDriveKP(),
           RobotConfig.getInstance().getSwerveDriveKI(),
           RobotConfig.getInstance().getSwerveDriveKD(),
-          RobotConfig.getInstance().getDriveKV() / Conversions.mpsToFalconRPS(1.0, MK4I_L2_WHEEL_CIRCUMFERENCE, MK4I_L2_DRIVE_GEAR_RATIO),
-          RobotConfig.getInstance().getDriveKS()/ Conversions.mpsToFalconRPS(1.0, MK4I_L2_WHEEL_CIRCUMFERENCE, MK4I_L2_DRIVE_GEAR_RATIO));
+          RobotConfig.getInstance().getDriveKV()
+              / Conversions.mpsToFalconRPS(
+                  1.0,
+                  MK4I_L2_WHEEL_CIRCUMFERENCE,
+                  MK4I_L2_DRIVE_GEAR_RATIO), // convert from V/(m/s) to V/(rotations/s)
+          RobotConfig.getInstance().getDriveKS());
 
   // The closed-loop output type to use for the steer motors
   // This affects the PID/FF gains for the steer motors
