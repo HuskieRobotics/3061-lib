@@ -39,7 +39,6 @@ import frc.robot.commands.FeedForwardCharacterization.FeedForwardCharacterizatio
 import frc.robot.commands.RotateToAngle;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.configs.DefaultRobotConfig;
-import frc.robot.configs.MK4IRobotConfig;
 import frc.robot.configs.NovaCTRERobotConfig;
 import frc.robot.configs.NovaRobotConfig;
 import frc.robot.operator_interface.OISelector;
@@ -104,7 +103,6 @@ public class RobotContainer {
           }
         case ROBOT_DEFAULT:
         case ROBOT_2023_NOVA:
-        case ROBOT_2023_MK4I:
         case ROBOT_SIMBOT:
           {
             int[] driveMotorCANIDs = config.getSwerveDriveMotorCANIDs();
@@ -246,9 +244,6 @@ public class RobotContainer {
       case ROBOT_2023_NOVA:
       case ROBOT_SIMBOT:
         config = new NovaRobotConfig();
-        break;
-      case ROBOT_2023_MK4I:
-        config = new MK4IRobotConfig();
         break;
     }
   }
