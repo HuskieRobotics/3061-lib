@@ -9,6 +9,6 @@ public class DrivetrainConstants {
   }
 
   public static final boolean DEBUGGING = false;
-  public static final boolean TESTING = false;
+  public static final boolean TESTING = true;
   public static final String SUBSYSTEM_NAME = "Drivetrain";
 }

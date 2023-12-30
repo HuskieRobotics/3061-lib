@@ -6,6 +6,7 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrain;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrainConstants;
@@ -48,19 +49,23 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   static class SwerveModuleSignals {
     public SwerveModuleSignals(TalonFX driveMotor, TalonFX steerMotor) {
       this.steerVelocityStatusSignal = steerMotor.getVelocity().clone();
+      this.steerAccelerationStatusSignal = steerMotor.getAcceleration().clone();
       this.steerPositionErrorStatusSignal = steerMotor.getClosedLoopError().clone();
       this.steerPositionReferenceStatusSignal = steerMotor.getClosedLoopReference().clone();
       this.drivePositionStatusSignal = driveMotor.getPosition().clone();
       this.driveVelocityErrorStatusSignal = driveMotor.getClosedLoopError().clone();
       this.driveVelocityReferenceStatusSignal = driveMotor.getClosedLoopReference().clone();
+      this.driveAccelerationStatusSignal = driveMotor.getAcceleration().clone();
     }
 
     StatusSignal<Double> steerVelocityStatusSignal;
+    StatusSignal<Double> steerAccelerationStatusSignal;
     StatusSignal<Double> steerPositionErrorStatusSignal;
     StatusSignal<Double> steerPositionReferenceStatusSignal;
     StatusSignal<Double> drivePositionStatusSignal;
     StatusSignal<Double> driveVelocityErrorStatusSignal;
     StatusSignal<Double> driveVelocityReferenceStatusSignal;
+    StatusSignal<Double> driveAccelerationStatusSignal;
   }
 
   private final TunableNumber driveKp =
@@ -93,10 +98,18 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
 
   // The closed-loop output type to use for the steer motors
   // This affects the PID/FF gains for the steer motors
-  private static final ClosedLoopOutputType steerClosedLoopOutput = ClosedLoopOutputType.Voltage;
+  // TorqueCurrentFOC is not currently supported in simulation.
+  private static final ClosedLoopOutputType steerClosedLoopOutput =
+      Constants.getMode() == Constants.Mode.SIM
+          ? ClosedLoopOutputType.Voltage
+          : ClosedLoopOutputType.TorqueCurrentFOC;
   // The closed-loop output type to use for the drive motors
   // This affects the PID/FF gains for the drive motors
-  private static final ClosedLoopOutputType driveClosedLoopOutput = ClosedLoopOutputType.Voltage;
+  // TorqueCurrentFOC is not currently supported in simulation.
+  private static final ClosedLoopOutputType driveClosedLoopOutput =
+      Constants.getMode() == Constants.Mode.SIM
+          ? ClosedLoopOutputType.Voltage
+          : ClosedLoopOutputType.TorqueCurrentFOC;
 
   private static final double COUPLE_RATIO = 0.0;
   private static final double STEER_INERTIA = 0.00001;
@@ -182,6 +195,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
         new SwerveModuleState()
       };
 
+  private SwerveRequest.Idle idleRequest = new SwerveRequest.Idle();
   private SwerveRequest.RobotCentric driveRobotCentricRequest = new SwerveRequest.RobotCentric();
   private SwerveRequest.FieldCentric driveFieldCentricRequest = new SwerveRequest.FieldCentric();
   private SwerveRequest.FieldCentricFacingAngle driveFacingAngleRequest =
@@ -190,6 +204,10 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   private SwerveRequest.PointWheelsAt pointRequest = new SwerveRequest.PointWheelsAt();
   private SwerveRequest.ApplyChassisSpeeds applyChassisSpeedsRequest =
       new SwerveRequest.ApplyChassisSpeeds();
+
+  // only used for TorqueCurrentFOC characterization
+  private TorqueCurrentFOC driveCurrentRequest;
+  private TorqueCurrentFOC steerCurrentRequest;
 
   /**
    * Creates a new Drivetrain subsystem.
@@ -248,6 +266,9 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
 
     // specify that we will be using CTRE's custom odometry instead of 3061 lib's default
     RobotOdometry.getInstance().setCustomOdometry(this);
+
+    this.driveCurrentRequest = new TorqueCurrentFOC(0.0);
+    this.steerCurrentRequest = new TorqueCurrentFOC(0.0);
   }
 
   @Override
@@ -349,11 +370,13 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     double timestamp = Logger.getRealTimestamp();
     BaseStatusSignal.refreshAll(
         signals.steerVelocityStatusSignal,
+        signals.steerAccelerationStatusSignal,
         signals.steerPositionErrorStatusSignal,
         signals.steerPositionReferenceStatusSignal,
         signals.drivePositionStatusSignal,
         signals.driveVelocityErrorStatusSignal,
-        signals.driveVelocityReferenceStatusSignal);
+        signals.driveVelocityReferenceStatusSignal,
+        signals.driveAccelerationStatusSignal);
     Logger.recordOutput("Drivetrain/swerve/refresh", Logger.getRealTimestamp() - timestamp);
 
     timestamp = Logger.getRealTimestamp();
@@ -372,6 +395,11 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     inputs.driveVelocityErrorMetersPerSec =
         Conversions.falconRPSToMechanismMPS(
             signals.driveVelocityErrorStatusSignal.getValue(),
+            SwerveConstants.MK4I_L2_WHEEL_CIRCUMFERENCE,
+            SwerveConstants.MK4I_L2_DRIVE_GEAR_RATIO);
+    inputs.driveAccelerationMetersPerSecPerSec =
+        Conversions.falconRPSToMechanismMPS(
+            signals.driveAccelerationStatusSignal.getValue(),
             SwerveConstants.MK4I_L2_WHEEL_CIRCUMFERENCE,
             SwerveConstants.MK4I_L2_DRIVE_GEAR_RATIO);
     inputs.driveAppliedVolts = module.getDriveMotor().getMotorVoltage().getValue();
@@ -397,6 +425,8 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
             signals.steerPositionErrorStatusSignal.getValue(), 1);
     inputs.steerVelocityRevPerMin =
         Conversions.falconRPSToMechanismRPM(signals.steerVelocityStatusSignal.getValue(), 1);
+    inputs.steerAccelerationMetersPerSecPerSec =
+        Conversions.falconRPSToMechanismRPM(signals.steerAccelerationStatusSignal.getValue(), 1);
 
     inputs.steerAppliedVolts = module.getSteerMotor().getMotorVoltage().getValue();
     inputs.steerStatorCurrentAmps = module.getSteerMotor().getStatorCurrent().getValue();
@@ -545,6 +575,26 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   @Override
   public void resetPose(Pose2d pose) {
     this.seedFieldRelative(pose);
+  }
+
+  @Override
+  public void setDriveMotorCurrent(double amps) {
+    // ensure that the SwerveDrivetrain class doesn't control either motor
+    this.setControl(idleRequest);
+
+    for (SwerveModule swerveModule : this.Modules) {
+      swerveModule.getDriveMotor().setControl(driveCurrentRequest.withOutput(amps));
+    }
+  }
+
+  @Override
+  public void setSteerMotorCurrent(double amps) {
+    // ensure that the SwerveDrivetrain class doesn't control either motor
+    this.setControl(idleRequest);
+
+    for (SwerveModule swerveModule : this.Modules) {
+      swerveModule.getSteerMotor().setControl(steerCurrentRequest.withOutput(amps));
+    }
   }
 
   @Override
