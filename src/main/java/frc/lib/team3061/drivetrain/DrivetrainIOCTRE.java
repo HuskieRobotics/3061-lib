@@ -1,7 +1,5 @@
 package frc.lib.team3061.drivetrain;
 
-import static frc.lib.team3061.drivetrain.swerve.SwerveConstants.*;
-
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
@@ -83,21 +81,14 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
           RobotConfig.getInstance().getSwerveAngleKP(),
           RobotConfig.getInstance().getSwerveAngleKI(),
           RobotConfig.getInstance().getSwerveAngleKD(),
-          RobotConfig.getInstance().getSwerveAngleKV()
-              * 2
-              * Math.PI, // convert from V/(radians/s) to V/(rotations/s)
+          RobotConfig.getInstance().getSwerveAngleKV(),
           RobotConfig.getInstance().getSwerveAngleKS());
-  // FIXME: clean this up
   private static final CustomSlotGains driveGains =
       new CustomSlotGains(
           RobotConfig.getInstance().getSwerveDriveKP(),
           RobotConfig.getInstance().getSwerveDriveKI(),
           RobotConfig.getInstance().getSwerveDriveKD(),
-          RobotConfig.getInstance().getDriveKV()
-              / Conversions.mpsToFalconRPS(
-                  1.0,
-                  MK4I_L2_WHEEL_CIRCUMFERENCE,
-                  MK4I_L2_DRIVE_GEAR_RATIO), // convert from V/(m/s) to V/(rotations/s)
+          RobotConfig.getInstance().getDriveKV(),
           RobotConfig.getInstance().getDriveKS());
 
   // The closed-loop output type to use for the steer motors
@@ -539,7 +530,6 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     try {
       m_stateLock.writeLock().lock();
 
-      // FIXME: check the math here not sure if we should add or subtract
       m_fieldRelativeOffset =
           getState().Pose.getRotation().plus(Rotation2d.fromDegrees(expectedYaw));
     } finally {
@@ -555,16 +545,6 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   @Override
   public void resetPose(Pose2d pose) {
     this.seedFieldRelative(pose);
-  }
-
-  @Override
-  public void setDriveMotorVoltage(double voltage) {
-    // FIXME: implement later with Idle Swerve Request object?
-  }
-
-  @Override
-  public void setSteerMotorVoltage(double voltage) {
-    // FIXME: implement later with Idle Swerve Request object?
   }
 
   @Override

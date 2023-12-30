@@ -368,7 +368,6 @@ public class Drivetrain extends SubsystemBase {
    */
   @Override
   public void periodic() {
-    // FIXME: document that TUNING_MODE must be set to true when doing characterization
     if (Constants.TUNING_MODE) {
       this.prevSpeeds =
           new ChassisSpeeds(
@@ -652,7 +651,6 @@ public class Drivetrain extends SubsystemBase {
   }
 
   private Command getSystemCheckCommand() {
-    // FIXME: add system check commands
     return Commands.sequence(Commands.sequence(Commands.waitSeconds(0.25)))
         .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
         .andThen(Commands.runOnce(() -> drive(0, 0, 0, true, false), this));

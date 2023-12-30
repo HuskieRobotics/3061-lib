@@ -6,6 +6,7 @@ Huskie Robotics, FRC Team 3061's, starter project and library focused on a swerv
 ----
 * git must be installed as the GVersion plugin depends upon it
 * [CTRE's Phoenix 6](https://store.ctr-electronics.com/software/) (both free and licensed options are supported)
+* [RevLib](https://docs.revrobotics.com/sparkmax/software-resources/spark-max-api-information)
 * [AdvantageKit](https://github.com/Mechanical-Advantage/AdvantageKit/blob/main/README.md)
 * [PathPlanner](https://github.com/mjansen4857/pathplanner)
 * [PhotonLib](https://photonvision.org)
@@ -40,6 +41,7 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
 **Tuning**
 ----
 
+* If you are using all CTRE hardware, use the Swerve Project Generator in Tuner X. Copy the values from the generated TunerConstants.java file into your RobotConfig subclass, DrivetrainIOCTRE.java, and SwerveConstants.java as appropriate. If you are not using all CTRE hardware, do the following.
 * Checking motor and encoder directions:
     * The drive motor, angle motor, and angle encoder constants in SwerveModuleConstants should be configured appropriately for the MK4 and MK4i swerve modules. However, it doesn't hurt to verify.
     * If you want to verify the following, the ```Subsystem``` example subsystem can be used with ```TESTING``` set to true to directly control the associated motor. Set ```MOTOR_CAN_ID``` in ```SubsystemConstants``` to the appropriate CAN ID and ensure that CAN ID is not specified for any swerve motor in ```DefaultRobotConfig```. Use Shuffleboard to set the motor power.
@@ -47,7 +49,7 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
     * When the angle motor is supplied a positive input, it should rotate the swerve module wheel such that the wheel rotates in the CCW direction; if not, negate.
     * When the angle motor rotates the swerve module wheel in a CCW direction, the CANcoder should increase its reading; if not, set to negate.
 * Setting Steer Offsets (e.g., ```FRONT_LEFT_MODULE_STEER_OFFSET_ROT```) in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
-    * For finding the offsets, use a piece of 1x1 metal that is straight against the forks of the front and back modules (on the left and right side) to ensure that the modules are straight
+    * For finding the offsets, use a piece of 2x1 extrusion that is straight against the forks of the front and back modules (on the left and right side) to ensure that the modules are straight
     * Point the bevel gears of all the wheels in the same direction (either facing left or right), and preferably you should have the wheels facing in the direction where a positive input to the drive motor drives forward; if for some reason you set the offsets with the wheels backwards, you can change the appropriate ```DRIVE_MOTOR_INVERTED``` in ```SwerveModuleConstants``` to fix
     * Open Phoenix Tuner 6 and, for each CANcoder on a swerve module, copy the negated rotation value of the "Absolute Position No Offset" signal to the ```STEER_OFFSET``` constants. For example, if the CANcoder "Absolute Position No Offset" signal is 0.104004, specify a value of -0.104004 for the corresponding constant.
 * Checking geometry:
@@ -69,6 +71,7 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
     16. rotate the cart in a CW direction and verify that the gyro is decreasing
     17. use Phoenix Tuner to flash the LEDs on the Falcon 500s and CANcoders to ensure that the CAN IDs are properly assigned to the front-left, front-right, back-left, and back-right positions (all of the above may behave as expected even if the modules aren't assigned to the appropriate corners)
 * Angle characterization values (```ANGLE_KS```, ```ANGLE_KV```, ```ANGLE_KA```) in in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
+    * set ```TUNING_MODE``` in Constants.java to true (characterization analysis doesn't normally run)
     * in Shuffleboard, set the "Auto Routine" chooser to "Swerve Rotate Characterization"
     * start the autonomous period
     * the ```FeedForwardCharacterization``` command will run and output the KS, KV, and KA values
@@ -76,7 +79,7 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
 * Angle Motor PID Values (```ANGLE_KP```, ```ANGLE_KI```, ```ANGLE_KD```) in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
     * set ```TUNING_MODE``` in Constants.java to true
     * open Shuffleboard, go to the SmartDashboard tab, and see controls for each of the PID values; values can be changed via these controls as you interactively tune the controller
-    * start with a low P value (10.0)
+    * start with a P value of 100.0
     * double until the module starts oscillating around the set point
     * scale back by searching for the value (for example, if it starts oscillating at a P of 100, then try (100 -> 50 -> 75 -> etc.)) until the module overshoots the setpoint but corrects with no oscillation
     * graph the ```anglePositionErrorDeg``` in Advantage Scope for each swerve module to assist in tuning
@@ -85,6 +88,7 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
     * copy the values from the Shuffleboard controls into SwerveModuleConstants.java
     * set ```TUNING_MODE``` in Constants.java to false
 * Drive characterization values (```DRIVE_KS```, ```DRIVE_KV```, ```DRIVE_KA```) in in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
+    * set ```TUNING_MODE``` in Constants.java to true (characterization analysis doesn't normally run)
     * in Shuffleboard, set the "Auto Routine" chooser to "Swerve Drive Characterization"
     * ensure that there is about 40' of carpet in front of the robot before enabling the auto routine; if there is less, increase ```RAMP_RATE_VOLTS_PER_SECOND``` in ```FeedForwardCharacterization```
     * start the autonomous period
@@ -95,6 +99,7 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
     * open Shuffleboard, go to the SmartDashboard tab, and see controls for each of the PID values; values can be changed via these controls as you interactively tune the controller
     * in Shuffleboard, set the "Auto Routine" chooser to "Drive Velocity Tuning"
     * tune ```DRIVE_KP``` until it doesn't overshoot and doesn't oscillate around a target velocity
+        * start with a P value of 0.2 (DrivetrainIOCTRE) or 0.005 (DrivetrainIOGeneric)
     * graph the ```driveVelocityErrorMetersPerSec``` in Advantage Scope for each swerve module to assist in tuning
     * copy the values from the Shuffleboard controls into SwerveModuleConstants.java
     * set ```TUNING_MODE``` in Constants.java to false
@@ -120,5 +125,3 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
 * general AdvantageKit logging code, AdvantageKit-enabled Gyro classes, swerve module simulation, and drive characterization from Mechanical Advantage's [SwerveDevelopment](https://github.com/Mechanical-Advantage/SwerveDevelopment)
 * AdvantageKit-enabled pneumatics classes from Mechanical Advantage's 2022 [robot code](https://github.com/Mechanical-Advantage/RobotCode2022)
 * FaultReporter (originally AdvancedSubsystem), SubsystemFault, SelfChecking classes from [Ranger Robotics](https://github.com/3015RangerRobotics/2023Public)
-* Talon factories from Citrus Circuits 2022 [robot code](https://github.com/frc1678/C2022)
-* FaultReporter (originally AdvancedSubsystem), SubsystemFault, SelfChecking classes from Ranger Robotics 2023 [robot code](https://github.com/3015RangerRobotics/2023Public)

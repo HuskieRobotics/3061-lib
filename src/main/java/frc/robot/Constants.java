@@ -37,7 +37,6 @@ public final class Constants {
   public enum RobotType {
     ROBOT_2023_NOVA_CTRE,
     ROBOT_2023_NOVA,
-    ROBOT_2023_MK4I,
     ROBOT_DEFAULT,
     ROBOT_SIMBOT,
     ROBOT_SIMBOT_CTRE
@@ -64,7 +63,6 @@ public final class Constants {
       case ROBOT_DEFAULT:
       case ROBOT_2023_NOVA_CTRE:
       case ROBOT_2023_NOVA:
-      case ROBOT_2023_MK4I:
         return RobotBase.isReal() ? Mode.REAL : Mode.REPLAY;
 
       case ROBOT_SIMBOT:

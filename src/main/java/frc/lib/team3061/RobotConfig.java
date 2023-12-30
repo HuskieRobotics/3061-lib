@@ -67,6 +67,8 @@ public abstract class RobotConfig {
 
   /*
    * Returns the voltage needed to overcome the swerve module's static friction. Defaults to 0.
+   * This constant will be provided directly to the hardware. Therefore, the units must be that
+   * as expected by the hardware.
    *
    * @return the voltage needed to overcome the swerve module's static friction
    */
@@ -76,6 +78,8 @@ public abstract class RobotConfig {
 
   /**
    * Returns the voltage needed to hold (or "cruise") at a given constant velocity. Defaults to 0.
+   * This constant will be provided directly to the hardware. Therefore, the units must be that as
+   * expected by the hardware.
    *
    * @return the voltage needed to hold (or "cruise") at a given constant velocity
    */
@@ -85,6 +89,8 @@ public abstract class RobotConfig {
 
   /**
    * Returns the voltage needed to induce a given acceleration in the motor shaft. Defaults to 0.
+   * This constant will be provided directly to the hardware. Therefore, the units must be that as
+   * expected by the hardware.
    *
    * @return the voltage needed to induce a given acceleration in the motor shaft
    */
@@ -124,7 +130,9 @@ public abstract class RobotConfig {
   }
 
   /**
-   * Returns the voltage needed to overcome the drivetrain's static friction. Defaults to 0.
+   * Returns the voltage needed to overcome the drivetrain's static friction. Defaults to 0. This
+   * constant will be provided directly to the hardware. Therefore, the units must be that as
+   * expected by the hardware.
    *
    * @return the voltage needed to overcome the drivetrain's static friction
    */
@@ -134,6 +142,8 @@ public abstract class RobotConfig {
 
   /**
    * Returns the voltage needed to hold (or "cruise") at a given constant velocity. Defaults to 0.
+   * This constant will be provided directly to the hardware. Therefore, the units must be that as
+   * expected by the hardware.
    *
    * @return the voltage needed to hold (or "cruise") at a given constant velocity
    */
@@ -143,6 +153,8 @@ public abstract class RobotConfig {
 
   /**
    * Returns the voltage needed to induce a given acceleration in the motor shaft. Defaults to 0.
+   * This constant will be provided directly to the hardware. Therefore, the units must be that as
+   * expected by the hardware.
    *
    * @return the voltage needed to induce a given acceleration in the motor shaft
    */
