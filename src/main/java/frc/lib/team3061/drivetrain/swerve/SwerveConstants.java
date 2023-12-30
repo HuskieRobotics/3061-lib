@@ -48,7 +48,6 @@ public final class SwerveConstants {
   public static final boolean MK4_L2_ANGLE_MOTOR_INVERTED = false;
   public static final boolean MK4_L2_CAN_CODER_INVERTED = false;
 
-  // FIXME: tune this; perhaps set to 0?
   public static final double OPEN_LOOP_RAMP = 0.25;
   public static final double CLOSED_LOOP_RAMP = 0.0;
 

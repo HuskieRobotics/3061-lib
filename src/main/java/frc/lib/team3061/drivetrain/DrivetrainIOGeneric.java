@@ -157,8 +157,6 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
         moduleDeltas[index] =
             new SwerveModulePosition(
                 current.distanceMeters - previous.distanceMeters, current.angle);
-        // FIXME: I don't think this assignment is needed...
-        previous.distanceMeters = current.distanceMeters;
       }
 
       Twist2d twist = kinematics.toTwist2d(moduleDeltas);
@@ -238,7 +236,7 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
   @Override
   public void driveFieldRelativeFacingAngle(
       double xVelocity, double yVelocity, Rotation2d targetDirection, boolean isOpenLoop) {
-    // FIXME: add support for holding a rotation angle
+    // currently this is not supported and this code is the same as driveFieldRelative
     this.targetChassisSpeeds =
         ChassisSpeeds.fromFieldRelativeSpeeds(
             xVelocity, yVelocity, 0.0, Rotation2d.fromDegrees(this.robotRotationDeg));

@@ -1,5 +1,7 @@
 package frc.robot.configs;
 
+import static frc.lib.team3061.drivetrain.swerve.SwerveConstants.*;
+
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -46,7 +48,8 @@ public class NovaCTRERobotConfig extends RobotConfig {
   private static final double ANGLE_KD = 0.05;
 
   private static final double ANGLE_KS = 0.1891233333;
-  private static final double ANGLE_KV = 0.4399866667;
+  private static final double ANGLE_KV =
+      0.4399866667 * 2 * Math.PI; // convert from V/(radians/s) to V/(rotations/s)
   private static final double ANGLE_KA = 0.001663333333;
 
   /* Drive Motor PID Values */
@@ -55,7 +58,10 @@ public class NovaCTRERobotConfig extends RobotConfig {
   private static final double DRIVE_KD = 0.0;
 
   private static final double DRIVE_KS = 0.4004375;
-  private static final double DRIVE_KV = 2.7637325;
+  private static final double DRIVE_KV =
+      2.7637325
+          * MK4I_L2_DRIVE_GEAR_RATIO
+          / MK4I_L2_WHEEL_CIRCUMFERENCE; // convert from V/(m/s) to V/(rotations/s)
   private static final double DRIVE_KA = 0.0139575;
 
   private static final SwerveType SWERVE_TYPE = SwerveType.MK4I;

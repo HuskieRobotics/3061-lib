@@ -71,6 +71,7 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
     16. rotate the cart in a CW direction and verify that the gyro is decreasing
     17. use Phoenix Tuner to flash the LEDs on the Falcon 500s and CANcoders to ensure that the CAN IDs are properly assigned to the front-left, front-right, back-left, and back-right positions (all of the above may behave as expected even if the modules aren't assigned to the appropriate corners)
 * Angle characterization values (```ANGLE_KS```, ```ANGLE_KV```, ```ANGLE_KA```) in in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
+    * set ```TUNING_MODE``` in Constants.java to true (characterization analysis doesn't normally run)
     * in Shuffleboard, set the "Auto Routine" chooser to "Swerve Rotate Characterization"
     * start the autonomous period
     * the ```FeedForwardCharacterization``` command will run and output the KS, KV, and KA values
@@ -87,6 +88,7 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
     * copy the values from the Shuffleboard controls into SwerveModuleConstants.java
     * set ```TUNING_MODE``` in Constants.java to false
 * Drive characterization values (```DRIVE_KS```, ```DRIVE_KV```, ```DRIVE_KA```) in in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
+    * set ```TUNING_MODE``` in Constants.java to true (characterization analysis doesn't normally run)
     * in Shuffleboard, set the "Auto Routine" chooser to "Swerve Drive Characterization"
     * ensure that there is about 40' of carpet in front of the robot before enabling the auto routine; if there is less, increase ```RAMP_RATE_VOLTS_PER_SECOND``` in ```FeedForwardCharacterization```
     * start the autonomous period
