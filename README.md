@@ -97,6 +97,7 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
         * set the value of Drivetrain/steerCurrent to 10 A
         * inspect the portion of the graph where the acceleration is constant (before the motor reached free speed); set ```ANGLE_KA``` to the average of the values from each steer motor
         * set ```TESTING``` in DrivetrainConstants.java back to false
+        * verify kA by using VelocityTorqueCurrentFOC in Tuner X and commanding an acceleration (and a velocity if you want kS in circuit) (while you're far enough from free speed, the acceleration signal should closely match the requested acceleration)
     * Drive characterization values (```DRIVE_KS```, ```DRIVE_KV```, ```DRIVE_KA```) in in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
         * set the robot on the carpet
         * set ```DRIVE_KV``` to 0 since current corresponds to acceleration, not velocity
@@ -106,6 +107,7 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
         * set the value of Drivetrain/driveCurrent to 40 A
         * inspect the portion of the graph where the acceleration is constant (before the motor reached free speed); set ```DRIVE_KA``` to the average of the values from each drive motor
         * set ```TESTING``` in DrivetrainConstants.java back to false
+        * verify kA by using VelocityTorqueCurrentFOC in Tuner X and commanding an acceleration (and a velocity if you want kS in circuit) (while you're far enough from free speed, the acceleration signal should closely match the requested acceleration)
 * Angle Motor PID Values (```ANGLE_KP```, ```ANGLE_KI```, ```ANGLE_KD```) in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
     * set ```TUNING_MODE``` in Constants.java to true
     * open Shuffleboard, go to the SmartDashboard tab, and see controls for each of the PID values; values can be changed via these controls as you interactively tune the controller
