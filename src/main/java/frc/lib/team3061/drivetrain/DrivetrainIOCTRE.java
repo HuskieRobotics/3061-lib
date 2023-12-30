@@ -32,7 +32,6 @@ import frc.lib.team3061.gyro.GyroIO.GyroIOInputs;
 import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team6328.util.TunableNumber;
 import frc.robot.Constants;
-import org.littletonrobotics.junction.Logger;
 
 public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
 
@@ -275,21 +274,15 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   public void updateInputs(DrivetrainIOInputsCollection inputs) {
 
     // update and log gyro inputs
-    double timestamp = Logger.getRealTimestamp();
     this.updateGyroInputs(inputs.gyro);
-    Logger.recordOutput("Drivetrain/gyroInputsTime", Logger.getRealTimestamp() - timestamp);
 
     // update and log the swerve modules inputs
-    timestamp = Logger.getRealTimestamp();
     for (int i = 0; i < swerveModulesSignals.length; i++) {
       this.updateSwerveModuleInputs(inputs.swerve[i], this.Modules[i], swerveModulesSignals[i]);
     }
-    Logger.recordOutput("Drivetrain/swerveInputsTime", Logger.getRealTimestamp() - timestamp);
 
     inputs.drivetrain.swerveMeasuredStates = this.getState().ModuleStates;
     inputs.drivetrain.swerveReferenceStates = swerveReferenceStates;
-
-    timestamp = Logger.getRealTimestamp();
 
     // log poses, 3D geometry, and swerve module states, gyro offset
     inputs.drivetrain.robotPose =
@@ -311,8 +304,6 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     inputs.drivetrain.averageDriveCurrent = this.getAverageDriveCurrent(inputs);
 
     inputs.drivetrain.rotation = this.getState().Pose.getRotation();
-
-    Logger.recordOutput("Drivetrain/inputsTime", Logger.getRealTimestamp() - timestamp);
 
     if (Constants.getMode() == Constants.Mode.SIM) {
       updateSimState(Constants.LOOP_PERIOD_SECS, 12.0);
@@ -367,7 +358,6 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   private void updateSwerveModuleInputs(
       SwerveIOInputs inputs, SwerveModule module, SwerveModuleSignals signals) {
 
-    double timestamp = Logger.getRealTimestamp();
     BaseStatusSignal.refreshAll(
         signals.steerVelocityStatusSignal,
         signals.steerAccelerationStatusSignal,
@@ -377,14 +367,10 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
         signals.driveVelocityErrorStatusSignal,
         signals.driveVelocityReferenceStatusSignal,
         signals.driveAccelerationStatusSignal);
-    Logger.recordOutput("Drivetrain/swerve/refresh", Logger.getRealTimestamp() - timestamp);
 
-    timestamp = Logger.getRealTimestamp();
     SwerveModulePosition position = module.getPosition(false);
     SwerveModuleState state = module.getCurrentState();
-    Logger.recordOutput("Drivetrain/swerve/position", Logger.getRealTimestamp() - timestamp);
 
-    timestamp = Logger.getRealTimestamp();
     inputs.driveDistanceMeters = position.distanceMeters;
     inputs.driveVelocityMetersPerSec = state.speedMetersPerSecond;
     inputs.driveVelocityReferenceMetersPerSec =
@@ -406,13 +392,9 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     inputs.driveStatorCurrentAmps = module.getDriveMotor().getStatorCurrent().getValue();
     inputs.driveSupplyCurrentAmps = module.getDriveMotor().getSupplyCurrent().getValue();
     inputs.driveTempCelsius = module.getDriveMotor().getDeviceTemp().getValue();
-    Logger.recordOutput("Drivetrain/swerve/drive", Logger.getRealTimestamp() - timestamp);
 
-    timestamp = Logger.getRealTimestamp();
     inputs.steerAbsolutePositionDeg = module.getCANcoder().getAbsolutePosition().getValue() * 360.0;
-    Logger.recordOutput("Drivetrain/swerve/CANcoder", Logger.getRealTimestamp() - timestamp);
 
-    timestamp = Logger.getRealTimestamp();
     // since we are using the FusedCANcoder feature, the position and velocity signal for the angle
     // motor accounts for the gear ratio; so, pass a gear ratio of 1 to just convert from rotations
     // to degrees.
@@ -432,7 +414,6 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     inputs.steerStatorCurrentAmps = module.getSteerMotor().getStatorCurrent().getValue();
     inputs.steerSupplyCurrentAmps = module.getSteerMotor().getSupplyCurrent().getValue();
     inputs.steerTempCelsius = module.getSteerMotor().getDeviceTemp().getValue();
-    Logger.recordOutput("Drivetrain/swerve/steer", Logger.getRealTimestamp() - timestamp);
   }
 
   @Override
