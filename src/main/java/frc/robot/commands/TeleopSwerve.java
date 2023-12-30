@@ -1,10 +1,10 @@
 package frc.robot.commands;
 
-import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.Command;
 import frc.lib.team3061.RobotConfig;
+import frc.lib.team3061.drivetrain.Drivetrain;
 import frc.lib.team6328.util.TunableNumber;
 import frc.robot.Constants;
-import frc.robot.subsystems.drivetrain.Drivetrain;
 import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 
@@ -21,7 +21,7 @@ import org.littletonrobotics.junction.Logger;
  *
  * <p>At End: stops the drivetrain
  */
-public class TeleopSwerve extends CommandBase {
+public class TeleopSwerve extends Command {
 
   private final Drivetrain drivetrain;
   private final DoubleSupplier translationXSupplier;
@@ -73,7 +73,7 @@ public class TeleopSwerve extends CommandBase {
 
   @Override
   public void initialize() {
-    Logger.getInstance().recordOutput("ActiveCommands/TeleopSwerve", true);
+    Logger.recordOutput("ActiveCommands/TeleopSwerve", true);
   }
 
   /**
@@ -94,9 +94,9 @@ public class TeleopSwerve extends CommandBase {
     double yVelocity = yPercentage * maxVelocityMetersPerSecond;
     double rotationalVelocity = rotationPercentage * maxAngularVelocityRadiansPerSecond;
 
-    Logger.getInstance().recordOutput("TeleopSwerve/xVelocity", xVelocity);
-    Logger.getInstance().recordOutput("TeleopSwerve/yVelocity", yVelocity);
-    Logger.getInstance().recordOutput("TeleopSwerve/rotationalVelocity", rotationalVelocity);
+    Logger.recordOutput("TeleopSwerve/xVelocity", xVelocity);
+    Logger.recordOutput("TeleopSwerve/yVelocity", yVelocity);
+    Logger.recordOutput("TeleopSwerve/rotationalVelocity", rotationalVelocity);
 
     // if the robot is not in turbo mode, limit the acceleration
     if (!drivetrain.getTurbo()) {
@@ -130,7 +130,7 @@ public class TeleopSwerve extends CommandBase {
     lastYVelocity = yVelocity;
     lastAngularVelocity = rotationalVelocity;
 
-    drivetrain.drive(xVelocity, yVelocity, rotationalVelocity, true, false);
+    drivetrain.drive(xVelocity, yVelocity, rotationalVelocity, true, drivetrain.getFieldRelative());
   }
 
   /**
@@ -141,7 +141,7 @@ public class TeleopSwerve extends CommandBase {
    */
   @Override
   public void end(boolean interrupted) {
-    Logger.getInstance().recordOutput("ActiveCommands/TeleopSwerve", false);
+    Logger.recordOutput("ActiveCommands/TeleopSwerve", false);
   }
 
   /**

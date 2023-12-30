@@ -15,7 +15,7 @@ public class SelfCheckingPigeon2 implements SelfChecking {
   public SelfCheckingPigeon2(String label, Pigeon2 pigeon) {
     this.label = label;
     this.pigeon = pigeon;
-    this.statusSignal = this.pigeon.getSupplyVoltage();
+    this.statusSignal = this.pigeon.getSupplyVoltage().clone();
   }
 
   @Override
@@ -57,10 +57,10 @@ public class SelfCheckingPigeon2 implements SelfChecking {
       faults.add(
           new SubsystemFault(String.format("[%s]: Accelerometer values are saturated", label)));
     }
-    if (pigeon.getFault_SaturatedGyrosscope().getValue() == Boolean.TRUE) {
+    if (pigeon.getFault_SaturatedGyroscope().getValue() == Boolean.TRUE) {
       faults.add(new SubsystemFault(String.format("[%s]: Gyro values are saturated", label)));
     }
-    if (pigeon.getFault_SaturatedMagneter().getValue() == Boolean.TRUE) {
+    if (pigeon.getFault_SaturatedMagnetometer().getValue() == Boolean.TRUE) {
       faults.add(
           new SubsystemFault(String.format("[%s]: Magnetometer values are saturated", label)));
     }
@@ -73,7 +73,7 @@ public class SelfCheckingPigeon2 implements SelfChecking {
     }
 
     this.statusSignal.refresh();
-    if (this.statusSignal.getError() != StatusCode.OK) {
+    if (this.statusSignal.getStatus() != StatusCode.OK) {
       faults.add(new SubsystemFault(String.format("[%s]: device is unreachable", label)));
     }
 

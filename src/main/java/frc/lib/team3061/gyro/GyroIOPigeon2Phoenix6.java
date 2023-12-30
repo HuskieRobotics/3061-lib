@@ -28,17 +28,17 @@ public class GyroIOPigeon2Phoenix6 implements GyroIO {
 
   public GyroIOPigeon2Phoenix6(int id) {
     gyro = new Pigeon2(id, RobotConfig.getInstance().getCANBusName());
-    this.yawStatusSignal = this.gyro.getYaw();
+    this.yawStatusSignal = this.gyro.getYaw().clone();
     this.yawStatusSignal.setUpdateFrequency(100);
-    this.pitchStatusSignal = this.gyro.getPitch();
+    this.pitchStatusSignal = this.gyro.getPitch().clone();
     this.pitchStatusSignal.setUpdateFrequency(100);
-    this.rollStatusSignal = this.gyro.getRoll();
+    this.rollStatusSignal = this.gyro.getRoll().clone();
     this.rollStatusSignal.setUpdateFrequency(100);
-    this.angularVelocityXStatusSignal = this.gyro.getAngularVelocityX();
+    this.angularVelocityXStatusSignal = this.gyro.getAngularVelocityXWorld().clone();
     this.angularVelocityXStatusSignal.setUpdateFrequency(100);
-    this.angularVelocityYStatusSignal = this.gyro.getAngularVelocityY();
+    this.angularVelocityYStatusSignal = this.gyro.getAngularVelocityYWorld().clone();
     this.angularVelocityYStatusSignal.setUpdateFrequency(100);
-    this.angularVelocityZStatusSignal = this.gyro.getAngularVelocityZ();
+    this.angularVelocityZStatusSignal = this.gyro.getAngularVelocityZWorld().clone();
     this.angularVelocityZStatusSignal.setUpdateFrequency(100);
 
     FaultReporter.getInstance().registerHardware("Drivetrain", "gyro", gyro);
@@ -55,16 +55,18 @@ public class GyroIOPigeon2Phoenix6 implements GyroIO {
     // only invoke refresh if Phoenix is not licensed (if licensed, these signals have already been
     // refreshed)
     if (!RobotConfig.getInstance().getPhoenix6Licensed()) {
-      this.yawStatusSignal.refresh();
-      this.angularVelocityZStatusSignal.refresh();
+      BaseStatusSignal.refreshAll(this.yawStatusSignal, this.angularVelocityZStatusSignal);
+    } else {
+      BaseStatusSignal.refreshAll(
+          this.yawStatusSignal,
+          this.angularVelocityZStatusSignal,
+          this.pitchStatusSignal,
+          this.rollStatusSignal,
+          this.angularVelocityXStatusSignal,
+          this.angularVelocityYStatusSignal);
     }
 
-    this.pitchStatusSignal.refresh();
-    this.rollStatusSignal.refresh();
-    this.angularVelocityXStatusSignal.refresh();
-    this.angularVelocityYStatusSignal.refresh();
-
-    inputs.connected = (this.yawStatusSignal.getError() == StatusCode.OK);
+    inputs.connected = (this.yawStatusSignal.getStatus() == StatusCode.OK);
     inputs.yawDeg =
         BaseStatusSignal.getLatencyCompensatedValue(
             this.yawStatusSignal, this.angularVelocityZStatusSignal);

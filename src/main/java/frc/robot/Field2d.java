@@ -1,16 +1,15 @@
 package frc.robot;
 
-import com.pathplanner.lib.PathConstraints;
-import com.pathplanner.lib.PathPlanner;
-import com.pathplanner.lib.PathPlannerTrajectory;
-import com.pathplanner.lib.PathPoint;
+import com.pathplanner.lib.path.GoalEndState;
+import com.pathplanner.lib.path.PathConstraints;
+import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import frc.lib.team3061.RobotConfig;
+import frc.lib.team3061.drivetrain.Drivetrain;
 import frc.lib.team6328.util.FieldConstants;
-import frc.robot.subsystems.drivetrain.Drivetrain;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -32,7 +31,7 @@ public class Field2d {
   private static Field2d instance = null;
 
   private Region2d[] regions;
-  private DriverStation.Alliance alliance = DriverStation.Alliance.Invalid;
+  private DriverStation.Alliance alliance = DriverStation.Alliance.Red;
 
   /**
    * Get the singleton instance of the Field2d class.
@@ -96,7 +95,7 @@ public class Field2d {
    * @param subsystem the drivetrain subsystem
    * @return the path from the starting pose to the ending pose; null if no path exists
    */
-  public PathPlannerTrajectory makePath(
+  public PathPlannerPath makePath(
       Pose2d start, Pose2d end, PathConstraints pathConstants, Drivetrain subsystem) {
     Region2d startRegion = null;
     Region2d endRegion = null;
@@ -140,8 +139,13 @@ public class Field2d {
     // add the ending point
     pointLocations.add(end.getTranslation());
 
-    List<PathPoint> pathPoints = createPathPoints(start, end, subsystem, pointLocations);
-    return PathPlanner.generatePath(pathConstants, pathPoints);
+    List<Pose2d> pathPoses = createPathPoses(pointLocations);
+    List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(pathPoses);
+    return new PathPlannerPath(
+        bezierPoints,
+        pathConstants,
+        new GoalEndState(
+            RobotConfig.getInstance().getMoveToPathFinalVelocity(), end.getRotation()));
   }
 
   /**
@@ -158,53 +162,26 @@ public class Field2d {
    * @param pointLocations the locations of the points in the path
    * @return the path points
    */
-  private List<PathPoint> createPathPoints(
-      Pose2d start, Pose2d end, Drivetrain subsystem, ArrayList<Translation2d> pointLocations) {
-    List<PathPoint> pathPoints = new ArrayList<>();
+  private List<Pose2d> createPathPoses(ArrayList<Translation2d> pointLocations) {
+    List<Pose2d> pathPoses = new ArrayList<>();
     Rotation2d lastHeading = null;
     for (int i = 0; i < pointLocations.size() - 1; i++) {
       double deltaX = pointLocations.get(i + 1).getX() - pointLocations.get(i).getX();
       double deltaY = pointLocations.get(i + 1).getY() - pointLocations.get(i).getY();
       lastHeading = new Rotation2d(deltaX, deltaY);
-      if (i == 0) {
-        // if the robot is not currently moving, orient the heading towards the next point
-        if (subsystem.getVelocityX() == 0 && subsystem.getVelocityY() == 0) {
-          pathPoints.add(
-              new PathPoint(
-                  pointLocations.get(i),
-                  lastHeading,
-                  start.getRotation(),
-                  Math.sqrt(
-                      Math.pow(subsystem.getVelocityX(), 2)
-                          + Math.pow(subsystem.getVelocityY(), 2))));
-        }
-        // if the robot is currently moving, maintain the current heading and velocity in order to
-        // have a smooth transition to the start of the path
-        else {
-          pathPoints.add(
-              new PathPoint(
-                  pointLocations.get(i),
-                  new Rotation2d(subsystem.getVelocityX(), subsystem.getVelocityY()),
-                  start.getRotation(),
-                  Math.sqrt(
-                      Math.pow(subsystem.getVelocityX(), 2)
-                          + Math.pow(subsystem.getVelocityY(), 2))));
-        }
-      } else {
-        pathPoints.add(new PathPoint(pointLocations.get(i), lastHeading, end.getRotation()));
-      }
+      pathPoses.add(
+          new Pose2d(pointLocations.get(i).getX(), pointLocations.get(i).getY(), lastHeading));
     }
 
     // the final path point will match the ending pose's rotation and the velocity as specified by
     // the robot's configuration class' getMoveToPathFinalVelocity method.
-    pathPoints.add(
-        new PathPoint(
-            pointLocations.get(pointLocations.size() - 1),
-            end.getRotation(),
-            end.getRotation(),
-            RobotConfig.getInstance().getMoveToPathFinalVelocity()));
+    pathPoses.add(
+        new Pose2d(
+            pointLocations.get(pointLocations.size() - 1).getX(),
+            pointLocations.get(pointLocations.size() - 1).getY(),
+            lastHeading));
 
-    return pathPoints;
+    return pathPoses;
   }
 
   private List<Region2d> breadthFirstSearch(Region2d start, Region2d end) {
@@ -220,10 +197,9 @@ public class Field2d {
     }
 
     todo.add(
-        new ArrayList<>(
-            Arrays.asList(start))); // add a path starting with startRegion to the todo list
+        new ArrayList<>(Arrays.asList(start))); // add a path starting with startRegion to the list
 
-    while (!todo.isEmpty()) { // while the todo list isn't empty, keep looking over the todo list.
+    while (!todo.isEmpty()) { // while the list isn't empty, keep looking over the list.
       ArrayList<Region2d> path = todo.poll();
       Region2d region = path.get(path.size() - 1); // last region in the path
 

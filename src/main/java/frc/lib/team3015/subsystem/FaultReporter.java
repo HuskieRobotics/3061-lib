@@ -8,7 +8,7 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.motorcontrol.PWMMotorController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.lib.team3015.subsystem.selfcheck.*;
@@ -54,28 +54,27 @@ public class FaultReporter {
     return instance;
   }
 
-  public CommandBase registerSystemCheck(String subsystemName, CommandBase systemCheckCommand) {
+  public Command registerSystemCheck(String subsystemName, Command systemCheckCommand) {
     String statusTable = SYSTEM_STATUS + subsystemName;
     SubsystemFaults subsystemFaults =
         subsystemsFaults.getOrDefault(subsystemName, new SubsystemFaults());
 
-    CommandBase wrappedSystemCheckCommand =
-        wrapSystemCheckCommand(subsystemName, systemCheckCommand);
+    Command wrappedSystemCheckCommand = wrapSystemCheckCommand(subsystemName, systemCheckCommand);
     wrappedSystemCheckCommand.setName(subsystemName + "Check");
     SmartDashboard.putData(statusTable + "/SystemCheck", wrappedSystemCheckCommand);
-    Logger.getInstance().recordOutput(statusTable + CHECK_RAN, false);
+    Logger.recordOutput(statusTable + CHECK_RAN, false);
 
     subsystemsFaults.put(subsystemName, subsystemFaults);
 
     return wrappedSystemCheckCommand;
   }
 
-  private CommandBase wrapSystemCheckCommand(String subsystemName, CommandBase systemCheckCommand) {
+  private Command wrapSystemCheckCommand(String subsystemName, Command systemCheckCommand) {
     String statusTable = SYSTEM_STATUS + subsystemName;
     return Commands.sequence(
         Commands.runOnce(
             () -> {
-              Logger.getInstance().recordOutput(statusTable + CHECK_RAN, false);
+              Logger.recordOutput(statusTable + CHECK_RAN, false);
               clearFaults(subsystemName);
               publishStatus();
             }),
@@ -83,7 +82,7 @@ public class FaultReporter {
         Commands.runOnce(
             () -> {
               publishStatus();
-              Logger.getInstance().recordOutput(statusTable + CHECK_RAN, true);
+              Logger.recordOutput(statusTable + CHECK_RAN, true);
             }));
   }
 
@@ -109,21 +108,20 @@ public class FaultReporter {
       SystemStatus status = getSystemStatus(subsystemFaults.faults);
 
       String statusTable = SYSTEM_STATUS + subsystemName;
-      Logger.getInstance().recordOutput(statusTable + "/Status", status.name());
-      Logger.getInstance().recordOutput(statusTable + "/SystemOK", status == SystemStatus.OK);
+      Logger.recordOutput(statusTable + "/Status", status.name());
+      Logger.recordOutput(statusTable + "/SystemOK", status == SystemStatus.OK);
 
       String[] faultStrings = new String[subsystemFaults.faults.size()];
       for (int i = 0; i < subsystemFaults.faults.size(); i++) {
         SubsystemFault fault = subsystemFaults.faults.get(i);
         faultStrings[i] = String.format("[%.2f] %s", fault.timestamp, fault.description);
       }
-      Logger.getInstance().recordOutput(statusTable + "/Faults", faultStrings);
+      Logger.recordOutput(statusTable + "/Faults", faultStrings);
 
       if (faultStrings.length > 0) {
-        Logger.getInstance()
-            .recordOutput(statusTable + "/LastFault", faultStrings[faultStrings.length - 1]);
+        Logger.recordOutput(statusTable + "/LastFault", faultStrings[faultStrings.length - 1]);
       } else {
-        Logger.getInstance().recordOutput(statusTable + "/LastFault", "");
+        Logger.recordOutput(statusTable + "/LastFault", "");
       }
     }
   }

@@ -13,7 +13,7 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
-import frc.lib.team3061.swerve.Conversions;
+import frc.lib.team3061.drivetrain.swerve.Conversions;
 import frc.lib.team6328.util.Alert;
 import frc.lib.team6328.util.Alert.AlertType;
 import frc.lib.team6328.util.TunableNumber;
@@ -143,7 +143,7 @@ public class SubsystemIOTalonFX implements SubsystemIO {
       configAlert.setText(status.toString());
     }
 
-    this.motor.setRotorPosition(0);
+    this.motor.setPosition(0);
 
     this.voltageRequest = new VoltageOut(0.0);
     this.voltageRequest.EnableFOC = RobotConfig.getInstance().getPhoenix6Licensed();

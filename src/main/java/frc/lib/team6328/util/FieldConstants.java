@@ -17,6 +17,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import java.util.Map;
+import java.util.Optional;
 
 @java.lang.SuppressWarnings({"java:S1118", "java:S115", "java:S2386"})
 
@@ -266,7 +267,8 @@ public final class FieldConstants {
    * rightmost point on the BLUE ALLIANCE wall.
    */
   public static Translation2d allianceFlip(Translation2d translation) {
-    if (DriverStation.getAlliance() == Alliance.Red) {
+    Optional<Alliance> alliance = DriverStation.getAlliance();
+    if (alliance.isPresent() && alliance.get() == Alliance.Red) {
       return new Translation2d(fieldLength - translation.getX(), translation.getY());
     } else {
       return translation;
@@ -279,7 +281,8 @@ public final class FieldConstants {
    * rightmost point on the BLUE ALLIANCE wall.
    */
   public static Pose2d allianceFlip(Pose2d pose) {
-    if (DriverStation.getAlliance() == Alliance.Red) {
+    Optional<Alliance> alliance = DriverStation.getAlliance();
+    if (alliance.isPresent() && alliance.get() == Alliance.Red) {
       return new Pose2d(
           fieldLength - pose.getX(),
           pose.getY(),

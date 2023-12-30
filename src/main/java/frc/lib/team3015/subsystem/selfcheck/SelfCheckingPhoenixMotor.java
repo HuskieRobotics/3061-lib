@@ -15,7 +15,7 @@ public class SelfCheckingPhoenixMotor implements SelfChecking {
   public SelfCheckingPhoenixMotor(String label, TalonFX motor) {
     this.label = label;
     this.motor = motor;
-    this.statusSignal = this.motor.getSupplyVoltage();
+    this.statusSignal = this.motor.getSupplyVoltage().clone();
   }
 
   @Override
@@ -36,9 +36,6 @@ public class SelfCheckingPhoenixMotor implements SelfChecking {
     if (motor.getFault_FusedSensorOutOfSync().getValue() == Boolean.TRUE) {
       faults.add(new SubsystemFault(String.format("[%s]: Remote sensor is out of sync", label)));
     }
-    if (motor.getFault_MissingRemoteSensor().getValue() == Boolean.TRUE) {
-      faults.add(new SubsystemFault(String.format("[%s]: Remote sensor is missing", label)));
-    }
     if (motor.getFault_OverSupplyV().getValue() == Boolean.TRUE) {
       faults.add(new SubsystemFault(String.format("[%s]: Supply voltage exceeded limit", label)));
     }
@@ -58,7 +55,7 @@ public class SelfCheckingPhoenixMotor implements SelfChecking {
     }
 
     this.statusSignal.refresh();
-    if (this.statusSignal.getError() != StatusCode.OK) {
+    if (this.statusSignal.getStatus() != StatusCode.OK) {
       faults.add(new SubsystemFault(String.format("[%s]: device is unreachable", label)));
     }
 

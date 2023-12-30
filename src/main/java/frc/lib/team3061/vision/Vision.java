@@ -7,7 +7,6 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFieldLayout.OriginPosition;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -51,7 +50,7 @@ public class Vision extends SubsystemBase {
   private boolean isEnabled = true;
   private boolean isVisionUpdating = false;
 
-  private SwerveDrivePoseEstimator poseEstimator;
+  private RobotOdometry odometry;
   private final TunableNumber poseDifferenceThreshold =
       new TunableNumber("Vision/VisionPoseThreshold", POSE_DIFFERENCE_THRESHOLD_METERS);
   private final TunableNumber stdDevSlope = new TunableNumber("Vision/stdDevSlope", 0.10);
@@ -85,7 +84,7 @@ public class Vision extends SubsystemBase {
     }
 
     // retrieve a reference to the pose estimator singleton
-    this.poseEstimator = RobotOdometry.getInstance().getPoseEstimator();
+    this.odometry = RobotOdometry.getInstance();
 
     // add an indicator to the main Shuffleboard tab to indicate whether vision is updating in order
     // to alert the drive team if it is not.
@@ -105,7 +104,7 @@ public class Vision extends SubsystemBase {
     }
 
     for (AprilTag tag : layout.getTags()) {
-      Logger.getInstance().recordOutput("Vision/AprilTags/" + tag.ID, tag.pose);
+      Logger.recordOutput("Vision/AprilTags/" + tag.ID, tag.pose);
     }
   }
 
@@ -134,7 +133,7 @@ public class Vision extends SubsystemBase {
     for (AprilTag tag : layout.getTags()) {
       layout
           .getTagPose(tag.ID)
-          .ifPresent(pose -> Logger.getInstance().recordOutput("Vision/AprilTags/" + tag.ID, pose));
+          .ifPresent(pose -> Logger.recordOutput("Vision/AprilTags/" + tag.ID, pose));
     }
   }
 
@@ -148,7 +147,7 @@ public class Vision extends SubsystemBase {
     isVisionUpdating = false;
     for (int i = 0; i < visionIOs.length; i++) {
       visionIOs[i].updateInputs(ios[i]);
-      Logger.getInstance().processInputs("Vision" + i, ios[i]);
+      Logger.processInputs("Vision" + i, ios[i]);
 
       // only process the vision data if the timestamp is newer than the last one
       if (lastTimestamps[i] < ios[i].lastTimestamp) {
@@ -160,11 +159,7 @@ public class Vision extends SubsystemBase {
 
         // only update the pose estimator if the pose from the vision data is close to the estimated
         // robot pose
-        if (poseEstimator
-                .getEstimatedPosition()
-                .minus(robotPose.toPose2d())
-                .getTranslation()
-                .getNorm()
+        if (odometry.getEstimatedPosition().minus(robotPose.toPose2d()).getTranslation().getNorm()
             < MAX_POSE_DIFFERENCE_METERS) {
 
           // only update the pose estimator if the vision subsystem is enabled
@@ -172,15 +167,15 @@ public class Vision extends SubsystemBase {
             // when updating the pose estimator, specify standard deviations based on the distance
             // from the robot to the AprilTag (the greater the distance, the less confident we are
             // in the measurement)
-            poseEstimator.addVisionMeasurement(
+            odometry.addVisionMeasurement(
                 robotPose.toPose2d(),
                 ios[i].lastTimestamp,
                 getStandardDeviations(poseAndDistance.distanceToAprilTag));
             isVisionUpdating = true;
           }
 
-          Logger.getInstance().recordOutput("Vision/RobotPose" + i, robotPose.toPose2d());
-          Logger.getInstance().recordOutput("Vision/IsEnabled", isEnabled);
+          Logger.recordOutput("Vision/RobotPose" + i, robotPose.toPose2d());
+          Logger.recordOutput("Vision/IsEnabled", isEnabled);
         }
       }
     }
@@ -231,17 +226,13 @@ public class Vision extends SubsystemBase {
     for (int i = 0; i < visionIOs.length; i++) {
       Pose3d robotPose = getRobotPose(i).robotPose;
       if (robotPose != null
-          && poseEstimator
-                  .getEstimatedPosition()
-                  .minus(robotPose.toPose2d())
-                  .getTranslation()
-                  .getNorm()
+          && odometry.getEstimatedPosition().minus(robotPose.toPose2d()).getTranslation().getNorm()
               < poseDifferenceThreshold.get()) {
-        Logger.getInstance().recordOutput("Vision/posesInLine", true);
+        Logger.recordOutput("Vision/posesInLine", true);
         return true;
       }
     }
-    Logger.getInstance().recordOutput("Vision/posesInLine", false);
+    Logger.recordOutput("Vision/posesInLine", false);
     return false;
   }
 
@@ -271,8 +262,8 @@ public class Vision extends SubsystemBase {
     // terms of logging, we are assuming that a given VisionIO object won't see more than 2 tags at
     // once
     for (int i = 0; i < 2; i++) {
-      Logger.getInstance().recordOutput("Vision/TagPose" + index + "_" + i, new Pose2d());
-      Logger.getInstance().recordOutput("Vision/NVRobotPose" + index + "_" + i, new Pose2d());
+      Logger.recordOutput("Vision/TagPose" + index + "_" + i, new Pose2d());
+      Logger.recordOutput("Vision/NVRobotPose" + index + "_" + i, new Pose2d());
     }
 
     for (PhotonTrackedTarget target : ios[index].lastResult.getTargets()) {
@@ -284,10 +275,9 @@ public class Vision extends SubsystemBase {
           Pose3d cameraPose = tagPose.transformBy(cameraToTarget.inverse());
           Pose3d robotPose = cameraPose.transformBy(camerasToRobots[index].inverse());
 
-          Logger.getInstance()
-              .recordOutput("Vision/TagPose" + index + "_" + targetCount, tagPose.toPose2d());
-          Logger.getInstance()
-              .recordOutput("Vision/NVRobotPose" + index + "_" + targetCount, robotPose.toPose2d());
+          Logger.recordOutput("Vision/TagPose" + index + "_" + targetCount, tagPose.toPose2d());
+          Logger.recordOutput(
+              "Vision/NVRobotPose" + index + "_" + targetCount, robotPose.toPose2d());
 
           double targetDistance =
               target.getBestCameraToTarget().getTranslation().toTranslation2d().getNorm();

@@ -15,7 +15,7 @@ public class SelfCheckingCANCoder implements SelfChecking {
   public SelfCheckingCANCoder(String label, CANcoder canCoder) {
     this.label = label;
     this.canCoder = canCoder;
-    this.statusSignal = this.canCoder.getSupplyVoltage();
+    this.statusSignal = this.canCoder.getSupplyVoltage().clone();
   }
 
   @Override
@@ -40,7 +40,7 @@ public class SelfCheckingCANCoder implements SelfChecking {
     }
 
     this.statusSignal.refresh();
-    if (this.statusSignal.getError() != StatusCode.OK) {
+    if (this.statusSignal.getStatus() != StatusCode.OK) {
       faults.add(new SubsystemFault(String.format("[%s]: device is unreachable", label)));
     }
 

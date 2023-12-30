@@ -15,10 +15,10 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.Command;
 import frc.lib.team3061.RobotConfig;
+import frc.lib.team3061.drivetrain.Drivetrain;
 import frc.lib.team6328.util.TunableNumber;
-import frc.robot.subsystems.drivetrain.Drivetrain;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
@@ -35,7 +35,7 @@ import org.littletonrobotics.junction.Logger;
  *
  * <p>At End: stops the drivetrain
  */
-public class DriveToPose extends CommandBase {
+public class DriveToPose extends Command {
   private final Drivetrain drivetrain;
   private final Supplier<Pose2d> poseSupplier;
   private Pose2d targetPose;
@@ -125,7 +125,7 @@ public class DriveToPose extends CommandBase {
    */
   @Override
   public void initialize() {
-    Logger.getInstance().recordOutput("ActiveCommands/DriveToPose", true);
+    Logger.recordOutput("ActiveCommands/DriveToPose", true);
 
     // Reset all controllers
     Pose2d currentPose = drivetrain.getPose();
@@ -137,7 +137,7 @@ public class DriveToPose extends CommandBase {
     thetaController.setTolerance(thetaTolerance.get());
     this.targetPose = poseSupplier.get();
 
-    Logger.getInstance().recordOutput("DriveToPose/targetPose", targetPose);
+    Logger.recordOutput("DriveToPose/targetPose", targetPose);
 
     this.timer.restart();
   }
@@ -153,7 +153,6 @@ public class DriveToPose extends CommandBase {
     // the PID controllers. This is important since these controllers will return true for atGoal if
     // the calculate method has not yet been invoked.
     running = true;
-
 
     // Update from tunable numbers
     if (driveKp.hasChanged()
@@ -212,9 +211,9 @@ public class DriveToPose extends CommandBase {
    */
   @Override
   public boolean isFinished() {
-    Logger.getInstance().recordOutput("DriveToPose/xErr", xController.atGoal());
-    Logger.getInstance().recordOutput("DriveToPose/yErr", yController.atGoal());
-    Logger.getInstance().recordOutput("DriveToPose/tErr", thetaController.atGoal());
+    Logger.recordOutput("DriveToPose/xErr", xController.atGoal());
+    Logger.recordOutput("DriveToPose/yErr", yController.atGoal());
+    Logger.recordOutput("DriveToPose/tErr", thetaController.atGoal());
 
     // check that running is true (i.e., the calculate method has been invoked on the PID
     // controllers) and that each of the controllers is at their goal. This is important since these
@@ -234,6 +233,6 @@ public class DriveToPose extends CommandBase {
   public void end(boolean interrupted) {
     drivetrain.stop();
     running = false;
-    Logger.getInstance().recordOutput("ActiveCommands/DriveToPose", false);
+    Logger.recordOutput("ActiveCommands/DriveToPose", false);
   }
 }

@@ -1,19 +1,19 @@
 package frc.lib.team3061.vision;
 
-import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFieldLayout.OriginPosition;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.DoubleArraySubscriber;
 import edu.wpi.first.networktables.NetworkTableEvent;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import java.util.EnumSet;
 import java.util.function.Supplier;
 import org.photonvision.PhotonCamera;
-import org.photonvision.SimVisionSystem;
-import org.photonvision.SimVisionTarget;
+import org.photonvision.simulation.PhotonCameraSim;
+import org.photonvision.simulation.SimCameraProperties;
+import org.photonvision.simulation.VisionSystemSim;
 import org.photonvision.targeting.PhotonPipelineResult;
 
 /**
@@ -33,7 +33,8 @@ public class VisionIOSim implements VisionIO {
   private PhotonPipelineResult lastResult = new PhotonPipelineResult();
 
   private Supplier<Pose2d> poseSupplier;
-  private SimVisionSystem simVision;
+  private VisionSystemSim visionSim;
+  private PhotonCameraSim cameraSim;
   private AprilTagFieldLayout layout;
 
   /**
@@ -48,17 +49,22 @@ public class VisionIOSim implements VisionIO {
     this.layout = layout;
     this.poseSupplier = poseSupplier;
 
-    this.simVision =
-        new SimVisionSystem(
-            CAMERA_NAME, DIAGONAL_FOV, robotToCamera, 9000, IMG_WIDTH, IMG_HEIGHT, 0);
+    this.visionSim = new VisionSystemSim(CAMERA_NAME);
+    this.visionSim.addAprilTags(layout);
+    SimCameraProperties cameraProp = new SimCameraProperties();
+    cameraProp.setCalibration(IMG_WIDTH, IMG_HEIGHT, Rotation2d.fromDegrees(DIAGONAL_FOV));
+    cameraProp.setCalibError(0.35, 0.10);
+    cameraProp.setFPS(15);
+    cameraProp.setAvgLatencyMs(50);
+    cameraProp.setLatencyStdDevMs(15);
+
+    this.cameraSim = new PhotonCameraSim(camera, cameraProp);
+
+    visionSim.addCamera(cameraSim, robotToCamera);
+    cameraSim.enableDrawWireframe(true);
 
     // default to the blue alliance; can be changed by invoking the setLayoutOrigin method
     layout.setOrigin(OriginPosition.kBlueAllianceWallRightSide);
-
-    for (AprilTag tag : layout.getTags()) {
-      this.simVision.addSimVisionTarget(
-          new SimVisionTarget(tag.pose, Units.inchesToMeters(6), Units.inchesToMeters(6), tag.ID));
-    }
 
     NetworkTableInstance inst = NetworkTableInstance.getDefault();
 
@@ -91,7 +97,7 @@ public class VisionIOSim implements VisionIO {
    */
   @Override
   public synchronized void updateInputs(VisionIOInputs inputs) {
-    this.simVision.processFrame(poseSupplier.get());
+    this.visionSim.update(poseSupplier.get());
     inputs.lastTimestamp = this.lastTimestamp;
     inputs.lastResult = this.lastResult;
   }
@@ -106,15 +112,7 @@ public class VisionIOSim implements VisionIO {
   public void setLayoutOrigin(OriginPosition origin) {
     layout.setOrigin(origin);
 
-    this.simVision.clearVisionTargets();
-    for (AprilTag tag : layout.getTags()) {
-      layout
-          .getTagPose(tag.ID)
-          .ifPresent(
-              pose ->
-                  this.simVision.addSimVisionTarget(
-                      new SimVisionTarget(
-                          pose, Units.inchesToMeters(6), Units.inchesToMeters(6), tag.ID)));
-    }
+    this.visionSim.clearVisionTargets();
+    this.visionSim.addAprilTags(layout);
   }
 }
