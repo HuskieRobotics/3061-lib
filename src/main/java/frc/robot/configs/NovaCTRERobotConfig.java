@@ -75,9 +75,9 @@ public class NovaCTRERobotConfig extends RobotConfig {
 
   private static final String CAN_BUS_NAME = "canbus1";
 
-  private static final String CAMERA_NAME_0 = "OV9281";
+  private static final String CAMERA_NAME_0 = "OV2311";
 
-  private static final String CAMERA_NAME_1 = "OV9281R";
+  private static final String CAMERA_NAME_1 = "OV2311R";
 
   private static final Transform3d ROBOT_TO_CAMERA_0 =
       new Transform3d(
