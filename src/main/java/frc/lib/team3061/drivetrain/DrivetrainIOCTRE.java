@@ -174,13 +174,6 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
 
   private Translation2d centerOfRotation;
   private ChassisSpeeds targetChassisSpeeds;
-  private SwerveModuleState[] swerveReferenceStates =
-      new SwerveModuleState[] {
-        new SwerveModuleState(),
-        new SwerveModuleState(),
-        new SwerveModuleState(),
-        new SwerveModuleState()
-      };
 
   private SwerveRequest.RobotCentric driveRobotCentricRequest = new SwerveRequest.RobotCentric();
   private SwerveRequest.FieldCentric driveFieldCentricRequest = new SwerveRequest.FieldCentric();
@@ -266,7 +259,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     Logger.recordOutput("Drivetrain/swerveInputsTime", Logger.getRealTimestamp() - timestamp);
 
     inputs.drivetrain.swerveMeasuredStates = this.getState().ModuleStates;
-    inputs.drivetrain.swerveReferenceStates = swerveReferenceStates;
+    inputs.drivetrain.swerveReferenceStates = this.getState().ModuleTargets;
 
     timestamp = Logger.getRealTimestamp();
 
