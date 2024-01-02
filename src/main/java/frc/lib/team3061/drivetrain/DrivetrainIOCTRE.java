@@ -266,7 +266,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     Logger.recordOutput("Drivetrain/swerveInputsTime", Logger.getRealTimestamp() - timestamp);
 
     inputs.drivetrain.swerveMeasuredStates = this.getState().ModuleStates;
-    inputs.drivetrain.swerveReferenceStates = swerveReferenceStates;
+    inputs.drivetrain.swerveReferenceStates = this.getState().ModuleTargets;
 
     timestamp = Logger.getRealTimestamp();
 
