@@ -10,6 +10,7 @@ import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
@@ -100,7 +101,7 @@ public class RobotContainer {
           }
         case ROBOT_SIMBOT_CTRE:
           {
-            createCTRESimSubsystems();
+            createCTRESubsystems();
 
             break;
           }
@@ -155,9 +156,16 @@ public class RobotContainer {
     drivetrain = new Drivetrain(drivetrainIO);
 
     String[] cameraNames = config.getCameraNames();
+    Transform3d[] robotToCameraTransforms = config.getRobotToCameraTransforms();
     VisionIO[] visionIOs = new VisionIO[cameraNames.length];
+    AprilTagFieldLayout layout;
+    try {
+      layout = new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
+    } catch (IOException e) {
+      layout = new AprilTagFieldLayout(new ArrayList<>(), 16.4592, 8.2296);
+    }
     for (int i = 0; i < visionIOs.length; i++) {
-      visionIOs[i] = new VisionIOPhotonVision(cameraNames[i]);
+      visionIOs[i] = new VisionIOPhotonVision(cameraNames[i], layout, robotToCameraTransforms[i]);
     }
     vision = new Vision(visionIOs);
 
@@ -215,9 +223,16 @@ public class RobotContainer {
               });
     } else {
       String[] cameraNames = config.getCameraNames();
+      Transform3d[] robotToCameraTransforms = config.getRobotToCameraTransforms();
       VisionIO[] visionIOs = new VisionIO[cameraNames.length];
+      AprilTagFieldLayout layout;
+      try {
+        layout = new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
+      } catch (IOException e) {
+        layout = new AprilTagFieldLayout(new ArrayList<>(), 16.4592, 8.2296);
+      }
       for (int i = 0; i < visionIOs.length; i++) {
-        visionIOs[i] = new VisionIOPhotonVision(cameraNames[i]);
+        visionIOs[i] = new VisionIOPhotonVision(cameraNames[i], layout, robotToCameraTransforms[i]);
       }
       vision = new Vision(visionIOs);
     }

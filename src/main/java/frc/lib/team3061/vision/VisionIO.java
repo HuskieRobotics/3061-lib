@@ -1,13 +1,8 @@
 package frc.lib.team3061.vision;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout.OriginPosition;
-import java.util.ArrayList;
-import java.util.List;
-import org.littletonrobotics.junction.LogTable;
-import org.littletonrobotics.junction.inputs.LoggableInputs;
-import org.photonvision.common.dataflow.structures.Packet;
-import org.photonvision.targeting.PhotonPipelineResult;
-import org.photonvision.targeting.PhotonTrackedTarget;
+import edu.wpi.first.math.geometry.Pose3d;
+import org.littletonrobotics.junction.AutoLog;
 
 /**
  * The hardware abstraction interface for a PhotonVision-based co-processor that provides
@@ -18,35 +13,12 @@ import org.photonvision.targeting.PhotonTrackedTarget;
  * Currently, the abstraction is used to simulate vision.
  */
 public interface VisionIO {
-  public static class VisionIOInputs implements LoggableInputs {
-    PhotonPipelineResult lastResult = new PhotonPipelineResult(0, new ArrayList<>());
-    double lastTimestamp = 0.0;
-
-    public void toLog(LogTable table) {
-      // since AdvantageKit doesn't support the PhotonPipelineResult type, log it as a byte array
-      byte[] photonPacketBytes = new byte[lastResult.getPacketSize()];
-      lastResult.populatePacket(new Packet(photonPacketBytes));
-      table.put("photonPacketBytes", photonPacketBytes);
-
-      table.put("lastTimestamp", lastTimestamp);
-
-      // log targets in a human-readable way
-      List<PhotonTrackedTarget> targets = lastResult.getTargets();
-      String[] stringifiedTargets = new String[targets.size()];
-
-      for (int i = 0; i < targets.size(); i++) {
-        stringifiedTargets[i] = targets.get(i).toString();
-      }
-      table.put("stringifiedTargets", stringifiedTargets);
-    }
-
-    public void fromLog(LogTable table) {
-      byte[] photonPacketBytes = table.get("photonPacketBytes", new byte[0]);
-      lastResult = new PhotonPipelineResult();
-      lastResult.createFromPacket(new Packet(photonPacketBytes));
-
-      lastTimestamp = table.get("lastTimestamp", 0.0);
-    }
+  @AutoLog
+  public static class VisionIOInputs {
+    Pose3d estimatedRobotPose = new Pose3d();
+    double estimatedRobotPoseTimestamp = 0.0;
+    int[] estimatedRobotPoseTags = new int[] {};
+    double lastCameraTimestamp = 0.0;
   }
 
   /**
