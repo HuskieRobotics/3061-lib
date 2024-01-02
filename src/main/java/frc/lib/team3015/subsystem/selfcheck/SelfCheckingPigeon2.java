@@ -53,7 +53,7 @@ public class SelfCheckingPigeon2 implements SelfChecking {
           new SubsystemFault(
               String.format("[%s]: Motion stack loop time was slower than expected", label)));
     }
-    if (pigeon.getFault_SaturatedAccelometer().getValue() == Boolean.TRUE) {
+    if (pigeon.getFault_SaturatedAccelerometer().getValue() == Boolean.TRUE) {
       faults.add(
           new SubsystemFault(String.format("[%s]: Accelerometer values are saturated", label)));
     }
