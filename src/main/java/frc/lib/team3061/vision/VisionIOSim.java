@@ -1,5 +1,6 @@
 package frc.lib.team3061.vision;
 
+import com.ctre.phoenix6.Utils;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFieldLayout.OriginPosition;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -86,6 +87,9 @@ public class VisionIOSim implements VisionIO {
           estimate -> {
             inputs.estimatedRobotPose = estimate.estimatedPose;
             inputs.estimatedRobotPoseTimestamp = estimate.timestampSeconds;
+            inputs.estimatedRobotPoseCTRETimestamp =
+                Utils.getCurrentTimeSeconds()
+                    - camera.getLatestResult().getLatencyMillis() / 1000.0;
             int[] tags = new int[estimate.targetsUsed.size()];
             for (int i = 0; i < estimate.targetsUsed.size(); i++) {
               tags[i] = estimate.targetsUsed.get(i).getFiducialId();
