@@ -327,8 +327,7 @@ public class NovaCTRERobotConfig extends RobotConfig {
 
   @Override
   public String[] getCameraNames() {
-    // FIXME: enable the second camera
-    return new String[] {CAMERA_NAME_0};
+    return new String[] {CAMERA_NAME_0, CAMERA_NAME_1};
   }
 
   @Override
