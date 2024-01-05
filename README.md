@@ -95,7 +95,7 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
         * using Shuffleboard or AdvantageScope, increase the value of the Drivetrain/steerCurrent value until the swerve modules start to rotate; set ```ANGLE_KS``` to this value
         * using AdvantageScope, create a Line Graph and plot the acceleration of each steer motor
         * set the value of Drivetrain/steerCurrent to 10 A
-        * inspect the portion of the graph where the acceleration is constant (before the motor reached free speed); set ```ANGLE_KA``` to the average of the values from each steer motor
+        * inspect the portion of the graph where the acceleration is constant (before the motor reached free speed); set ```ANGLE_KA``` to 10 minus ```ANGLE_KS``` divided by the average of the values from each steer motor
         * set ```TESTING``` in DrivetrainConstants.java back to false
         * verify kA by using VelocityTorqueCurrentFOC in Tuner X and commanding an acceleration (and a velocity if you want kS in circuit) (while you're far enough from free speed, the acceleration signal should closely match the requested acceleration)
     * Drive characterization values (```DRIVE_KS```, ```DRIVE_KV```, ```DRIVE_KA```) in in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
@@ -105,7 +105,7 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
         * using Shuffleboard or AdvantageScope, increase the value of the Drivetrain/driveCurrent value until the wheels start to rotate; set ```DRIVE_KS``` to this value
         * using AdvantageScope, create a Line Graph and plot the acceleration of each drive motor
         * set the value of Drivetrain/driveCurrent to 40 A
-        * inspect the portion of the graph where the acceleration is constant (before the motor reached free speed); set ```DRIVE_KA``` to the average of the values from each drive motor
+        * inspect the portion of the graph where the acceleration is constant (before the motor reached free speed); set ```DRIVE_KA``` to 40 minus ```DRIVE_KS``` divided by the average of the values from each drive motor
         * set ```TESTING``` in DrivetrainConstants.java back to false
         * verify kA by using VelocityTorqueCurrentFOC in Tuner X and commanding an acceleration (and a velocity if you want kS in circuit) (while you're far enough from free speed, the acceleration signal should closely match the requested acceleration)
 * Angle Motor PID Values (```ANGLE_KP```, ```ANGLE_KI```, ```ANGLE_KD```) in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
