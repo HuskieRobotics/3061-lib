@@ -211,7 +211,12 @@ public class LEDs extends SubsystemBase {
     } else if (fallen) {
       strobe(Section.FULL, Color.kWhite, STROBE_FAST_DURATION);
     } else if (DriverStation.isAutonomous()) {
-      wave(Section.FULL, Color.kOrangeRed, Color.kDarkBlue, WAVE_FAST_CYCLE_LENGTH, WAVE_FAST_DURATION);
+      wave(
+          Section.FULL,
+          Color.kOrangeRed,
+          Color.kDarkBlue,
+          WAVE_FAST_CYCLE_LENGTH,
+          WAVE_FAST_DURATION);
       if (autoFinished) {
         double fullTime = LENGTH / WAVE_FAST_CYCLE_LENGTH * WAVE_FAST_DURATION;
         solid((Timer.getFPGATimestamp() - autoFinishedTime) / fullTime, Color.kGreen);
@@ -257,7 +262,11 @@ public class LEDs extends SubsystemBase {
 
   private void updateLEDs() {
     for (int i = 0; i < LENGTH; i++) {
-      candle.setLEDs(ledBuffer[i].red, ledBuffer[i].green, ledBuffer[i].blue, 0, i, 1);
+      int count = 1;
+      while (i + count <= LENGTH && ledBuffer[i] == ledBuffer[i + count]) {
+        count++;
+      }
+      candle.setLEDs(ledBuffer[i].red, ledBuffer[i].green, ledBuffer[i].blue, 0, i, count);
     }
   }
 
