@@ -628,4 +628,8 @@ public abstract class RobotConfig {
   public double getOdometryUpdateFrequency() {
     return 250.0;
   }
+
+  public int getLEDCount() {
+    return 0;
+  }
 }

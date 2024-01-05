@@ -115,6 +115,8 @@ public class NovaCTRERobotConfig extends RobotConfig {
 
   private static final double SQUARING_SPEED_METERS_PER_SECOND = 1.0;
 
+  private static final int LED_COUNT = 200;
+
   @Override
   public boolean getPhoenix6Licensed() {
     return true;
@@ -395,5 +397,10 @@ public class NovaCTRERobotConfig extends RobotConfig {
   @Override
   public double getMoveToPathFinalVelocity() {
     return SQUARING_SPEED_METERS_PER_SECOND;
+  }
+
+  @Override
+  public int getLEDCount() {
+    return LED_COUNT;
   }
 }

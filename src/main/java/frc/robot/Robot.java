@@ -99,6 +99,8 @@ public class Robot extends LoggedRobot {
     // Start logging! No more data receivers, replay sources, or metadata values may be added.
     Logger.start();
 
+    System.out.println("RobotInit");
+
     // Alternative logging of scheduled commands
     CommandScheduler.getInstance()
         .onCommandInitialize(
