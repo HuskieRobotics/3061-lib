@@ -396,4 +396,9 @@ public class NovaCTRERobotConfig extends RobotConfig {
   public double getMoveToPathFinalVelocity() {
     return SQUARING_SPEED_METERS_PER_SECOND;
   }
+
+  @Override
+  public SWERVE_CONTROL_MODE getSwerveControlMode() {
+    return SWERVE_CONTROL_MODE.TORQUE_CURRENT_FOC;
+  }
 }
