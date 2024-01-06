@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.team3061.RobotConfig;
 import java.util.List;
 
+@java.lang.SuppressWarnings({"java:S6548"})
 public class LEDs extends SubsystemBase {
 
   private static LEDs instance;
@@ -41,6 +42,7 @@ public class LEDs extends SubsystemBase {
   private boolean autoFinished = false;
   private double autoFinishedTime = 0.0;
   private boolean lowBatteryAlert = false;
+  private boolean demoMode = false;
 
   private Alliance alliance = Alliance.Blue;
   private boolean lastEnabledAuto = false;
@@ -56,7 +58,7 @@ public class LEDs extends SubsystemBase {
   private static final int LENGTH = RobotConfig.getInstance().getLEDCount();
   private static final int STATIC_LENGTH = RobotConfig.getInstance().getLEDCount() / 2;
   private static final int STATIC_SECTION_LENGTH = STATIC_LENGTH / 3;
-  private static final boolean PRIDE_LEDS = true;
+  private static final boolean PRIDE_LEDS = false;
   private static final int MIN_LOOP_CYCLE_COUNT = 10;
   private static final double STROBE_FAST_DURATION = 0.1;
   private static final double STROBE_SLOW_DURATION = 0.2;
@@ -201,7 +203,7 @@ public class LEDs extends SubsystemBase {
           default:
             wave(
                 Section.FULL,
-                Color.kGold,
+                Color.kDarkOrange,
                 Color.kDarkBlue,
                 WAVE_SLOW_CYCLE_LENGTH,
                 WAVE_SLOW_DURATION);
@@ -213,7 +215,7 @@ public class LEDs extends SubsystemBase {
     } else if (DriverStation.isAutonomous()) {
       wave(
           Section.FULL,
-          Color.kOrangeRed,
+          Color.kDarkOrange,
           Color.kDarkBlue,
           WAVE_FAST_CYCLE_LENGTH,
           WAVE_FAST_DURATION);
@@ -226,6 +228,17 @@ public class LEDs extends SubsystemBase {
       // FIXME: add other patterns here based specific to the game
 
       // Set special modes
+
+      // Demo mode background
+      if (demoMode) {
+        wave(
+            Section.FULL,
+            Color.kDarkOrange,
+            Color.kDarkBlue,
+            WAVE_SLOW_CYCLE_LENGTH,
+            WAVE_SLOW_DURATION);
+      }
+
       if (distraction) {
         strobe(Section.SHOULDER, Color.kWhite, STROBE_FAST_DURATION);
       } else if (endgameAlert) {
@@ -260,6 +273,10 @@ public class LEDs extends SubsystemBase {
     this.lowBatteryAlert = lowBatteryAlert;
   }
 
+  public void setDemoMode(boolean demoMode) {
+    this.demoMode = demoMode;
+  }
+
   private void updateLEDs() {
     for (int i = 0; i < LENGTH; i++) {
       int count = 1;
@@ -271,14 +288,18 @@ public class LEDs extends SubsystemBase {
   }
 
   private void solid(Section section, Color color) {
-    for (int i = section.start(); i < section.end(); i++) {
-      ledBuffer[i] = convertTo8BitColor(color);
+    if (color != null) {
+      for (int i = section.start(); i < section.end(); i++) {
+        ledBuffer[i] = convertTo8BitColor(color);
+      }
     }
   }
 
   private void solid(double percent, Color color) {
-    for (int i = 0; i < MathUtil.clamp(LENGTH * percent, 0, LENGTH); i++) {
-      ledBuffer[i] = convertTo8BitColor(color);
+    if (color != null) {
+      for (int i = 0; i < MathUtil.clamp(LENGTH * percent, 0, LENGTH); i++) {
+        ledBuffer[i] = convertTo8BitColor(color);
+      }
     }
   }
 
