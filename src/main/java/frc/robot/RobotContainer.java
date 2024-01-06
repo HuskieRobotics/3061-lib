@@ -353,16 +353,10 @@ public class RobotContainer {
                     && DriverStation.getMatchTime() > 0.0
                     && DriverStation.getMatchTime() <= Math.round(endgameAlert1.get()))
         .onTrue(
-            Commands.run(
-                    () -> {
-                      LEDs.getInstance().setEndgameAlert(true);
-                    })
+            Commands.run(() -> LEDs.getInstance().setEndgameAlert(true))
                 .withTimeout(1.5)
                 .andThen(
-                    Commands.run(
-                            () -> {
-                              LEDs.getInstance().setEndgameAlert(false);
-                            })
+                    Commands.run(() -> LEDs.getInstance().setEndgameAlert(false))
                         .withTimeout(1.0)));
     new Trigger(
             () ->
@@ -371,26 +365,10 @@ public class RobotContainer {
                     && DriverStation.getMatchTime() <= Math.round(endgameAlert2.get()))
         .onTrue(
             Commands.sequence(
-                Commands.run(
-                        () -> {
-                          LEDs.getInstance().setEndgameAlert(true);
-                        })
-                    .withTimeout(0.5),
-                Commands.run(
-                        () -> {
-                          LEDs.getInstance().setEndgameAlert(false);
-                        })
-                    .withTimeout(0.5),
-                Commands.run(
-                        () -> {
-                          LEDs.getInstance().setEndgameAlert(true);
-                        })
-                    .withTimeout(0.5),
-                Commands.run(
-                        () -> {
-                          LEDs.getInstance().setEndgameAlert(false);
-                        })
-                    .withTimeout(1.0)));
+                Commands.run(() -> LEDs.getInstance().setEndgameAlert(true)).withTimeout(0.5),
+                Commands.run(() -> LEDs.getInstance().setEndgameAlert(false)).withTimeout(0.5),
+                Commands.run(() -> LEDs.getInstance().setEndgameAlert(true)).withTimeout(0.5),
+                Commands.run(() -> LEDs.getInstance().setEndgameAlert(false)).withTimeout(1.0)));
 
     // interrupt all commands by running a command that requires every subsystem. This is used to
     // recover to a known state if the robot becomes "stuck" in a command.
