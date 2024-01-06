@@ -6,10 +6,20 @@ package frc.robot;
 
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.PathPlannerLogging;
+import edu.wpi.first.hal.AllianceStationID;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.Threads;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.simulation.DriverStationSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.lib.team3061.leds.LEDs;
 import frc.lib.team6328.util.Alert;
 import frc.lib.team6328.util.Alert.AlertType;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.BiConsumer;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -23,12 +33,22 @@ import org.littletonrobotics.junction.wpilog.WPILOGWriter;
  * to leverage AdvantageKit's logging features.
  */
 public class Robot extends LoggedRobot {
+  private static final double LOW_BATTERY_VOLTAGE = 10.0;
+  private static final double LOW_BATTERY_DISABLED_TIME = 1.5;
 
-  private Command autonomousCommand;
   private RobotContainer robotContainer;
+  private Command autonomousCommand;
+  private double autoStart;
+  private boolean autoMessagePrinted;
+
+  private final Timer disabledTimer = new Timer();
 
   private final Alert logReceiverQueueAlert =
       new Alert("Logging queue exceeded capacity, data will NOT be logged.", AlertType.ERROR);
+  private final Alert lowBatteryAlert =
+      new Alert(
+          "Battery voltage is very low, consider turning off the robot or replacing the battery.",
+          AlertType.WARNING);
 
   /** Create a new Robot. */
   public Robot() {
@@ -49,6 +69,8 @@ public class Robot extends LoggedRobot {
     // (https://github.com/Mechanical-Advantage/AdvantageKit/blob/main/docs/START-LOGGING.md#robot-configuration)
 
     // Set a metadata value
+    Logger.recordMetadata("Robot", Constants.getRobot().toString());
+    Logger.recordMetadata("TuningMode", Boolean.toString(Constants.TUNING_MODE));
     Logger.recordMetadata("RuntimeType", getRuntimeType().toString());
     Logger.recordMetadata("ProjectName", BuildConstants.MAVEN_NAME);
     Logger.recordMetadata("BuildDate", BuildConstants.BUILD_DATE);
@@ -82,9 +104,6 @@ public class Robot extends LoggedRobot {
         break;
 
       case REPLAY:
-        // Run as fast as possible during replay
-        setUseTiming(false);
-
         // Prompt the user for a file path on the command line (if not open in AdvantageScope)
         String path = LogFileUtil.findReplayLog();
 
@@ -96,20 +115,36 @@ public class Robot extends LoggedRobot {
         break;
     }
 
+    // Run as fast as possible during replay
+    setUseTiming(Constants.getMode() != Constants.Mode.REPLAY);
+
     // Start logging! No more data receivers, replay sources, or metadata values may be added.
     Logger.start();
 
     System.out.println("RobotInit");
 
-    // Alternative logging of scheduled commands
+    // Log active commands
+    Map<String, Integer> commandCounts = new HashMap<>();
+    BiConsumer<Command, Boolean> logCommandFunction =
+        (Command command, Boolean active) -> {
+          String name = command.getName();
+          int count = commandCounts.getOrDefault(name, 0) + (Boolean.TRUE.equals(active) ? 1 : -1);
+          commandCounts.put(name, count);
+          Logger.recordOutput(
+              "CommandsUnique/" + name + "_" + Integer.toHexString(command.hashCode()), active);
+          Logger.recordOutput("CommandsAll/" + name, count > 0);
+        };
     CommandScheduler.getInstance()
-        .onCommandInitialize(
-            command -> Logger.recordOutput("Command initialized", command.getName()));
+        .onCommandInitialize((Command command) -> logCommandFunction.accept(command, true));
     CommandScheduler.getInstance()
-        .onCommandInterrupt(
-            command -> Logger.recordOutput("Command interrupted", command.getName()));
+        .onCommandFinish((Command command) -> logCommandFunction.accept(command, false));
     CommandScheduler.getInstance()
-        .onCommandFinish(command -> Logger.recordOutput("Command finished", command.getName()));
+        .onCommandInterrupt((Command command) -> logCommandFunction.accept(command, false));
+
+    // Default to blue alliance in sim
+    if (Constants.getMode() == Constants.Mode.SIM) {
+      DriverStationSim.setAllianceStationId(AllianceStationID.Blue1);
+    }
 
     // Logging of autonomous paths
     // Logging callback for current robot pose
@@ -124,6 +159,10 @@ public class Robot extends LoggedRobot {
     PathPlannerLogging.setLogActivePathCallback(
         poses -> Logger.recordOutput("PathFollowing/activePath", poses));
 
+    // Start timers
+    disabledTimer.reset();
+    disabledTimer.start();
+
     // Invoke the factory method to create the RobotContainer singleton.
     robotContainer = RobotContainer.getInstance();
   }
@@ -137,6 +176,8 @@ public class Robot extends LoggedRobot {
    */
   @Override
   public void robotPeriodic() {
+    Threads.setCurrentThreadPriority(true, 99);
+
     /*
      * Runs the Scheduler. This is responsible for polling buttons, adding newly-scheduled commands,
      * running already-scheduled commands, removing finished or interrupted commands, and running
@@ -146,6 +187,33 @@ public class Robot extends LoggedRobot {
     CommandScheduler.getInstance().run();
 
     logReceiverQueueAlert.set(Logger.getReceiverQueueFault());
+
+    // Update low battery alert
+    if (DriverStation.isEnabled()) {
+      disabledTimer.reset();
+    }
+    if (RobotController.getBatteryVoltage() < LOW_BATTERY_VOLTAGE
+        && disabledTimer.hasElapsed(LOW_BATTERY_DISABLED_TIME)) {
+      LEDs.getInstance().setLowBatteryAlert(true);
+      lowBatteryAlert.set(true);
+    }
+
+    // Print auto duration
+    if (autonomousCommand != null && !autonomousCommand.isScheduled() && !autoMessagePrinted) {
+      if (DriverStation.isAutonomousEnabled()) {
+        System.out.println(
+            String.format(
+                "*** Auto finished in %.2f secs ***", Timer.getFPGATimestamp() - autoStart));
+      } else {
+        System.out.println(
+            String.format(
+                "*** Auto cancelled in %.2f secs ***", Timer.getFPGATimestamp() - autoStart));
+      }
+      autoMessagePrinted = true;
+      LEDs.getInstance().setAutoFinished(true);
+    }
+
+    Threads.setCurrentThreadPriority(true, 10);
   }
 
   /** This method is invoked periodically when the robot is in the disabled state. */
@@ -168,7 +236,8 @@ public class Robot extends LoggedRobot {
     // not guaranteed to be correct until the start of autonomous
     robotContainer.checkAllianceColor();
 
-    robotContainer.autonomousInit();
+    autoStart = Timer.getFPGATimestamp();
+    autoMessagePrinted = false;
     autonomousCommand = robotContainer.getAutonomousCommand();
 
     // schedule the autonomous command
@@ -193,8 +262,6 @@ public class Robot extends LoggedRobot {
     // during a match, this would be the first opportunity to check the alliance color based on FMS
     // data.
     robotContainer.checkAllianceColor();
-
-    robotContainer.teleopInit();
   }
 
   /** This method is invoked at the start of the test period. */
