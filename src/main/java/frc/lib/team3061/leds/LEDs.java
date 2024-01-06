@@ -55,8 +55,18 @@ public class LEDs extends SubsystemBase {
   private final Notifier loadingNotifier;
 
   // Constants
-  private static final int LENGTH = RobotConfig.getInstance().getLEDCount();
-  private static final int STATIC_LENGTH = RobotConfig.getInstance().getLEDCount() / 2;
+
+  /*
+   * The LEDs are a continuous strand. However, we want to model them as two separate strands,
+   * where the start and end of the single strand is modeled as the start of each separate strand.
+   * This is handled by specifying the length as half the actual length and mirroring the buffer
+   * before updating the LEDs.
+   */
+
+  private static final boolean MIRROR_LEDS = true;
+  private static final int ACTUAL_LENGTH = RobotConfig.getInstance().getLEDCount();
+  private static final int LENGTH = MIRROR_LEDS ? ACTUAL_LENGTH / 2 : ACTUAL_LENGTH;
+  private static final int STATIC_LENGTH = LENGTH / 2;
   private static final int STATIC_SECTION_LENGTH = STATIC_LENGTH / 3;
   private static final boolean PRIDE_LEDS = false;
   private static final int MIN_LOOP_CYCLE_COUNT = 10;
@@ -76,8 +86,6 @@ public class LEDs extends SubsystemBase {
   private static final double AUTO_FADE_MAX_TIME = 5.0; // Return to normal
 
   private LEDs() {
-    System.out.println("[Init] Creating LEDs");
-
     candle = new CANdle(22, RobotConfig.getInstance().getCANBusName());
 
     CANdleConfiguration configSettings = new CANdleConfiguration();
@@ -88,8 +96,8 @@ public class LEDs extends SubsystemBase {
     configSettings.vBatOutputMode = VBatOutputMode.Modulated;
     candle.configAllSettings(configSettings, 100);
 
-    ledBuffer = new Color8Bit[LENGTH];
-    for (int i = 0; i < LENGTH; i++) {
+    ledBuffer = new Color8Bit[ACTUAL_LENGTH];
+    for (int i = 0; i < ACTUAL_LENGTH; i++) {
       ledBuffer[i] = convertTo8BitColor(Color.kBlack);
     }
 
@@ -278,9 +286,16 @@ public class LEDs extends SubsystemBase {
   }
 
   private void updateLEDs() {
-    for (int i = 0; i < LENGTH; i++) {
+    // mirror buffer
+    if (MIRROR_LEDS) {
+      for (int i = 0; i < LENGTH; i++) {
+        ledBuffer[ACTUAL_LENGTH - i - 1] = ledBuffer[i];
+      }
+    }
+
+    for (int i = 0; i < ACTUAL_LENGTH; i++) {
       int count = 1;
-      while (i + count <= LENGTH && ledBuffer[i] == ledBuffer[i + count]) {
+      while (i + count < ACTUAL_LENGTH && ledBuffer[i] == ledBuffer[i + count]) {
         count++;
       }
       candle.setLEDs(ledBuffer[i].red, ledBuffer[i].green, ledBuffer[i].blue, 0, i, count);
