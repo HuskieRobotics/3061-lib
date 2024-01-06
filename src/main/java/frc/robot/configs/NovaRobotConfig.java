@@ -395,6 +395,11 @@ public class NovaRobotConfig extends RobotConfig {
   }
 
   @Override
+  public LED_HARDWARE getLEDHardware() {
+    return LED_HARDWARE.CANDLE;
+  }
+
+  @Override
   public int getLEDCount() {
     return LED_COUNT;
   }

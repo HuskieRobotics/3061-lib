@@ -625,11 +625,36 @@ public abstract class RobotConfig {
     return 0;
   }
 
+  /**
+   * Returns the frequency at which the robot's odometry will be updated. Defaults to 250 Hz. This
+   * value needs to match the hardware-specific Drivetrain code. For the DrivetrainIOCTRE class, the
+   * value is 250 Hz; the DrivetrainIOGeneric class, 50 Hz.
+   *
+   * @return the frequency at which the robot's odometry will be updated
+   */
   public double getOdometryUpdateFrequency() {
     return 250.0;
   }
 
+  /**
+   * Returns the hardware driving the LEDs. Defaults to RIO for using the roboRIO and WPILib's
+   * AddressableLED class.
+   */
+  public LED_HARDWARE getLEDHardware() {
+    return LED_HARDWARE.RIO;
+  }
+
+  /**
+   * Returns the number of LEDs in the LED strip on the robot. Defaults to 0.
+   *
+   * @return the number of LEDs in the LED strip on the robot
+   */
   public int getLEDCount() {
     return 0;
+  }
+
+  public enum LED_HARDWARE {
+    RIO,
+    CANDLE
   }
 }

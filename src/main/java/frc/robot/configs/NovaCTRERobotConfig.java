@@ -400,6 +400,16 @@ public class NovaCTRERobotConfig extends RobotConfig {
   }
 
   @Override
+  public double getOdometryUpdateFrequency() {
+    return 250.0;
+  }
+
+  @Override
+  public LED_HARDWARE getLEDHardware() {
+    return LED_HARDWARE.CANDLE;
+  }
+
+  @Override
   public int getLEDCount() {
     return LED_COUNT;
   }
