@@ -1,9 +1,13 @@
 package frc.lib.team3061.vision;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFieldLayout.OriginPosition;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import frc.lib.team6328.util.Alert;
 import frc.lib.team6328.util.Alert.AlertType;
+import frc.lib.team6328.util.FieldConstants;
 import java.util.Optional;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
@@ -22,6 +26,7 @@ public class VisionIOPhotonVision implements VisionIO {
   private final PhotonCamera camera;
   private final PhotonPoseEstimator photonEstimator;
   private double lastTimestamp = 0;
+  private OriginPosition origin = OriginPosition.kBlueAllianceWallRightSide;
 
   /**
    * Creates a new VisionIOPhotonVision object.
@@ -50,7 +55,7 @@ public class VisionIOPhotonVision implements VisionIO {
     if (newResult) {
       visionEstimate.ifPresent(
           estimate -> {
-            inputs.estimatedRobotPose = estimate.estimatedPose;
+            inputs.estimatedRobotPose = transformForOrigin(estimate.estimatedPose, this.origin);
             inputs.estimatedRobotPoseTimestamp = estimate.timestampSeconds;
             int[] tags = new int[estimate.targetsUsed.size()];
             for (int i = 0; i < estimate.targetsUsed.size(); i++) {
@@ -63,5 +68,27 @@ public class VisionIOPhotonVision implements VisionIO {
     }
 
     noCameraConnectedAlert.set(!camera.isConnected());
+  }
+
+  /**
+   * Sets the origin position of the AprilTag field layout.
+   *
+   * @param origin the origin position of the AprilTag field layout
+   */
+  @Override
+  public void setLayoutOrigin(OriginPosition origin) {
+    this.origin = origin;
+  }
+
+  private static Pose3d transformForOrigin(Pose3d pose, OriginPosition origin) {
+    if (origin == OriginPosition.kRedAllianceWallRightSide) {
+      return new Pose3d(
+          FieldConstants.fieldLength - pose.getTranslation().getX(),
+          FieldConstants.fieldWidth - pose.getTranslation().getY(),
+          pose.getTranslation().getZ(),
+          pose.getRotation().rotateBy(new Rotation3d(0, 0, Math.PI)));
+    } else {
+      return pose;
+    }
   }
 }
