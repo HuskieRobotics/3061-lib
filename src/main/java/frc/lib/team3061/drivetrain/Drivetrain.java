@@ -384,7 +384,7 @@ public class Drivetrain extends SubsystemBase {
 
     // when testing, set the drive motor current or the steer motor current based on the Tunables
     // (if non-zero)
-    if (TESTING) {
+    //if (TESTING) {
       if (driveCurrent.get() != 0) {
         this.io.setDriveMotorCurrent(driveCurrent.get());
       }
@@ -392,7 +392,7 @@ public class Drivetrain extends SubsystemBase {
       if (steerCurrent.get() != 0) {
         this.io.setSteerMotorCurrent(steerCurrent.get());
       }
-    }
+   // }
 
     this.io.updateInputs(this.inputs);
     Logger.processInputs(SUBSYSTEM_NAME, this.inputs.drivetrain);
