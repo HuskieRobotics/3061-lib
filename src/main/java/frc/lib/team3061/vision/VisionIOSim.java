@@ -5,16 +5,15 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout.OriginPosition;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.networktables.DoubleArraySubscriber;
-import edu.wpi.first.networktables.NetworkTableEvent;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import java.util.EnumSet;
+import java.util.Optional;
 import java.util.function.Supplier;
+import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
+import org.photonvision.PhotonPoseEstimator;
+import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.SimCameraProperties;
 import org.photonvision.simulation.VisionSystemSim;
-import org.photonvision.targeting.PhotonPipelineResult;
 
 /**
  * PhotonVision-compatible simulated implementation of the VisionIO interface. Only a single
@@ -26,11 +25,10 @@ public class VisionIOSim implements VisionIO {
   private static final String CAMERA_NAME = "simCamera";
   private static final double DIAGONAL_FOV = 160; // FOV in degrees
   private static final int IMG_WIDTH = 1280; // image width in px
-  private static final int IMG_HEIGHT = 720; // image heigh in px
+  private static final int IMG_HEIGHT = 960; // image heigh in px
   private final PhotonCamera camera = new PhotonCamera(CAMERA_NAME);
-
+  private final PhotonPoseEstimator photonEstimator;
   private double lastTimestamp = 0;
-  private PhotonPipelineResult lastResult = new PhotonPipelineResult();
 
   private Supplier<Pose2d> poseSupplier;
   private VisionSystemSim visionSim;
@@ -46,6 +44,9 @@ public class VisionIOSim implements VisionIO {
    */
   public VisionIOSim(
       AprilTagFieldLayout layout, Supplier<Pose2d> poseSupplier, Transform3d robotToCamera) {
+    this.photonEstimator =
+        new PhotonPoseEstimator(
+            layout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, camera, robotToCamera);
     this.layout = layout;
     this.poseSupplier = poseSupplier;
 
@@ -65,29 +66,6 @@ public class VisionIOSim implements VisionIO {
 
     // default to the blue alliance; can be changed by invoking the setLayoutOrigin method
     layout.setOrigin(OriginPosition.kBlueAllianceWallRightSide);
-
-    NetworkTableInstance inst = NetworkTableInstance.getDefault();
-
-    /*
-     * based on https://docs.wpilib.org/en/latest/docs/software/networktables/listening-for-change.html#listening-for-changes
-     * and https://github.com/Mechanical-Advantage/RobotCode2022/blob/main/src/main/java/frc/robot/subsystems/vision/VisionIOPhotonVision.java
-     */
-    DoubleArraySubscriber targetPoseSub =
-        inst.getTable("/photonvision/" + CAMERA_NAME)
-            .getDoubleArrayTopic("targetPose")
-            .subscribe(new double[0]);
-
-    inst.addListener(
-        targetPoseSub,
-        EnumSet.of(NetworkTableEvent.Kind.kValueAll),
-        event -> {
-          PhotonPipelineResult result = camera.getLatestResult();
-          double timestamp = result.getTimestampSeconds();
-          synchronized (VisionIOSim.this) {
-            lastTimestamp = timestamp;
-            lastResult = result;
-          }
-        });
   }
 
   /**
@@ -98,8 +76,25 @@ public class VisionIOSim implements VisionIO {
   @Override
   public synchronized void updateInputs(VisionIOInputs inputs) {
     this.visionSim.update(poseSupplier.get());
-    inputs.lastTimestamp = this.lastTimestamp;
-    inputs.lastResult = this.lastResult;
+
+    Optional<EstimatedRobotPose> visionEstimate = this.photonEstimator.update();
+    double latestTimestamp = camera.getLatestResult().getTimestampSeconds();
+
+    boolean newResult = Math.abs(latestTimestamp - lastTimestamp) > 1e-5;
+    if (newResult) {
+      visionEstimate.ifPresent(
+          estimate -> {
+            inputs.estimatedRobotPose = estimate.estimatedPose;
+            inputs.estimatedRobotPoseTimestamp = estimate.timestampSeconds;
+            int[] tags = new int[estimate.targetsUsed.size()];
+            for (int i = 0; i < estimate.targetsUsed.size(); i++) {
+              tags[i] = estimate.targetsUsed.get(i).getFiducialId();
+            }
+            inputs.estimatedRobotPoseTags = tags;
+            inputs.lastCameraTimestamp = latestTimestamp;
+            lastTimestamp = latestTimestamp;
+          });
+    }
   }
 
   /**
