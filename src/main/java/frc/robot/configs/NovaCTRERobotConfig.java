@@ -43,26 +43,25 @@ public class NovaCTRERobotConfig extends RobotConfig {
   private static final double ROBOT_LENGTH_WITH_BUMPERS = 0.8382; // meters // 33 in
 
   /* Angle Motor PID Values */
-  private static final double ANGLE_KP = 100.0;
+  private static final double ANGLE_KP = 0.0;
   private static final double ANGLE_KI = 0.0;
-  private static final double ANGLE_KD = 0.05;
+  private static final double ANGLE_KD = 0.0;
 
-  private static final double ANGLE_KS = 0.1891233333;
-  private static final double ANGLE_KV =
-      0.4399866667 * 2 * Math.PI; // convert from V/(radians/s) to V/(rotations/s)
-  private static final double ANGLE_KA = 0.001663333333;
+  private static final double ANGLE_KS = 9.0;
+  private static final double ANGLE_KV = 0.0;
+  private static final double ANGLE_KA = 0.0;
 
   /* Drive Motor PID Values */
-  private static final double DRIVE_KP = 0.2;
+  private static final double DRIVE_KP = 0.0;
   private static final double DRIVE_KI = 0.0;
   private static final double DRIVE_KD = 0.0;
 
-  private static final double DRIVE_KS = 0.4004375;
-  private static final double DRIVE_KV =
-      2.7637325
+  private static final double DRIVE_KS = 5.0;
+  private static final double DRIVE_KV = 0.0;
+  private static final double DRIVE_KA =
+      0.0139575
           * MK4I_L2_DRIVE_GEAR_RATIO
-          / MK4I_L2_WHEEL_CIRCUMFERENCE; // convert from V/(m/s) to V/(rotations/s)
-  private static final double DRIVE_KA = 0.0139575;
+          / MK4I_L2_WHEEL_CIRCUMFERENCE; // convert from A/(m/s/s) to A/(rotations/s/s)
 
   private static final SwerveType SWERVE_TYPE = SwerveType.MK4I;
 
