@@ -146,6 +146,7 @@ public class Drivetrain extends SubsystemBase {
             new ReplanningConfig() // Default path replanning config. See the API for the options
             // here
             ),
+        () -> false,
         this // Reference to this subsystem to set requirements
         );
   }
