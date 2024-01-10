@@ -41,13 +41,13 @@ public class NovaCTRERobotConfig extends RobotConfig {
   private static final double ROBOT_LENGTH_WITH_BUMPERS = 0.8382; // meters // 33 in
 
   /* Angle Motor PID Values */
-  private static final double ANGLE_KP = 0.0;
+  private static final double ANGLE_KP = 10.0;
   private static final double ANGLE_KI = 0.0;
   private static final double ANGLE_KD = 0.0;
 
-  private static final double ANGLE_KS = 9.0;
+  private static final double ANGLE_KS = 6.0;
   private static final double ANGLE_KV = 0.0;
-  private static final double ANGLE_KA = 1.0;
+  private static final double ANGLE_KA = 0.7;
 
   /* Drive Motor PID Values */
   private static final double DRIVE_KP = 0.0;
