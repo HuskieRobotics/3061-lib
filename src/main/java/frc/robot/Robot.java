@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import com.ctre.phoenix6.SignalLogger;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -75,6 +76,9 @@ public class Robot extends LoggedRobot {
         Logger.addDataReceiver(new NT4Publisher());
 
         LoggedPowerDistribution.getInstance();
+
+        SignalLogger.setPath("/media/sda1");
+        SignalLogger.start();
         break;
 
       case SIM:
