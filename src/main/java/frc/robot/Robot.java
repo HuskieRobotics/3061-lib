@@ -4,8 +4,10 @@
 
 package frc.robot;
 
+import com.ctre.phoenix6.SignalLogger;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.PathPlannerLogging;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.lib.team6328.util.Alert;
@@ -75,6 +77,9 @@ public class Robot extends LoggedRobot {
         Logger.addDataReceiver(new NT4Publisher());
 
         LoggedPowerDistribution.getInstance();
+
+        SignalLogger.setPath("/media/sda1");
+        SignalLogger.start();
         break;
 
       case SIM:
@@ -120,7 +125,7 @@ public class Robot extends LoggedRobot {
 
     // Logging callback for the active path, this is sent as a list of poses
     PathPlannerLogging.setLogActivePathCallback(
-        poses -> Logger.recordOutput("PathFollowing/activePath", poses));
+        poses -> Logger.recordOutput("PathFollowing/activePath", poses.toArray(new Pose2d[0])));
 
     // Invoke the factory method to create the RobotContainer singleton.
     robotContainer = RobotContainer.getInstance();
