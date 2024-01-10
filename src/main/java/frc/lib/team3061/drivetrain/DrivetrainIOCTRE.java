@@ -193,8 +193,8 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
       new SwerveRequest.ApplyChassisSpeeds();
 
   // only used for TorqueCurrentFOC characterization
-  private TorqueCurrentFOC driveCurrentRequest;
-  private TorqueCurrentFOC steerCurrentRequest;
+  private TorqueCurrentFOC[] driveCurrentRequests = new TorqueCurrentFOC[4];
+  private TorqueCurrentFOC[] steerCurrentRequests = new TorqueCurrentFOC[4];
 
   /**
    * Creates a new Drivetrain subsystem.
@@ -254,8 +254,10 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     // specify that we will be using CTRE's custom odometry instead of 3061 lib's default
     RobotOdometry.getInstance().setCustomOdometry(this);
 
-    this.driveCurrentRequest = new TorqueCurrentFOC(0.0);
-    this.steerCurrentRequest = new TorqueCurrentFOC(0.0);
+    for (int i = 0; i < driveCurrentRequests.length; i++) {
+      this.driveCurrentRequests[i] = new TorqueCurrentFOC(0.0);
+      this.steerCurrentRequests[i] = new TorqueCurrentFOC(0.0);
+    }
   }
 
   @Override
@@ -551,8 +553,8 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     // ensure that the SwerveDrivetrain class doesn't control either motor
     this.setControl(idleRequest);
 
-    for (SwerveModule swerveModule : this.Modules) {
-      swerveModule.getDriveMotor().setControl(driveCurrentRequest.withOutput(amps));
+    for (int i = 0; i < this.Modules.length; i++) {
+      this.Modules[i].getDriveMotor().setControl(driveCurrentRequests[i].withOutput(amps));
     }
   }
 
@@ -561,8 +563,8 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     // ensure that the SwerveDrivetrain class doesn't control either motor
     this.setControl(idleRequest);
 
-    for (SwerveModule swerveModule : this.Modules) {
-      swerveModule.getSteerMotor().setControl(steerCurrentRequest.withOutput(amps));
+    for (int i = 0; i < this.Modules.length; i++) {
+      this.Modules[i].getSteerMotor().setControl(steerCurrentRequests[i].withOutput(amps));
     }
   }
 

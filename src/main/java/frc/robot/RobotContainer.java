@@ -165,16 +165,17 @@ public class RobotContainer {
     //   layout = new AprilTagFieldLayout(new ArrayList<>(), 16.4592, 8.2296);
     // }
     // for (int i = 0; i < visionIOs.length; i++) {
-    //   visionIOs[i] = new VisionIOPhotonVision(cameraNames[i], layout, robotToCameraTransforms[i]);
+    //   visionIOs[i] = new VisionIOPhotonVision(cameraNames[i], layout,
+    // robotToCameraTransforms[i]);
     // }
     // vision = new Vision(visionIOs);
 
     String[] cameraNames = config.getCameraNames();
-      VisionIO[] visionIOs = new VisionIO[cameraNames.length];
-      for (int i = 0; i < visionIOs.length; i++) {
-        visionIOs[i] = new VisionIO() {};
-      }
-      vision = new Vision(visionIOs);
+    VisionIO[] visionIOs = new VisionIO[cameraNames.length];
+    for (int i = 0; i < visionIOs.length; i++) {
+      visionIOs[i] = new VisionIO() {};
+    }
+    vision = new Vision(visionIOs);
 
     // FIXME: create the hardware-specific subsystem class
     subsystem = new Subsystem(new SubsystemIO() {});

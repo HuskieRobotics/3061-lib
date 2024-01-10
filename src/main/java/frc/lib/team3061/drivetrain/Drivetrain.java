@@ -392,7 +392,7 @@ public class Drivetrain extends SubsystemBase {
       if (steerCurrent.get() != 0) {
         this.io.setSteerMotorCurrent(steerCurrent.get());
       }
-   }
+    }
 
     this.io.updateInputs(this.inputs);
     Logger.processInputs(SUBSYSTEM_NAME, this.inputs.drivetrain);
