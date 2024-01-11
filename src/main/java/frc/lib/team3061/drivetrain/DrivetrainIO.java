@@ -17,6 +17,7 @@ public interface DrivetrainIO {
     public double driveVelocityMetersPerSec = 0.0;
     public double driveVelocityReferenceMetersPerSec = 0.0;
     public double driveVelocityErrorMetersPerSec = 0.0;
+    public double driveAccelerationMetersPerSecPerSec = 0.0;
     public double driveAppliedVolts = 0.0;
     public double driveStatorCurrentAmps = 0.0;
     public double driveSupplyCurrentAmps = 0.0;
@@ -27,6 +28,7 @@ public interface DrivetrainIO {
     public double steerPositionReferenceDeg = 0.0;
     public double steerPositionErrorDeg = 0.0;
     public double steerVelocityRevPerMin = 0.0;
+    public double steerAccelerationMetersPerSecPerSec = 0.0;
     public double steerAppliedVolts = 0.0;
     public double steerStatorCurrentAmps = 0.0;
     public double steerSupplyCurrentAmps = 0.0;
@@ -143,6 +145,22 @@ public interface DrivetrainIO {
    * @param volts the commanded voltage
    */
   public default void setSteerMotorVoltage(double volts) {}
+
+  /**
+   * Supplies the drive motors with the specified current. Used for drivetrain characterization with
+   * TorqueCurrentFOC.
+   *
+   * @param amps the commanded current
+   */
+  public default void setDriveMotorCurrent(double amps) {}
+
+  /**
+   * Supplies the steer motors with the specified current. Used for drivetrain characterization with
+   * TorqueCurrentFOC.
+   *
+   * @param amps the commanded current
+   */
+  public default void setSteerMotorCurrent(double amps) {}
 
   public default void setBrakeMode(boolean enable) {}
 }
