@@ -1,7 +1,5 @@
 package frc.robot.configs;
 
-import static frc.lib.team3061.drivetrain.swerve.SwerveConstants.*;
-
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -43,13 +41,14 @@ public class NovaCTRERobotConfig extends RobotConfig {
   private static final double ROBOT_LENGTH_WITH_BUMPERS = 0.8382; // meters // 33 in
 
   /* Angle Motor PID Values */
-  private static final double ANGLE_KP = 0.0;
+  private static final double ANGLE_KP = 100.0;
   private static final double ANGLE_KI = 0.0;
-  private static final double ANGLE_KD = 0.0;
+  private static final double ANGLE_KD = 0.05;
 
-  private static final double ANGLE_KS = 9.0;
-  private static final double ANGLE_KV = 0.0;
-  private static final double ANGLE_KA = 1.0;
+  private static final double ANGLE_KS = 0.1891233333;
+  private static final double ANGLE_KV =
+      0.4399866667 * 2 * Math.PI; // convert from V/(radians/s) to V/(rotations/s)
+  private static final double ANGLE_KA = 0.001663333333;
 
   /* Drive Motor PID Values */
   private static final double DRIVE_KP = 0.0;
@@ -91,8 +90,8 @@ public class NovaCTRERobotConfig extends RobotConfig {
               Units.inchesToMeters(49.240)),
           new Rotation3d(0, Units.degreesToRadians(25), Units.degreesToRadians(-30)));
 
-  private static final double AUTO_MAX_SPEED_METERS_PER_SECOND = 2.0;
-  private static final double AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED = 2.0;
+  private static final double AUTO_MAX_SPEED_METERS_PER_SECOND = 4.0;
+  private static final double AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED = 4.0;
   private static final double AUTO_DRIVE_P_CONTROLLER = 5.0;
   private static final double AUTO_DRIVE_I_CONTROLLER = 0.0;
   private static final double AUTO_DRIVE_D_CONTROLLER = 0.0;
@@ -394,7 +393,12 @@ public class NovaCTRERobotConfig extends RobotConfig {
   }
 
   @Override
-  public SWERVE_CONTROL_MODE getSwerveControlMode() {
+  public SWERVE_CONTROL_MODE getSwerveSteerControlMode() {
+    return SWERVE_CONTROL_MODE.VOLTAGE;
+  }
+
+  @Override
+  public SWERVE_CONTROL_MODE getSwerveDriveControlMode() {
     return SWERVE_CONTROL_MODE.TORQUE_CURRENT_FOC;
   }
 }

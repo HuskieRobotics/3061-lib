@@ -98,12 +98,12 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   // The closed-loop output type to use for the steer motors
   // This affects the PID/FF gains for the steer motors
   // TorqueCurrentFOC is not currently supported in simulation.
-  private static final ClosedLoopOutputType steerClosedLoopOutput = getClosedLoopOutputType();
+  private static final ClosedLoopOutputType steerClosedLoopOutput = getSteerClosedLoopOutputType();
 
   // The closed-loop output type to use for the drive motors
   // This affects the PID/FF gains for the drive motors
   // TorqueCurrentFOC is not currently supported in simulation.
-  private static final ClosedLoopOutputType driveClosedLoopOutput = getClosedLoopOutputType();
+  private static final ClosedLoopOutputType driveClosedLoopOutput = getDriveClosedLoopOutputType();
 
   private static final double COUPLE_RATIO = 0.0;
   private static final double STEER_INERTIA = 0.00001;
@@ -605,10 +605,21 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     return this.m_odometry.updateWithTime(currentTimeSeconds, gyroAngle, modulePositions);
   }
 
-  private static ClosedLoopOutputType getClosedLoopOutputType() {
+  private static ClosedLoopOutputType getSteerClosedLoopOutputType() {
     if (Constants.getMode() == Constants.Mode.SIM) {
       return ClosedLoopOutputType.Voltage;
-    } else if (RobotConfig.getInstance().getSwerveControlMode()
+    } else if (RobotConfig.getInstance().getSwerveSteerControlMode()
+        == RobotConfig.SWERVE_CONTROL_MODE.TORQUE_CURRENT_FOC) {
+      return ClosedLoopOutputType.TorqueCurrentFOC;
+    } else {
+      return ClosedLoopOutputType.Voltage;
+    }
+  }
+
+  private static ClosedLoopOutputType getDriveClosedLoopOutputType() {
+    if (Constants.getMode() == Constants.Mode.SIM) {
+      return ClosedLoopOutputType.Voltage;
+    } else if (RobotConfig.getInstance().getSwerveDriveControlMode()
         == RobotConfig.SWERVE_CONTROL_MODE.TORQUE_CURRENT_FOC) {
       return ClosedLoopOutputType.TorqueCurrentFOC;
     } else {
