@@ -53,15 +53,15 @@ public class NovaCTRERobotConfig extends RobotConfig {
   private static final double ANGLE_KA = 0.001663333333;
 
   /* Drive Motor PID Values */
-  private static final double DRIVE_KP = 0.2;
+  private static final double DRIVE_KP = 0.005;
   private static final double DRIVE_KI = 0.0;
   private static final double DRIVE_KD = 0.0;
 
   private static final double DRIVE_KS = 0.4004375;
   private static final double DRIVE_KV =
       2.7637325
-          * MK4I_L2_DRIVE_GEAR_RATIO
-          / MK4I_L2_WHEEL_CIRCUMFERENCE; // convert from V/(m/s) to V/(rotations/s)
+          / (MK4I_L2_DRIVE_GEAR_RATIO
+              / MK4I_L2_WHEEL_CIRCUMFERENCE); // convert from V/(m/s) to V/(rotations/s)
   private static final double DRIVE_KA = 0.0139575;
 
   private static final SwerveType SWERVE_TYPE = SwerveType.MK4I;
