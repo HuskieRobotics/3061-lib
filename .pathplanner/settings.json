@@ -4,10 +4,9 @@
   "holonomicMode": true,
   "pathFolders": [],
   "autoFolders": [],
-  "defaultMaxVel": 4.0,
-  "defaultMaxAccel": 4.0,
-  "defaultMaxAngVel": 540.0,
-  "defaultMaxAngAccel": 720.0,
-  "maxModuleSpeed": 4.78,
-  "choreoProjectPath": "choreo.chor"
+  "defaultMaxVel": 3.5,
+  "defaultMaxAccel": 10.0,
+  "defaultMaxAngVel": 500.0,
+  "defaultMaxAngAccel": 2000.0,
+  "maxModuleSpeed": 3.644
 }

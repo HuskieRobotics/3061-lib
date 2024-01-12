@@ -1,10 +1,11 @@
 {
-    "version": "v0.1.1",
+    "version": "v0.2",
     "robotConfiguration": {
         "mass": 56.7,
         "rotationalInertia": 6.639373818,
-        "wheelMaxTorque": 2,
-        "wheelMaxVelocity": 98.9743045282,
+        "motorMaxTorque": 1.1526315789473685,
+        "motorMaxVelocity": 4864,
+        "gearing": 6.75,
         "wheelbase": 0.52705,
         "trackWidth": 0.523875,
         "bumperLength": 0.8382,
@@ -51,8 +52,8 @@
                     "controlIntervalCount": 29
                 },
                 {
-                    "x": 4.4,
-                    "y": 0.85,
+                    "x": 4.393970012664795,
+                    "y": 0.8091968894004822,
                     "heading": 0,
                     "isInitialGuess": false,
                     "translationConstrained": true,
@@ -1121,18 +1122,22 @@
                         "first"
                     ],
                     "type": "WptZeroVelocity",
-                    "uuid": "7d2b46f8-efd3-4103-b94b-e492045219a8"
+                    "uuid": "18e686e3-e898-4ac3-af4c-379570df79a6",
+                    "direction": 0
                 },
                 {
                     "scope": [
                         "last"
                     ],
                     "type": "WptZeroVelocity",
-                    "uuid": "81b811a8-b8b3-4037-97ca-cf266d70631e"
+                    "uuid": "189d512f-8509-4528-9aed-4517b8d2e503",
+                    "direction": 0
                 }
             ],
             "usesControlIntervalGuessing": true,
-            "defaultControlIntervalCount": 40
+            "defaultControlIntervalCount": 40,
+            "usesDefaultFieldObstacles": true,
+            "circleObstacles": []
         }
     }
 }

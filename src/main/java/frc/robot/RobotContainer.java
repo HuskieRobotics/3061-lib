@@ -250,20 +250,27 @@ public class RobotContainer {
     DrivetrainIO drivetrainIO = new DrivetrainIOCTRE();
     drivetrain = new Drivetrain(drivetrainIO);
 
-    AprilTagFieldLayout layout;
-    try {
-      layout = new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
-    } catch (IOException e) {
-      layout = new AprilTagFieldLayout(new ArrayList<>(), 16.4592, 8.2296);
+    // AprilTagFieldLayout layout;
+    // try {
+    //   layout = new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
+    // } catch (IOException e) {
+    //   layout = new AprilTagFieldLayout(new ArrayList<>(), 16.4592, 8.2296);
+    // }
+    // vision =
+    //     new Vision(
+    //         new VisionIO[] {
+    //           new VisionIOSim(
+    //               layout,
+    //               drivetrain::getPose,
+    //               RobotConfig.getInstance().getRobotToCameraTransforms()[0])
+    //         });
+
+    String[] cameraNames = config.getCameraNames();
+    VisionIO[] visionIOs = new VisionIO[cameraNames.length];
+    for (int i = 0; i < visionIOs.length; i++) {
+      visionIOs[i] = new VisionIO() {};
     }
-    vision =
-        new Vision(
-            new VisionIO[] {
-              new VisionIOSim(
-                  layout,
-                  drivetrain::getPose,
-                  RobotConfig.getInstance().getRobotToCameraTransforms()[0])
-            });
+    vision = new Vision(visionIOs);
 
     // FIXME: create the hardware-specific subsystem class
   }
@@ -372,11 +379,19 @@ public class RobotContainer {
 
     /************ Test Path ************
      *
-     * demonstration of PathPlanner path group with event markers
+     * demonstration of PathPlanner auto with event markers
      *
      */
     Command autoTest = new PathPlannerAuto("TestAuto");
     autoChooser.addOption("Test Auto", autoTest);
+
+    /************ Choreo Test Path ************
+     *
+     * demonstration of PathPlanner hosted Choreo path
+     *
+     */
+    Command choreoAutoTest = new PathPlannerAuto("ChoreoTest");
+    autoChooser.addOption("Choreo Auto", choreoAutoTest);
 
     /************ Start Point ************
      *
