@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import com.ctre.phoenix6.SignalLogger;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.hal.AllianceStationID;
@@ -12,6 +13,7 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Threads;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.simulation.DriverStationSim;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.lib.team3061.leds.LEDs;
@@ -97,6 +99,9 @@ public class Robot extends LoggedRobot {
         Logger.addDataReceiver(new NT4Publisher());
 
         LoggedPowerDistribution.getInstance();
+
+        SignalLogger.setPath("/media/sda1");
+        SignalLogger.start();
         break;
 
       case SIM:
@@ -157,7 +162,7 @@ public class Robot extends LoggedRobot {
 
     // Logging callback for the active path, this is sent as a list of poses
     PathPlannerLogging.setLogActivePathCallback(
-        poses -> Logger.recordOutput("PathFollowing/activePath", poses));
+        poses -> Logger.recordOutput("PathFollowing/activePath", poses.toArray(new Pose2d[0])));
 
     // Start timers
     disabledTimer.reset();

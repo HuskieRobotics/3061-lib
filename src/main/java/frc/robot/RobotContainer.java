@@ -165,17 +165,25 @@ public class RobotContainer {
     DrivetrainIO drivetrainIO = new DrivetrainIOCTRE();
     drivetrain = new Drivetrain(drivetrainIO);
 
+    // String[] cameraNames = config.getCameraNames();
+    // Transform3d[] robotToCameraTransforms = config.getRobotToCameraTransforms();
+    // VisionIO[] visionIOs = new VisionIO[cameraNames.length];
+    // AprilTagFieldLayout layout;
+    // try {
+    //   layout = new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
+    // } catch (IOException e) {
+    //   layout = new AprilTagFieldLayout(new ArrayList<>(), 16.4592, 8.2296);
+    // }
+    // for (int i = 0; i < visionIOs.length; i++) {
+    //   visionIOs[i] = new VisionIOPhotonVision(cameraNames[i], layout,
+    // robotToCameraTransforms[i]);
+    // }
+    // vision = new Vision(visionIOs);
+
     String[] cameraNames = config.getCameraNames();
-    Transform3d[] robotToCameraTransforms = config.getRobotToCameraTransforms();
     VisionIO[] visionIOs = new VisionIO[cameraNames.length];
-    AprilTagFieldLayout layout;
-    try {
-      layout = new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
-    } catch (IOException e) {
-      layout = new AprilTagFieldLayout(new ArrayList<>(), 16.4592, 8.2296);
-    }
     for (int i = 0; i < visionIOs.length; i++) {
-      visionIOs[i] = new VisionIOPhotonVision(cameraNames[i], layout, robotToCameraTransforms[i]);
+      visionIOs[i] = new VisionIO() {};
     }
     vision = new Vision(visionIOs);
 

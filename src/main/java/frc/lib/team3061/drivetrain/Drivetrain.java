@@ -59,6 +59,9 @@ public class Drivetrain extends SubsystemBase {
   private final TunableNumber autoTurnKd =
       new TunableNumber("AutoDrive/TurnKd", RobotConfig.getInstance().getAutoTurnKD());
 
+  private final TunableNumber driveCurrent = new TunableNumber("Drivetrain/driveCurrent", 0.0);
+  private final TunableNumber steerCurrent = new TunableNumber("Drivetrain/steerCurrent", 0.0);
+
   private final PIDController autoXController =
       new PIDController(autoDriveKp.get(), autoDriveKi.get(), autoDriveKd.get());
   private final PIDController autoYController =
@@ -145,6 +148,7 @@ public class Drivetrain extends SubsystemBase {
             new ReplanningConfig() // Default path replanning config. See the API for the options
             // here
             ),
+        () -> false,
         this // Reference to this subsystem to set requirements
         );
   }
@@ -378,6 +382,18 @@ public class Drivetrain extends SubsystemBase {
               this.inputs.drivetrain.measuredAngularVelocityRadPerSec);
       for (int i = 0; i < this.inputs.swerve.length; i++) {
         this.prevSteerVelocitiesRevPerMin[i] = this.inputs.swerve[i].steerVelocityRevPerMin;
+      }
+    }
+
+    // when testing, set the drive motor current or the steer motor current based on the Tunables
+    // (if non-zero)
+    if (TESTING) {
+      if (driveCurrent.get() != 0) {
+        this.io.setDriveMotorCurrent(driveCurrent.get());
+      }
+
+      if (steerCurrent.get() != 0) {
+        this.io.setSteerMotorCurrent(steerCurrent.get());
       }
     }
 
