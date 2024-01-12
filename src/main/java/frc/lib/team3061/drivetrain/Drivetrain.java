@@ -305,9 +305,10 @@ public class Drivetrain extends SubsystemBase {
    * rotational directions. The velocities may be specified from either the robot's frame of
    * reference of the field's frame of reference. In the robot's frame of reference, the positive x
    * direction is forward; the positive y direction, left; position rotation, CCW. In the field
-   * frame of reference, the origin of the field to the lower left corner (i.e., the corner of the
-   * field to the driver's right). Zero degrees is away from the driver and increases in the CCW
-   * direction.
+   * frame of reference, the positive x direction is away from the driver and the positive y
+   * direction is to the driver's left. This method accounts for the fact that the origin of the
+   * field is always the corner to the right of the blue alliance driver station. A positive
+   * rotational velocity always rotates the robot in the CCW direction.
    *
    * <p>If the translation or rotation slow mode features are enabled, the corresponding velocities
    * will be scaled to enable finer control.
@@ -350,7 +351,16 @@ public class Drivetrain extends SubsystemBase {
       }
 
       if (isFieldRelative) {
-        this.io.driveFieldRelative(xVelocity, yVelocity, rotationalVelocity, isOpenLoop);
+        // the origin of the field is always the corner to the right of the blue alliance driver
+        // station. As a result, "forward" from a field-relative perspective when on the red
+        // alliance, is in the negative x direction. Similarly, "left" from a field-relative
+        // perspective when on the red alliance is in the negative y direction.
+        int allianceMultiplier = this.alliance == Alliance.Blue ? 1 : -1;
+        this.io.driveFieldRelative(
+            allianceMultiplier * xVelocity,
+            allianceMultiplier * yVelocity,
+            rotationalVelocity,
+            isOpenLoop);
       } else {
         this.io.driveRobotRelative(xVelocity, yVelocity, rotationalVelocity, isOpenLoop);
       }
