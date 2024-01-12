@@ -512,8 +512,8 @@ public class RobotContainer {
      * direction. This is why the left joystick's y axis specifies the velocity in the x direction
      * and the left joystick's x axis specifies the velocity in the y direction.
      */
-    // drivetrain.setDefaultCommand(
-    //     new TeleopSwerve(drivetrain, oi::getTranslateX, oi::getTranslateY, oi::getRotate));
+    drivetrain.setDefaultCommand(
+        new TeleopSwerve(drivetrain, oi::getTranslateX, oi::getTranslateY, oi::getRotate));
 
     // lock rotation to the nearest 180° while driving
     oi.getLock180Button()

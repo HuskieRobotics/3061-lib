@@ -16,22 +16,22 @@ public class NovaCTRERobotConfig extends RobotConfig {
   private static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 13;
   private static final int FRONT_LEFT_MODULE_STEER_MOTOR = 12;
   private static final int FRONT_LEFT_MODULE_STEER_ENCODER = 14;
-  private static final double FRONT_LEFT_MODULE_STEER_OFFSET_ROT = -0.604492;
+  private static final double FRONT_LEFT_MODULE_STEER_OFFSET_ROT = 0.277587890625;
 
   private static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 16;
   private static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 15;
   private static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 17;
-  private static final double FRONT_RIGHT_MODULE_STEER_OFFSET_ROT = -0.277832;
+  private static final double FRONT_RIGHT_MODULE_STEER_OFFSET_ROT = 0.604248046875;
 
   private static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 7;
   private static final int BACK_LEFT_MODULE_STEER_MOTOR = 6;
   private static final int BACK_LEFT_MODULE_STEER_ENCODER = 8;
-  private static final double BACK_LEFT_MODULE_STEER_OFFSET_ROT = -0.249512;
+  private static final double BACK_LEFT_MODULE_STEER_OFFSET_ROT = 0.024169921875;
 
   private static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 10;
   private static final int BACK_RIGHT_MODULE_STEER_MOTOR = 9;
   private static final int BACK_RIGHT_MODULE_STEER_ENCODER = 11;
-  private static final double BACK_RIGHT_MODULE_STEER_OFFSET_ROT = -0.024414;
+  private static final double BACK_RIGHT_MODULE_STEER_OFFSET_ROT = 0.24951171875;
 
   private static final int GYRO_ID = 3;
 
@@ -399,6 +399,6 @@ public class NovaCTRERobotConfig extends RobotConfig {
 
   @Override
   public SWERVE_CONTROL_MODE getSwerveDriveControlMode() {
-    return SWERVE_CONTROL_MODE.TORQUE_CURRENT_FOC;
+    return SWERVE_CONTROL_MODE.VOLTAGE; // TORQUE_CURRENT_FOC;
   }
 }
