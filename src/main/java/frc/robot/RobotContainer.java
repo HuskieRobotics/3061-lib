@@ -269,13 +269,11 @@ public class RobotContainer {
   /**
    * Creates the field from the defined regions and transition points from one region to its
    * neighbor. The field is used to generate paths.
-   * 
-   * FIXME: update for 2024 regions
+   *
+   * <p>FIXME: update for 2024 regions
    */
   private void constructField() {
-    Field2d.getInstance()
-        .setRegions(
-            new Region2d[] { });
+    Field2d.getInstance().setRegions(new Region2d[] {});
   }
 
   /**
@@ -559,7 +557,8 @@ public class RobotContainer {
   public void checkAllianceColor() {
     Optional<Alliance> alliance = DriverStation.getAlliance();
     if (alliance.isPresent() && alliance.get() != lastAlliance) {
-      lastAlliance = alliance.get();
+      this.lastAlliance = alliance.get();
+      this.drivetrain.updateAlliance(this.lastAlliance);
     }
   }
 

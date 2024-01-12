@@ -18,6 +18,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
@@ -89,6 +90,8 @@ public class Drivetrain extends SubsystemBase {
   private ChassisSpeeds prevSpeeds = new ChassisSpeeds();
   private double[] prevSteerVelocitiesRevPerMin = new double[4];
 
+  private DriverStation.Alliance alliance = DriverStation.Alliance.Blue;
+
   /**
    * Creates a new Drivetrain subsystem.
    *
@@ -146,7 +149,7 @@ public class Drivetrain extends SubsystemBase {
             new ReplanningConfig() // Default path replanning config. See the API for the options
             // here
             ),
-        () -> false,
+        this::shouldFlipAutoPath,
         this // Reference to this subsystem to set requirements
         );
   }
@@ -664,6 +667,28 @@ public class Drivetrain extends SubsystemBase {
    */
   public boolean isMoveToPoseEnabled() {
     return this.isMoveToPoseEnabled;
+  }
+
+  /**
+   * This method should be invoked once the alliance color is known. Refer to the RobotContainer's
+   * checkAllianceColor method for best practices on when to check the alliance's color. The
+   * alliance color is needed when running auto paths as those paths are always defined for
+   * blue-alliance robots and need to be flipped for red-alliance robots.
+   *
+   * @param newAlliance the new alliance color
+   */
+  public void updateAlliance(DriverStation.Alliance newAlliance) {
+    this.alliance = newAlliance;
+  }
+
+  /**
+   * Returns true if the auto path, which is always defined for a blue alliance robot, should be
+   * flipped to the red alliance side of the field.
+   *
+   * @return true if the auto path should be flipped to the red alliance side of the field
+   */
+  public boolean shouldFlipAutoPath() {
+    return this.alliance == Alliance.Red;
   }
 
   private Command getSystemCheckCommand() {
