@@ -12,7 +12,7 @@ public final class VisionConstants {
   }
 
   public static final Path APRILTAG_FIELD_LAYOUT_PATH =
-      new File(Filesystem.getDeployDirectory(), "2023-chargedup.json").toPath();
+      new File(Filesystem.getDeployDirectory(), "2024-crescendo.json").toPath();
 
   public static final String SUBSYSTEM_NAME = "Vision";
 
