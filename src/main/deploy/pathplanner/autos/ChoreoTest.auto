@@ -2,15 +2,22 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 4.394,
-      "y": 0.809
+      "x": 4.4,
+      "y": 0.85
     },
-    "rotation": 0
+    "rotation": 0.0
   },
   "command": {
     "type": "sequential",
     "data": {
-      "commands": []
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "NewPath"
+          }
+        }
+      ]
     }
   },
   "folder": null,
