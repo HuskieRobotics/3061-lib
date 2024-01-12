@@ -1,7 +1,6 @@
 package frc.lib.team3061.vision;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFieldLayout.OriginPosition;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -33,7 +32,6 @@ public class VisionIOSim implements VisionIO {
   private Supplier<Pose2d> poseSupplier;
   private VisionSystemSim visionSim;
   private PhotonCameraSim cameraSim;
-  private AprilTagFieldLayout layout;
 
   /**
    * Creates a new VisionIOSim object.
@@ -47,7 +45,6 @@ public class VisionIOSim implements VisionIO {
     this.photonEstimator =
         new PhotonPoseEstimator(
             layout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, camera, robotToCamera);
-    this.layout = layout;
     this.poseSupplier = poseSupplier;
 
     this.visionSim = new VisionSystemSim(CAMERA_NAME);
@@ -63,9 +60,6 @@ public class VisionIOSim implements VisionIO {
 
     visionSim.addCamera(cameraSim, robotToCamera);
     cameraSim.enableDrawWireframe(true);
-
-    // default to the blue alliance; can be changed by invoking the setLayoutOrigin method
-    layout.setOrigin(OriginPosition.kBlueAllianceWallRightSide);
   }
 
   /**
@@ -95,19 +89,5 @@ public class VisionIOSim implements VisionIO {
             lastTimestamp = latestTimestamp;
           });
     }
-  }
-
-  /**
-   * Sets the origin position of the AprilTag field layout and updates the simulated vision targets
-   * based on the new origin.
-   *
-   * @param origin the origin position of the AprilTag field layout
-   */
-  @Override
-  public void setLayoutOrigin(OriginPosition origin) {
-    layout.setOrigin(origin);
-
-    this.visionSim.clearVisionTargets();
-    this.visionSim.addAprilTags(layout);
   }
 }

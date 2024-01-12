@@ -6,10 +6,8 @@ import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.wpilibj.DriverStation;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.Drivetrain;
-import frc.lib.team6328.util.FieldConstants;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -24,14 +22,12 @@ import java.util.Set;
  * the transition points defined for those regions.
  *
  * <p>The coordinate system of the field is oriented such that the origin is in the lower left
- * corner when the blue alliance is to the left (i.e., to the blue alliance driver's right). It can
- * map poses to reflect the current alliance.
+ * corner when the blue alliance is to the left (i.e., to the blue alliance driver's right).
  */
 public class Field2d {
   private static Field2d instance = null;
 
   private Region2d[] regions;
-  private DriverStation.Alliance alliance = DriverStation.Alliance.Red;
 
   /**
    * Get the singleton instance of the Field2d class.
@@ -53,36 +49,6 @@ public class Field2d {
    */
   public void setRegions(Region2d[] regions) {
     this.regions = regions;
-  }
-
-  /**
-   * Set the current alliance. This will adjust the coordinate system of the field and its regions.
-   *
-   * @param newAlliance the new alliance
-   */
-  public void updateAlliance(DriverStation.Alliance newAlliance) {
-    this.alliance = newAlliance;
-    for (Region2d region : regions) {
-      region.updateAlliance(newAlliance);
-    }
-  }
-
-  /**
-   * Translates the specified pose based on the current alliance.
-   *
-   * @param pose the pose to translate based on the current alliance
-   * @return the translated pose based on the current alliance
-   */
-  public Pose2d mapPoseToCurrentAlliance(Pose2d pose) {
-    if (this.alliance == DriverStation.Alliance.Red) {
-      return new Pose2d(
-          new Translation2d(
-              pose.getTranslation().getX(),
-              FieldConstants.fieldWidth - pose.getTranslation().getY()),
-          new Rotation2d(pose.getRotation().getCos(), -pose.getRotation().getSin()));
-    } else {
-      return pose;
-    }
   }
 
   /**

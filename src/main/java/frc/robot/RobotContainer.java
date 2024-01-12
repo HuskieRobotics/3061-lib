@@ -560,8 +560,6 @@ public class RobotContainer {
     Optional<Alliance> alliance = DriverStation.getAlliance();
     if (alliance.isPresent() && alliance.get() != lastAlliance) {
       lastAlliance = alliance.get();
-      vision.updateAlliance(lastAlliance);
-      Field2d.getInstance().updateAlliance(lastAlliance);
     }
   }
 
