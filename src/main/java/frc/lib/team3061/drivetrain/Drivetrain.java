@@ -684,72 +684,139 @@ public class Drivetrain extends SubsystemBase {
 
   private Command getSystemCheckCommand() {
     return Commands.sequence(
-      // Tests for driving to the left 
-      Commands.parallel(
-        Commands.run(() -> {io.driveRobotRelative(-1, 0, 0, false);}),
-        Commands.waitSeconds(1)
-          .andThen( Commands.runOnce( () -> {
-            for (int i = 0; i < 4; i++) {
-              if (inputs.swerve[i].driveVelocityMetersPerSec < 0.5) {
-                FaultReporter.getInstance()
-                    .addFault(SUBSYSTEM_NAME, "[System Check] Swerve module "+ getSwerveLocation(i) + " not moving as fast left as expected");
-        }}})))
-      // Tests for driving to the right 
-      Commands.parallel(
-        Commands.run(() -> {io.driveRobotRelative(1, 0, 0, false);}),
-        Commands.waitSeconds(1)
-          .andThen( Commands.runOnce( () -> {
-            for (int i = 0; i < 4; i++) {
-              if (inputs.swerve[i].driveVelocityMetersPerSec < 0.5) {
-                FaultReporter.getInstance()
-                    .addFault(SUBSYSTEM_NAME, "[System Check] Swerve module "+ getSwerveLocation(i) + " not moving as fast left as expected");
-        }}})))
-
-        // Tests for driving wheels forwards   
+        // Tests for driving to the left
         Commands.parallel(
-          Commands.run(() -> {io.driveRobotRelative(0, 1, 0, false);}),
-          Commands.waitSeconds(1)
-            .andThen( Commands.runOnce( () -> {
-              for (int i = 0; i < 4; i++) {
-                if (inputs.swerve[i].driveVelocityMetersPerSec < 0.5) {
-                  FaultReporter.getInstance()
-                      .addFault(SUBSYSTEM_NAME, "[System Check] Swerve module "+ getSwerveLocation(i) + " not moving as fast left as expected");
-          }}})))
-
-          // Tests for driving wheels backwards
-          Commands.parallel(
-            Commands.run(() -> {io.driveRobotRelative(0, -1, 0, false);}),
+            Commands.run(
+                () -> {
+                  io.driveRobotRelative(-1, 0, 0, false);
+                }),
             Commands.waitSeconds(1)
-              .andThen( Commands.runOnce( () -> {
-                for (int i = 0; i < 4; i++) {
-                  if (inputs.swerve[i].driveVelocityMetersPerSec < 0.5) {
-                    FaultReporter.getInstance()
-                        .addFault(SUBSYSTEM_NAME, "[System Check] Swerve module "+ getSwerveLocation(i) + " not moving as fast left as expected");
-            }}})))
+                .andThen(
+                    Commands.runOnce(
+                        () -> {
+                          for (int i = 0; i < 4; i++) {
+                            if (inputs.swerve[i].driveVelocityMetersPerSec < 0.5) {
+                              FaultReporter.getInstance()
+                                  .addFault(
+                                      SUBSYSTEM_NAME,
+                                      "[System Check] Swerve module "
+                                          + getSwerveLocation(i)
+                                          + " not moving as fast left as expected");
+                            }
+                          }
+                        }))),
 
-          // Tests for driving wheels clockwise
-          Commands.parallel(
-            Commands.run(() -> {io.driveRobotRelative(0, 0, 1, false);}),
+        // Tests for driving to the right
+        Commands.parallel(
+            Commands.run(
+                () -> {
+                  io.driveRobotRelative(1, 0, 0, false);
+                }),
             Commands.waitSeconds(1)
-              .andThen( Commands.runOnce( () -> {
-                for (int i = 0; i < 4; i++) {
-                  if (inputs.swerve[i].driveVelocityMetersPerSec < 0.5) {
-                    FaultReporter.getInstance()
-                        .addFault(SUBSYSTEM_NAME, "[System Check] Swerve module "+ getSwerveLocation(i) + " not moving as fast left as expected");
-            }}})))
+                .andThen(
+                    Commands.runOnce(
+                        () -> {
+                          for (int i = 0; i < 4; i++) {
+                            if (inputs.swerve[i].driveVelocityMetersPerSec < 0.5) {
+                              FaultReporter.getInstance()
+                                  .addFault(
+                                      SUBSYSTEM_NAME,
+                                      "[System Check] Swerve module "
+                                          + getSwerveLocation(i)
+                                          + " not moving as fast right as expected");
+                            }
+                          }
+                        }))),
 
-          // Tests for driving wheels counterclockwise
-          Commands.parallel(
-            Commands.run(() -> {io.driveRobotRelative(0, 0, -1, false);}),
+        // Tests for driving wheels forwards
+        Commands.parallel(
+            Commands.run(
+                () -> {
+                  io.driveRobotRelative(0, 1, 0, false);
+                }),
             Commands.waitSeconds(1)
-              .andThen( Commands.runOnce( () -> {
-                for (int i = 0; i < 4; i++) {
-                  if (inputs.swerve[i].driveVelocityMetersPerSec < 0.5) {
-                    FaultReporter.getInstance()
-                        .addFault(SUBSYSTEM_NAME, "[System Check] Swerve module "+ getSwerveLocation(i) + " not moving as fast left as expected");
-            }}})))
-        ).until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
-        .andThen(Commands.runOnce(() -> drive(0, 0, 0, true, false), this));
+                .andThen(
+                    Commands.runOnce(
+                        () -> {
+                          for (int i = 0; i < 4; i++) {
+                            if (inputs.swerve[i].driveVelocityMetersPerSec < 0.5) {
+                              FaultReporter.getInstance()
+                                  .addFault(
+                                      SUBSYSTEM_NAME,
+                                      "[System Check] Swerve module "
+                                          + getSwerveLocation(i)
+                                          + " not moving as fast forwards as expected");
+                            }
+                          }
+                        }))),
+
+        // Tests for driving wheels backwards
+        Commands.parallel(
+            Commands.run(
+                () -> {
+                  io.driveRobotRelative(0, -1, 0, false);
+                }),
+            Commands.waitSeconds(1)
+                .andThen(
+                    Commands.runOnce(
+                        () -> {
+                          for (int i = 0; i < 4; i++) {
+                            if (inputs.swerve[i].driveVelocityMetersPerSec < 0.5) {
+                              FaultReporter.getInstance()
+                                  .addFault(
+                                      SUBSYSTEM_NAME,
+                                      "[System Check] Swerve module "
+                                          + getSwerveLocation(i)
+                                          + " not moving as fast backwards as expected");
+                            }
+                          }
+                        }))),
+
+        // Tests for driving wheels clockwise
+        Commands.parallel(
+            Commands.run(
+                () -> {
+                  io.driveRobotRelative(0, 0, 1, false);
+                }),
+            Commands.waitSeconds(1)
+                .andThen(
+                    Commands.runOnce(
+                        () -> {
+                          for (int i = 0; i < 4; i++) {
+                            if (inputs.swerve[i].driveVelocityMetersPerSec < 0.5) {
+                              FaultReporter.getInstance()
+                                  .addFault(
+                                      SUBSYSTEM_NAME,
+                                      "[System Check] Swerve module "
+                                          + getSwerveLocation(i)
+                                          + " not moving as fast clockwise as expected");
+                            }
+                          }
+                        }))),
+
+        // Tests for driving wheels counterclockwise
+        Commands.parallel(
+                Commands.run(
+                    () -> {
+                      io.driveRobotRelative(0, 0, -1, false);
+                    }),
+                Commands.waitSeconds(1)
+                    .andThen(
+                        Commands.runOnce(
+                            () -> {
+                              for (int i = 0; i < 4; i++) {
+                                if (inputs.swerve[i].driveVelocityMetersPerSec < 0.5) {
+                                  FaultReporter.getInstance()
+                                      .addFault(
+                                          SUBSYSTEM_NAME,
+                                          "[System Check] Swerve module "
+                                              + getSwerveLocation(i)
+                                              + " not moving as fast counterclockwise as expected");
+                                }
+                              }
+                            })))
+            .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
+            .andThen(Commands.runOnce(() -> this.drive(0, 0, 0, true, false))));
   }
 
   /**
