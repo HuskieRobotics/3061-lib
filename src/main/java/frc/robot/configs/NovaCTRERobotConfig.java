@@ -412,7 +412,7 @@ public class NovaCTRERobotConfig extends RobotConfig {
   @Override
   public int getLEDCount() {
     return LED_COUNT;
-}
+  }
 
   public SWERVE_CONTROL_MODE getSwerveControlMode() {
     return SWERVE_CONTROL_MODE.VOLTAGE;
