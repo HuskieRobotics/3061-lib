@@ -628,4 +628,20 @@ public abstract class RobotConfig {
   public double getOdometryUpdateFrequency() {
     return 250.0;
   }
+
+  /**
+   * Returns the swerve control mode. Defaults to voltage. For the DrivetrainIOGeneric class, only
+   * VOLTAGE is supported. For the DrivetrainIOCTRE class, TORQUE_CURRENT_FOC is also supported with
+   * Phoenix Pro.
+   *
+   * @return the swerve control mode
+   */
+  public SWERVE_CONTROL_MODE getSwerveControlMode() {
+    return SWERVE_CONTROL_MODE.VOLTAGE;
+  }
+
+  public enum SWERVE_CONTROL_MODE {
+    VOLTAGE,
+    TORQUE_CURRENT_FOC
+  }
 }
