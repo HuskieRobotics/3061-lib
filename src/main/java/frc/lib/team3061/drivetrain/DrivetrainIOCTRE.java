@@ -36,10 +36,11 @@ import frc.robot.Constants;
 public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
 
   static class CustomSlotGains extends Slot0Configs {
-    public CustomSlotGains(double kP, double kI, double kD, double kV, double kS) {
+    public CustomSlotGains(double kP, double kI, double kD, double kA, double kV, double kS) {
       this.kP = kP;
       this.kI = kI;
       this.kD = kD;
+      this.kA = kA;
       this.kV = kV;
       this.kS = kS;
     }
@@ -67,6 +68,8 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     StatusSignal<Double> driveAccelerationStatusSignal;
   }
 
+  private final TunableNumber driveKa =
+      new TunableNumber("Drive/DriveKA", RobotConfig.getInstance().getDriveKA());
   private final TunableNumber driveKp =
       new TunableNumber("Drive/DriveKp", RobotConfig.getInstance().getSwerveDriveKP());
   private final TunableNumber driveKi =
@@ -85,6 +88,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
           RobotConfig.getInstance().getSwerveAngleKP(),
           RobotConfig.getInstance().getSwerveAngleKI(),
           RobotConfig.getInstance().getSwerveAngleKD(),
+          RobotConfig.getInstance().getSwerveAngleKA(),
           RobotConfig.getInstance().getSwerveAngleKV(),
           RobotConfig.getInstance().getSwerveAngleKS());
   private static final CustomSlotGains driveGains =
@@ -92,18 +96,19 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
           RobotConfig.getInstance().getSwerveDriveKP(),
           RobotConfig.getInstance().getSwerveDriveKI(),
           RobotConfig.getInstance().getSwerveDriveKD(),
+          RobotConfig.getInstance().getDriveKA(),
           RobotConfig.getInstance().getDriveKV(),
           RobotConfig.getInstance().getDriveKS());
 
   // The closed-loop output type to use for the steer motors
   // This affects the PID/FF gains for the steer motors
   // TorqueCurrentFOC is not currently supported in simulation.
-  private static final ClosedLoopOutputType steerClosedLoopOutput = getClosedLoopOutputType();
+  private static final ClosedLoopOutputType steerClosedLoopOutput = getSteerClosedLoopOutputType();
 
   // The closed-loop output type to use for the drive motors
   // This affects the PID/FF gains for the drive motors
   // TorqueCurrentFOC is not currently supported in simulation.
-  private static final ClosedLoopOutputType driveClosedLoopOutput = getClosedLoopOutputType();
+  private static final ClosedLoopOutputType driveClosedLoopOutput = getDriveClosedLoopOutputType();
 
   private static final double COUPLE_RATIO = 0.0;
   private static final double STEER_INERTIA = 0.00001;
@@ -300,7 +305,8 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     }
 
     // update tunables
-    if (driveKp.hasChanged()
+    if (driveKa.hasChanged()
+        || driveKp.hasChanged()
         || driveKi.hasChanged()
         || driveKd.hasChanged()
         || steerKp.hasChanged()
@@ -312,6 +318,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
         driveSlot0.kP = driveKp.get();
         driveSlot0.kI = driveKi.get();
         driveSlot0.kD = driveKd.get();
+        driveSlot0.kA = driveKa.get();
         swerveModule.getDriveMotor().getConfigurator().apply(driveSlot0);
 
         Slot0Configs steerSlot0 = new Slot0Configs();
@@ -605,10 +612,21 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     return this.m_odometry.updateWithTime(currentTimeSeconds, gyroAngle, modulePositions);
   }
 
-  private static ClosedLoopOutputType getClosedLoopOutputType() {
+  private static ClosedLoopOutputType getSteerClosedLoopOutputType() {
     if (Constants.getMode() == Constants.Mode.SIM) {
       return ClosedLoopOutputType.Voltage;
-    } else if (RobotConfig.getInstance().getSwerveControlMode()
+    } else if (RobotConfig.getInstance().getSwerveSteerControlMode()
+        == RobotConfig.SWERVE_CONTROL_MODE.TORQUE_CURRENT_FOC) {
+      return ClosedLoopOutputType.TorqueCurrentFOC;
+    } else {
+      return ClosedLoopOutputType.Voltage;
+    }
+  }
+
+  private static ClosedLoopOutputType getDriveClosedLoopOutputType() {
+    if (Constants.getMode() == Constants.Mode.SIM) {
+      return ClosedLoopOutputType.Voltage;
+    } else if (RobotConfig.getInstance().getSwerveDriveControlMode()
         == RobotConfig.SWERVE_CONTROL_MODE.TORQUE_CURRENT_FOC) {
       return ClosedLoopOutputType.TorqueCurrentFOC;
     } else {

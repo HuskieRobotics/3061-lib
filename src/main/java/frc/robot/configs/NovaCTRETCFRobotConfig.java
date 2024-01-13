@@ -1,7 +1,5 @@
 package frc.robot.configs;
 
-import static frc.lib.team3061.drivetrain.swerve.SwerveConstants.*;
-
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -13,7 +11,7 @@ import frc.lib.team3061.drivetrain.swerve.SwerveConstants.SwerveType;
  * Refer to the README for how to represent your robot's configuration. For more information on
  * these methods, refer to the documentation in the RobotConfig class.
  */
-public class NovaCTRERobotConfig extends RobotConfig {
+public class NovaCTRETCFRobotConfig extends RobotConfig {
 
   private static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 13;
   private static final int FRONT_LEFT_MODULE_STEER_MOTOR = 12;
@@ -53,16 +51,13 @@ public class NovaCTRERobotConfig extends RobotConfig {
   private static final double ANGLE_KA = 0.001663333333;
 
   /* Drive Motor PID Values */
-  private static final double DRIVE_KP = 0.005;
+  private static final double DRIVE_KP = 12.0;
   private static final double DRIVE_KI = 0.0;
   private static final double DRIVE_KD = 0.0;
 
-  private static final double DRIVE_KS = 0.4004375;
-  private static final double DRIVE_KV =
-      2.7637325
-          / (MK4I_L2_DRIVE_GEAR_RATIO
-              / MK4I_L2_WHEEL_CIRCUMFERENCE); // convert from V/(m/s) to V/(rotations/s)
-  private static final double DRIVE_KA = 0.0139575;
+  private static final double DRIVE_KS = 5.0;
+  private static final double DRIVE_KV = 0.0;
+  private static final double DRIVE_KA = 0.28;
 
   private static final SwerveType SWERVE_TYPE = SwerveType.MK4I;
 
@@ -404,6 +399,6 @@ public class NovaCTRERobotConfig extends RobotConfig {
 
   @Override
   public SWERVE_CONTROL_MODE getSwerveDriveControlMode() {
-    return SWERVE_CONTROL_MODE.VOLTAGE;
+    return SWERVE_CONTROL_MODE.TORQUE_CURRENT_FOC;
   }
 }
