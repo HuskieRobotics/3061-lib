@@ -36,6 +36,7 @@ public final class Constants {
   // FIXME: update for various robots
   public enum RobotType {
     ROBOT_2023_NOVA_CTRE,
+    ROBOT_2023_NOVA_CTRE_FOC,
     ROBOT_2023_NOVA,
     ROBOT_DEFAULT,
     ROBOT_SIMBOT,
@@ -62,6 +63,7 @@ public final class Constants {
     switch (getRobot()) {
       case ROBOT_DEFAULT:
       case ROBOT_2023_NOVA_CTRE:
+      case ROBOT_2023_NOVA_CTRE_FOC:
       case ROBOT_2023_NOVA:
         return RobotBase.isReal() ? Mode.REAL : Mode.REPLAY;
 
