@@ -44,6 +44,9 @@ import frc.robot.configs.NovaCTRERobotConfig;
 import frc.robot.configs.NovaRobotConfig;
 import frc.robot.operator_interface.OISelector;
 import frc.robot.operator_interface.OperatorInterface;
+import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.shooter.ShooterIO;
+import frc.robot.subsystems.shooter.ShooterIOTalonFX;
 import frc.robot.subsystems.subsystem.Subsystem;
 import frc.robot.subsystems.subsystem.SubsystemIO;
 import java.io.IOException;
@@ -61,6 +64,7 @@ public class RobotContainer {
   private OperatorInterface oi = new OperatorInterface() {};
   private RobotConfig config;
   private Drivetrain drivetrain;
+  private Shooter shooter;
   private Alliance lastAlliance = DriverStation.Alliance.Red;
   private Vision vision;
   private Subsystem subsystem;
@@ -154,6 +158,9 @@ public class RobotContainer {
   private void createCTRESubsystems() {
     DrivetrainIO drivetrainIO = new DrivetrainIOCTRE();
     drivetrain = new Drivetrain(drivetrainIO);
+
+    ShooterIO shooterIO = new ShooterIOTalonFX();
+    shooter = new Shooter(shooterIO);
 
     // String[] cameraNames = config.getCameraNames();
     // Transform3d[] robotToCameraTransforms = config.getRobotToCameraTransforms();
