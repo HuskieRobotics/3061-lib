@@ -39,6 +39,7 @@ import frc.robot.commands.RotateToAngle;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.configs.DefaultRobotConfig;
 import frc.robot.configs.NovaCTRERobotConfig;
+import frc.robot.configs.NovaCTRETCFRobotConfig;
 import frc.robot.configs.NovaRobotConfig;
 import frc.robot.operator_interface.OISelector;
 import frc.robot.operator_interface.OperatorInterface;
@@ -86,6 +87,7 @@ public class RobotContainer {
 
       switch (Constants.getRobot()) {
         case ROBOT_2023_NOVA_CTRE:
+        case ROBOT_2023_NOVA_CTRE_FOC:
           {
             createCTRESubsystems();
             break;
@@ -141,6 +143,9 @@ public class RobotContainer {
       case ROBOT_2023_NOVA_CTRE:
       case ROBOT_SIMBOT_CTRE:
         config = new NovaCTRERobotConfig();
+        break;
+      case ROBOT_2023_NOVA_CTRE_FOC:
+        config = new NovaCTRETCFRobotConfig();
         break;
       case ROBOT_2023_NOVA:
       case ROBOT_SIMBOT:
@@ -423,7 +428,7 @@ public class RobotContainer {
                     Commands.run(() -> drivetrain.drive(1.0, 0.0, 0.0, false, false), drivetrain)),
                 Commands.deadline(
                     Commands.waitSeconds(0.5),
-                    Commands.run(() -> drivetrain.drive(4.0, 0.0, 0.0, false, false), drivetrain)),
+                    Commands.run(() -> drivetrain.drive(3.0, 0.0, 0.0, false, false), drivetrain)),
                 Commands.deadline(
                     Commands.waitSeconds(2.0),
                     Commands.run(() -> drivetrain.drive(1.0, 0.0, 0.0, false, false), drivetrain)),
@@ -432,7 +437,7 @@ public class RobotContainer {
                     Commands.run(() -> drivetrain.drive(-1.0, 0.0, 0.0, false, false), drivetrain)),
                 Commands.deadline(
                     Commands.waitSeconds(0.5),
-                    Commands.run(() -> drivetrain.drive(-4.0, 0.0, 0.0, false, false), drivetrain)),
+                    Commands.run(() -> drivetrain.drive(-3.0, 0.0, 0.0, false, false), drivetrain)),
                 Commands.deadline(
                     Commands.waitSeconds(2.0),
                     Commands.run(
