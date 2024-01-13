@@ -90,8 +90,8 @@ public class NovaCTRERobotConfig extends RobotConfig {
               Units.inchesToMeters(49.240)),
           new Rotation3d(0, Units.degreesToRadians(25), Units.degreesToRadians(-30)));
 
-  private static final double AUTO_MAX_SPEED_METERS_PER_SECOND = 4.0;
-  private static final double AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED = 4.0;
+  private static final double AUTO_MAX_SPEED_METERS_PER_SECOND = 3.5;
+  private static final double AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED = 3.5;
   private static final double AUTO_DRIVE_P_CONTROLLER = 5.0;
   private static final double AUTO_DRIVE_I_CONTROLLER = 0.0;
   private static final double AUTO_DRIVE_D_CONTROLLER = 0.0;
