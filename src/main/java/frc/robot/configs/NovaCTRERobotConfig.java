@@ -73,7 +73,7 @@ public class NovaCTRERobotConfig extends RobotConfig {
   private static final double MAX_DRIVE_ACCELERATION_METERS_PER_SECOND_SQUARED = 10.0;
   private static final double MAX_TURN_ACCELERATION_RADIANS_PER_SECOND_SQUARED = 4.0 * Math.PI;
 
-  private static final String CAN_BUS_NAME = "canbus1";
+  private static final String CAN_BUS_NAME = "";
 
   private static final String CAMERA_NAME_0 = "OV2311";
 
