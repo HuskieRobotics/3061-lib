@@ -459,7 +459,7 @@ public class RobotContainer {
                     Commands.run(() -> drivetrain.drive(1.0, 0.0, 0.0, false, false), drivetrain)),
                 Commands.deadline(
                     Commands.waitSeconds(0.5),
-                    Commands.run(() -> drivetrain.drive(4.0, 0.0, 0.0, false, false), drivetrain)),
+                    Commands.run(() -> drivetrain.drive(3.0, 0.0, 0.0, false, false), drivetrain)),
                 Commands.deadline(
                     Commands.waitSeconds(2.0),
                     Commands.run(() -> drivetrain.drive(1.0, 0.0, 0.0, false, false), drivetrain)),
@@ -468,7 +468,7 @@ public class RobotContainer {
                     Commands.run(() -> drivetrain.drive(-1.0, 0.0, 0.0, false, false), drivetrain)),
                 Commands.deadline(
                     Commands.waitSeconds(0.5),
-                    Commands.run(() -> drivetrain.drive(-4.0, 0.0, 0.0, false, false), drivetrain)),
+                    Commands.run(() -> drivetrain.drive(-3.0, 0.0, 0.0, false, false), drivetrain)),
                 Commands.deadline(
                     Commands.waitSeconds(2.0),
                     Commands.run(

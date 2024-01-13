@@ -36,10 +36,11 @@ import frc.robot.Constants;
 public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
 
   static class CustomSlotGains extends Slot0Configs {
-    public CustomSlotGains(double kP, double kI, double kD, double kV, double kS) {
+    public CustomSlotGains(double kP, double kI, double kD, double kA, double kV, double kS) {
       this.kP = kP;
       this.kI = kI;
       this.kD = kD;
+      this.kA = kA;
       this.kV = kV;
       this.kS = kS;
     }
@@ -67,6 +68,8 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     StatusSignal<Double> driveAccelerationStatusSignal;
   }
 
+  private final TunableNumber driveKa =
+      new TunableNumber("Drive/DriveKA", RobotConfig.getInstance().getDriveKA());
   private final TunableNumber driveKp =
       new TunableNumber("Drive/DriveKp", RobotConfig.getInstance().getSwerveDriveKP());
   private final TunableNumber driveKi =
@@ -85,6 +88,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
           RobotConfig.getInstance().getSwerveAngleKP(),
           RobotConfig.getInstance().getSwerveAngleKI(),
           RobotConfig.getInstance().getSwerveAngleKD(),
+          RobotConfig.getInstance().getSwerveAngleKA(),
           RobotConfig.getInstance().getSwerveAngleKV(),
           RobotConfig.getInstance().getSwerveAngleKS());
   private static final CustomSlotGains driveGains =
@@ -92,6 +96,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
           RobotConfig.getInstance().getSwerveDriveKP(),
           RobotConfig.getInstance().getSwerveDriveKI(),
           RobotConfig.getInstance().getSwerveDriveKD(),
+          RobotConfig.getInstance().getDriveKA(),
           RobotConfig.getInstance().getDriveKV(),
           RobotConfig.getInstance().getDriveKS());
 
@@ -300,7 +305,8 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     }
 
     // update tunables
-    if (driveKp.hasChanged()
+    if (driveKa.hasChanged()
+        || driveKp.hasChanged()
         || driveKi.hasChanged()
         || driveKd.hasChanged()
         || steerKp.hasChanged()
@@ -312,6 +318,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
         driveSlot0.kP = driveKp.get();
         driveSlot0.kI = driveKi.get();
         driveSlot0.kD = driveKd.get();
+        driveSlot0.kA = driveKa.get();
         swerveModule.getDriveMotor().getConfigurator().apply(driveSlot0);
 
         Slot0Configs steerSlot0 = new Slot0Configs();

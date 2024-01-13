@@ -57,11 +57,11 @@ public class NovaCTRERobotConfig extends RobotConfig {
 
   private static final double DRIVE_KS = 5.0;
   private static final double DRIVE_KV = 0.0;
-  private static final double DRIVE_KA = 1.0;
+  private static final double DRIVE_KA = 0.28;
 
   private static final SwerveType SWERVE_TYPE = SwerveType.MK4I;
 
-  private static final double MAX_VELOCITY_METERS_PER_SECOND = 4.78;
+  private static final double MAX_VELOCITY_METERS_PER_SECOND = 3.5;
   private static final double MAX_COAST_VELOCITY_METERS_PER_SECOND = 0.05;
   private static final double SLOW_MODE_MULTIPLIER = 0.75;
 
