@@ -630,14 +630,25 @@ public abstract class RobotConfig {
   }
 
   /**
-   * Returns the swerve control mode. Defaults to voltage. For the DrivetrainIOGeneric class, only
-   * VOLTAGE is supported. For the DrivetrainIOCTRE class, TORQUE_CURRENT_FOC is also supported with
-   * Phoenix Pro.
+   * Returns the swerve control mode for the steer motor. Defaults to voltage. For the
+   * DrivetrainIOGeneric class, only VOLTAGE is supported. For the DrivetrainIOCTRE class,
+   * TORQUE_CURRENT_FOC is also supported with Phoenix Pro.
    *
    * @return the swerve control mode
    */
-  public SWERVE_CONTROL_MODE getSwerveControlMode() {
+  public SWERVE_CONTROL_MODE getSwerveSteerControlMode() {
     return SWERVE_CONTROL_MODE.VOLTAGE;
+  }
+
+  /**
+   * Returns the drive control mode for the drive motor. Defaults to voltage. For the
+   * DrivetrainIOGeneric class, only VOLTAGE is supported. For the DrivetrainIOCTRE class,
+   * TORQUE_CURRENT_FOC is also supported with Phoenix Pro.
+   *
+   * @return the swerve control mode
+   */
+  public SWERVE_CONTROL_MODE getSwerveDriveControlMode() {
+    return SWERVE_CONTROL_MODE.TORQUE_CURRENT_FOC;
   }
 
   public enum SWERVE_CONTROL_MODE {
