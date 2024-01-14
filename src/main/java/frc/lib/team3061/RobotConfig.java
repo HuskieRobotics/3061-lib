@@ -648,7 +648,7 @@ public abstract class RobotConfig {
    * @return the swerve control mode
    */
   public SWERVE_CONTROL_MODE getSwerveDriveControlMode() {
-    return SWERVE_CONTROL_MODE.TORQUE_CURRENT_FOC;
+    return SWERVE_CONTROL_MODE.VOLTAGE;
   }
 
   public enum SWERVE_CONTROL_MODE {
