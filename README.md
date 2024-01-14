@@ -2,6 +2,12 @@
 
 Huskie Robotics, FRC Team 3061's, starter project and library focused on a swerve-based drivetrain. Supports SDS MK4/MK4i swerve modules using 2 Falcon 500 motors and a CTRE CANCoder, a CTRE Pigeon Gyro, and REV Robotics power distribution hub and pneumatics hub. However, due to the hardware abstraction layer, this code can be adapted to other motor controllers, encoders, and gyros as well as different swerve module designs.
 
+**Is 3061-lib a Good Fit for Your Team?**
+----
+* If you just want to get your new serve drive up and running, there are less complicated options. For example, if you are using all Cross The Road Electronics hardware, you should use their [Swerve Project Generator](https://pro.docs.ctr-electronics.com/en/latest/docs/tuner/tuner-swerve/index.html).
+* While 3061-lib has the potential to support Rev motors and sensors, that requires some work on your part. You may find AdvantageKit's [Swerve Drive Projects](https://github.com/Mechanical-Advantage/AdvantageKit/blob/main/docs/INSTALLATION.md#new-projects) more helpful.
+* If your team is interested in incorporating the following features, 3061-lib may be a good fit for your team.
+
 **External Dependencies**
 ----
 * git must be installed as the GVersion plugin depends upon it
@@ -29,7 +35,6 @@ Huskie Robotics, FRC Team 3061's, starter project and library focused on a swerv
     * acceleration limiting when not in "turbo" mode
     * current limiting configuration for motors
     * x-stance
-    * leave wheels rotated in last direction when not driving to enable smooth continuation of motion
     * switch drive motors to coast mode when robot is disabled and has stopped moving for a period of time to facilitate manual pushing
 
 **Configuration**
