@@ -701,37 +701,40 @@ public class Drivetrain extends SubsystemBase {
     // see if they are correct
     // steerPositionDeg is a value that is between (-180, 180]
 
-    // Drive left angle check
+    // Drive left and right angle check
     if (givenDirection == 0) {
-      if (!(this.inputs.swerve[swerveModuleNumber].steerPositionDeg > 179
-              && this.inputs.swerve[swerveModuleNumber].steerPositionDeg <= 180)
-          && !(this.inputs.swerve[swerveModuleNumber].steerPositionDeg > -180
-              && this.inputs.swerve[swerveModuleNumber].steerPositionDeg <= -179)) {
+      if (!((this.inputs.swerve[swerveModuleNumber].steerPositionDeg > -1
+              && this.inputs.swerve[swerveModuleNumber].steerPositionDeg < 1)
+          || (this.inputs.swerve[swerveModuleNumber].steerPositionDeg > 179
+              || this.inputs.swerve[swerveModuleNumber].steerPositionDeg < -179))) {
         FaultReporter.getInstance()
             .addFault(
                 SUBSYSTEM_NAME,
                 "[System Check] Swerve module "
                     + getSwerveLocation(swerveModuleNumber)
-                    + " not rotating to the left in the threshold as expected");
+                    + " not rotating to the right/left in the threshold as expected");
       }
 
-      // Drive right angle check
+      // Drive forwards & backwards angle check
     } else if (givenDirection == 1) {
-      if (!(this.inputs.swerve[swerveModuleNumber].steerPositionDeg > 0
-              && this.inputs.swerve[swerveModuleNumber].steerPositionDeg <= 1)
-          && !(this.inputs.swerve[swerveModuleNumber].steerPositionDeg > -1
-              && this.inputs.swerve[swerveModuleNumber].steerPositionDeg <= 0)) {
+      if (!((this.inputs.swerve[swerveModuleNumber].steerPositionDeg > 89
+              && this.inputs.swerve[swerveModuleNumber].steerPositionDeg < 91)
+          || (this.inputs.swerve[swerveModuleNumber].steerPositionDeg > -91
+              && this.inputs.swerve[swerveModuleNumber].steerPositionDeg < -89))) {
         FaultReporter.getInstance()
             .addFault(
                 SUBSYSTEM_NAME,
                 "[System Check] Swerve module "
                     + getSwerveLocation(swerveModuleNumber)
-                    + " not rotating to the right in the threshold as expected");
+                    + " not rotating to the forward/backward in the threshold as expected");
       }
-      // Drive forward angle check
-    } else if (givenDirection == 2) {
-      if (!(this.inputs.swerve[swerveModuleNumber].steerPositionDeg > 89
-          && this.inputs.swerve[swerveModuleNumber].steerPositionDeg < 91)) {
+
+      // Checking if clockwise/counterclockwise rotation works for FL and BR
+    } else if (givenDirection == 3) {
+      if (!((this.inputs.swerve[swerveModuleNumber].steerPositionDeg > 44
+              && this.inputs.swerve[swerveModuleNumber].steerPositionDeg < 46)
+          || (this.inputs.swerve[swerveModuleNumber].steerPositionDeg > -136
+              && this.inputs.swerve[swerveModuleNumber].steerPositionDeg < -134))) {
         FaultReporter.getInstance()
             .addFault(
                 SUBSYSTEM_NAME,
@@ -739,10 +742,12 @@ public class Drivetrain extends SubsystemBase {
                     + getSwerveLocation(swerveModuleNumber)
                     + " not rotating forward in the threshold as expected");
       }
-      // Drive backward angle check
-    } else if (givenDirection == 3) {
-      if (!(this.inputs.swerve[swerveModuleNumber].steerPositionDeg < -89
-          && this.inputs.swerve[swerveModuleNumber].steerPositionDeg > -91)) {
+      // Checking if clockwise/counterclockwise rotation works for FR and BL
+    } else if (givenDirection == 4) {
+      if (!((this.inputs.swerve[swerveModuleNumber].steerPositionDeg > 134
+              && this.inputs.swerve[swerveModuleNumber].steerPositionDeg < 136)
+          || (this.inputs.swerve[swerveModuleNumber].steerPositionDeg > -46
+              && this.inputs.swerve[swerveModuleNumber].steerPositionDeg < -44))) {
         FaultReporter.getInstance()
             .addFault(
                 SUBSYSTEM_NAME,
@@ -756,83 +761,89 @@ public class Drivetrain extends SubsystemBase {
   private Command getSystemCheckCommand() {
     disableFieldRelative();
     return Commands.sequence(
-        // Tests for driving to the left
-        Commands.parallel(
-            Commands.run(
-                () -> {
-                  io.driveRobotRelative(0, 1, 0, false);
-                }),
-            Commands.waitSeconds(1)
-                .andThen(
-                    Commands.runOnce(
-                        () -> {
-                          for (int i = 0; i < 4; i++) {
-                            checkSwerveModule(i, 0);
-                          }
-                        }))),
+            // Tests for driving to the left
+            Commands.parallel(
+                Commands.run(
+                    () -> {
+                      io.driveRobotRelative(0, 1, 0, false);
+                    }),
+                Commands.waitSeconds(1)
+                    .andThen(
+                        Commands.runOnce(
+                            () -> {
+                              for (int i = 0; i < 4; i++) {
+                                checkSwerveModule(i, 0);
+                              }
+                            }))),
 
-        // Tests for driving to the right
-        Commands.parallel(
-            Commands.run(
-                () -> {
-                  io.driveRobotRelative(0, -1, 0, false);
-                }),
-            Commands.waitSeconds(1)
-                .andThen(
-                    Commands.runOnce(
-                        () -> {
-                          for (int i = 0; i < 4; i++) {
-                            checkSwerveModule(i, 1);
-                          }
-                        }))),
+            // Tests for driving to the right
+            Commands.parallel(
+                Commands.run(
+                    () -> {
+                      io.driveRobotRelative(0, -1, 0, false);
+                    }),
+                Commands.waitSeconds(1)
+                    .andThen(
+                        Commands.runOnce(
+                            () -> {
+                              for (int i = 0; i < 4; i++) {
+                                checkSwerveModule(i, 0);
+                              }
+                            }))),
 
-        // Tests for driving wheels forwards
-        Commands.parallel(
-            Commands.run(
-                () -> {
-                  io.driveRobotRelative(1, 0, 0, false);
-                }),
-            Commands.waitSeconds(1)
-                .andThen(
-                    Commands.runOnce(
-                        () -> {
-                          for (int i = 0; i < 4; i++) {
-                            checkSwerveModule(i, 2);
-                          }
-                        }))),
+            // Tests for driving wheels forwards
+            Commands.parallel(
+                Commands.run(
+                    () -> {
+                      io.driveRobotRelative(1, 0, 0, false);
+                    }),
+                Commands.waitSeconds(1)
+                    .andThen(
+                        Commands.runOnce(
+                            () -> {
+                              for (int i = 0; i < 4; i++) {
+                                checkSwerveModule(i, 1);
+                              }
+                            }))),
 
-        // Tests for driving wheels backwards
-        Commands.parallel(
-            Commands.run(
-                () -> {
-                  io.driveRobotRelative(-1, 0, 0, false);
-                }),
-            Commands.waitSeconds(1)
-                .andThen(
-                    Commands.runOnce(
-                        () -> {
-                          for (int i = 0; i < 4; i++) {
-                            checkSwerveModule(i, 3);
-                          }
-                        }))),
+            // Tests for driving wheels backwards
+            Commands.parallel(
+                Commands.run(
+                    () -> {
+                      io.driveRobotRelative(-1, 0, 0, false);
+                    }),
+                Commands.waitSeconds(1)
+                    .andThen(
+                        Commands.runOnce(
+                            () -> {
+                              for (int i = 0; i < 4; i++) {
+                                checkSwerveModule(i, 1);
+                              }
+                            }))),
 
-        // Tests for driving wheels clockwise
-        Commands.parallel(
-            Commands.run(
-                () -> {
-                  io.driveRobotRelative(0, 0, -1, false);
-                }),
-            Commands.waitSeconds(1)
-                .andThen(
-                    Commands.runOnce(
-                        () -> {
-                          for (int i = 0; i < 4; i++) {
-                            checkSwerveModule(i, 4);
-                          }
-                        }))),
+            // Tests for driving wheels clockwise
+            Commands.parallel(
+                Commands.run(
+                    () -> {
+                      io.driveRobotRelative(0, 0, -1, false);
+                    }),
+                Commands.waitSeconds(1)
+                    .andThen(
+                        Commands.runOnce(
+                            () -> {
+                              // We use direction number '3' to check for clockwise rotation on FL
+                              // (0) and BR (4) wheels (they are rotated the same)
+                              // We use direction number '4' to check for clockwise rotation on FR
+                              // (1) and BL (2) wheels (they are also rotated the same)
 
-        // Tests for driving wheels counterclockwise
-        Commands.parallel(
+                              checkSwerveModule(0, 3);
+                              checkSwerveModule(3, 3);
+                              checkSwerveModule(1, 4);
+                              checkSwerveModule(2, 4);
+                            }))),
+
+            // Tests for driving wheels counterclockwise
+            Commands.parallel(
                 Commands.run(
                     () -> {
                       io.driveRobotRelative(0, 0, 1, false);
@@ -841,12 +852,13 @@ public class Drivetrain extends SubsystemBase {
                     .andThen(
                         Commands.runOnce(
                             () -> {
-                              for (int i = 0; i < 4; i++) {
-                                checkSwerveModule(i, 5);
-                              }
-                            })))
-            .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
-            .andThen(Commands.runOnce(() -> this.drive(0, 0, 0, true, false))));
+                              checkSwerveModule(0, 3);
+                              checkSwerveModule(3, 3);
+                              checkSwerveModule(1, 4);
+                              checkSwerveModule(2, 4);
+                            }))))
+        .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
+        .andThen(Commands.runOnce(() -> this.drive(0, 0, 0, true, false)));
   }
 
   /**
