@@ -24,7 +24,7 @@ public final class SwerveConstants {
   /*
   	Wheel diameter is best determined empirically. Refer to this document for more information: !!!
   */
-  public static final double MK4I_L2_WHEEL_DIAMETER_METERS = 0.09659072671;
+  public static final double MK4I_L2_WHEEL_DIAMETER_METERS = 0.0959312;
 
   public static final double MK4I_L2_WHEEL_CIRCUMFERENCE = MK4I_L2_WHEEL_DIAMETER_METERS * Math.PI;
   public static final double MK4I_L2_DRIVE_GEAR_RATIO =
