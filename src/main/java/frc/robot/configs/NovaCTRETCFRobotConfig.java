@@ -57,7 +57,7 @@ public class NovaCTRETCFRobotConfig extends RobotConfig {
 
   private static final double DRIVE_KS = 5.0;
   private static final double DRIVE_KV = 0.0;
-  private static final double DRIVE_KA = 0.28;
+  private static final double DRIVE_KA = 0.0;
 
   private static final SwerveType SWERVE_TYPE = SwerveType.MK4I;
 
