@@ -51,13 +51,13 @@ public class NovaCTRETCFRobotConfig extends RobotConfig {
   private static final double ANGLE_KA = 0.001663333333;
 
   /* Drive Motor PID Values */
-  private static final double DRIVE_KP = 12.0;
+  private static final double DRIVE_KP = 8.0;
   private static final double DRIVE_KI = 0.0;
   private static final double DRIVE_KD = 0.0;
 
   private static final double DRIVE_KS = 5.0;
   private static final double DRIVE_KV = 0.0;
-  private static final double DRIVE_KA = 0.28;
+  private static final double DRIVE_KA = 0.0;
 
   private static final SwerveType SWERVE_TYPE = SwerveType.MK4I;
 

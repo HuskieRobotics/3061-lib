@@ -68,8 +68,6 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     StatusSignal<Double> driveAccelerationStatusSignal;
   }
 
-  private final TunableNumber driveKa =
-      new TunableNumber("Drive/DriveKA", RobotConfig.getInstance().getDriveKA());
   private final TunableNumber driveKp =
       new TunableNumber("Drive/DriveKp", RobotConfig.getInstance().getSwerveDriveKP());
   private final TunableNumber driveKi =
@@ -305,8 +303,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     }
 
     // update tunables
-    if (driveKa.hasChanged()
-        || driveKp.hasChanged()
+    if (driveKp.hasChanged()
         || driveKi.hasChanged()
         || driveKd.hasChanged()
         || steerKp.hasChanged()
@@ -318,7 +315,6 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
         driveSlot0.kP = driveKp.get();
         driveSlot0.kI = driveKi.get();
         driveSlot0.kD = driveKd.get();
-        driveSlot0.kA = driveKa.get();
         swerveModule.getDriveMotor().getConfigurator().apply(driveSlot0);
 
         Slot0Configs steerSlot0 = new Slot0Configs();
