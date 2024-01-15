@@ -65,7 +65,7 @@ public abstract class LEDs extends SubsystemBase {
   protected static final int LENGTH = MIRROR_LEDS ? ACTUAL_LENGTH / 2 : ACTUAL_LENGTH;
   private static final int STATIC_LENGTH = LENGTH / 2;
   private static final int STATIC_SECTION_LENGTH = STATIC_LENGTH / 3;
-  private static final boolean PRIDE_LEDS = false;
+  private static final boolean PRIDE_LEDS = true;
   private static final int MIN_LOOP_CYCLE_COUNT = 10;
   private static final double STROBE_FAST_DURATION = 0.1;
   private static final double STROBE_SLOW_DURATION = 0.2;

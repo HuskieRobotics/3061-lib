@@ -657,7 +657,7 @@ public abstract class RobotConfig {
     RIO,
     CANDLE
   };
-  
+
   /*
    * Returns the swerve control mode. Defaults to voltage. For the DrivetrainIOGeneric class, only
    * VOLTAGE is supported. For the DrivetrainIOCTRE class, TORQUE_CURRENT_FOC is also supported with

@@ -115,7 +115,7 @@ public class NovaCTRERobotConfig extends RobotConfig {
 
   private static final double SQUARING_SPEED_METERS_PER_SECOND = 1.0;
 
-  private static final int LED_COUNT = 200;
+  private static final int LED_COUNT = 85;
 
   @Override
   public boolean getPhoenix6Licensed() {
@@ -406,7 +406,7 @@ public class NovaCTRERobotConfig extends RobotConfig {
 
   @Override
   public LED_HARDWARE getLEDHardware() {
-    return LED_HARDWARE.CANDLE;
+    return LED_HARDWARE.RIO;
   }
 
   @Override
@@ -414,7 +414,7 @@ public class NovaCTRERobotConfig extends RobotConfig {
     return LED_COUNT;
   }
 
-  public SWERVE_CONTROL_MODE getSwerveControlMode() {
+  @Override
   public SWERVE_CONTROL_MODE getSwerveSteerControlMode() {
     return SWERVE_CONTROL_MODE.VOLTAGE;
   }
