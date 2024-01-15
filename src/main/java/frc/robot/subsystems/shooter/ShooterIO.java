@@ -33,6 +33,10 @@ public interface ShooterIO {
    */
   public default void setAppliedVoltage(double volts) {}
 
+  public default void setRightMotor(double volts) {}
+
+  public default void setLeftMotor(double volts) {}
+
   /**
    * Set the motor position to the specified value in degrees.
    *

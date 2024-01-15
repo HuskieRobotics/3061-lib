@@ -1,25 +1,15 @@
 package frc.robot.subsystems.shooter;
 
-import com.ctre.phoenix6.StatusCode;
-import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionVoltage;
-import com.ctre.phoenix6.controls.StrictFollower;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.InvertedValue;
-import com.ctre.phoenix6.signals.NeutralModeValue;
-
-import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.swerve.Conversions;
 import frc.lib.team6328.util.Alert;
 import frc.lib.team6328.util.Alert.AlertType;
-import frc.lib.team6328.util.TunableNumber;
 import frc.robot.subsystems.shooter.ShooterIO.ShooterIOInputs;
-import frc.robot.subsystems.shooter.ShooterConstants;
-
 
 public class ShooterIOTalonFX implements ShooterIO {
   private TalonFX rightMotor;
@@ -31,7 +21,6 @@ public class ShooterIOTalonFX implements ShooterIO {
 
   private Alert configAlert =
       new Alert("Failed to apply configuration for subsystem.", AlertType.ERROR);
-
 
   /** Create a TalonFX-specific generic SubsystemIO */
   public ShooterIOTalonFX() {
@@ -47,7 +36,6 @@ public class ShooterIOTalonFX implements ShooterIO {
   public void updateInputs(ShooterIOInputs inputs) {
     inputs.appliedVoltage = rightMotor.getMotorVoltage().getValueAsDouble();
   }
-  
 
   /**
    * Set the motor position to the specified value in degrees.
@@ -58,12 +46,21 @@ public class ShooterIOTalonFX implements ShooterIO {
   public void setMotorPosition(TalonFX motor, double position, double arbitraryFeedForward) {
     motor.setControl(
         positionRequest
-            .withPosition(Conversions.degreesToFalconRotations(position, ShooterConstants.GEAR_RATIO))
+            .withPosition(
+                Conversions.degreesToFalconRotations(position, ShooterConstants.GEAR_RATIO))
             .withFeedForward(arbitraryFeedForward));
   }
 
   public void setAppliedVoltage(double volts) {
     rightMotor.setControl(voltageRequest.withOutput(volts));
+  }
+
+  public void setRightMotor(double volts) {
+    rightMotor.setControl(voltageRequest.withOutput(volts));
+  }
+
+  public void setLeftMotor(double volts) {
+    leftMotor.setControl(voltageRequest.withOutput(volts));
   }
 
   private void configMotor(int rightMotorID, int leftMotorID) {
@@ -72,7 +69,7 @@ public class ShooterIOTalonFX implements ShooterIO {
     this.leftMotor = new TalonFX(leftMotorID, RobotConfig.getInstance().getCANBusName());
 
     this.leftMotor.setInverted(true);
-    this.leftMotor.setControl(new StrictFollower(ShooterConstants.RIGHT_MOTOR_CAN_ID));
+    // this.leftMotor.setControl(new StrictFollower(ShooterConstants.RIGHT_MOTOR_CAN_ID));
 
     TalonFXConfiguration config = new TalonFXConfiguration();
 
