@@ -53,7 +53,7 @@ public class NovaCTRERobotConfig extends RobotConfig {
   private static final double ANGLE_KA = 0.001663333333;
 
   /* Drive Motor PID Values */
-  private static final double DRIVE_KP = 0.005;
+  private static final double DRIVE_KP = 0.3;
   private static final double DRIVE_KI = 0.0;
   private static final double DRIVE_KD = 0.0;
 

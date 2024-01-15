@@ -4,8 +4,6 @@
 
 package frc.robot;
 
-import static frc.robot.FieldRegionConstants.*;
-
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
@@ -283,45 +281,11 @@ public class RobotContainer {
   /**
    * Creates the field from the defined regions and transition points from one region to its
    * neighbor. The field is used to generate paths.
+   *
+   * <p>FIXME: update for 2024 regions
    */
   private void constructField() {
-    Field2d.getInstance()
-        .setRegions(
-            new Region2d[] {
-              COMMUNITY_REGION_1,
-              COMMUNITY_REGION_2,
-              COMMUNITY_REGION_3,
-              LOADING_ZONE_REGION_1,
-              LOADING_ZONE_REGION_2,
-              FIELD_ZONE_REGION_1,
-              FIELD_ZONE_REGION_2,
-              FIELD_ZONE_REGION_3,
-              FIELD_ZONE_REGION_4
-            });
-
-    COMMUNITY_REGION_1.addNeighbor(COMMUNITY_REGION_2, COMMUNITY_REGION_1_2_TRANSITION_POINT);
-    COMMUNITY_REGION_2.addNeighbor(COMMUNITY_REGION_1, COMMUNITY_REGION_2_1_TRANSITION_POINT);
-    COMMUNITY_REGION_1.addNeighbor(COMMUNITY_REGION_3, COMMUNITY_REGION_1_3_TRANSITION_POINT);
-    COMMUNITY_REGION_3.addNeighbor(COMMUNITY_REGION_1, COMMUNITY_REGION_3_1_TRANSITION_POINT);
-    COMMUNITY_REGION_2.addNeighbor(FIELD_ZONE_REGION_1, COMMUNITY_2_TO_FIELD_1_TRANSITION_POINT);
-    COMMUNITY_REGION_3.addNeighbor(FIELD_ZONE_REGION_2, COMMUNITY_3_TO_FIELD_2_TRANSITION_POINT);
-
-    LOADING_ZONE_REGION_1.addNeighbor(
-        LOADING_ZONE_REGION_2, LOADING_ZONE_REGION_1_2_TRANSITION_POINT);
-    LOADING_ZONE_REGION_2.addNeighbor(
-        LOADING_ZONE_REGION_1, LOADING_ZONE_REGION_2_1_TRANSITION_POINT);
-    LOADING_ZONE_REGION_2.addNeighbor(FIELD_ZONE_REGION_4, LOADING_2_TO_FIELD_4_TRANSITION_POINT);
-
-    FIELD_ZONE_REGION_1.addNeighbor(FIELD_ZONE_REGION_2, FIELD_ZONE_REGION_1_2_TRANSITION_POINT);
-    FIELD_ZONE_REGION_2.addNeighbor(FIELD_ZONE_REGION_1, FIELD_ZONE_REGION_2_1_TRANSITION_POINT);
-    FIELD_ZONE_REGION_1.addNeighbor(FIELD_ZONE_REGION_3, FIELD_ZONE_REGION_1_3_TRANSITION_POINT);
-    FIELD_ZONE_REGION_3.addNeighbor(FIELD_ZONE_REGION_1, FIELD_ZONE_REGION_3_1_TRANSITION_POINT);
-    FIELD_ZONE_REGION_1.addNeighbor(FIELD_ZONE_REGION_4, FIELD_ZONE_REGION_1_4_TRANSITION_POINT);
-    FIELD_ZONE_REGION_4.addNeighbor(FIELD_ZONE_REGION_1, FIELD_ZONE_REGION_4_1_TRANSITION_POINT);
-    FIELD_ZONE_REGION_1.addNeighbor(COMMUNITY_REGION_2, FIELD_1_TO_COMMUNITY_2_TRANSITION_POINT);
-    FIELD_ZONE_REGION_2.addNeighbor(COMMUNITY_REGION_3, FIELD_2_TO_COMMUNITY_3_TRANSITION_POINT);
-    FIELD_ZONE_REGION_3.addNeighbor(LOADING_ZONE_REGION_1, FIELD_3_TO_LOADING_1_TRANSITION_POINT);
-    FIELD_ZONE_REGION_4.addNeighbor(LOADING_ZONE_REGION_2, FIELD_4_TO_LOADING_2_TRANSITION_POINT);
+    Field2d.getInstance().setRegions(new Region2d[] {});
   }
 
   /**
@@ -613,9 +577,8 @@ public class RobotContainer {
   public void checkAllianceColor() {
     Optional<Alliance> alliance = DriverStation.getAlliance();
     if (alliance.isPresent() && alliance.get() != lastAlliance) {
-      lastAlliance = alliance.get();
-      vision.updateAlliance(lastAlliance);
-      Field2d.getInstance().updateAlliance(lastAlliance);
+      this.lastAlliance = alliance.get();
+      this.drivetrain.updateAlliance(this.lastAlliance);
     }
   }
 
