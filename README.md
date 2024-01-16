@@ -152,6 +152,7 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
 **Credits**
 ----
 * MK4/MK4i code initially from Team 364's [BaseFalconSwerve](https://github.com/Team364/BaseFalconSwerve)
-* general AdvantageKit logging code, AdvantageKit-enabled Gyro classes, swerve module simulation, and drive characterization from Mechanical Advantage's [SwerveDevelopment](https://github.com/Mechanical-Advantage/SwerveDevelopment)
-* AdvantageKit-enabled pneumatics classes from Mechanical Advantage's 2022 [robot code](https://github.com/Mechanical-Advantage/RobotCode2022)
-* FaultReporter (originally AdvancedSubsystem), SubsystemFault, SelfChecking classes from [Ranger Robotics](https://github.com/3015RangerRobotics/2023Public)
+* general AdvantageKit logging code, AdvantageKit-enabled Gyro classes, swerve module simulation, and drive characterization initially from Mechanical Advantage's [SwerveDevelopment](https://github.com/Mechanical-Advantage/SwerveDevelopment)
+* AdvantageKit-enabled pneumatics classes initially from Mechanical Advantage's 2022 [robot code](https://github.com/Mechanical-Advantage/RobotCode2022)
+* AdvantageKit-enabled framework code and LED class initially from Mechanical Advantage's 2023 [robot code](https://github.com/Mechanical-Advantage/RobotCode2023)
+* FaultReporter (originally AdvancedSubsystem), SubsystemFault, SelfChecking classes initially from [Ranger Robotics](https://github.com/3015RangerRobotics/2023Public)
