@@ -72,9 +72,9 @@ public class RobotContainer {
       new LoggedDashboardChooser<>("Auto Routine");
 
   private final LoggedDashboardNumber endgameAlert1 =
-      new LoggedDashboardNumber("Endgame Alert #1", 30.0);
+      new LoggedDashboardNumber("Endgame Alert #1", 20.0);
   private final LoggedDashboardNumber endgameAlert2 =
-      new LoggedDashboardNumber("Endgame Alert #2", 15.0);
+      new LoggedDashboardNumber("Endgame Alert #2", 10.0);
 
   // RobotContainer singleton
   private static RobotContainer robotContainer = new RobotContainer();
