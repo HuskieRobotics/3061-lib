@@ -351,6 +351,8 @@ public class Drivetrain extends SubsystemBase {
       } else {
         this.io.driveRobotRelative(xVelocity, yVelocity, rotationalVelocity, isOpenLoop);
       }
+    } else if (driveMode == DriveMode.SOUND) {
+      io.playSounds(1500);
     } else {
       this.io.holdXStance();
     }
@@ -873,15 +875,15 @@ public class Drivetrain extends SubsystemBase {
                               checkSwerveModule(1, 4);
                               checkSwerveModule(2, 4);
                             })))
-            //Commands.run(() -> io.playSounds(1000))
-            
-            ).until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
-        .andThen(Commands.runOnce(() -> this.drive(0, 0, 0, true, false))); 
+            // Commands.run(() -> io.playSounds(1000))
+
+            )
+        .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
+        .andThen(Commands.runOnce(() -> this.drive(0, 0, 0, true, false)));
   }
 
-  public void playSounds(double pitch)
-  {
-      io.playSounds(pitch);
+  public void playSounds(double pitch) {
+    io.playSounds(pitch);
   }
 
   /**
@@ -910,12 +912,17 @@ public class Drivetrain extends SubsystemBase {
     }
   }
 
+  public void setMode(DriveMode mode) {
+    this.driveMode = mode;
+  }
+
   private void setBrakeMode(boolean enable) {
     this.io.setBrakeMode(enable);
   }
 
-  private enum DriveMode {
+  public enum DriveMode {
     NORMAL,
-    X
+    X,
+    SOUND
   }
 }
