@@ -12,6 +12,9 @@ import edu.wpi.first.wpilibj2.command.button.*;
 
 /** Interface for all driver and operator controls. */
 public interface OperatorInterface {
+  public default Trigger getTestNoise() {
+    return new Trigger(() -> false);
+  }
 
   public default double getTranslateX() {
     return 0.0;

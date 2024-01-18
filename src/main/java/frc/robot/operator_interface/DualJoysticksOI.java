@@ -28,6 +28,10 @@ public class DualJoysticksOI implements OperatorInterface {
       rotateJoystickButtons[i] = rotateJoystick.button(i);
     }
   }
+  @Override
+  public Trigger getTestNoise() {
+    return translateJoystickButtons[5];
+  } 
 
   @Override
   public double getTranslateX() {

@@ -561,6 +561,9 @@ public class RobotContainer {
     // turbo
     oi.getTurboButton().onTrue(Commands.runOnce(drivetrain::enableTurbo, drivetrain));
     oi.getTurboButton().onFalse(Commands.runOnce(drivetrain::disableTurbo, drivetrain));
+
+    //noise test
+    oi.getTestNoise().onTrue(Commands.runOnce(() -> drivetrain.playSounds(2000)));
   }
 
   private void configureSubsystemCommands() {
