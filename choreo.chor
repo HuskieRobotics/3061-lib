@@ -59,6 +59,15 @@
                     "translationConstrained": true,
                     "headingConstrained": true,
                     "controlIntervalCount": 40
+                },
+                {
+                    "x": 13.569713592529297,
+                    "y": -0.7947409152984619,
+                    "heading": 0,
+                    "isInitialGuess": false,
+                    "translationConstrained": true,
+                    "headingConstrained": true,
+                    "controlIntervalCount": 40
                 }
             ],
             "trajectory": [
@@ -1122,16 +1131,14 @@
                         "first"
                     ],
                     "type": "WptZeroVelocity",
-                    "uuid": "18e686e3-e898-4ac3-af4c-379570df79a6",
-                    "direction": 0
+                    "uuid": "c49d0e5f-9c0f-4fff-b5e3-cc70e1393e10"
                 },
                 {
                     "scope": [
                         "last"
                     ],
                     "type": "WptZeroVelocity",
-                    "uuid": "189d512f-8509-4528-9aed-4517b8d2e503",
-                    "direction": 0
+                    "uuid": "341bf943-563d-46bb-8070-f030da9fcb08"
                 }
             ],
             "usesControlIntervalGuessing": true,

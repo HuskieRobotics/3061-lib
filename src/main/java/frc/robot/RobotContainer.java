@@ -361,6 +361,14 @@ public class RobotContainer {
      */
     Command choreoAutoTest = new PathPlannerAuto("ChoreoTest");
     autoChooser.addOption("Choreo Auto", choreoAutoTest);
+/* 
+Test 1 -30 cm X direction and +25 cm Y direction
+Test 2 -23 cm X direction and +36 cm Y direction
+Test 3 -19 cm X direction and +33 cm Y direction
+Test 4 -9 cm X direction and +41 cm Y direction
+Test 5 -16 cm X direction and +41 cm Y direction
+*/
+
 
     /************ Start Point ************
      *
