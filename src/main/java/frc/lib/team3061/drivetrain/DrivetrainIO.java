@@ -163,4 +163,6 @@ public interface DrivetrainIO {
   public default void setSteerMotorCurrent(double amps) {}
 
   public default void setBrakeMode(boolean enable) {}
+
+  public default void playSounds(double pitch) {}
 }

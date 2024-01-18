@@ -6,6 +6,7 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.controls.MusicTone;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrain;
@@ -100,7 +101,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   // TorqueCurrentFOC is not currently supported in simulation.
   private static final ClosedLoopOutputType steerClosedLoopOutput = getClosedLoopOutputType();
 
-  // The closed-loop output type to use for the drive motors
+  // The closed-loop output type to use for the drive moto
   // This affects the PID/FF gains for the drive motors
   // TorqueCurrentFOC is not currently supported in simulation.
   private static final ClosedLoopOutputType driveClosedLoopOutput = getClosedLoopOutputType();
@@ -575,6 +576,20 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
       swerveModule.getDriveMotor().getConfigurator().refresh(config);
       config.NeutralMode = enable ? NeutralModeValue.Brake : NeutralModeValue.Coast;
       swerveModule.getDriveMotor().getConfigurator().apply(config);
+    }
+  }
+
+  /**
+   * Plays sounds for all the Swerve Modules
+   *
+   * @param frequency the frequency of the sound (10-20000Hz)
+   */
+  @Override
+  public void playSounds(double frequency) {
+    MusicTone tone = new MusicTone(frequency);
+
+    for (int i = 0; i < 4; i++) {
+      this.Modules[i].getDriveMotor().setControl(tone);
     }
   }
 
