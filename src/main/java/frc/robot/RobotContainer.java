@@ -333,6 +333,7 @@ public class RobotContainer {
     NamedCommands.registerCommand(
         "disableXStance", Commands.runOnce(drivetrain::disableXstance, drivetrain));
     NamedCommands.registerCommand("wait5Seconds", Commands.waitSeconds(5.0));
+    NamedCommands.registerCommand("Shoot", Commands.waitSeconds(1.0));
 
     // build auto path commands
 
@@ -406,6 +407,14 @@ public class RobotContainer {
      */
     Command tuningCommand = new PathPlannerAuto("Tuning");
     autoChooser.addOption("Auto Tuning", tuningCommand);
+
+    /************ 3 Note ************
+     *
+     * used for testing the 3 note autonomous
+     *
+     */
+    Command threeNoteCommand = new PathPlannerAuto("3 Note");
+    autoChooser.addOption("3 Note", threeNoteCommand);
 
     /************ Drive Velocity Tuning ************
      *
