@@ -4,8 +4,9 @@
 
 package frc.lib.team3061.drivetrain;
 
-import static frc.lib.team3061.drivetrain.DrivetrainConstants.*;
-import static frc.robot.Constants.*;
+import static frc.lib.team3061.drivetrain.DrivetrainConstants.SUBSYSTEM_NAME;
+import static frc.lib.team3061.drivetrain.DrivetrainConstants.TESTING;
+import static frc.robot.Constants.LOOP_PERIOD_SECS;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
@@ -686,9 +687,21 @@ public class Drivetrain extends SubsystemBase {
    * Checks the swerve module to see if it is moving as expected or is in the rotation threshold
    * @param swerveModuleNumber the swerve module number to check
    */
-  private void checkSwerveModule(int swerveModuleNumber, int givenDirection) {
+
+  private void checkSwerveModule(
+      int swerveModuleNumber,
+      double angleTarget,
+      double angleTolerance,
+      double velocityTarget,
+      double velocityTolerance) {
     // Need to check for both velocity and rotation
-    if (Math.abs(inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec) < 3.5) {
+
+    // Velocity check
+    if (Math.abs(inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec)
+            < velocityTarget - velocityTolerance
+        && Math.abs(inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec)
+            < velocityTarget + velocityTolerance) {
+    } else {
       FaultReporter.getInstance()
           .addFault(
               SUBSYSTEM_NAME,
@@ -696,65 +709,32 @@ public class Drivetrain extends SubsystemBase {
                   + getSwerveLocation(swerveModuleNumber)
                   + " not moving as fast as expected");
     }
-
     // Check to see if the direction is rotated properly, thresholds still need to be checked and
     // see if they are correct
     // steerPositionDeg is a value that is between (-180, 180]
-
-    // Drive left and right angle check
-    if (givenDirection == 0) {
-      if (!((this.inputs.swerve[swerveModuleNumber].steerPositionDeg > -1
-              && this.inputs.swerve[swerveModuleNumber].steerPositionDeg < 1)
-          || (this.inputs.swerve[swerveModuleNumber].steerPositionDeg > 179
-              || this.inputs.swerve[swerveModuleNumber].steerPositionDeg < -179))) {
-        FaultReporter.getInstance()
-            .addFault(
-                SUBSYSTEM_NAME,
-                "[System Check] Swerve module "
-                    + getSwerveLocation(swerveModuleNumber)
-                    + " not rotating to the right/left in the threshold as expected");
-      }
-
-      // Drive forwards & backwards angle check
-    } else if (givenDirection == 1) {
-      if (!((this.inputs.swerve[swerveModuleNumber].steerPositionDeg > 89
-              && this.inputs.swerve[swerveModuleNumber].steerPositionDeg < 91)
-          || (this.inputs.swerve[swerveModuleNumber].steerPositionDeg > -91
-              && this.inputs.swerve[swerveModuleNumber].steerPositionDeg < -89))) {
-        FaultReporter.getInstance()
-            .addFault(
-                SUBSYSTEM_NAME,
-                "[System Check] Swerve module "
-                    + getSwerveLocation(swerveModuleNumber)
-                    + " not rotating to the forward/backward in the threshold as expected");
-      }
-
-      // Checking if clockwise/counterclockwise rotation works for FL and BR
-    } else if (givenDirection == 3) {
-      if (!((this.inputs.swerve[swerveModuleNumber].steerPositionDeg > 44
-              && this.inputs.swerve[swerveModuleNumber].steerPositionDeg < 46)
-          || (this.inputs.swerve[swerveModuleNumber].steerPositionDeg > -136
-              && this.inputs.swerve[swerveModuleNumber].steerPositionDeg < -134))) {
-        FaultReporter.getInstance()
-            .addFault(
-                SUBSYSTEM_NAME,
-                "[System Check] Swerve module "
-                    + getSwerveLocation(swerveModuleNumber)
-                    + " not rotating forward in the threshold as expected");
-      }
-      // Checking if clockwise/counterclockwise rotation works for FR and BL
-    } else if (givenDirection == 4) {
-      if (!((this.inputs.swerve[swerveModuleNumber].steerPositionDeg > 134
-              && this.inputs.swerve[swerveModuleNumber].steerPositionDeg < 136)
-          || (this.inputs.swerve[swerveModuleNumber].steerPositionDeg > -46
-              && this.inputs.swerve[swerveModuleNumber].steerPositionDeg < -44))) {
-        FaultReporter.getInstance()
-            .addFault(
-                SUBSYSTEM_NAME,
-                "[System Check] Swerve module "
-                    + getSwerveLocation(swerveModuleNumber)
-                    + " not rotating forward in the threshold as expected");
-      }
+    // angle check
+    // check if angle is in threshold
+    if (this.inputs.swerve[swerveModuleNumber].steerPositionDeg > angleTarget - angleTolerance
+        && this.inputs.swerve[swerveModuleNumber].steerPositionDeg < angleTarget + angleTolerance) {
+    }
+    // check if angle is in threshold +- 180
+    else if (this.inputs.swerve[swerveModuleNumber].steerPositionDeg
+            > angleTarget - angleTolerance - 180
+        && this.inputs.swerve[swerveModuleNumber].steerPositionDeg
+            < angleTarget + angleTolerance - 180) {
+    } else if (this.inputs.swerve[swerveModuleNumber].steerPositionDeg
+            > angleTarget - angleTolerance + 180
+        && this.inputs.swerve[swerveModuleNumber].steerPositionDeg
+            < angleTarget + angleTolerance + 180) {
+    }
+    // if not, add fault
+    else {
+      FaultReporter.getInstance()
+          .addFault(
+              SUBSYSTEM_NAME,
+              "[System Check] Swerve module "
+                  + getSwerveLocation(swerveModuleNumber)
+                  + " not rotating in the threshold as expected");
     }
   }
 
@@ -772,7 +752,8 @@ public class Drivetrain extends SubsystemBase {
                         Commands.runOnce(
                             () -> {
                               for (int i = 0; i < 4; i++) {
-                                checkSwerveModule(i, 0);
+                                checkSwerveModule(
+                                    i, 180, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
                               }
                             }))),
 
@@ -787,7 +768,8 @@ public class Drivetrain extends SubsystemBase {
                         Commands.runOnce(
                             () -> {
                               for (int i = 0; i < 4; i++) {
-                                checkSwerveModule(i, 0);
+                                checkSwerveModule(
+                                    i, 0, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
                               }
                             }))),
 
@@ -802,7 +784,8 @@ public class Drivetrain extends SubsystemBase {
                         Commands.runOnce(
                             () -> {
                               for (int i = 0; i < 4; i++) {
-                                checkSwerveModule(i, 1);
+                                checkSwerveModule(
+                                    i, 90, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
                               }
                             }))),
 
@@ -817,7 +800,8 @@ public class Drivetrain extends SubsystemBase {
                         Commands.runOnce(
                             () -> {
                               for (int i = 0; i < 4; i++) {
-                                checkSwerveModule(i, 1);
+                                checkSwerveModule(
+                                    i, -90, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
                               }
                             }))),
 
@@ -831,15 +815,14 @@ public class Drivetrain extends SubsystemBase {
                     .andThen(
                         Commands.runOnce(
                             () -> {
-                              // We use direction number '3' to check for clockwise rotation on FL
-                              // (0) and BR (4) wheels (they are rotated the same)
-                              // We use direction number '4' to check for clockwise rotation on FR
-                              // (1) and BL (2) wheels (they are also rotated the same)
-
-                              checkSwerveModule(0, 3);
-                              checkSwerveModule(3, 3);
-                              checkSwerveModule(1, 4);
-                              checkSwerveModule(2, 4);
+                              checkSwerveModule(
+                                  0, 45, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
+                              checkSwerveModule(
+                                  3, 45, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
+                              checkSwerveModule(
+                                  1, 135, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
+                              checkSwerveModule(
+                                  2, 135, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
                             }))),
 
             // Tests for driving wheels counterclockwise
@@ -852,10 +835,21 @@ public class Drivetrain extends SubsystemBase {
                     .andThen(
                         Commands.runOnce(
                             () -> {
+<<<<<<< Updated upstream
                               checkSwerveModule(0, 3);
                               checkSwerveModule(3, 3);
                               checkSwerveModule(1, 4);
                               checkSwerveModule(2, 4);
+=======
+                              checkSwerveModule(
+                                  0, -45, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
+                              checkSwerveModule(
+                                  3, -45, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
+                              checkSwerveModule(
+                                  1, -135, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
+                              checkSwerveModule(
+                                  2, -135, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
+>>>>>>> Stashed changes
                             }))))
         .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
         .andThen(Commands.runOnce(() -> this.drive(0, 0, 0, true, false)));
