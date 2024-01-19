@@ -16,63 +16,68 @@ public class PracticeRobotConfig extends RobotConfig {
   private static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 13;
   private static final int FRONT_LEFT_MODULE_STEER_MOTOR = 12;
   private static final int FRONT_LEFT_MODULE_STEER_ENCODER = 14;
-  private static final double FRONT_LEFT_MODULE_STEER_OFFSET_ROT = -0.104492; // -0.604492;
+  private static final double FRONT_LEFT_MODULE_STEER_OFFSET_ROT = -0.22591;
 
   private static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 16;
   private static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 15;
   private static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 17;
-  private static final double FRONT_RIGHT_MODULE_STEER_OFFSET_ROT = -0.277832; // -0.277832;
+  private static final double FRONT_RIGHT_MODULE_STEER_OFFSET_ROT = -0.390381;
 
   private static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 7;
   private static final int BACK_LEFT_MODULE_STEER_MOTOR = 6;
   private static final int BACK_LEFT_MODULE_STEER_ENCODER = 8;
-  private static final double BACK_LEFT_MODULE_STEER_OFFSET_ROT = -0.749512; // -0.249512;
+  private static final double BACK_LEFT_MODULE_STEER_OFFSET_ROT = 0.327393;
 
   private static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 10;
   private static final int BACK_RIGHT_MODULE_STEER_MOTOR = 9;
   private static final int BACK_RIGHT_MODULE_STEER_ENCODER = 11;
-  private static final double BACK_RIGHT_MODULE_STEER_OFFSET_ROT = -0.024414; // -0.024414;
+  private static final double BACK_RIGHT_MODULE_STEER_OFFSET_ROT = -0.336670;
 
   private static final int GYRO_ID = 3;
 
-  private static final double TRACKWIDTH_METERS = 0.57785; // 22.75 in
-  private static final double WHEELBASE_METERS = 0.57785; // 22.75 in
-  private static final double ROBOT_WIDTH_WITH_BUMPERS = 0.8763; // meters // 34.5 in
-  private static final double ROBOT_LENGTH_WITH_BUMPERS = 0.8763; // meters // 34.5 in
+  // FIXME: needs to be reviewed before the bot is driven
+  private static final double TRACKWIDTH_METERS = 0.57785; // 22.75
+  private static final double WHEELBASE_METERS = 0.57785; // 22.75
+  private static final double ROBOT_WIDTH_WITH_BUMPERS =
+      0.88265; // meters //34.75 in , measure the actual bumpers
+  private static final double ROBOT_LENGTH_WITH_BUMPERS = 0.88265; // meters // 34.75 in same above
 
   /* Angle Motor PID Values */
   private static final double ANGLE_KP = 100.0;
   private static final double ANGLE_KI = 0.0;
-  private static final double ANGLE_KD = 0.0;
+  private static final double ANGLE_KD = 0.05;
 
   private static final double ANGLE_KS = 0.1891233333;
-  private static final double ANGLE_KV = 0.4399866667;
+  private static final double ANGLE_KV =
+      0.4399866667 * 2 * Math.PI; // convert from V/(radians/s) to V/(rotations/s)
   private static final double ANGLE_KA = 0.001663333333;
 
   /* Drive Motor PID Values */
-  private static final double DRIVE_KP = 0.005;
+  private static final double DRIVE_KP = 8.0;
   private static final double DRIVE_KI = 0.0;
   private static final double DRIVE_KD = 0.0;
 
-  private static final double DRIVE_KS = 0.4004375;
-  private static final double DRIVE_KV = 2.7637325;
-  private static final double DRIVE_KA = 0.0139575;
+  private static final double DRIVE_KS = 5.0;
+  private static final double DRIVE_KV = 0.0;
+  private static final double DRIVE_KA = 0.0;
 
   private static final SwerveType SWERVE_TYPE = SwerveType.MK4I;
 
-  private static final double MAX_VELOCITY_METERS_PER_SECOND = 4.78;
+  private static final double MAX_VELOCITY_METERS_PER_SECOND = 3.5;
   private static final double MAX_COAST_VELOCITY_METERS_PER_SECOND = 0.05;
   private static final double SLOW_MODE_MULTIPLIER = 0.75;
 
   private static final double MAX_DRIVE_ACCELERATION_METERS_PER_SECOND_SQUARED = 10.0;
   private static final double MAX_TURN_ACCELERATION_RADIANS_PER_SECOND_SQUARED = 4.0 * Math.PI;
 
+  // FIXME: update the camera names once they have been installed
   private static final String CAN_BUS_NAME = "canbus1";
 
-  private static final String CAMERA_NAME_0 = "OV9281";
+  private static final String CAMERA_NAME_0 = "OV2311";
 
-  private static final String CAMERA_NAME_1 = "OV9281R";
+  private static final String CAMERA_NAME_1 = "OV2311R";
 
+  // FIXME: update the camera transformations once they have been installed
   private static final Transform3d ROBOT_TO_CAMERA_0 =
       new Transform3d(
           new Translation3d(
@@ -89,9 +94,8 @@ public class PracticeRobotConfig extends RobotConfig {
               Units.inchesToMeters(49.240)),
           new Rotation3d(0, Units.degreesToRadians(25), Units.degreesToRadians(-30)));
 
-  private static final double AUTO_MAX_SPEED_METERS_PER_SECOND = MAX_VELOCITY_METERS_PER_SECOND;
-  private static final double AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED =
-      MAX_DRIVE_ACCELERATION_METERS_PER_SECOND_SQUARED;
+  private static final double AUTO_MAX_SPEED_METERS_PER_SECOND = 3.5;
+  private static final double AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED = 3.5;
   private static final double AUTO_DRIVE_P_CONTROLLER = 5.0;
   private static final double AUTO_DRIVE_I_CONTROLLER = 0.0;
   private static final double AUTO_DRIVE_D_CONTROLLER = 0.0;
@@ -390,5 +394,15 @@ public class PracticeRobotConfig extends RobotConfig {
   @Override
   public double getMoveToPathFinalVelocity() {
     return SQUARING_SPEED_METERS_PER_SECOND;
+  }
+
+  @Override
+  public SWERVE_CONTROL_MODE getSwerveSteerControlMode() {
+    return SWERVE_CONTROL_MODE.VOLTAGE;
+  }
+
+  @Override
+  public SWERVE_CONTROL_MODE getSwerveDriveControlMode() {
+    return SWERVE_CONTROL_MODE.TORQUE_CURRENT_FOC;
   }
 }
