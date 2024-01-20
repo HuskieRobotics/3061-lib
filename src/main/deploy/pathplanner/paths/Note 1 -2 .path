@@ -20,8 +20,8 @@
         "y": 6.275375627674332
       },
       "prevControl": {
-        "x": 5.0536331841889295,
-        "y": 5.584689630914872
+        "x": 4.289009068758878,
+        "y": 6.266952182052513
       },
       "nextControl": null,
       "isLocked": false,
@@ -31,18 +31,8 @@
   "rotationTargets": [
     {
       "waypointRelativePos": 0.5,
-      "rotationDegrees": -89.90498221061816,
-      "rotateFast": false
-    },
-    {
-      "waypointRelativePos": 1,
-      "rotationDegrees": 0,
-      "rotateFast": false
-    },
-    {
-      "waypointRelativePos": 0,
-      "rotationDegrees": -88.97696981133227,
-      "rotateFast": false
+      "rotationDegrees": -178.96050162719388,
+      "rotateFast": true
     }
   ],
   "constraintZones": [],
@@ -60,6 +50,9 @@
   },
   "reversed": false,
   "folder": "5 Note Test Left Side",
-  "previewStartingState": null,
-  "useDefaultConstraints": true
+  "previewStartingState": {
+    "rotation": -91.30084773310149,
+    "velocity": 0.0
+  },
+  "useDefaultConstraints": false
 }

@@ -1,0 +1,49 @@
+{
+  "version": 1.0,
+  "startingPose": {
+    "position": {
+      "x": 1.4095199625584438,
+      "y": 6.285005032973029
+    },
+    "rotation": 180.0
+  },
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Start to Note"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Note 1 -2 "
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Note 2 -3"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Note 3 -4"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Note 4 -5"
+          }
+        }
+      ]
+    }
+  },
+  "folder": null,
+  "choreoAuto": false
+}
