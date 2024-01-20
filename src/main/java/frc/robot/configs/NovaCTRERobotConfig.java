@@ -59,10 +59,7 @@ public class NovaCTRERobotConfig extends RobotConfig {
   private static final double DRIVE_KD = 0.0;
 
   private static final double DRIVE_KS = 0.4004375;
-  private static final double DRIVE_KV =
-      2.7637325
-          / (MK4I_L2_DRIVE_GEAR_RATIO
-              / MK4I_L2_WHEEL_CIRCUMFERENCE); // convert from V/(m/s) to V/(rotations/s)
+  private static final double DRIVE_KV = 2.7637325;
   private static final double DRIVE_KA = 0.0139575;
 
   private static final double MAX_VELOCITY_METERS_PER_SECOND = 3.5;
@@ -171,7 +168,9 @@ public class NovaCTRERobotConfig extends RobotConfig {
 
   @Override
   public double getDriveKV() {
-    return DRIVE_KV;
+    return DRIVE_KV
+        / (getSwerveConstants().getDriveGearRatio()
+            / (getWheelDiameterMeters() * Math.PI)); // convert from V/(m/s) to V/(rotations/s)
   }
 
   @Override
