@@ -43,6 +43,7 @@ import frc.robot.configs.DefaultRobotConfig;
 import frc.robot.configs.NovaCTRERobotConfig;
 import frc.robot.configs.NovaCTRETCFRobotConfig;
 import frc.robot.configs.NovaRobotConfig;
+import frc.robot.configs.PracticeRobotConfig;
 import frc.robot.operator_interface.OISelector;
 import frc.robot.operator_interface.OperatorInterface;
 import frc.robot.subsystems.subsystem.Subsystem;
@@ -98,6 +99,7 @@ public class RobotContainer {
       switch (Constants.getRobot()) {
         case ROBOT_2023_NOVA_CTRE:
         case ROBOT_2023_NOVA_CTRE_FOC:
+        case ROBOT_PRACTICE:
           {
             createCTRESubsystems();
             break;
@@ -160,6 +162,9 @@ public class RobotContainer {
       case ROBOT_2023_NOVA:
       case ROBOT_SIMBOT:
         config = new NovaRobotConfig();
+        break;
+      case ROBOT_PRACTICE:
+        config = new PracticeRobotConfig();
         break;
     }
   }

@@ -11,7 +11,7 @@ import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
  * Refer to the README for how to represent your robot's configuration. For more information on
  * these methods, refer to the documentation in the RobotConfig class.
  */
-public class NovaCTRETCFRobotConfig extends RobotConfig {
+public class PracticeRobotConfig extends RobotConfig {
 
   private static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 13;
   private static final int FRONT_LEFT_MODULE_STEER_MOTOR = 12;
@@ -35,11 +35,13 @@ public class NovaCTRETCFRobotConfig extends RobotConfig {
 
   private static final int GYRO_ID = 3;
 
-  private static final double TRACKWIDTH_METERS = 0.523875; // 20.625
-  private static final double WHEELBASE_METERS = 0.52705; // 20.75
+  // FIXME: needs to be reviewed before the bot is driven
+  private static final double TRACKWIDTH_METERS = 0.57785; // 22.75
+  private static final double WHEELBASE_METERS = 0.57785; // 22.75
   private static final double WHEEL_DIAMETER_METERS = 0.09659072671;
-  private static final double ROBOT_WIDTH_WITH_BUMPERS = 0.8382; // meters //33 in
-  private static final double ROBOT_LENGTH_WITH_BUMPERS = 0.8382; // meters // 33 in
+  private static final double ROBOT_WIDTH_WITH_BUMPERS =
+      0.88265; // meters //34.75 in , measure the actual bumpers
+  private static final double ROBOT_LENGTH_WITH_BUMPERS = 0.88265; // meters // 34.75 in same above
 
   /* Angle Motor PID Values */
   private static final double ANGLE_KP = 100.0;
@@ -67,12 +69,14 @@ public class NovaCTRETCFRobotConfig extends RobotConfig {
   private static final double MAX_DRIVE_ACCELERATION_METERS_PER_SECOND_SQUARED = 10.0;
   private static final double MAX_TURN_ACCELERATION_RADIANS_PER_SECOND_SQUARED = 4.0 * Math.PI;
 
+  // FIXME: update the camera names once they have been installed
   private static final String CAN_BUS_NAME = "canbus1";
 
   private static final String CAMERA_NAME_0 = "OV2311";
 
   private static final String CAMERA_NAME_1 = "OV2311R";
 
+  // FIXME: update the camera transformations once they have been installed
   private static final Transform3d ROBOT_TO_CAMERA_0 =
       new Transform3d(
           new Translation3d(
@@ -108,8 +112,6 @@ public class NovaCTRETCFRobotConfig extends RobotConfig {
   private static final double DRIVE_TO_POSE_THETA_TOLERANCE_RADIANS = 0.008;
 
   private static final double SQUARING_SPEED_METERS_PER_SECOND = 1.0;
-
-  private static final int LED_COUNT = 85;
 
   @Override
   public boolean getPhoenix6Licensed() {
@@ -178,7 +180,7 @@ public class NovaCTRETCFRobotConfig extends RobotConfig {
 
   @Override
   public SwerveConstants getSwerveConstants() {
-    return SwerveConstants.MK4I_L2_CONSTANTS;
+    return SwerveConstants.MK4I_L3_CONSTANTS;
   }
 
   @Override
@@ -396,21 +398,6 @@ public class NovaCTRETCFRobotConfig extends RobotConfig {
   @Override
   public double getMoveToPathFinalVelocity() {
     return SQUARING_SPEED_METERS_PER_SECOND;
-  }
-
-  @Override
-  public double getOdometryUpdateFrequency() {
-    return 250.0;
-  }
-
-  @Override
-  public LED_HARDWARE getLEDHardware() {
-    return LED_HARDWARE.RIO;
-  }
-
-  @Override
-  public int getLEDCount() {
-    return LED_COUNT;
   }
 
   @Override
