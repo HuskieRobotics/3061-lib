@@ -416,6 +416,9 @@ public class RobotContainer {
     Command threeNoteCommand = new PathPlannerAuto("3 Note");
     autoChooser.addOption("3 Note", threeNoteCommand);
 
+    Command threeNoteCommand2 = new PathPlannerAuto("3 Note Test");
+    autoChooser.addOption("3 Note Test", threeNoteCommand2);
+
     /************ Drive Velocity Tuning ************
      *
      * useful for tuning the drive velocity PID controller
