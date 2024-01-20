@@ -2,15 +2,21 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 0.9690066463466263,
-      "y": 3.5444159869801224
+      "x": 1.2460941542253459,
+      "y": 4.118285254401658
     },
-    "rotation": 180.0
+    "rotation": 133.15238973400542
   },
   "command": {
     "type": "sequential",
     "data": {
       "commands": [
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
+          }
+        },
         {
           "type": "named",
           "data": {
@@ -51,12 +57,6 @@
           "type": "path",
           "data": {
             "pathName": "Note 2 to Note 3"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Shoot"
           }
         }
       ]
