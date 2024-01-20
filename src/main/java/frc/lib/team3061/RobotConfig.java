@@ -652,7 +652,7 @@ public abstract class RobotConfig {
     return SWERVE_CONTROL_MODE.TORQUE_CURRENT_FOC;
   }
 
-  public double getMK4IL2DriveGearRatio() { // FIXME: Do we also need the angle gear ratio?
+  public double getSwerveDriveGearRatio() {
     return SwerveConstants.MK4I_L2_DRIVE_GEAR_RATIO;
   }
 

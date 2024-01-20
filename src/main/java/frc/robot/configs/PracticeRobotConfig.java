@@ -408,7 +408,7 @@ public class PracticeRobotConfig extends RobotConfig {
   }
 
   @Override
-  public double getMK4IL2DriveGearRatio() {
+  public double getSwerveDriveGearRatio() {
     return SwerveConstants.MK4I_L3_DRIVE_GEAR_RATIO;
   }
 }
