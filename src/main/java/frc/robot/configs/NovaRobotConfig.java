@@ -37,6 +37,7 @@ public class NovaRobotConfig extends RobotConfig {
 
   private static final double TRACKWIDTH_METERS = 0.523875; // 20.625
   private static final double WHEELBASE_METERS = 0.52705; // 20.75
+  private static final double WHEEL_DIAMETER_METERS = 0.09659072671;
   private static final double ROBOT_WIDTH_WITH_BUMPERS = 0.8382; // meters //33 in
   private static final double ROBOT_LENGTH_WITH_BUMPERS = 0.8382; // meters // 33 in
 
@@ -231,6 +232,11 @@ public class NovaRobotConfig extends RobotConfig {
   @Override
   public double getWheelbase() {
     return WHEELBASE_METERS;
+  }
+
+  @Override
+  public double getWheelDiameterMeters() {
+    return WHEEL_DIAMETER_METERS;
   }
 
   @Override

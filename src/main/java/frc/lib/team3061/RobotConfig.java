@@ -231,6 +231,13 @@ public abstract class RobotConfig {
   public abstract double getWheelbase();
 
   /**
+   * Returns the diameter of the wheels on the robot in meters. Must be overridden.
+   *
+   * @return the diameter of the wheels on the robot in meters
+   */
+  public abstract double getWheelDiameterMeters();
+
+  /**
    * Returns the swerve drive kinematics object for the robot. The geometry and coordinate systems
    * can be confusing. Refer to this document for a detailed explanation:
    * https://docs.google.com/document/d/17dg5cIfqVOlQTTbo2ust4QxTZlUoPNzuBu2oe58Ov84/edit#heading=h.x4ppzp81ed1

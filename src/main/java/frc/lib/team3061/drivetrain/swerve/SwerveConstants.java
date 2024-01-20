@@ -7,8 +7,6 @@ package frc.lib.team3061.drivetrain.swerve;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 public interface SwerveConstants {
-  double getWheelDiameterMeters();
-
   double getDriveGearRatio();
 
   boolean isDriveMotorInverted();
@@ -21,11 +19,6 @@ public interface SwerveConstants {
 
   public static final SwerveConstants MK4_L2_CONSTANTS =
       new SwerveConstants() {
-        @Override
-        public double getWheelDiameterMeters() {
-          return MK4_L2_WHEEL_DIAMETER_METERS;
-        }
-
         @Override
         public double getDriveGearRatio() {
           return MK4_L2_DRIVE_GEAR_RATIO;
@@ -55,11 +48,6 @@ public interface SwerveConstants {
   public static final SwerveConstants MK4I_L2_CONSTANTS =
       new SwerveConstants() {
         @Override
-        public double getWheelDiameterMeters() {
-          return MK4I_L2_WHEEL_DIAMETER_METERS;
-        }
-
-        @Override
         public double getDriveGearRatio() {
           return MK4I_L2_DRIVE_GEAR_RATIO;
         }
@@ -87,11 +75,6 @@ public interface SwerveConstants {
 
   public static final SwerveConstants MK4I_L3_CONSTANTS =
       new SwerveConstants() {
-        @Override
-        public double getWheelDiameterMeters() {
-          return MK4I_L3_WHEEL_DIAMETER_METERS;
-        }
-
         @Override
         public double getDriveGearRatio() {
           return MK4I_L3_DRIVE_GEAR_RATIO;

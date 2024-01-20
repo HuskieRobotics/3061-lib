@@ -38,6 +38,7 @@ public class PracticeRobotConfig extends RobotConfig {
   // FIXME: needs to be reviewed before the bot is driven
   private static final double TRACKWIDTH_METERS = 0.57785; // 22.75
   private static final double WHEELBASE_METERS = 0.57785; // 22.75
+  private static final double WHEEL_DIAMETER_METERS = 0.09659072671;
   private static final double ROBOT_WIDTH_WITH_BUMPERS =
       0.88265; // meters //34.75 in , measure the actual bumpers
   private static final double ROBOT_LENGTH_WITH_BUMPERS = 0.88265; // meters // 34.75 in same above
@@ -235,6 +236,11 @@ public class PracticeRobotConfig extends RobotConfig {
   @Override
   public double getWheelbase() {
     return WHEELBASE_METERS;
+  }
+
+  @Override
+  public double getWheelDiameterMeters() {
+    return WHEEL_DIAMETER_METERS;
   }
 
   @Override

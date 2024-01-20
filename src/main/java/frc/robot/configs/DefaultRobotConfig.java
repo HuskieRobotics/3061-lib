@@ -38,6 +38,7 @@ public class DefaultRobotConfig extends RobotConfig {
   // FIXME: update robot dimensions
   private static final double TRACKWIDTH_METERS = 0.5715; // 22.5 inches
   private static final double WHEELBASE_METERS = 0.5969; // 23.5 inches
+  private static final double WHEEL_DIAMETER_METERS = 0.1;
   private static final double ROBOT_WIDTH_WITH_BUMPERS = 0.89; // meters
   private static final double ROBOT_LENGTH_WITH_BUMPERS = 0.91; // meters
 
@@ -194,6 +195,11 @@ public class DefaultRobotConfig extends RobotConfig {
   @Override
   public double getWheelbase() {
     return WHEELBASE_METERS;
+  }
+
+  @Override
+  public double getWheelDiameterMeters() {
+    return WHEEL_DIAMETER_METERS;
   }
 
   @Override

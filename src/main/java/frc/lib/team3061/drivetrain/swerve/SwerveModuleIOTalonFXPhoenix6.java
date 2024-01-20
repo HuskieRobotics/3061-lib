@@ -113,7 +113,7 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
 
     this.angleOffsetRot = angleOffsetRot;
     SwerveConstants swerveConstants = RobotConfig.getInstance().getSwerveConstants();
-    wheelCircumference = swerveConstants.getWheelDiameterMeters() * Math.PI;
+    wheelCircumference = RobotConfig.getInstance().getWheelDiameterMeters() * Math.PI;
     driveGearRatio = swerveConstants.getDriveGearRatio();
     driveMotorInverted = swerveConstants.isDriveMotorInverted();
     angleGearRatio = swerveConstants.getAngleGearRatio();
