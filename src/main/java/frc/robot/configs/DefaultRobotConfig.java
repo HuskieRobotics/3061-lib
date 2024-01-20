@@ -4,7 +4,7 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import frc.lib.team3061.RobotConfig;
-import frc.lib.team3061.drivetrain.swerve.SwerveConstants.SwerveType;
+import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
 
 /*
  * Refer to the README for how to represent your robot's configuration. For more information on
@@ -57,9 +57,6 @@ public class DefaultRobotConfig extends RobotConfig {
   private static final double DRIVE_KS = 0.55493;
   private static final double DRIVE_KV = 2.3014;
   private static final double DRIVE_KA = 0.12872;
-
-  // FIXME: specify the type of swerve module (MK4 and MK4i are supported)
-  private static final SwerveType SWERVE_TYPE = SwerveType.MK4I;
 
   // FIXME: determine maximum velocities empirically
   private static final double MAX_VELOCITY_METERS_PER_SECOND = 4.25;
@@ -139,8 +136,9 @@ public class DefaultRobotConfig extends RobotConfig {
   }
 
   @Override
-  public SwerveType getSwerveType() {
-    return SWERVE_TYPE;
+  public SwerveConstants getSwerveConstants() {
+    // FIXME: specify the type of swerve module (MK4 and MK4i are supported)
+    return SwerveConstants.MK4I_L2_CONSTANTS;
   }
 
   @Override

@@ -6,18 +6,117 @@ package frc.lib.team3061.drivetrain.swerve;
 
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
-public final class SwerveConstants {
+public interface SwerveConstants {
+  double getWheelDiameterMeters();
 
-  private static final String CONSTRUCTOR_EXCEPTION = "constant class";
+  double getDriveGearRatio();
 
-  private SwerveConstants() {
-    throw new IllegalStateException(CONSTRUCTOR_EXCEPTION);
-  }
+  boolean isDriveMotorInverted();
 
-  public enum SwerveType {
-    MK4,
-    MK4I
-  }
+  double getAngleGearRatio();
+
+  boolean isAngleMotorInverted();
+
+  boolean isCanCoderInverted();
+
+  public static final SwerveConstants MK4_L2_CONSTANTS =
+      new SwerveConstants() {
+        @Override
+        public double getWheelDiameterMeters() {
+          return MK4_L2_WHEEL_DIAMETER_METERS;
+        }
+
+        @Override
+        public double getDriveGearRatio() {
+          return MK4_L2_DRIVE_GEAR_RATIO;
+        }
+
+        @Override
+        public boolean isDriveMotorInverted() {
+          return MK4_L2_DRIVE_MOTOR_INVERTED;
+        }
+
+        @Override
+        public double getAngleGearRatio() {
+          return MK4_L2_ANGLE_GEAR_RATIO;
+        }
+
+        @Override
+        public boolean isAngleMotorInverted() {
+          return MK4_L2_ANGLE_MOTOR_INVERTED;
+        }
+
+        @Override
+        public boolean isCanCoderInverted() {
+          return MK4_L2_CAN_CODER_INVERTED;
+        }
+      };
+
+  public static final SwerveConstants MK4I_L2_CONSTANTS =
+      new SwerveConstants() {
+        @Override
+        public double getWheelDiameterMeters() {
+          return MK4I_L2_WHEEL_DIAMETER_METERS;
+        }
+
+        @Override
+        public double getDriveGearRatio() {
+          return MK4I_L2_DRIVE_GEAR_RATIO;
+        }
+
+        @Override
+        public boolean isDriveMotorInverted() {
+          return MK4I_L2_DRIVE_MOTOR_INVERTED;
+        }
+
+        @Override
+        public double getAngleGearRatio() {
+          return MK4I_L2_ANGLE_GEAR_RATIO;
+        }
+
+        @Override
+        public boolean isAngleMotorInverted() {
+          return MK4I_L2_ANGLE_MOTOR_INVERTED;
+        }
+
+        @Override
+        public boolean isCanCoderInverted() {
+          return MK4I_L2_CAN_CODER_INVERTED;
+        }
+      };
+
+  public static final SwerveConstants MK4I_L3_CONSTANTS =
+      new SwerveConstants() {
+        @Override
+        public double getWheelDiameterMeters() {
+          return MK4I_L3_WHEEL_DIAMETER_METERS;
+        }
+
+        @Override
+        public double getDriveGearRatio() {
+          return MK4I_L3_DRIVE_GEAR_RATIO;
+        }
+
+        @Override
+        public boolean isDriveMotorInverted() {
+          return MK4I_L3_DRIVE_MOTOR_INVERTED;
+        }
+
+        @Override
+        public double getAngleGearRatio() {
+          return MK4I_L3_ANGLE_GEAR_RATIO;
+        }
+
+        @Override
+        public boolean isAngleMotorInverted() {
+          return MK4I_L3_ANGLE_MOTOR_INVERTED;
+        }
+
+        @Override
+        public boolean isCanCoderInverted() {
+          return MK4I_L3_CAN_CODER_INVERTED;
+        }
+      };
 
   /* MK4i L3 */
 
@@ -76,9 +175,6 @@ public final class SwerveConstants {
   public static final int DRIVE_PEAK_CURRENT_LIMIT = 60;
   public static final double DRIVE_PEAK_CURRENT_DURATION = 0.1;
   public static final boolean DRIVE_ENABLE_CURRENT_LIMIT = true;
-
-  /* PID SLOT INDEX */
-  public static final int SLOT_INDEX = 0;
 
   /* Neutral Modes */
   public static final NeutralModeValue ANGLE_NEUTRAL_MODE = NeutralModeValue.Coast;

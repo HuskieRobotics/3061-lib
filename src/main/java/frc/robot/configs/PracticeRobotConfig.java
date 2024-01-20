@@ -6,7 +6,6 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
-import frc.lib.team3061.drivetrain.swerve.SwerveConstants.SwerveType;
 
 /*
  * Refer to the README for how to represent your robot's configuration. For more information on
@@ -61,8 +60,6 @@ public class PracticeRobotConfig extends RobotConfig {
   private static final double DRIVE_KS = 5.0;
   private static final double DRIVE_KV = 0.0;
   private static final double DRIVE_KA = 0.0;
-
-  private static final SwerveType SWERVE_TYPE = SwerveType.MK4I;
 
   private static final double MAX_VELOCITY_METERS_PER_SECOND = 3.5;
   private static final double MAX_COAST_VELOCITY_METERS_PER_SECOND = 0.05;
@@ -181,8 +178,8 @@ public class PracticeRobotConfig extends RobotConfig {
   }
 
   @Override
-  public SwerveType getSwerveType() {
-    return SWERVE_TYPE;
+  public SwerveConstants getSwerveConstants() {
+    return SwerveConstants.MK4I_L3_CONSTANTS;
   }
 
   @Override
@@ -405,10 +402,5 @@ public class PracticeRobotConfig extends RobotConfig {
   @Override
   public SWERVE_CONTROL_MODE getSwerveDriveControlMode() {
     return SWERVE_CONTROL_MODE.TORQUE_CURRENT_FOC;
-  }
-
-  @Override
-  public double getSwerveDriveGearRatio() {
-    return SwerveConstants.MK4I_L3_DRIVE_GEAR_RATIO;
   }
 }

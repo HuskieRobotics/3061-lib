@@ -121,10 +121,13 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
 
   private static final SwerveModuleConstantsFactory constantCreator =
       new SwerveModuleConstantsFactory()
-          .withDriveMotorGearRatio(SwerveConstants.MK4I_L2_DRIVE_GEAR_RATIO)
-          .withSteerMotorGearRatio(SwerveConstants.MK4I_L2_ANGLE_GEAR_RATIO)
+          .withDriveMotorGearRatio(
+              RobotConfig.getInstance().getSwerveConstants().getDriveGearRatio())
+          .withSteerMotorGearRatio(
+              RobotConfig.getInstance().getSwerveConstants().getAngleGearRatio())
           .withWheelRadius(
-              Units.metersToInches(SwerveConstants.MK4I_L2_WHEEL_DIAMETER_METERS / 2.0))
+              Units.metersToInches(
+                  RobotConfig.getInstance().getSwerveConstants().getWheelDiameterMeters() / 2.0))
           .withSlipCurrent(800)
           .withSteerMotorGains(steerGains)
           .withDriveMotorGains(driveGains)
@@ -136,7 +139,8 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
           .withFeedbackSource(SteerFeedbackType.FusedCANcoder)
           .withCouplingGearRatio(
               COUPLE_RATIO) // Every 1 rotation of the azimuth results in couple ratio drive turns
-          .withSteerMotorInverted(SwerveConstants.MK4I_L2_ANGLE_MOTOR_INVERTED);
+          .withSteerMotorInverted(
+              RobotConfig.getInstance().getSwerveConstants().isAngleMotorInverted());
 
   private static final SwerveModuleConstants frontLeft =
       constantCreator.createModuleConstants(
@@ -146,7 +150,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
           RobotConfig.getInstance().getSwerveSteerOffsets()[0],
           RobotConfig.getInstance().getWheelbase() / 2.0,
           RobotConfig.getInstance().getTrackwidth() / 2.0,
-          !SwerveConstants.MK4I_L2_DRIVE_MOTOR_INVERTED);
+          !RobotConfig.getInstance().getSwerveConstants().isDriveMotorInverted());
   private static final SwerveModuleConstants frontRight =
       constantCreator.createModuleConstants(
           RobotConfig.getInstance().getSwerveSteerMotorCANIDs()[1],
@@ -155,7 +159,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
           RobotConfig.getInstance().getSwerveSteerOffsets()[1],
           RobotConfig.getInstance().getWheelbase() / 2.0,
           -RobotConfig.getInstance().getTrackwidth() / 2.0,
-          SwerveConstants.MK4I_L2_DRIVE_MOTOR_INVERTED);
+          RobotConfig.getInstance().getSwerveConstants().isDriveMotorInverted());
   private static final SwerveModuleConstants backLeft =
       constantCreator.createModuleConstants(
           RobotConfig.getInstance().getSwerveSteerMotorCANIDs()[2],
@@ -164,7 +168,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
           RobotConfig.getInstance().getSwerveSteerOffsets()[2],
           -RobotConfig.getInstance().getWheelbase() / 2.0,
           RobotConfig.getInstance().getTrackwidth() / 2.0,
-          !SwerveConstants.MK4I_L2_DRIVE_MOTOR_INVERTED);
+          !RobotConfig.getInstance().getSwerveConstants().isDriveMotorInverted());
   private static final SwerveModuleConstants backRight =
       constantCreator.createModuleConstants(
           RobotConfig.getInstance().getSwerveSteerMotorCANIDs()[3],
@@ -173,7 +177,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
           RobotConfig.getInstance().getSwerveSteerOffsets()[3],
           -RobotConfig.getInstance().getWheelbase() / 2.0,
           -RobotConfig.getInstance().getTrackwidth() / 2.0,
-          SwerveConstants.MK4I_L2_DRIVE_MOTOR_INVERTED);
+          RobotConfig.getInstance().getSwerveConstants().isDriveMotorInverted());
 
   // gyro signals
   private final StatusSignal<Double> pitchStatusSignal;
@@ -373,18 +377,18 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     inputs.driveVelocityReferenceMetersPerSec =
         Conversions.falconRPSToMechanismMPS(
             signals.driveVelocityReferenceStatusSignal.getValue(),
-            SwerveConstants.MK4I_L2_WHEEL_CIRCUMFERENCE,
-            SwerveConstants.MK4I_L2_DRIVE_GEAR_RATIO);
+            RobotConfig.getInstance().getSwerveConstants().getWheelDiameterMeters() * Math.PI,
+            RobotConfig.getInstance().getSwerveConstants().getDriveGearRatio());
     inputs.driveVelocityErrorMetersPerSec =
         Conversions.falconRPSToMechanismMPS(
             signals.driveVelocityErrorStatusSignal.getValue(),
-            SwerveConstants.MK4I_L2_WHEEL_CIRCUMFERENCE,
-            SwerveConstants.MK4I_L2_DRIVE_GEAR_RATIO);
+            RobotConfig.getInstance().getSwerveConstants().getWheelDiameterMeters() * Math.PI,
+            RobotConfig.getInstance().getSwerveConstants().getDriveGearRatio());
     inputs.driveAccelerationMetersPerSecPerSec =
         Conversions.falconRPSToMechanismMPS(
             signals.driveAccelerationStatusSignal.getValue(),
-            SwerveConstants.MK4I_L2_WHEEL_CIRCUMFERENCE,
-            SwerveConstants.MK4I_L2_DRIVE_GEAR_RATIO);
+            RobotConfig.getInstance().getSwerveConstants().getWheelDiameterMeters() * Math.PI,
+            RobotConfig.getInstance().getSwerveConstants().getDriveGearRatio());
     inputs.driveAppliedVolts = module.getDriveMotor().getMotorVoltage().getValue();
     inputs.driveStatorCurrentAmps = module.getDriveMotor().getStatorCurrent().getValue();
     inputs.driveSupplyCurrentAmps = module.getDriveMotor().getSupplyCurrent().getValue();

@@ -5,7 +5,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import frc.lib.team3061.RobotConfig;
-import frc.lib.team3061.drivetrain.swerve.SwerveConstants.SwerveType;
+import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
 
 /*
  * Refer to the README for how to represent your robot's configuration. For more information on
@@ -58,8 +58,6 @@ public class NovaCTRETCFRobotConfig extends RobotConfig {
   private static final double DRIVE_KS = 5.0;
   private static final double DRIVE_KV = 0.0;
   private static final double DRIVE_KA = 0.28;
-
-  private static final SwerveType SWERVE_TYPE = SwerveType.MK4I;
 
   private static final double MAX_VELOCITY_METERS_PER_SECOND = 3.5;
   private static final double MAX_COAST_VELOCITY_METERS_PER_SECOND = 0.05;
@@ -176,8 +174,8 @@ public class NovaCTRETCFRobotConfig extends RobotConfig {
   }
 
   @Override
-  public SwerveType getSwerveType() {
-    return SWERVE_TYPE;
+  public SwerveConstants getSwerveConstants() {
+    return SwerveConstants.MK4I_L2_CONSTANTS;
   }
 
   @Override
