@@ -38,6 +38,10 @@ public class DefaultRobotConfig extends RobotConfig {
   // FIXME: update robot dimensions
   private static final double TRACKWIDTH_METERS = 0.5715; // 22.5 inches
   private static final double WHEELBASE_METERS = 0.5969; // 23.5 inches
+  /*
+  	Wheel diameter is best determined empirically. Refer to this document for more information:
+    https://docs.google.com/spreadsheets/d/1634BjWwzBszXMECL1l5OMsUfRWFhej5YlExvh_SI944/edit
+  */
   private static final double WHEEL_DIAMETER_METERS = 0.1;
   private static final double ROBOT_WIDTH_WITH_BUMPERS = 0.89; // meters
   private static final double ROBOT_LENGTH_WITH_BUMPERS = 0.91; // meters
