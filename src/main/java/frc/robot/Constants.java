@@ -40,7 +40,8 @@ public final class Constants {
     ROBOT_2023_NOVA,
     ROBOT_DEFAULT,
     ROBOT_SIMBOT,
-    ROBOT_SIMBOT_CTRE
+    ROBOT_SIMBOT_CTRE,
+    ROBOT_PRACTICE
   }
 
   // FIXME: update for various robots
@@ -65,6 +66,7 @@ public final class Constants {
       case ROBOT_2023_NOVA_CTRE:
       case ROBOT_2023_NOVA_CTRE_FOC:
       case ROBOT_2023_NOVA:
+      case ROBOT_PRACTICE:
         return RobotBase.isReal() ? Mode.REAL : Mode.REPLAY;
 
       case ROBOT_SIMBOT:

@@ -27,8 +27,10 @@ public final class SwerveConstants {
   public static final double MK4I_L2_WHEEL_DIAMETER_METERS = 0.09659072671;
 
   public static final double MK4I_L2_WHEEL_CIRCUMFERENCE = MK4I_L2_WHEEL_DIAMETER_METERS * Math.PI;
-  public static final double MK4I_L2_DRIVE_GEAR_RATIO =
-      1 / ((14.0 / 50.0) * (27.0 / 17.0) * (15.0 / 45.0));
+  public static final double
+      MK4I_L2_DRIVE_GEAR_RATIO = // change equation for l3, make method return l2 and in practice
+          // bot class overide to return l3
+          1 / ((14.0 / 50.0) * (27.0 / 17.0) * (15.0 / 45.0));
   public static final boolean MK4I_L2_DRIVE_MOTOR_INVERTED = true;
   public static final double MK4I_L2_ANGLE_GEAR_RATIO = 1 / ((14.0 / 50.0) * (10.0 / 60.0));
   public static final boolean MK4I_L2_ANGLE_MOTOR_INVERTED = true;
@@ -68,4 +70,19 @@ public final class SwerveConstants {
   /* Neutral Modes */
   public static final NeutralModeValue ANGLE_NEUTRAL_MODE = NeutralModeValue.Coast;
   public static final NeutralModeValue DRIVE_NEUTRAL_MODE = NeutralModeValue.Brake;
+
+  /* MK4i L3 */
+
+  /*
+  	Wheel diameter is best determined empirically. Refer to this document for more information: !!!
+  */
+  public static final double MK4I_L3_WHEEL_DIAMETER_METERS = 0.09659072671;
+
+  public static final double MK4I_L3_WHEEL_CIRCUMFERENCE = MK4I_L3_WHEEL_DIAMETER_METERS * Math.PI;
+  public static final double MK4I_L3_DRIVE_GEAR_RATIO =
+      1 / ((14.0 / 50.0) * (28.0 / 16.0) * (15.0 / 45.0));
+  public static final boolean MK4I_L3_DRIVE_MOTOR_INVERTED = true;
+  public static final double MK4I_L3_ANGLE_GEAR_RATIO = 1 / ((14.0 / 50.0) * (10.0 / 60.0));
+  public static final boolean MK4I_L3_ANGLE_MOTOR_INVERTED = true;
+  public static final boolean MK4I_L3_CAN_CODER_INVERTED = false;
 }

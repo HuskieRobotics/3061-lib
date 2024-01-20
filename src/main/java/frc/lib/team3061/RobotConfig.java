@@ -3,6 +3,7 @@ package frc.lib.team3061;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
 import frc.lib.team3061.drivetrain.swerve.SwerveConstants.SwerveType;
 
 @java.lang.SuppressWarnings({"java:S3010", "java:S3400"})
@@ -649,6 +650,10 @@ public abstract class RobotConfig {
    */
   public SWERVE_CONTROL_MODE getSwerveDriveControlMode() {
     return SWERVE_CONTROL_MODE.TORQUE_CURRENT_FOC;
+  }
+
+  public double getMK4IL2DriveGearRatio() { // FIXME: Do we also need the angle gear ratio?
+    return SwerveConstants.MK4I_L2_DRIVE_GEAR_RATIO;
   }
 
   public enum SWERVE_CONTROL_MODE {

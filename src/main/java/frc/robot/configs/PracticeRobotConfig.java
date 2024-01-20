@@ -5,6 +5,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import frc.lib.team3061.RobotConfig;
+import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
 import frc.lib.team3061.drivetrain.swerve.SwerveConstants.SwerveType;
 
 /*
@@ -404,5 +405,10 @@ public class PracticeRobotConfig extends RobotConfig {
   @Override
   public SWERVE_CONTROL_MODE getSwerveDriveControlMode() {
     return SWERVE_CONTROL_MODE.TORQUE_CURRENT_FOC;
+  }
+
+  @Override
+  public double getMK4IL2DriveGearRatio() {
+    return SwerveConstants.MK4I_L3_DRIVE_GEAR_RATIO;
   }
 }
