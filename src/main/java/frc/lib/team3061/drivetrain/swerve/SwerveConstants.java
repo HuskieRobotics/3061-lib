@@ -104,7 +104,8 @@ public abstract class SwerveConstants {
   /* MK4i L3 */
 
   /*
-  	Wheel diameter is best determined empirically. Refer to this document for more information: !!!
+  	Wheel diameter is best determined empirically. Refer to this document for more information:
+    https://docs.google.com/spreadsheets/d/1634BjWwzBszXMECL1l5OMsUfRWFhej5YlExvh_SI944/edit
   */
   private static final double MK4I_L3_WHEEL_DIAMETER_METERS = 0.09659072671;
 
