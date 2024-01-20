@@ -4,7 +4,7 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import frc.lib.team3061.RobotConfig;
-import frc.lib.team3061.drivetrain.swerve.SwerveConstants.SwerveType;
+import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
 
 /*
  * Refer to the README for how to represent your robot's configuration. For more information on
@@ -38,6 +38,11 @@ public class DefaultRobotConfig extends RobotConfig {
   // FIXME: update robot dimensions
   private static final double TRACKWIDTH_METERS = 0.5715; // 22.5 inches
   private static final double WHEELBASE_METERS = 0.5969; // 23.5 inches
+  /*
+  	Wheel diameter is best determined empirically. Refer to this document for more information:
+    https://docs.google.com/spreadsheets/d/1634BjWwzBszXMECL1l5OMsUfRWFhej5YlExvh_SI944/edit
+  */
+  private static final double WHEEL_DIAMETER_METERS = 0.1;
   private static final double ROBOT_WIDTH_WITH_BUMPERS = 0.89; // meters
   private static final double ROBOT_LENGTH_WITH_BUMPERS = 0.91; // meters
 
@@ -57,9 +62,6 @@ public class DefaultRobotConfig extends RobotConfig {
   private static final double DRIVE_KS = 0.55493;
   private static final double DRIVE_KV = 2.3014;
   private static final double DRIVE_KA = 0.12872;
-
-  // FIXME: specify the type of swerve module (MK4 and MK4i are supported)
-  private static final SwerveType SWERVE_TYPE = SwerveType.MK4I;
 
   // FIXME: determine maximum velocities empirically
   private static final double MAX_VELOCITY_METERS_PER_SECOND = 4.25;
@@ -139,8 +141,9 @@ public class DefaultRobotConfig extends RobotConfig {
   }
 
   @Override
-  public SwerveType getSwerveType() {
-    return SWERVE_TYPE;
+  public SwerveConstants getSwerveConstants() {
+    // FIXME: specify the type of swerve module (MK4 and MK4i are supported)
+    return SwerveConstants.MK4I_L2_CONSTANTS;
   }
 
   @Override
@@ -196,6 +199,11 @@ public class DefaultRobotConfig extends RobotConfig {
   @Override
   public double getWheelbase() {
     return WHEELBASE_METERS;
+  }
+
+  @Override
+  public double getWheelDiameterMeters() {
+    return WHEEL_DIAMETER_METERS;
   }
 
   @Override

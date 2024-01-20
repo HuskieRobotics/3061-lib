@@ -5,7 +5,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import frc.lib.team3061.RobotConfig;
-import frc.lib.team3061.drivetrain.swerve.SwerveConstants.SwerveType;
+import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
 
 /*
  * Refer to the README for how to represent your robot's configuration. For more information on
@@ -37,6 +37,7 @@ public class NovaRobotConfig extends RobotConfig {
 
   private static final double TRACKWIDTH_METERS = 0.523875; // 20.625
   private static final double WHEELBASE_METERS = 0.52705; // 20.75
+  private static final double WHEEL_DIAMETER_METERS = 0.09659072671;
   private static final double ROBOT_WIDTH_WITH_BUMPERS = 0.8382; // meters //33 in
   private static final double ROBOT_LENGTH_WITH_BUMPERS = 0.8382; // meters // 33 in
 
@@ -57,8 +58,6 @@ public class NovaRobotConfig extends RobotConfig {
   private static final double DRIVE_KS = 0.4004375;
   private static final double DRIVE_KV = 2.7637325;
   private static final double DRIVE_KA = 0.0139575;
-
-  private static final SwerveType SWERVE_TYPE = SwerveType.MK4I;
 
   private static final double MAX_VELOCITY_METERS_PER_SECOND = 4.78;
   private static final double MAX_COAST_VELOCITY_METERS_PER_SECOND = 0.05;
@@ -109,6 +108,8 @@ public class NovaRobotConfig extends RobotConfig {
   private static final double DRIVE_TO_POSE_THETA_TOLERANCE_RADIANS = 0.008;
 
   private static final double SQUARING_SPEED_METERS_PER_SECOND = 1.0;
+
+  private static final int LED_COUNT = 200;
 
   @Override
   public boolean getPhoenix6Licensed() {
@@ -176,8 +177,8 @@ public class NovaRobotConfig extends RobotConfig {
   }
 
   @Override
-  public SwerveType getSwerveType() {
-    return SWERVE_TYPE;
+  public SwerveConstants getSwerveConstants() {
+    return SwerveConstants.MK4I_L2_CONSTANTS;
   }
 
   @Override
@@ -233,6 +234,11 @@ public class NovaRobotConfig extends RobotConfig {
   @Override
   public double getWheelbase() {
     return WHEELBASE_METERS;
+  }
+
+  @Override
+  public double getWheelDiameterMeters() {
+    return WHEEL_DIAMETER_METERS;
   }
 
   @Override
@@ -390,5 +396,15 @@ public class NovaRobotConfig extends RobotConfig {
   @Override
   public double getMoveToPathFinalVelocity() {
     return SQUARING_SPEED_METERS_PER_SECOND;
+  }
+
+  @Override
+  public LED_HARDWARE getLEDHardware() {
+    return LED_HARDWARE.CANDLE;
+  }
+
+  @Override
+  public int getLEDCount() {
+    return LED_COUNT;
   }
 }

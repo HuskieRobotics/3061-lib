@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.Drivetrain;
 import frc.lib.team3061.drivetrain.DrivetrainIO;
@@ -25,6 +26,7 @@ import frc.lib.team3061.drivetrain.swerve.SwerveModuleIO;
 import frc.lib.team3061.drivetrain.swerve.SwerveModuleIOTalonFXPhoenix6;
 import frc.lib.team3061.gyro.GyroIO;
 import frc.lib.team3061.gyro.GyroIOPigeon2Phoenix6;
+import frc.lib.team3061.leds.LEDs;
 import frc.lib.team3061.pneumatics.Pneumatics;
 import frc.lib.team3061.pneumatics.PneumaticsIORev;
 import frc.lib.team3061.vision.Vision;
@@ -41,6 +43,7 @@ import frc.robot.configs.DefaultRobotConfig;
 import frc.robot.configs.NovaCTRERobotConfig;
 import frc.robot.configs.NovaCTRETCFRobotConfig;
 import frc.robot.configs.NovaRobotConfig;
+import frc.robot.configs.PracticeRobotConfig;
 import frc.robot.operator_interface.OISelector;
 import frc.robot.operator_interface.OperatorInterface;
 import frc.robot.subsystems.subsystem.Subsystem;
@@ -49,6 +52,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Optional;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
+import org.littletonrobotics.junction.networktables.LoggedDashboardNumber;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -68,6 +72,11 @@ public class RobotContainer {
   private final LoggedDashboardChooser<Command> autoChooser =
       new LoggedDashboardChooser<>("Auto Routine");
 
+  private final LoggedDashboardNumber endgameAlert1 =
+      new LoggedDashboardNumber("Endgame Alert #1", 20.0);
+  private final LoggedDashboardNumber endgameAlert2 =
+      new LoggedDashboardNumber("Endgame Alert #2", 10.0);
+
   // RobotContainer singleton
   private static RobotContainer robotContainer = new RobotContainer();
 
@@ -82,12 +91,15 @@ public class RobotContainer {
      */
     createRobotConfig();
 
+    LEDs.getInstance();
+
     // create real, simulated, or replay subsystems based on the mode and robot specified
     if (Constants.getMode() != Mode.REPLAY) {
 
       switch (Constants.getRobot()) {
         case ROBOT_2023_NOVA_CTRE:
         case ROBOT_2023_NOVA_CTRE_FOC:
+        case ROBOT_PRACTICE:
           {
             createCTRESubsystems();
             break;
@@ -150,6 +162,9 @@ public class RobotContainer {
       case ROBOT_2023_NOVA:
       case ROBOT_SIMBOT:
         config = new NovaRobotConfig();
+        break;
+      case ROBOT_PRACTICE:
+        config = new PracticeRobotConfig();
         break;
     }
   }
@@ -319,6 +334,30 @@ public class RobotContainer {
     configureSubsystemCommands();
 
     configureVisionCommands();
+
+    // Endgame alerts
+    new Trigger(
+            () ->
+                DriverStation.isTeleopEnabled()
+                    && DriverStation.getMatchTime() > 0.0
+                    && DriverStation.getMatchTime() <= Math.round(endgameAlert1.get()))
+        .onTrue(
+            Commands.run(() -> LEDs.getInstance().setEndgameAlert(true))
+                .withTimeout(1.5)
+                .andThen(
+                    Commands.run(() -> LEDs.getInstance().setEndgameAlert(false))
+                        .withTimeout(1.0)));
+    new Trigger(
+            () ->
+                DriverStation.isTeleopEnabled()
+                    && DriverStation.getMatchTime() > 0.0
+                    && DriverStation.getMatchTime() <= Math.round(endgameAlert2.get()))
+        .onTrue(
+            Commands.sequence(
+                Commands.run(() -> LEDs.getInstance().setEndgameAlert(true)).withTimeout(0.5),
+                Commands.run(() -> LEDs.getInstance().setEndgameAlert(false)).withTimeout(0.5),
+                Commands.run(() -> LEDs.getInstance().setEndgameAlert(true)).withTimeout(0.5),
+                Commands.run(() -> LEDs.getInstance().setEndgameAlert(false)).withTimeout(1.0)));
 
     // interrupt all commands by running a command that requires every subsystem. This is used to
     // recover to a known state if the robot becomes "stuck" in a command.
@@ -588,17 +627,5 @@ Test 5 -16 cm X direction and +41 cm Y direction
       this.lastAlliance = alliance.get();
       this.drivetrain.updateAlliance(this.lastAlliance);
     }
-  }
-
-  public void autonomousInit() {
-    // when the LED subsystem is pulled in, we will change the LEDs here
-  }
-
-  public void teleopInit() {
-    // when the LED subsystem is pulled in, we will change the LEDs here
-  }
-
-  public void disabledPeriodic() {
-    // when the LED subsystem is pulled in, we will change the LEDs here
   }
 }
