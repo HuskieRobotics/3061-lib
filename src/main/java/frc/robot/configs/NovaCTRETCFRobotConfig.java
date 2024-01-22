@@ -64,8 +64,8 @@ public class NovaCTRETCFRobotConfig extends RobotConfig {
   private static final double MAX_COAST_VELOCITY_METERS_PER_SECOND = 0.05;
   private static final double SLOW_MODE_MULTIPLIER = 0.75;
 
-  private static final double MAX_DRIVE_ACCELERATION_METERS_PER_SECOND_SQUARED = 10.0;
-  private static final double MAX_TURN_ACCELERATION_RADIANS_PER_SECOND_SQUARED = 4.0 * Math.PI;
+  private static final double MAX_DRIVE_ACCELERATION_METERS_PER_SECOND_SQUARED = 11.365;
+  private static final double MAX_TURN_ACCELERATION_RADIANS_PER_SECOND_SQUARED = 36.0;
 
   private static final String CAN_BUS_NAME = "canbus1";
 
@@ -90,7 +90,7 @@ public class NovaCTRETCFRobotConfig extends RobotConfig {
           new Rotation3d(0, Units.degreesToRadians(25), Units.degreesToRadians(-30)));
 
   private static final double AUTO_MAX_SPEED_METERS_PER_SECOND = 3.5;
-  private static final double AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED = 3.5;
+  private static final double AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED = 10;
   private static final double AUTO_DRIVE_P_CONTROLLER = 5.0;
   private static final double AUTO_DRIVE_I_CONTROLLER = 0.0;
   private static final double AUTO_DRIVE_D_CONTROLLER = 0.0;
