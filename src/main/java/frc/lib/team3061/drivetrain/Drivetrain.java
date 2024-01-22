@@ -738,119 +738,128 @@ public class Drivetrain extends SubsystemBase {
     }
   }
 
+  private Command getSwerveCheckCommand(SwerveCheckTypes type) {
+
+    double xVelocity;
+    double yVelocity;
+    double rotationalVelocity;
+
+    double angleTarget;
+
+    switch (type) {
+      case LEFT:
+        xVelocity = 0;
+        yVelocity = 1;
+        rotationalVelocity = 0;
+        angleTarget = 180;
+        break;
+      case RIGHT:
+        xVelocity = 0;
+        yVelocity = -1;
+        rotationalVelocity = 0;
+        angleTarget = 0;
+        break;
+      case FORWARD:
+        xVelocity = 1;
+        yVelocity = 0;
+        rotationalVelocity = 0;
+        angleTarget = 90;
+        break;
+      case BACKWARD:
+        xVelocity = -1;
+        yVelocity = 0;
+        rotationalVelocity = 0;
+        angleTarget = -90;
+        break;
+      case CLOCKWISE:
+        return Commands.parallel(
+            Commands.run(
+                () -> {
+                  io.driveRobotRelative(0, 0, -1, false);
+                }),
+            Commands.waitSeconds(1)
+                .andThen(
+                    Commands.runOnce(
+                        () -> {
+                          checkSwerveModule(
+                              0, 45, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
+                          checkSwerveModule(
+                              3, 45, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
+                          checkSwerveModule(
+                              1, 135, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
+                          checkSwerveModule(
+                              2, 135, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
+                        })));
+      case COUNTERCLOCKWISE:
+        return Commands.parallel(
+            Commands.run(
+                () -> {
+                  io.driveRobotRelative(0, 0, 1, false);
+                }),
+            Commands.waitSeconds(1)
+                .andThen(
+                    Commands.runOnce(
+                        () -> {
+                          checkSwerveModule(
+                              0, -45, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
+                          checkSwerveModule(
+                              3, -45, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
+                          checkSwerveModule(
+                              1, -135, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
+                          checkSwerveModule(
+                              2, -135, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
+                        })));
+      default:
+        xVelocity = 0;
+        yVelocity = 0;
+        rotationalVelocity = 0;
+        angleTarget = 0;
+        break;
+    }
+
+    return Commands.parallel(
+        Commands.run(
+            () -> {
+              io.driveRobotRelative(xVelocity, yVelocity, rotationalVelocity, false);
+            }),
+        Commands.waitSeconds(1)
+            .andThen(
+                Commands.runOnce(
+                    () -> {
+                      for (int i = 0; i < 4; i++) {
+                        checkSwerveModule(
+                            i, angleTarget, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
+                      }
+                    })));
+  }
+
   private Command getSystemCheckCommand() {
     disableFieldRelative();
     return Commands.sequence(
-            // Tests for driving to the left
-            Commands.parallel(
-                Commands.run(
-                    () -> {
-                      io.driveRobotRelative(0, 1, 0, false);
-                    }),
-                Commands.waitSeconds(1)
-                    .andThen(
-                        Commands.runOnce(
-                            () -> {
-                              for (int i = 0; i < 4; i++) {
-                                checkSwerveModule(
-                                    i, 180, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
-                              }
-                            }))),
-
-            // Tests for driving to the right
-            Commands.parallel(
-                Commands.run(
-                    () -> {
-                      io.driveRobotRelative(0, -1, 0, false);
-                    }),
-                Commands.waitSeconds(1)
-                    .andThen(
-                        Commands.runOnce(
-                            () -> {
-                              for (int i = 0; i < 4; i++) {
-                                checkSwerveModule(
-                                    i, 0, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
-                              }
-                            }))),
-
-            // Tests for driving wheels forwards
-            Commands.parallel(
-                Commands.run(
-                    () -> {
-                      io.driveRobotRelative(1, 0, 0, false);
-                    }),
-                Commands.waitSeconds(1)
-                    .andThen(
-                        Commands.runOnce(
-                            () -> {
-                              for (int i = 0; i < 4; i++) {
-                                checkSwerveModule(
-                                    i, 90, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
-                              }
-                            }))),
-
-            // Tests for driving wheels backwards
-            Commands.parallel(
-                Commands.run(
-                    () -> {
-                      io.driveRobotRelative(-1, 0, 0, false);
-                    }),
-                Commands.waitSeconds(1)
-                    .andThen(
-                        Commands.runOnce(
-                            () -> {
-                              for (int i = 0; i < 4; i++) {
-                                checkSwerveModule(
-                                    i, -90, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
-                              }
-                            }))),
-
-            // Tests for driving wheels clockwise
-            Commands.parallel(
-                Commands.run(
-                    () -> {
-                      io.driveRobotRelative(0, 0, -1, false);
-                    }),
-                Commands.waitSeconds(1)
-                    .andThen(
-                        Commands.runOnce(
-                            () -> {
-                              checkSwerveModule(
-                                  0, 45, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
-                              checkSwerveModule(
-                                  3, 45, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
-                              checkSwerveModule(
-                                  1, 135, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
-                              checkSwerveModule(
-                                  2, 135, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
-                            }))),
-
-            // Tests for driving wheels counterclockwise
-            Commands.parallel(
-                Commands.run(
-                    () -> {
-                      io.driveRobotRelative(0, 0, 1, false);
-                    }),
-                Commands.waitSeconds(1)
-                    .andThen(
-                        Commands.runOnce(
-                            () -> {
-<<<<<<< Updated upstream
-                              checkSwerveModule(0, 3);
-                              checkSwerveModule(3, 3);
-                              checkSwerveModule(1, 4);
-                              checkSwerveModule(2, 4);
-=======
-                              checkSwerveModule(
-                                  0, -45, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
-                              checkSwerveModule(
-                                  3, -45, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
-                              checkSwerveModule(
-                                  1, -135, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
-                              checkSwerveModule(
-                                  2, -135, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
->>>>>>> Stashed changes
-                            }))))
+            Commands.run(
+                () -> {
+                  getSwerveCheckCommand(SwerveCheckTypes.LEFT);
+                }),
+            Commands.run(
+                () -> {
+                  getSwerveCheckCommand(SwerveCheckTypes.RIGHT);
+                }),
+            Commands.run(
+                () -> {
+                  getSwerveCheckCommand(SwerveCheckTypes.FORWARD);
+                }),
+            Commands.run(
+                () -> {
+                  getSwerveCheckCommand(SwerveCheckTypes.BACKWARD);
+                }),
+            Commands.run(
+                () -> {
+                  getSwerveCheckCommand(SwerveCheckTypes.CLOCKWISE);
+                }),
+            Commands.run(
+                () -> {
+                  getSwerveCheckCommand(SwerveCheckTypes.COUNTERCLOCKWISE);
+                }))
         .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
         .andThen(Commands.runOnce(() -> this.drive(0, 0, 0, true, false)));
   }
@@ -888,5 +897,14 @@ public class Drivetrain extends SubsystemBase {
   private enum DriveMode {
     NORMAL,
     X
+  }
+
+  private enum SwerveCheckTypes {
+    LEFT,
+    RIGHT,
+    FORWARD,
+    BACKWARD,
+    CLOCKWISE,
+    COUNTERCLOCKWISE
   }
 }
