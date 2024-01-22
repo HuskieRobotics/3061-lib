@@ -43,6 +43,7 @@ public abstract class LEDs extends SubsystemBase {
   private boolean lowBatteryAlert = false;
   private boolean demoMode = false;
 
+  private boolean assignedAlliance = false;
   private Alliance alliance = Alliance.Blue;
   private boolean lastEnabledAuto = false;
   private double lastEnabledTime = 0.0;
@@ -187,31 +188,29 @@ public abstract class LEDs extends SubsystemBase {
   }
 
   private void updateToDisabledPattern() {
-    switch (alliance) {
-      case Red:
+    if (assignedAlliance) {
+      if (alliance == Alliance.Red) {
         wave(
             Section.FULL,
             Color.kRed,
             Color.kBlack,
             WAVE_ALLIANCE_CYCLE_LENGTH,
             WAVE_ALLIANCE_DURATION);
-        break;
-      case Blue:
+      } else {
         wave(
             Section.FULL,
             Color.kBlue,
             Color.kBlack,
             WAVE_ALLIANCE_CYCLE_LENGTH,
             WAVE_ALLIANCE_DURATION);
-        break;
-      default:
-        wave(
-            Section.FULL,
-            Color.kDarkOrange,
-            Color.kDarkBlue,
-            WAVE_SLOW_CYCLE_LENGTH,
-            WAVE_SLOW_DURATION);
-        break;
+      }
+    } else {
+      wave(
+          Section.FULL,
+          Color.kDarkOrange,
+          Color.kDarkBlue,
+          WAVE_SLOW_CYCLE_LENGTH,
+          WAVE_SLOW_DURATION);
     }
   }
 
@@ -250,6 +249,9 @@ public abstract class LEDs extends SubsystemBase {
     // Update alliance color
     if (DriverStation.isFMSAttached()) {
       alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
+      assignedAlliance = true;
+    } else {
+      assignedAlliance = false;
     }
 
     // Update auto state
