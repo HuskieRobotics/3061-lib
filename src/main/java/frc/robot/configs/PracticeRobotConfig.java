@@ -66,8 +66,8 @@ public class PracticeRobotConfig extends RobotConfig {
   private static final double MAX_COAST_VELOCITY_METERS_PER_SECOND = 0.05;
   private static final double SLOW_MODE_MULTIPLIER = 0.75;
 
-  private static final double MAX_DRIVE_ACCELERATION_METERS_PER_SECOND_SQUARED = 10.0;
-  private static final double MAX_TURN_ACCELERATION_RADIANS_PER_SECOND_SQUARED = 4.0 * Math.PI;
+  private static final double MAX_DRIVE_ACCELERATION_METERS_PER_SECOND_SQUARED = 11.365;
+  private static final double MAX_TURN_ACCELERATION_RADIANS_PER_SECOND_SQUARED = 36.0;
 
   // FIXME: update the camera names once they have been installed
   private static final String CAN_BUS_NAME = "canbus1";
@@ -94,7 +94,7 @@ public class PracticeRobotConfig extends RobotConfig {
           new Rotation3d(0, Units.degreesToRadians(25), Units.degreesToRadians(-30)));
 
   private static final double AUTO_MAX_SPEED_METERS_PER_SECOND = 3.5;
-  private static final double AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED = 3.5;
+  private static final double AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED = 10;
   private static final double AUTO_DRIVE_P_CONTROLLER = 5.0;
   private static final double AUTO_DRIVE_I_CONTROLLER = 0.0;
   private static final double AUTO_DRIVE_D_CONTROLLER = 0.0;
@@ -112,6 +112,8 @@ public class PracticeRobotConfig extends RobotConfig {
   private static final double DRIVE_TO_POSE_THETA_TOLERANCE_RADIANS = 0.008;
 
   private static final double SQUARING_SPEED_METERS_PER_SECOND = 1.0;
+
+  private static final int LED_COUNT = 85;
 
   @Override
   public boolean getPhoenix6Licensed() {
@@ -398,6 +400,21 @@ public class PracticeRobotConfig extends RobotConfig {
   @Override
   public double getMoveToPathFinalVelocity() {
     return SQUARING_SPEED_METERS_PER_SECOND;
+  }
+
+  @Override
+  public double getOdometryUpdateFrequency() {
+    return 250.0;
+  }
+
+  @Override
+  public LED_HARDWARE getLEDHardware() {
+    return LED_HARDWARE.RIO;
+  }
+
+  @Override
+  public int getLEDCount() {
+    return LED_COUNT;
   }
 
   @Override
