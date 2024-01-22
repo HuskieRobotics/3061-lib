@@ -188,6 +188,7 @@ public class RobotContainer {
     // }
     // vision = new Vision(visionIOs);
 
+    // FIXME: re-enable cameras when installed
     String[] cameraNames = config.getCameraNames();
     VisionIO[] visionIOs = new VisionIO[cameraNames.length];
     for (int i = 0; i < visionIOs.length; i++) {
@@ -380,11 +381,19 @@ public class RobotContainer {
 
     /************ Test Path ************
      *
-     * demonstration of PathPlanner path group with event markers
+     * demonstration of PathPlanner auto with event markers
      *
      */
     Command autoTest = new PathPlannerAuto("TestAuto");
     autoChooser.addOption("Test Auto", autoTest);
+
+    /************ Choreo Test Path ************
+     *
+     * demonstration of PathPlanner hosted Choreo path
+     *
+     */
+    Command choreoAutoTest = new PathPlannerAuto("ChoreoTest");
+    autoChooser.addOption("Choreo Auto", choreoAutoTest);
 
     /************ Start Point ************
      *
