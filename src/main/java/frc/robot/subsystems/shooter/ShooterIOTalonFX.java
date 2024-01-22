@@ -69,6 +69,7 @@ public class ShooterIOTalonFX implements ShooterIO {
     this.leftMotor = new TalonFX(leftMotorID, RobotConfig.getInstance().getCANBusName());
 
     this.leftMotor.setInverted(true);
+    this.rightMotor.setInverted(true);
     // this.leftMotor.setControl(new StrictFollower(ShooterConstants.RIGHT_MOTOR_CAN_ID));
 
     TalonFXConfiguration config = new TalonFXConfiguration();
