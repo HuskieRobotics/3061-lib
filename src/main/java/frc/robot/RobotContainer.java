@@ -188,6 +188,7 @@ public class RobotContainer {
     // }
     // vision = new Vision(visionIOs);
 
+    // FIXME: re-enable cameras when installed
     String[] cameraNames = config.getCameraNames();
     VisionIO[] visionIOs = new VisionIO[cameraNames.length];
     for (int i = 0; i < visionIOs.length; i++) {
@@ -268,27 +269,20 @@ public class RobotContainer {
     DrivetrainIO drivetrainIO = new DrivetrainIOCTRE();
     drivetrain = new Drivetrain(drivetrainIO);
 
-    // AprilTagFieldLayout layout;
-    // try {
-    //   layout = new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
-    // } catch (IOException e) {
-    //   layout = new AprilTagFieldLayout(new ArrayList<>(), 16.4592, 8.2296);
-    // }
-    // vision =
-    //     new Vision(
-    //         new VisionIO[] {
-    //           new VisionIOSim(
-    //               layout,
-    //               drivetrain::getPose,
-    //               RobotConfig.getInstance().getRobotToCameraTransforms()[0])
-    //         });
-
-    String[] cameraNames = config.getCameraNames();
-    VisionIO[] visionIOs = new VisionIO[cameraNames.length];
-    for (int i = 0; i < visionIOs.length; i++) {
-      visionIOs[i] = new VisionIO() {};
+    AprilTagFieldLayout layout;
+    try {
+      layout = new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
+    } catch (IOException e) {
+      layout = new AprilTagFieldLayout(new ArrayList<>(), 16.4592, 8.2296);
     }
-    vision = new Vision(visionIOs);
+    vision =
+        new Vision(
+            new VisionIO[] {
+              new VisionIOSim(
+                  layout,
+                  drivetrain::getPose,
+                  RobotConfig.getInstance().getRobotToCameraTransforms()[0])
+            });
 
     // FIXME: create the hardware-specific subsystem class
   }
@@ -400,14 +394,6 @@ public class RobotContainer {
      */
     Command choreoAutoTest = new PathPlannerAuto("ChoreoTest");
     autoChooser.addOption("Choreo Auto", choreoAutoTest);
-/* 
-Test 1 -30 cm X direction and +25 cm Y direction
-Test 2 -23 cm X direction and +36 cm Y direction
-Test 3 -19 cm X direction and +33 cm Y direction
-Test 4 -9 cm X direction and +41 cm Y direction
-Test 5 -16 cm X direction and +41 cm Y direction
-*/
-
 
     /************ Start Point ************
      *
