@@ -1,7 +1,5 @@
 package frc.robot.configs;
 
-import static frc.lib.team3061.drivetrain.swerve.SwerveConstants.*;
-
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
