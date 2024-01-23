@@ -129,7 +129,7 @@ public abstract class SwerveConstants {
   */
   private static final double MK4_L2_DRIVE_GEAR_RATIO =
       1 / ((14.0 / 50.0) * (27.0 / 17.0) * (15.0 / 45.0));
-  private static final boolean MK4_L2_DRIVE_MOTOR_INVERTED = false;
+  private static final boolean MK4_L2_DRIVE_MOTOR_INVERTED = true;
   private static final double MK4_L2_ANGLE_GEAR_RATIO = 1 / ((15.0 / 32.0) * (10.0 / 60.0));
   private static final boolean MK4_L2_ANGLE_MOTOR_INVERTED = false;
   private static final boolean MK4_L2_CAN_CODER_INVERTED = false;
