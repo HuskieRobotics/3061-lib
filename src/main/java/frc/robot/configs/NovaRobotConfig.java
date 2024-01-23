@@ -16,7 +16,7 @@ public class NovaRobotConfig extends RobotConfig {
   private static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 13;
   private static final int FRONT_LEFT_MODULE_STEER_MOTOR = 12;
   private static final int FRONT_LEFT_MODULE_STEER_ENCODER = 14;
-  private static final double FRONT_LEFT_MODULE_STEER_OFFSET_ROT = -0.22591;
+  private static final double FRONT_LEFT_MODULE_STEER_OFFSET_ROT = 0.27409;
 
   private static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 16;
   private static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 15;
@@ -26,7 +26,7 @@ public class NovaRobotConfig extends RobotConfig {
   private static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 7;
   private static final int BACK_LEFT_MODULE_STEER_MOTOR = 6;
   private static final int BACK_LEFT_MODULE_STEER_ENCODER = 8;
-  private static final double BACK_LEFT_MODULE_STEER_OFFSET_ROT = 0.327393;
+  private static final double BACK_LEFT_MODULE_STEER_OFFSET_ROT = 0.827393;
 
   private static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 10;
   private static final int BACK_RIGHT_MODULE_STEER_MOTOR = 9;
