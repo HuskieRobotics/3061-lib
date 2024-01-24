@@ -1,13 +1,11 @@
 package frc.robot.configs;
 
-import static frc.lib.team3061.drivetrain.swerve.SwerveConstants.*;
-
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import frc.lib.team3061.RobotConfig;
-import frc.lib.team3061.drivetrain.swerve.SwerveConstants.SwerveType;
+import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
 
 /*
  * Refer to the README for how to represent your robot's configuration. For more information on
@@ -18,27 +16,28 @@ public class NovaCTRERobotConfig extends RobotConfig {
   private static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 13;
   private static final int FRONT_LEFT_MODULE_STEER_MOTOR = 12;
   private static final int FRONT_LEFT_MODULE_STEER_ENCODER = 14;
-  private static final double FRONT_LEFT_MODULE_STEER_OFFSET_ROT = -0.604492;
+  private static final double FRONT_LEFT_MODULE_STEER_OFFSET_ROT = -0.22591;
 
   private static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 16;
   private static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 15;
   private static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 17;
-  private static final double FRONT_RIGHT_MODULE_STEER_OFFSET_ROT = -0.277832;
+  private static final double FRONT_RIGHT_MODULE_STEER_OFFSET_ROT = -0.390381;
 
   private static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 7;
   private static final int BACK_LEFT_MODULE_STEER_MOTOR = 6;
   private static final int BACK_LEFT_MODULE_STEER_ENCODER = 8;
-  private static final double BACK_LEFT_MODULE_STEER_OFFSET_ROT = -0.249512;
+  private static final double BACK_LEFT_MODULE_STEER_OFFSET_ROT = 0.327393;
 
   private static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 10;
   private static final int BACK_RIGHT_MODULE_STEER_MOTOR = 9;
   private static final int BACK_RIGHT_MODULE_STEER_ENCODER = 11;
-  private static final double BACK_RIGHT_MODULE_STEER_OFFSET_ROT = -0.024414;
+  private static final double BACK_RIGHT_MODULE_STEER_OFFSET_ROT = -0.336670;
 
   private static final int GYRO_ID = 3;
 
   private static final double TRACKWIDTH_METERS = 0.523875; // 20.625
   private static final double WHEELBASE_METERS = 0.52705; // 20.75
+  private static final double WHEEL_DIAMETER_METERS = 0.09845567409;
   private static final double ROBOT_WIDTH_WITH_BUMPERS = 0.8382; // meters //33 in
   private static final double ROBOT_LENGTH_WITH_BUMPERS = 0.8382; // meters // 33 in
 
@@ -53,25 +52,20 @@ public class NovaCTRERobotConfig extends RobotConfig {
   private static final double ANGLE_KA = 0.001663333333;
 
   /* Drive Motor PID Values */
-  private static final double DRIVE_KP = 0.2;
+  private static final double DRIVE_KP = 0.3;
   private static final double DRIVE_KI = 0.0;
   private static final double DRIVE_KD = 0.0;
 
   private static final double DRIVE_KS = 0.4004375;
-  private static final double DRIVE_KV =
-      2.7637325
-          * MK4I_L2_DRIVE_GEAR_RATIO
-          / MK4I_L2_WHEEL_CIRCUMFERENCE; // convert from V/(m/s) to V/(rotations/s)
+  private static final double DRIVE_KV = 2.7637325;
   private static final double DRIVE_KA = 0.0139575;
 
-  private static final SwerveType SWERVE_TYPE = SwerveType.MK4I;
-
-  private static final double MAX_VELOCITY_METERS_PER_SECOND = 4.78;
+  private static final double MAX_VELOCITY_METERS_PER_SECOND = 3.5;
   private static final double MAX_COAST_VELOCITY_METERS_PER_SECOND = 0.05;
   private static final double SLOW_MODE_MULTIPLIER = 0.75;
 
-  private static final double MAX_DRIVE_ACCELERATION_METERS_PER_SECOND_SQUARED = 10.0;
-  private static final double MAX_TURN_ACCELERATION_RADIANS_PER_SECOND_SQUARED = 4.0 * Math.PI;
+  private static final double MAX_DRIVE_ACCELERATION_METERS_PER_SECOND_SQUARED = 11.365;
+  private static final double MAX_TURN_ACCELERATION_RADIANS_PER_SECOND_SQUARED = 36.0;
 
   private static final String CAN_BUS_NAME = "canbus1";
 
@@ -95,8 +89,8 @@ public class NovaCTRERobotConfig extends RobotConfig {
               Units.inchesToMeters(49.240)),
           new Rotation3d(0, Units.degreesToRadians(25), Units.degreesToRadians(-30)));
 
-  private static final double AUTO_MAX_SPEED_METERS_PER_SECOND = 2.0;
-  private static final double AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED = 2.0;
+  private static final double AUTO_MAX_SPEED_METERS_PER_SECOND = 3.5;
+  private static final double AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED = 10;
   private static final double AUTO_DRIVE_P_CONTROLLER = 5.0;
   private static final double AUTO_DRIVE_I_CONTROLLER = 0.0;
   private static final double AUTO_DRIVE_D_CONTROLLER = 0.0;
@@ -114,6 +108,8 @@ public class NovaCTRERobotConfig extends RobotConfig {
   private static final double DRIVE_TO_POSE_THETA_TOLERANCE_RADIANS = 0.008;
 
   private static final double SQUARING_SPEED_METERS_PER_SECOND = 1.0;
+
+  private static final int LED_COUNT = 85;
 
   @Override
   public boolean getPhoenix6Licensed() {
@@ -172,7 +168,9 @@ public class NovaCTRERobotConfig extends RobotConfig {
 
   @Override
   public double getDriveKV() {
-    return DRIVE_KV;
+    return DRIVE_KV
+        / (getSwerveConstants().getDriveGearRatio()
+            / (getWheelDiameterMeters() * Math.PI)); // convert from V/(m/s) to V/(rotations/s)
   }
 
   @Override
@@ -181,8 +179,8 @@ public class NovaCTRERobotConfig extends RobotConfig {
   }
 
   @Override
-  public SwerveType getSwerveType() {
-    return SWERVE_TYPE;
+  public SwerveConstants getSwerveConstants() {
+    return SwerveConstants.MK4I_L2_CONSTANTS;
   }
 
   @Override
@@ -238,6 +236,11 @@ public class NovaCTRERobotConfig extends RobotConfig {
   @Override
   public double getWheelbase() {
     return WHEELBASE_METERS;
+  }
+
+  @Override
+  public double getWheelDiameterMeters() {
+    return WHEEL_DIAMETER_METERS;
   }
 
   @Override
@@ -398,7 +401,27 @@ public class NovaCTRERobotConfig extends RobotConfig {
   }
 
   @Override
-  public SWERVE_CONTROL_MODE getSwerveControlMode() {
+  public double getOdometryUpdateFrequency() {
+    return 250.0;
+  }
+
+  @Override
+  public LED_HARDWARE getLEDHardware() {
+    return LED_HARDWARE.RIO;
+  }
+
+  @Override
+  public int getLEDCount() {
+    return LED_COUNT;
+  }
+
+  @Override
+  public SWERVE_CONTROL_MODE getSwerveSteerControlMode() {
+    return SWERVE_CONTROL_MODE.VOLTAGE;
+  }
+
+  @Override
+  public SWERVE_CONTROL_MODE getSwerveDriveControlMode() {
     return SWERVE_CONTROL_MODE.VOLTAGE;
   }
 }

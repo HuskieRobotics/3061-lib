@@ -2,6 +2,12 @@
 
 Huskie Robotics, FRC Team 3061's, starter project and library focused on a swerve-based drivetrain. Supports SDS MK4/MK4i swerve modules using 2 Falcon 500 motors and a CTRE CANCoder, a CTRE Pigeon Gyro, and REV Robotics power distribution hub and pneumatics hub. However, due to the hardware abstraction layer, this code can be adapted to other motor controllers, encoders, and gyros as well as different swerve module designs.
 
+**Is 3061-lib a Good Fit for Your Team?**
+----
+* If you just want to get your new serve drive up and running, there are less complicated options. For example, if you are using all Cross The Road Electronics hardware, you should use their [Swerve Project Generator](https://pro.docs.ctr-electronics.com/en/latest/docs/tuner/tuner-swerve/index.html).
+* While 3061-lib has the potential to support Rev motors and sensors, that requires some work on your part. You may find AdvantageKit's [Swerve Drive Projects](https://github.com/Mechanical-Advantage/AdvantageKit/blob/main/docs/INSTALLATION.md#new-projects) more helpful.
+* If your team is interested in incorporating the following features, 3061-lib may be a good fit for your team.
+
 **External Dependencies**
 ----
 * git must be installed as the GVersion plugin depends upon it
@@ -29,7 +35,6 @@ Huskie Robotics, FRC Team 3061's, starter project and library focused on a swerv
     * acceleration limiting when not in "turbo" mode
     * current limiting configuration for motors
     * x-stance
-    * leave wheels rotated in last direction when not driving to enable smooth continuation of motion
     * switch drive motors to coast mode when robot is disabled and has stopped moving for a period of time to facilitate manual pushing
 
 **Configuration**
@@ -54,7 +59,7 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
     * Setting Steer Offsets (e.g., ```FRONT_LEFT_MODULE_STEER_OFFSET_ROT```) in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
         * For finding the offsets, use a piece of 2x1 extrusion that is straight against the forks of the front and back modules (on the left and right side) to ensure that the modules are straight
         * Point the bevel gears of all the wheels in the same direction (either facing left or right), and preferably you should have the wheels facing in the direction where a positive input to the drive motor drives forward; if for some reason you set the offsets with the wheels backwards, you can change the appropriate ```DRIVE_MOTOR_INVERTED``` in ```SwerveModuleConstants``` to fix
-        * Open Phoenix Tuner 6 and, for each CANcoder on a swerve module, copy the negated rotation value of the "Absolute Position No Offset" signal to the ```STEER_OFFSET``` constants. For example, if the CANcoder "Absolute Position No Offset" signal is 0.104004, specify a value of -0.104004 for the corresponding constant.
+        * Open Phoenix Tuner X and, for each CANcoder on a swerve module, copy the negated rotation value of the "Absolute Position No Offset" signal to the ```STEER_OFFSET``` constants. For example, if the CANcoder "Absolute Position No Offset" signal is 0.104004, specify a value of -0.104004 for the corresponding constant.
 * Checking geometry:
     1. elevate the robot on a cart positioned in front of the operator console so the driver's perspective is the same as the robot's (i.e., the front of the robot facing away from the driver); we label the front, back, left, and right of the robot on the robot since which is which may be ambiguous until more of the robot is assembled
     2. position all four wheels such that they are pointing forward (bevel gears all facing the same direction as when the steer offsets were determined)
@@ -72,7 +77,7 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
     14. graph AdvantageKit/Drive/Gyro/PositionDeg
     15. rotate the cart in a CCW direction and verify that the gyro is increasing
     16. rotate the cart in a CW direction and verify that the gyro is decreasing
-    17. use Phoenix Tuner to flash the LEDs on the Falcon 500s and CANcoders to ensure that the CAN IDs are properly assigned to the front-left, front-right, back-left, and back-right positions (all of the above may behave as expected even if the modules aren't assigned to the appropriate corners)
+    17. use Phoenix Tuner X to flash the LEDs on the Falcon 500s and CANcoders to ensure that the CAN IDs are properly assigned to the front-left, front-right, back-left, and back-right positions (all of the above may behave as expected even if the modules aren't assigned to the appropriate corners)
 * If you are using voltage control outputs:
     * Angle characterization values (```ANGLE_KS```, ```ANGLE_KV```, ```ANGLE_KA```) in in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
         * set ```TUNING_MODE``` in Constants.java to true (characterization analysis doesn't normally run)
@@ -147,6 +152,7 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
 **Credits**
 ----
 * MK4/MK4i code initially from Team 364's [BaseFalconSwerve](https://github.com/Team364/BaseFalconSwerve)
-* general AdvantageKit logging code, AdvantageKit-enabled Gyro classes, swerve module simulation, and drive characterization from Mechanical Advantage's [SwerveDevelopment](https://github.com/Mechanical-Advantage/SwerveDevelopment)
-* AdvantageKit-enabled pneumatics classes from Mechanical Advantage's 2022 [robot code](https://github.com/Mechanical-Advantage/RobotCode2022)
-* FaultReporter (originally AdvancedSubsystem), SubsystemFault, SelfChecking classes from [Ranger Robotics](https://github.com/3015RangerRobotics/2023Public)
+* general AdvantageKit logging code, AdvantageKit-enabled Gyro classes, swerve module simulation, and drive characterization initially from Mechanical Advantage's [SwerveDevelopment](https://github.com/Mechanical-Advantage/SwerveDevelopment)
+* AdvantageKit-enabled pneumatics classes initially from Mechanical Advantage's 2022 [robot code](https://github.com/Mechanical-Advantage/RobotCode2022)
+* AdvantageKit-enabled framework code and LED class initially from Mechanical Advantage's 2023 [robot code](https://github.com/Mechanical-Advantage/RobotCode2023)
+* FaultReporter (originally AdvancedSubsystem), SubsystemFault, SelfChecking classes initially from [Ranger Robotics](https://github.com/3015RangerRobotics/2023Public)
