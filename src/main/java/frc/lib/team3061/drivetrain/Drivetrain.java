@@ -18,6 +18,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
@@ -27,6 +28,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.DrivetrainIO.SwerveIOInputs;
+import frc.lib.team3061.leds.LEDs;
 import frc.lib.team6328.util.Alert;
 import frc.lib.team6328.util.Alert.AlertType;
 import frc.lib.team6328.util.TunableNumber;
@@ -76,6 +78,7 @@ public class Drivetrain extends SubsystemBase {
   private boolean brakeMode;
   private Timer brakeModeTimer = new Timer();
   private static final double BREAK_MODE_DELAY_SEC = 10.0;
+  private static final double LEDS_FALLEN_ANGLE_DEGREES = 60.0; // Threshold to detect falls
 
   private DriveMode driveMode = DriveMode.NORMAL;
 
@@ -88,6 +91,8 @@ public class Drivetrain extends SubsystemBase {
 
   private ChassisSpeeds prevSpeeds = new ChassisSpeeds();
   private double[] prevSteerVelocitiesRevPerMin = new double[4];
+
+  private DriverStation.Alliance alliance = DriverStation.Alliance.Blue;
 
   /**
    * Creates a new Drivetrain subsystem.
@@ -146,7 +151,7 @@ public class Drivetrain extends SubsystemBase {
             new ReplanningConfig() // Default path replanning config. See the API for the options
             // here
             ),
-        () -> false,
+        this::shouldFlipAutoPath,
         this // Reference to this subsystem to set requirements
         );
   }
@@ -302,9 +307,10 @@ public class Drivetrain extends SubsystemBase {
    * rotational directions. The velocities may be specified from either the robot's frame of
    * reference of the field's frame of reference. In the robot's frame of reference, the positive x
    * direction is forward; the positive y direction, left; position rotation, CCW. In the field
-   * frame of reference, the origin of the field to the lower left corner (i.e., the corner of the
-   * field to the driver's right). Zero degrees is away from the driver and increases in the CCW
-   * direction.
+   * frame of reference, the positive x direction is away from the driver and the positive y
+   * direction is to the driver's left. This method accounts for the fact that the origin of the
+   * field is always the corner to the right of the blue alliance driver station. A positive
+   * rotational velocity always rotates the robot in the CCW direction.
    *
    * <p>If the translation or rotation slow mode features are enabled, the corresponding velocities
    * will be scaled to enable finer control.
@@ -347,7 +353,16 @@ public class Drivetrain extends SubsystemBase {
       }
 
       if (isFieldRelative) {
-        this.io.driveFieldRelative(xVelocity, yVelocity, rotationalVelocity, isOpenLoop);
+        // the origin of the field is always the corner to the right of the blue alliance driver
+        // station. As a result, "forward" from a field-relative perspective when on the red
+        // alliance, is in the negative x direction. Similarly, "left" from a field-relative
+        // perspective when on the red alliance is in the negative y direction.
+        int allianceMultiplier = this.alliance == Alliance.Blue ? 1 : -1;
+        this.io.driveFieldRelative(
+            allianceMultiplier * xVelocity,
+            allianceMultiplier * yVelocity,
+            rotationalVelocity,
+            isOpenLoop);
       } else {
         this.io.driveRobotRelative(xVelocity, yVelocity, rotationalVelocity, isOpenLoop);
       }
@@ -435,6 +450,12 @@ public class Drivetrain extends SubsystemBase {
     Logger.processInputs(SUBSYSTEM_NAME + "/FR", this.inputs.swerve[1]);
     Logger.processInputs(SUBSYSTEM_NAME + "/BL", this.inputs.swerve[2]);
     Logger.processInputs(SUBSYSTEM_NAME + "/BR", this.inputs.swerve[3]);
+
+    // Check for fallen robot
+    LEDs.getInstance()
+        .setFallen(
+            Math.abs(this.inputs.gyro.pitchDeg) > LEDS_FALLEN_ANGLE_DEGREES
+                || Math.abs(this.inputs.gyro.rollDeg) > LEDS_FALLEN_ANGLE_DEGREES);
 
     // update the brake mode based on the robot's velocity and state (enabled/disabled)
     updateBrakeMode();
@@ -697,6 +718,28 @@ public class Drivetrain extends SubsystemBase {
    */
   public boolean isMoveToPoseEnabled() {
     return this.isMoveToPoseEnabled;
+  }
+
+  /**
+   * This method should be invoked once the alliance color is known. Refer to the RobotContainer's
+   * checkAllianceColor method for best practices on when to check the alliance's color. The
+   * alliance color is needed when running auto paths as those paths are always defined for
+   * blue-alliance robots and need to be flipped for red-alliance robots.
+   *
+   * @param newAlliance the new alliance color
+   */
+  public void updateAlliance(DriverStation.Alliance newAlliance) {
+    this.alliance = newAlliance;
+  }
+
+  /**
+   * Returns true if the auto path, which is always defined for a blue alliance robot, should be
+   * flipped to the red alliance side of the field.
+   *
+   * @return true if the auto path should be flipped to the red alliance side of the field
+   */
+  public boolean shouldFlipAutoPath() {
+    return this.alliance == Alliance.Red;
   }
 
   private Command getSystemCheckCommand() {

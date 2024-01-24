@@ -4,14 +4,12 @@ import static frc.lib.team3061.vision.VisionConstants.*;
 
 import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFieldLayout.OriginPosition;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -91,35 +89,6 @@ public class Vision extends SubsystemBase {
 
     for (AprilTag tag : layout.getTags()) {
       Logger.recordOutput(SUBSYSTEM_NAME + "/AprilTags/" + tag.ID, tag.pose);
-    }
-  }
-
-  /**
-   * This method should be invoked once the alliance color is known. Refer to the RobotContainer's
-   * checkAllianceColor method for best practices on when to check the alliance's color. It updates
-   * the AprilTag field layout, logs the new location of the tags, and updates all of the VisionIO
-   * objects with the new alliance color.
-   *
-   * @param newAlliance the new alliance color
-   */
-  public void updateAlliance(DriverStation.Alliance newAlliance) {
-
-    if (newAlliance == DriverStation.Alliance.Red) {
-      layout.setOrigin(OriginPosition.kRedAllianceWallRightSide);
-      for (VisionIO visionIO : visionIOs) {
-        visionIO.setLayoutOrigin(OriginPosition.kRedAllianceWallRightSide);
-      }
-    } else {
-      layout.setOrigin(OriginPosition.kBlueAllianceWallRightSide);
-      for (VisionIO visionIO : visionIOs) {
-        visionIO.setLayoutOrigin(OriginPosition.kBlueAllianceWallRightSide);
-      }
-    }
-
-    for (AprilTag tag : layout.getTags()) {
-      layout
-          .getTagPose(tag.ID)
-          .ifPresent(pose -> Logger.recordOutput(SUBSYSTEM_NAME + "/AprilTags/" + tag.ID, pose));
     }
   }
 

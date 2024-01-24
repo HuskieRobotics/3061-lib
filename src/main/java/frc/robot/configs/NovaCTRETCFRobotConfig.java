@@ -11,12 +11,12 @@ import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
  * Refer to the README for how to represent your robot's configuration. For more information on
  * these methods, refer to the documentation in the RobotConfig class.
  */
-public class NovaRobotConfig extends RobotConfig {
+public class NovaCTRETCFRobotConfig extends RobotConfig {
 
   private static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 13;
   private static final int FRONT_LEFT_MODULE_STEER_MOTOR = 12;
   private static final int FRONT_LEFT_MODULE_STEER_ENCODER = 14;
-  private static final double FRONT_LEFT_MODULE_STEER_OFFSET_ROT = 0.27409;
+  private static final double FRONT_LEFT_MODULE_STEER_OFFSET_ROT = -0.22591;
 
   private static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 16;
   private static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 15;
@@ -26,7 +26,7 @@ public class NovaRobotConfig extends RobotConfig {
   private static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 7;
   private static final int BACK_LEFT_MODULE_STEER_MOTOR = 6;
   private static final int BACK_LEFT_MODULE_STEER_ENCODER = 8;
-  private static final double BACK_LEFT_MODULE_STEER_OFFSET_ROT = 0.827393;
+  private static final double BACK_LEFT_MODULE_STEER_OFFSET_ROT = 0.327393;
 
   private static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 10;
   private static final int BACK_RIGHT_MODULE_STEER_MOTOR = 9;
@@ -52,13 +52,13 @@ public class NovaRobotConfig extends RobotConfig {
   private static final double ANGLE_KA = 0.001663333333;
 
   /* Drive Motor PID Values */
-  private static final double DRIVE_KP = 0.005;
+  private static final double DRIVE_KP = 8.0;
   private static final double DRIVE_KI = 0.0;
   private static final double DRIVE_KD = 0.0;
 
-  private static final double DRIVE_KS = 0.4004375;
-  private static final double DRIVE_KV = 2.7637325;
-  private static final double DRIVE_KA = 0.0139575;
+  private static final double DRIVE_KS = 5.0;
+  private static final double DRIVE_KV = 0.0;
+  private static final double DRIVE_KA = 0.0;
 
   private static final double MAX_VELOCITY_METERS_PER_SECOND = 3.5;
   private static final double MAX_COAST_VELOCITY_METERS_PER_SECOND = 0.05;
@@ -399,6 +399,11 @@ public class NovaRobotConfig extends RobotConfig {
   }
 
   @Override
+  public double getOdometryUpdateFrequency() {
+    return 250.0;
+  }
+
+  @Override
   public LED_HARDWARE getLEDHardware() {
     return LED_HARDWARE.RIO;
   }
@@ -406,5 +411,15 @@ public class NovaRobotConfig extends RobotConfig {
   @Override
   public int getLEDCount() {
     return LED_COUNT;
+  }
+
+  @Override
+  public SWERVE_CONTROL_MODE getSwerveSteerControlMode() {
+    return SWERVE_CONTROL_MODE.VOLTAGE;
+  }
+
+  @Override
+  public SWERVE_CONTROL_MODE getSwerveDriveControlMode() {
+    return SWERVE_CONTROL_MODE.TORQUE_CURRENT_FOC;
   }
 }
