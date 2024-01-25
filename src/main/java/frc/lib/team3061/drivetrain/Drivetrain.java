@@ -352,7 +352,7 @@ public class Drivetrain extends SubsystemBase {
         this.io.driveRobotRelative(xVelocity, yVelocity, rotationalVelocity, isOpenLoop);
       }
     } else if (driveMode == DriveMode.SOUND) {
-      io.playSounds(1500);
+      io.playSounds(1000);
     } else {
       this.io.holdXStance();
     }
@@ -880,6 +880,25 @@ public class Drivetrain extends SubsystemBase {
             )
         .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
         .andThen(Commands.runOnce(() -> this.drive(0, 0, 0, true, false)));
+  }
+
+  // must turn robot 90 degrees to the right
+  private Command getGyroCheckCommand() {
+    double originalYaw = this.getYaw();
+    double angleTarget = 45;
+    double angleTolerance = 5;
+    return Commands.sequence(
+      Commands.runOnce(() -> {io.playSounds(1000);}),
+      Commands.waitSeconds(.5).andThen(Commands.runOnce(() -> {
+      io.playSounds(0);
+    })),
+      Commands.waitSeconds(10).andThen(Commands.runOnce(() -> {
+        if (Math.abs(this.getYaw() - originalYaw) >= angleTarget - angleTolerance) {
+          FaultReporter.getInstance().addFault(SUBSYSTEM_NAME, "Gyro not turning as expected");
+        }
+    }
+    )));
+    
   }
 
   public void playSounds(double pitch) {
