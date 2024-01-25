@@ -87,11 +87,17 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
   private final List<StatusSignal<Double>> odometrySignals = new ArrayList<>();
 
   protected static final TunableNumber thetaKp =
-      new TunableNumber("Drivetrain/DriveFacingAngle/ThetaKp", 2);
+      new TunableNumber(
+          "Drivetrain/DriveFacingAngle/ThetaKp",
+          RobotConfig.getInstance().getDriveFacingAngleThetaKP());
   protected static final TunableNumber thetaKi =
-      new TunableNumber("Drivetrain/DriveFacingAngle/ThetaKi", 10.0);
+      new TunableNumber(
+          "Drivetrain/DriveFacingAngle/ThetaKi",
+          RobotConfig.getInstance().getDriveFacingAngleThetaKI());
   protected static final TunableNumber thetaKd =
-      new TunableNumber("Drivetrain/DriveFacingAngle/ThetaKd", 0.1);
+      new TunableNumber(
+          "Drivetrain/DriveFacingAngle/ThetaKd",
+          RobotConfig.getInstance().getDriveFacingAngleThetaKD());
   protected static final TunableNumber thetaMaxVelocity =
       new TunableNumber("Drivetrain/DriveFacingAngle/ThetaMaxVelocity", 8);
   protected static final TunableNumber thetaMaxAcceleration =

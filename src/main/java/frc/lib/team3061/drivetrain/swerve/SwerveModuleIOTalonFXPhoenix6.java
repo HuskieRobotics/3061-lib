@@ -45,17 +45,17 @@ import java.util.List;
 public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
 
   private final TunableNumber driveKp =
-      new TunableNumber("Drive/DriveKp", RobotConfig.getInstance().getSwerveDriveKP());
+      new TunableNumber("Drivetrain/DriveKp", RobotConfig.getInstance().getSwerveDriveKP());
   private final TunableNumber driveKi =
-      new TunableNumber("Drive/DriveKi", RobotConfig.getInstance().getSwerveDriveKI());
+      new TunableNumber("Drivetrain/DriveKi", RobotConfig.getInstance().getSwerveDriveKI());
   private final TunableNumber driveKd =
-      new TunableNumber("Drive/DriveKd", RobotConfig.getInstance().getSwerveDriveKD());
+      new TunableNumber("Drivetrain/DriveKd", RobotConfig.getInstance().getSwerveDriveKD());
   private final TunableNumber turnKp =
-      new TunableNumber("Drive/TurnKp", RobotConfig.getInstance().getSwerveAngleKP());
+      new TunableNumber("Drivetrain/TurnKp", RobotConfig.getInstance().getSwerveAngleKP());
   private final TunableNumber turnKi =
-      new TunableNumber("Drive/TurnKi", RobotConfig.getInstance().getSwerveAngleKI());
+      new TunableNumber("Drivetrain/TurnKi", RobotConfig.getInstance().getSwerveAngleKI());
   private final TunableNumber turnKd =
-      new TunableNumber("Drive/TurnKd", RobotConfig.getInstance().getSwerveAngleKD());
+      new TunableNumber("Drivetrain/TurnKd", RobotConfig.getInstance().getSwerveAngleKD());
 
   private final double wheelCircumference;
   private final double driveGearRatio;
