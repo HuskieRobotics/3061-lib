@@ -24,10 +24,9 @@ import org.littletonrobotics.junction.Logger;
 
 /**
  * This command, when executed, instructs the drivetrain subsystem to drive to the specified pose in
- * a straight line. The specified pose is not translated based on the alliance color. The execute
- * method invokes the drivetrain subsystem's drive method. For following a predetermined path, refer
- * to the FollowPath Command class. For generating a path on the fly and following that path, refer
- * to the MoveToPose Command class.
+ * a straight line. The execute method invokes the drivetrain subsystem's drive method. For
+ * following a predetermined path, refer to the FollowPath Command class. For generating a path on
+ * the fly and following that path, refer to the MoveToPose Command class.
  *
  * <p>Requires: the Drivetrain subsystem
  *

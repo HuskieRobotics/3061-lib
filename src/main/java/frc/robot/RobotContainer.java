@@ -4,8 +4,6 @@
 
 package frc.robot;
 
-import static frc.robot.FieldRegionConstants.*;
-
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
@@ -18,6 +16,7 @@ import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.Drivetrain;
 import frc.lib.team3061.drivetrain.Drivetrain.DriveMode;
@@ -28,6 +27,7 @@ import frc.lib.team3061.drivetrain.swerve.SwerveModuleIO;
 import frc.lib.team3061.drivetrain.swerve.SwerveModuleIOTalonFXPhoenix6;
 import frc.lib.team3061.gyro.GyroIO;
 import frc.lib.team3061.gyro.GyroIOPigeon2Phoenix6;
+import frc.lib.team3061.leds.LEDs;
 import frc.lib.team3061.pneumatics.Pneumatics;
 import frc.lib.team3061.pneumatics.PneumaticsIORev;
 import frc.lib.team3061.vision.Vision;
@@ -42,7 +42,9 @@ import frc.robot.commands.RotateToAngle;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.configs.DefaultRobotConfig;
 import frc.robot.configs.NovaCTRERobotConfig;
+import frc.robot.configs.NovaCTRETCFRobotConfig;
 import frc.robot.configs.NovaRobotConfig;
+import frc.robot.configs.PracticeRobotConfig;
 import frc.robot.operator_interface.OISelector;
 import frc.robot.operator_interface.OperatorInterface;
 import frc.robot.subsystems.subsystem.Subsystem;
@@ -51,6 +53,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Optional;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
+import org.littletonrobotics.junction.networktables.LoggedDashboardNumber;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -70,6 +73,11 @@ public class RobotContainer {
   private final LoggedDashboardChooser<Command> autoChooser =
       new LoggedDashboardChooser<>("Auto Routine");
 
+  private final LoggedDashboardNumber endgameAlert1 =
+      new LoggedDashboardNumber("Endgame Alert #1", 20.0);
+  private final LoggedDashboardNumber endgameAlert2 =
+      new LoggedDashboardNumber("Endgame Alert #2", 10.0);
+
   // RobotContainer singleton
   private static RobotContainer robotContainer = new RobotContainer();
 
@@ -84,11 +92,15 @@ public class RobotContainer {
      */
     createRobotConfig();
 
+    LEDs.getInstance();
+
     // create real, simulated, or replay subsystems based on the mode and robot specified
     if (Constants.getMode() != Mode.REPLAY) {
 
       switch (Constants.getRobot()) {
         case ROBOT_2023_NOVA_CTRE:
+        case ROBOT_2023_NOVA_CTRE_FOC:
+        case ROBOT_PRACTICE:
           {
             createCTRESubsystems();
             break;
@@ -145,9 +157,15 @@ public class RobotContainer {
       case ROBOT_SIMBOT_CTRE:
         config = new NovaCTRERobotConfig();
         break;
+      case ROBOT_2023_NOVA_CTRE_FOC:
+        config = new NovaCTRETCFRobotConfig();
+        break;
       case ROBOT_2023_NOVA:
       case ROBOT_SIMBOT:
         config = new NovaRobotConfig();
+        break;
+      case ROBOT_PRACTICE:
+        config = new PracticeRobotConfig();
         break;
     }
   }
@@ -171,6 +189,7 @@ public class RobotContainer {
     // }
     // vision = new Vision(visionIOs);
 
+    // FIXME: re-enable cameras when installed
     String[] cameraNames = config.getCameraNames();
     VisionIO[] visionIOs = new VisionIO[cameraNames.length];
     for (int i = 0; i < visionIOs.length; i++) {
@@ -272,45 +291,11 @@ public class RobotContainer {
   /**
    * Creates the field from the defined regions and transition points from one region to its
    * neighbor. The field is used to generate paths.
+   *
+   * <p>FIXME: update for 2024 regions
    */
   private void constructField() {
-    Field2d.getInstance()
-        .setRegions(
-            new Region2d[] {
-              COMMUNITY_REGION_1,
-              COMMUNITY_REGION_2,
-              COMMUNITY_REGION_3,
-              LOADING_ZONE_REGION_1,
-              LOADING_ZONE_REGION_2,
-              FIELD_ZONE_REGION_1,
-              FIELD_ZONE_REGION_2,
-              FIELD_ZONE_REGION_3,
-              FIELD_ZONE_REGION_4
-            });
-
-    COMMUNITY_REGION_1.addNeighbor(COMMUNITY_REGION_2, COMMUNITY_REGION_1_2_TRANSITION_POINT);
-    COMMUNITY_REGION_2.addNeighbor(COMMUNITY_REGION_1, COMMUNITY_REGION_2_1_TRANSITION_POINT);
-    COMMUNITY_REGION_1.addNeighbor(COMMUNITY_REGION_3, COMMUNITY_REGION_1_3_TRANSITION_POINT);
-    COMMUNITY_REGION_3.addNeighbor(COMMUNITY_REGION_1, COMMUNITY_REGION_3_1_TRANSITION_POINT);
-    COMMUNITY_REGION_2.addNeighbor(FIELD_ZONE_REGION_1, COMMUNITY_2_TO_FIELD_1_TRANSITION_POINT);
-    COMMUNITY_REGION_3.addNeighbor(FIELD_ZONE_REGION_2, COMMUNITY_3_TO_FIELD_2_TRANSITION_POINT);
-
-    LOADING_ZONE_REGION_1.addNeighbor(
-        LOADING_ZONE_REGION_2, LOADING_ZONE_REGION_1_2_TRANSITION_POINT);
-    LOADING_ZONE_REGION_2.addNeighbor(
-        LOADING_ZONE_REGION_1, LOADING_ZONE_REGION_2_1_TRANSITION_POINT);
-    LOADING_ZONE_REGION_2.addNeighbor(FIELD_ZONE_REGION_4, LOADING_2_TO_FIELD_4_TRANSITION_POINT);
-
-    FIELD_ZONE_REGION_1.addNeighbor(FIELD_ZONE_REGION_2, FIELD_ZONE_REGION_1_2_TRANSITION_POINT);
-    FIELD_ZONE_REGION_2.addNeighbor(FIELD_ZONE_REGION_1, FIELD_ZONE_REGION_2_1_TRANSITION_POINT);
-    FIELD_ZONE_REGION_1.addNeighbor(FIELD_ZONE_REGION_3, FIELD_ZONE_REGION_1_3_TRANSITION_POINT);
-    FIELD_ZONE_REGION_3.addNeighbor(FIELD_ZONE_REGION_1, FIELD_ZONE_REGION_3_1_TRANSITION_POINT);
-    FIELD_ZONE_REGION_1.addNeighbor(FIELD_ZONE_REGION_4, FIELD_ZONE_REGION_1_4_TRANSITION_POINT);
-    FIELD_ZONE_REGION_4.addNeighbor(FIELD_ZONE_REGION_1, FIELD_ZONE_REGION_4_1_TRANSITION_POINT);
-    FIELD_ZONE_REGION_1.addNeighbor(COMMUNITY_REGION_2, FIELD_1_TO_COMMUNITY_2_TRANSITION_POINT);
-    FIELD_ZONE_REGION_2.addNeighbor(COMMUNITY_REGION_3, FIELD_2_TO_COMMUNITY_3_TRANSITION_POINT);
-    FIELD_ZONE_REGION_3.addNeighbor(LOADING_ZONE_REGION_1, FIELD_3_TO_LOADING_1_TRANSITION_POINT);
-    FIELD_ZONE_REGION_4.addNeighbor(LOADING_ZONE_REGION_2, FIELD_4_TO_LOADING_2_TRANSITION_POINT);
+    Field2d.getInstance().setRegions(new Region2d[] {});
   }
 
   /**
@@ -345,6 +330,30 @@ public class RobotContainer {
 
     configureVisionCommands();
 
+    // Endgame alerts
+    new Trigger(
+            () ->
+                DriverStation.isTeleopEnabled()
+                    && DriverStation.getMatchTime() > 0.0
+                    && DriverStation.getMatchTime() <= Math.round(endgameAlert1.get()))
+        .onTrue(
+            Commands.run(() -> LEDs.getInstance().setEndgameAlert(true))
+                .withTimeout(1.5)
+                .andThen(
+                    Commands.run(() -> LEDs.getInstance().setEndgameAlert(false))
+                        .withTimeout(1.0)));
+    new Trigger(
+            () ->
+                DriverStation.isTeleopEnabled()
+                    && DriverStation.getMatchTime() > 0.0
+                    && DriverStation.getMatchTime() <= Math.round(endgameAlert2.get()))
+        .onTrue(
+            Commands.sequence(
+                Commands.run(() -> LEDs.getInstance().setEndgameAlert(true)).withTimeout(0.5),
+                Commands.run(() -> LEDs.getInstance().setEndgameAlert(false)).withTimeout(0.5),
+                Commands.run(() -> LEDs.getInstance().setEndgameAlert(true)).withTimeout(0.5),
+                Commands.run(() -> LEDs.getInstance().setEndgameAlert(false)).withTimeout(1.0)));
+
     // interrupt all commands by running a command that requires every subsystem. This is used to
     // recover to a known state if the robot becomes "stuck" in a command.
     oi.getInterruptAll()
@@ -373,11 +382,19 @@ public class RobotContainer {
 
     /************ Test Path ************
      *
-     * demonstration of PathPlanner path group with event markers
+     * demonstration of PathPlanner auto with event markers
      *
      */
     Command autoTest = new PathPlannerAuto("TestAuto");
     autoChooser.addOption("Test Auto", autoTest);
+
+    /************ Choreo Test Path ************
+     *
+     * demonstration of PathPlanner hosted Choreo path
+     *
+     */
+    Command choreoAutoTest = new PathPlannerAuto("ChoreoTest");
+    autoChooser.addOption("Choreo Auto", choreoAutoTest);
 
     /************ Start Point ************
      *
@@ -460,7 +477,7 @@ public class RobotContainer {
                     Commands.run(() -> drivetrain.drive(1.0, 0.0, 0.0, false, false), drivetrain)),
                 Commands.deadline(
                     Commands.waitSeconds(0.5),
-                    Commands.run(() -> drivetrain.drive(4.0, 0.0, 0.0, false, false), drivetrain)),
+                    Commands.run(() -> drivetrain.drive(3.0, 0.0, 0.0, false, false), drivetrain)),
                 Commands.deadline(
                     Commands.waitSeconds(2.0),
                     Commands.run(() -> drivetrain.drive(1.0, 0.0, 0.0, false, false), drivetrain)),
@@ -469,7 +486,7 @@ public class RobotContainer {
                     Commands.run(() -> drivetrain.drive(-1.0, 0.0, 0.0, false, false), drivetrain)),
                 Commands.deadline(
                     Commands.waitSeconds(0.5),
-                    Commands.run(() -> drivetrain.drive(-4.0, 0.0, 0.0, false, false), drivetrain)),
+                    Commands.run(() -> drivetrain.drive(-3.0, 0.0, 0.0, false, false), drivetrain)),
                 Commands.deadline(
                     Commands.waitSeconds(2.0),
                     Commands.run(
@@ -598,21 +615,8 @@ public class RobotContainer {
   public void checkAllianceColor() {
     Optional<Alliance> alliance = DriverStation.getAlliance();
     if (alliance.isPresent() && alliance.get() != lastAlliance) {
-      lastAlliance = alliance.get();
-      vision.updateAlliance(lastAlliance);
-      Field2d.getInstance().updateAlliance(lastAlliance);
+      this.lastAlliance = alliance.get();
+      this.drivetrain.updateAlliance(this.lastAlliance);
     }
-  }
-
-  public void autonomousInit() {
-    // when the LED subsystem is pulled in, we will change the LEDs here
-  }
-
-  public void teleopInit() {
-    // when the LED subsystem is pulled in, we will change the LEDs here
-  }
-
-  public void disabledPeriodic() {
-    // when the LED subsystem is pulled in, we will change the LEDs here
   }
 }

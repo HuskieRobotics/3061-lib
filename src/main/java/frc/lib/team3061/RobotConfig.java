@@ -3,7 +3,7 @@ package frc.lib.team3061;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import frc.lib.team3061.drivetrain.swerve.SwerveConstants.SwerveType;
+import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
 
 @java.lang.SuppressWarnings({"java:S3010", "java:S3400"})
 public abstract class RobotConfig {
@@ -167,7 +167,7 @@ public abstract class RobotConfig {
    *
    * @return the swerve type for this robot
    */
-  public abstract SwerveType getSwerveType();
+  public abstract SwerveConstants getSwerveConstants();
 
   /**
    * Returns the CAN IDs for the swerve modules' drive motors in the order of front left, front
@@ -229,6 +229,13 @@ public abstract class RobotConfig {
    *     of the robot in meters
    */
   public abstract double getWheelbase();
+
+  /**
+   * Returns the diameter of the wheels on the robot in meters. Must be overridden.
+   *
+   * @return the diameter of the wheels on the robot in meters
+   */
+  public abstract double getWheelDiameterMeters();
 
   /**
    * Returns the swerve drive kinematics object for the robot. The geometry and coordinate systems
@@ -625,18 +632,61 @@ public abstract class RobotConfig {
     return 0;
   }
 
+  /**
+   * Returns the frequency at which the robot's odometry will be updated. Defaults to 250 Hz. This
+   * value needs to match the hardware-specific Drivetrain code. For the DrivetrainIOCTRE class, the
+   * value is 250 Hz; the DrivetrainIOGeneric class, 50 Hz.
+   *
+   * @return the frequency at which the robot's odometry will be updated
+   */
   public double getOdometryUpdateFrequency() {
     return 250.0;
   }
 
   /**
+   * Returns the hardware driving the LEDs. Defaults to RIO for using the roboRIO and WPILib's
+   * AddressableLED class.
+   */
+  public LED_HARDWARE getLEDHardware() {
+    return LED_HARDWARE.RIO;
+  }
+
+  /**
+   * Returns the number of LEDs in the LED strip on the robot. Defaults to 0.
+   *
+   * @return the number of LEDs in the LED strip on the robot
+   */
+  public int getLEDCount() {
+    return 0;
+  }
+
+  public enum LED_HARDWARE {
+    RIO,
+    CANDLE
+  };
+
+  /*
    * Returns the swerve control mode. Defaults to voltage. For the DrivetrainIOGeneric class, only
    * VOLTAGE is supported. For the DrivetrainIOCTRE class, TORQUE_CURRENT_FOC is also supported with
    * Phoenix Pro.
+   * Returns the swerve control mode for the steer motor. Defaults to voltage. For the
+   * DrivetrainIOGeneric class, only VOLTAGE is supported. For the DrivetrainIOCTRE class,
+   * TORQUE_CURRENT_FOC is also supported with Phoenix Pro.
    *
    * @return the swerve control mode
    */
-  public SWERVE_CONTROL_MODE getSwerveControlMode() {
+  public SWERVE_CONTROL_MODE getSwerveSteerControlMode() {
+    return SWERVE_CONTROL_MODE.VOLTAGE;
+  }
+
+  /**
+   * Returns the drive control mode for the drive motor. Defaults to voltage. For the
+   * DrivetrainIOGeneric class, only VOLTAGE is supported. For the DrivetrainIOCTRE class,
+   * TORQUE_CURRENT_FOC is also supported with Phoenix Pro.
+   *
+   * @return the swerve control mode
+   */
+  public SWERVE_CONTROL_MODE getSwerveDriveControlMode() {
     return SWERVE_CONTROL_MODE.VOLTAGE;
   }
 
