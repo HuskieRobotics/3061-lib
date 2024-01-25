@@ -853,7 +853,7 @@ public class Drivetrain extends SubsystemBase {
                       }
                     })));
   }
-  
+
   /**
    * This method should be invoked once the alliance color is known. Refer to the RobotContainer's
    * checkAllianceColor method for best practices on when to check the alliance's color. The
