@@ -118,7 +118,7 @@ public class DefaultRobotConfig extends RobotConfig {
 
   // FIXME: tune PID values for drive facing angle
   // Drive Facing Angle constants
-  private static final double DRIVE_FACING_ANGLE_KP = 2.0;
+  private static final double DRIVE_FACING_ANGLE_KP = 6.0;
   private static final double DRIVE_FACING_ANGLE_KD = 0.1;
   private static final double DRIVE_FACING_ANGLE_KI = 0.0;
 
