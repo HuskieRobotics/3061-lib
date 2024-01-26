@@ -109,6 +109,11 @@ public class NovaCTRERobotConfig extends RobotConfig {
 
   private static final double SQUARING_SPEED_METERS_PER_SECOND = 1.0;
 
+  // Drive Facing Angle constants
+  private static final double DRIVE_FACING_ANGLE_KP = 7.0;
+  private static final double DRIVE_FACING_ANGLE_KD = 0.1;
+  private static final double DRIVE_FACING_ANGLE_KI = 0.0;
+
   private static final int LED_COUNT = 85;
 
   @Override
@@ -398,6 +403,21 @@ public class NovaCTRERobotConfig extends RobotConfig {
   @Override
   public double getMoveToPathFinalVelocity() {
     return SQUARING_SPEED_METERS_PER_SECOND;
+  }
+
+  @Override
+  public double getDriveFacingAngleThetaKP() {
+    return DRIVE_FACING_ANGLE_KP;
+  }
+
+  @Override
+  public double getDriveFacingAngleThetaKI() {
+    return DRIVE_FACING_ANGLE_KI;
+  }
+
+  @Override
+  public double getDriveFacingAngleThetaKD() {
+    return DRIVE_FACING_ANGLE_KD;
   }
 
   @Override

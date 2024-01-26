@@ -69,17 +69,30 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   }
 
   private final TunableNumber driveKp =
-      new TunableNumber("Drive/DriveKp", RobotConfig.getInstance().getSwerveDriveKP());
+      new TunableNumber("Drivetrain/DriveKp", RobotConfig.getInstance().getSwerveDriveKP());
   private final TunableNumber driveKi =
-      new TunableNumber("Drive/DriveKi", RobotConfig.getInstance().getSwerveDriveKI());
+      new TunableNumber("Drivetrain/DriveKi", RobotConfig.getInstance().getSwerveDriveKI());
   private final TunableNumber driveKd =
-      new TunableNumber("Drive/DriveKd", RobotConfig.getInstance().getSwerveDriveKD());
+      new TunableNumber("Drivetrain/DriveKd", RobotConfig.getInstance().getSwerveDriveKD());
   private final TunableNumber steerKp =
-      new TunableNumber("Drive/TurnKp", RobotConfig.getInstance().getSwerveAngleKP());
+      new TunableNumber("Drivetrain/TurnKp", RobotConfig.getInstance().getSwerveAngleKP());
   private final TunableNumber steerKi =
-      new TunableNumber("Drive/TurnKi", RobotConfig.getInstance().getSwerveAngleKI());
+      new TunableNumber("Drivetrain/TurnKi", RobotConfig.getInstance().getSwerveAngleKI());
   private final TunableNumber steerKd =
-      new TunableNumber("Drive/TurnKd", RobotConfig.getInstance().getSwerveAngleKD());
+      new TunableNumber("Drivetrain/TurnKd", RobotConfig.getInstance().getSwerveAngleKD());
+
+  protected static final TunableNumber driveFacingAngleThetaKp =
+      new TunableNumber(
+          "Drivetrain/DriveFacingAngle/ThetaKp",
+          RobotConfig.getInstance().getDriveFacingAngleThetaKP());
+  protected static final TunableNumber driveFacingAngleThetaKi =
+      new TunableNumber(
+          "Drivetrain/DriveFacingAngle/ThetaKi",
+          RobotConfig.getInstance().getDriveFacingAngleThetaKI());
+  protected static final TunableNumber driveFacingAngleThetaKd =
+      new TunableNumber(
+          "Drivetrain/DriveFacingAngle/ThetaKd",
+          RobotConfig.getInstance().getDriveFacingAngleThetaKD());
 
   private static final CustomSlotGains steerGains =
       new CustomSlotGains(
@@ -264,6 +277,13 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
       this.driveCurrentRequests[i] = new TorqueCurrentFOC(0.0);
       this.steerCurrentRequests[i] = new TorqueCurrentFOC(0.0);
     }
+
+    // configure PID for drive facing angle
+    this.driveFacingAngleRequest.HeadingController.setPID(
+        driveFacingAngleThetaKp.get(),
+        driveFacingAngleThetaKi.get(),
+        driveFacingAngleThetaKd.get());
+    this.driveFacingAngleRequest.HeadingController.enableContinuousInput(0, Math.PI * 2);
   }
 
   @Override
@@ -327,6 +347,15 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
         steerSlot0.kD = steerKd.get();
         swerveModule.getSteerMotor().getConfigurator().apply(steerSlot0);
       }
+    }
+
+    if (driveFacingAngleThetaKp.hasChanged()
+        || driveFacingAngleThetaKi.hasChanged()
+        || driveFacingAngleThetaKd.hasChanged()) {
+      this.driveFacingAngleRequest.HeadingController.setPID(
+          driveFacingAngleThetaKp.get(),
+          driveFacingAngleThetaKi.get(),
+          driveFacingAngleThetaKd.get());
     }
   }
 

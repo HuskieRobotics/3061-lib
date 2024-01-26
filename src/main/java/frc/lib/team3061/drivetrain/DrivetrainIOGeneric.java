@@ -1,7 +1,10 @@
 package frc.lib.team3061.drivetrain;
 
+import static frc.robot.Constants.*;
+
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -11,10 +14,13 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.util.Units;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.swerve.SwerveModuleIO;
 import frc.lib.team3061.gyro.GyroIO;
 import frc.lib.team3061.util.RobotOdometry;
+import frc.lib.team6328.util.TunableNumber;
 import frc.robot.Constants;
 import java.util.ArrayList;
 import java.util.List;
@@ -79,6 +85,32 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
   private Pose2d estimatedPoseWithoutGyro = new Pose2d();
 
   private final List<StatusSignal<Double>> odometrySignals = new ArrayList<>();
+
+  protected static final TunableNumber thetaKp =
+      new TunableNumber(
+          "Drivetrain/DriveFacingAngle/ThetaKp",
+          RobotConfig.getInstance().getDriveFacingAngleThetaKP());
+  protected static final TunableNumber thetaKi =
+      new TunableNumber(
+          "Drivetrain/DriveFacingAngle/ThetaKi",
+          RobotConfig.getInstance().getDriveFacingAngleThetaKI());
+  protected static final TunableNumber thetaKd =
+      new TunableNumber(
+          "Drivetrain/DriveFacingAngle/ThetaKd",
+          RobotConfig.getInstance().getDriveFacingAngleThetaKD());
+  protected static final TunableNumber thetaMaxVelocity =
+      new TunableNumber("Drivetrain/DriveFacingAngle/ThetaMaxVelocity", 8);
+  protected static final TunableNumber thetaMaxAcceleration =
+      new TunableNumber("Drivetrain/DriveFacingAngle/ThetaMaxAcceleration", 100);
+
+  protected final ProfiledPIDController thetaController =
+      new ProfiledPIDController(
+          thetaKp.get(),
+          thetaKi.get(),
+          thetaKd.get(),
+          new TrapezoidProfile.Constraints(thetaMaxVelocity.get(), thetaMaxAcceleration.get()),
+          LOOP_PERIOD_SECS);
+  protected boolean lastRequestWasDriveFacingAngle = false;
 
   /**
    * Creates a new Drivetrain subsystem.
@@ -196,10 +228,24 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
     inputs.drivetrain.averageDriveCurrent = this.getAverageDriveCurrent(inputs);
 
     inputs.drivetrain.rotation = Rotation2d.fromDegrees(this.robotRotationDeg);
+
+    if (thetaKp.hasChanged()
+        || thetaKd.hasChanged()
+        || thetaKi.hasChanged()
+        || thetaMaxVelocity.hasChanged()
+        || thetaMaxAcceleration.hasChanged()) {
+      thetaController.setP(thetaKp.get());
+      thetaController.setI(thetaKi.get());
+      thetaController.setD(thetaKd.get());
+      thetaController.setConstraints(
+          new TrapezoidProfile.Constraints(thetaMaxVelocity.get(), thetaMaxAcceleration.get()));
+    }
   }
 
   @Override
   public void holdXStance() {
+    this.lastRequestWasDriveFacingAngle = false;
+
     this.targetChassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
     this.swerveReferenceStates =
         kinematics.toSwerveModuleStates(this.targetChassisSpeeds, this.centerOfRotation);
@@ -217,6 +263,7 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
   @Override
   public void driveFieldRelative(
       double xVelocity, double yVelocity, double rotationalVelocity, boolean isOpenLoop) {
+    this.lastRequestWasDriveFacingAngle = false;
 
     this.targetChassisSpeeds =
         ChassisSpeeds.fromFieldRelativeSpeeds(
@@ -236,10 +283,25 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
   @Override
   public void driveFieldRelativeFacingAngle(
       double xVelocity, double yVelocity, Rotation2d targetDirection, boolean isOpenLoop) {
-    // currently this is not supported and this code is the same as driveFieldRelative
+
+    if (!this.lastRequestWasDriveFacingAngle) {
+
+      thetaController.reset(Units.degreesToRadians(this.robotRotationDeg));
+
+      // configure the controller such that the range of values is centered on the target angle
+      thetaController.enableContinuousInput(
+          targetDirection.getRadians() - Math.PI, targetDirection.getRadians() + Math.PI);
+
+      this.lastRequestWasDriveFacingAngle = true;
+    }
+
+    double thetaVelocity =
+        thetaController.calculate(
+            Units.degreesToRadians(this.robotRotationDeg), targetDirection.getRadians());
+
     this.targetChassisSpeeds =
         ChassisSpeeds.fromFieldRelativeSpeeds(
-            xVelocity, yVelocity, 0.0, Rotation2d.fromDegrees(this.robotRotationDeg));
+            xVelocity, yVelocity, thetaVelocity, Rotation2d.fromDegrees(this.robotRotationDeg));
 
     this.targetChassisSpeeds =
         ChassisSpeeds.discretize(this.targetChassisSpeeds, Constants.LOOP_PERIOD_SECS);
@@ -251,6 +313,8 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
 
   @Override
   public void pointWheelsAt(Rotation2d targetDirection) {
+    this.lastRequestWasDriveFacingAngle = false;
+
     for (int i = 0; i < this.swerveReferenceStates.length; i++) {
       this.swerveReferenceStates[i] = new SwerveModuleState(0.0, targetDirection);
     }
@@ -261,6 +325,8 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
   @Override
   public void driveRobotRelative(
       double xVelocity, double yVelocity, double rotationalVelocity, boolean isOpenLoop) {
+    this.lastRequestWasDriveFacingAngle = false;
+
     this.targetChassisSpeeds = new ChassisSpeeds(xVelocity, yVelocity, rotationalVelocity);
     this.targetChassisSpeeds =
         ChassisSpeeds.discretize(this.targetChassisSpeeds, Constants.LOOP_PERIOD_SECS);
