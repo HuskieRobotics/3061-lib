@@ -217,7 +217,8 @@ public class Drivetrain extends SubsystemBase {
   /**
    * Returns the yaw of the drivetrain as reported by the gyro in degrees. Usually, the getRotation
    * method should be invoked instead.
-   *
+   * Yaw does not roll over.
+   * 
    * @return the yaw of the drivetrain as reported by the gyro in degrees
    */
   public double getYaw() {
@@ -779,6 +780,7 @@ public class Drivetrain extends SubsystemBase {
                     + " not rotating forward in the threshold as expected");
       }
     }
+  }
   /**
    * This method should be invoked once the alliance color is known. Refer to the RobotContainer's
    * checkAllianceColor method for best practices on when to check the alliance's color. The
@@ -923,23 +925,46 @@ public class Drivetrain extends SubsystemBase {
         .andThen(Commands.runOnce(() -> this.drive(0, 0, 0, true, false)));
   }
 
-  // must turn robot 90 degrees to the right
+  /*
+   * Plays a sound for .5 seconds
+   */
+  private Command playSoundCommand()
+  {
+    return Commands.sequence(Commands.runOnce(() -> {io.playSounds(1000);}),
+        Commands.waitSeconds(.5)
+          .andThen(Commands.runOnce(() -> {
+            io.playSounds(0);
+        })));
+  }
+
+  // turn robot specified degrees to right, then back to the starting position.
   private Command getGyroCheckCommand() {
     double originalYaw = this.getYaw();
     double angleTarget = 45;
-    double angleTolerance = 5;
-    return Commands.sequence(
-      Commands.runOnce(() -> {io.playSounds(1000);}),
-      Commands.waitSeconds(.5).andThen(Commands.runOnce(() -> {
-      io.playSounds(0);
-    })),
-      Commands.waitSeconds(10).andThen(Commands.runOnce(() -> {
-        if (Math.abs(this.getYaw() - originalYaw) >= angleTarget - angleTolerance) {
-          FaultReporter.getInstance().addFault(SUBSYSTEM_NAME, "Gyro not turning as expected");
-        }
-    }
-    )));
     
+    return Commands.sequence(
+        playSoundCommand(),
+        Commands.waitUntil(() -> (Math.abs(this.getYaw() - originalYaw) >= angleTarget)).withTimeout(15)
+          .andThen(playSoundCommand()),
+        Commands.either(
+          Commands.none(), 
+          Commands.runOnce(() -> {
+            FaultReporter.getInstance().addFault(SUBSYSTEM_NAME, "Gyro not turning as expected");
+             }), 
+          (() -> (Math.abs(this.getYaw() - originalYaw) >= angleTarget))),
+          
+          playSoundCommand(),
+          Commands.waitUntil(() -> (Math.abs(this.getYaw() - originalYaw) <= 0)).withTimeout(15)
+            .andThen(playSoundCommand()),
+          Commands.either(
+            Commands.none(), 
+            Commands.runOnce(() -> {
+              FaultReporter.getInstance().addFault(SUBSYSTEM_NAME, "Gyro not turning as expected");
+              }), 
+            (() -> (Math.abs(this.getYaw() - originalYaw) <= 0)))
+            );
+
+      
   }
 
   public void playSounds(double pitch) {
