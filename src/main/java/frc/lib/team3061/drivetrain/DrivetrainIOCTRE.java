@@ -283,6 +283,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
         driveFacingAngleThetaKp.get(),
         driveFacingAngleThetaKi.get(),
         driveFacingAngleThetaKd.get());
+    this.driveFacingAngleRequest.HeadingController.enableContinuousInput(0, Math.PI * 2);
   }
 
   @Override
