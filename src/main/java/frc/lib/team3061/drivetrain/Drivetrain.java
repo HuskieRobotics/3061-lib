@@ -876,7 +876,7 @@ public class Drivetrain extends SubsystemBase {
     return this.alliance == Alliance.Red;
   }
 
-  private Command getSystemCheckCommand() {
+  public Command getSystemCheckCommand() {
     disableFieldRelative();
     return Commands.sequence(
             Commands.run(

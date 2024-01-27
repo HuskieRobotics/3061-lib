@@ -64,4 +64,5 @@ public interface OperatorInterface {
   public default Trigger getInterruptAll() {
     return new Trigger(() -> false);
   }
+ 
 }

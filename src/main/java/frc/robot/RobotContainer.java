@@ -572,12 +572,17 @@ public class RobotContainer {
             Commands.runOnce(() -> drivetrain.resetPoseToVision(() -> vision.getBestRobotPose())));
 
     // x-stance
-    oi.getXStanceButton().onTrue(Commands.runOnce(drivetrain::enableXstance, drivetrain));
-    oi.getXStanceButton().onFalse(Commands.runOnce(drivetrain::disableXstance, drivetrain));
+    oi.getXStanceButton().onTrue(drivetrain.getSystemCheckCommand());
+    
+
+    //oi.getXStanceButton().onFalse(Commands.runOnce(drivetrain::disableXstance, drivetrain));
 
     // turbo
     oi.getTurboButton().onTrue(Commands.runOnce(drivetrain::enableTurbo, drivetrain));
     oi.getTurboButton().onFalse(Commands.runOnce(drivetrain::disableTurbo, drivetrain));
+
+    // system test 
+    
   }
 
   private void configureSubsystemCommands() {
