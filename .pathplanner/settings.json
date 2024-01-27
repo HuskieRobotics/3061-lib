@@ -4,8 +4,8 @@
   "holonomicMode": true,
   "pathFolders": [
     "4 Note Test Right Side",
-    "5 Note Test Left Side",
-    "5 Note Test Collector Side"
+    "5 Note Test Collector Side",
+    "5 Note Test Amp Side"
   ],
   "autoFolders": [],
   "defaultMaxVel": 4.0,
