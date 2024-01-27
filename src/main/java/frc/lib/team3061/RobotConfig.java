@@ -3,7 +3,7 @@ package frc.lib.team3061;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import frc.lib.team3061.drivetrain.swerve.SwerveConstants.SwerveType;
+import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
 
 @java.lang.SuppressWarnings({"java:S3010", "java:S3400"})
 public abstract class RobotConfig {
@@ -167,7 +167,7 @@ public abstract class RobotConfig {
    *
    * @return the swerve type for this robot
    */
-  public abstract SwerveType getSwerveType();
+  public abstract SwerveConstants getSwerveConstants();
 
   /**
    * Returns the CAN IDs for the swerve modules' drive motors in the order of front left, front
@@ -229,6 +229,13 @@ public abstract class RobotConfig {
    *     of the robot in meters
    */
   public abstract double getWheelbase();
+
+  /**
+   * Returns the diameter of the wheels on the robot in meters. Must be overridden.
+   *
+   * @return the diameter of the wheels on the robot in meters
+   */
+  public abstract double getWheelDiameterMeters();
 
   /**
    * Returns the swerve drive kinematics object for the robot. The geometry and coordinate systems
@@ -623,6 +630,39 @@ public abstract class RobotConfig {
    */
   public double getMoveToPathFinalVelocity() {
     return 0;
+  }
+
+  /**
+   * Returns the proportional constant for the PID controller for rotational motion when driving
+   * facing angle. See TeleopSwerve for more information. Defaults to 0.
+   *
+   * @return the proportional constant for the PID controller for rotational motion when driving
+   *     facing angle
+   */
+  public double getDriveFacingAngleThetaKP() {
+    return 0.0;
+  }
+
+  /**
+   * Returns the integral constant for the PID controller for rotational motion when driving facing
+   * angle. See TeleopSwerve for more information. Defaults to 0.
+   *
+   * @return the integral constant for the PID controller for rotational motion when driving facing
+   *     angle
+   */
+  public double getDriveFacingAngleThetaKI() {
+    return 0.0;
+  }
+
+  /**
+   * Returns the derivative constant for the PID controller for rotational motion when driving
+   * facing angle. See TeleopSwerve for more information. Defaults to 0.
+   *
+   * @return the derivative constant for the PID controller for rotational motion when driving
+   *     facing angle
+   */
+  public double getDriveFacingAngleThetaKD() {
+    return 0.0;
   }
 
   /**

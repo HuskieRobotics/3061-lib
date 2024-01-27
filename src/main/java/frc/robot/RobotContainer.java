@@ -8,6 +8,7 @@ import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -37,12 +38,12 @@ import frc.lib.team3061.vision.VisionIOSim;
 import frc.robot.Constants.Mode;
 import frc.robot.commands.FeedForwardCharacterization;
 import frc.robot.commands.FeedForwardCharacterization.FeedForwardCharacterizationData;
-import frc.robot.commands.RotateToAngle;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.configs.DefaultRobotConfig;
 import frc.robot.configs.NovaCTRERobotConfig;
 import frc.robot.configs.NovaCTRETCFRobotConfig;
 import frc.robot.configs.NovaRobotConfig;
+import frc.robot.configs.PracticeRobotConfig;
 import frc.robot.operator_interface.OISelector;
 import frc.robot.operator_interface.OperatorInterface;
 import frc.robot.subsystems.subsystem.Subsystem;
@@ -98,6 +99,7 @@ public class RobotContainer {
       switch (Constants.getRobot()) {
         case ROBOT_2023_NOVA_CTRE:
         case ROBOT_2023_NOVA_CTRE_FOC:
+        case ROBOT_PRACTICE:
           {
             createCTRESubsystems();
             break;
@@ -161,6 +163,9 @@ public class RobotContainer {
       case ROBOT_SIMBOT:
         config = new NovaRobotConfig();
         break;
+      case ROBOT_PRACTICE:
+        config = new PracticeRobotConfig();
+        break;
     }
   }
 
@@ -183,6 +188,7 @@ public class RobotContainer {
     // }
     // vision = new Vision(visionIOs);
 
+    // FIXME: re-enable cameras when installed
     String[] cameraNames = config.getCameraNames();
     VisionIO[] visionIOs = new VisionIO[cameraNames.length];
     for (int i = 0; i < visionIOs.length; i++) {
@@ -376,11 +382,19 @@ public class RobotContainer {
 
     /************ Test Path ************
      *
-     * demonstration of PathPlanner path group with event markers
+     * demonstration of PathPlanner auto with event markers
      *
      */
     Command autoTest = new PathPlannerAuto("TestAuto");
     autoChooser.addOption("Test Auto", autoTest);
+
+    /************ Choreo Test Path ************
+     *
+     * demonstration of PathPlanner hosted Choreo path
+     *
+     */
+    Command choreoAutoTest = new PathPlannerAuto("ChoreoTest");
+    autoChooser.addOption("Choreo Auto", choreoAutoTest);
 
     /************ Start Point ************
      *
@@ -543,16 +557,16 @@ public class RobotContainer {
 
     // lock rotation to the nearest 180° while driving
     oi.getLock180Button()
-        .onTrue(
-            new RotateToAngle(
+        .whileTrue(
+            new TeleopSwerve(
                 drivetrain,
                 oi::getTranslateX,
                 oi::getTranslateY,
                 () ->
                     (drivetrain.getPose().getRotation().getDegrees() > -90
                             && drivetrain.getPose().getRotation().getDegrees() < 90)
-                        ? 0.0
-                        : 180.0));
+                        ? Rotation2d.fromDegrees(0.0)
+                        : Rotation2d.fromDegrees(180.0)));
 
     // field-relative toggle
     oi.getFieldRelativeButton()

@@ -5,7 +5,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import frc.lib.team3061.RobotConfig;
-import frc.lib.team3061.drivetrain.swerve.SwerveConstants.SwerveType;
+import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
 
 /*
  * Refer to the README for how to represent your robot's configuration. For more information on
@@ -16,37 +16,39 @@ public class NovaRobotConfig extends RobotConfig {
   private static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 13;
   private static final int FRONT_LEFT_MODULE_STEER_MOTOR = 12;
   private static final int FRONT_LEFT_MODULE_STEER_ENCODER = 14;
-  private static final double FRONT_LEFT_MODULE_STEER_OFFSET_ROT = -0.104492; // -0.604492;
+  private static final double FRONT_LEFT_MODULE_STEER_OFFSET_ROT = 0.27409;
 
   private static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 16;
   private static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 15;
   private static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 17;
-  private static final double FRONT_RIGHT_MODULE_STEER_OFFSET_ROT = -0.277832; // -0.277832;
+  private static final double FRONT_RIGHT_MODULE_STEER_OFFSET_ROT = -0.390381;
 
   private static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 7;
   private static final int BACK_LEFT_MODULE_STEER_MOTOR = 6;
   private static final int BACK_LEFT_MODULE_STEER_ENCODER = 8;
-  private static final double BACK_LEFT_MODULE_STEER_OFFSET_ROT = -0.749512; // -0.249512;
+  private static final double BACK_LEFT_MODULE_STEER_OFFSET_ROT = 0.827393;
 
   private static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 10;
   private static final int BACK_RIGHT_MODULE_STEER_MOTOR = 9;
   private static final int BACK_RIGHT_MODULE_STEER_ENCODER = 11;
-  private static final double BACK_RIGHT_MODULE_STEER_OFFSET_ROT = -0.024414; // -0.024414;
+  private static final double BACK_RIGHT_MODULE_STEER_OFFSET_ROT = -0.336670;
 
   private static final int GYRO_ID = 3;
 
   private static final double TRACKWIDTH_METERS = 0.523875; // 20.625
   private static final double WHEELBASE_METERS = 0.52705; // 20.75
+  private static final double WHEEL_DIAMETER_METERS = 0.09845567409;
   private static final double ROBOT_WIDTH_WITH_BUMPERS = 0.8382; // meters //33 in
   private static final double ROBOT_LENGTH_WITH_BUMPERS = 0.8382; // meters // 33 in
 
   /* Angle Motor PID Values */
   private static final double ANGLE_KP = 100.0;
   private static final double ANGLE_KI = 0.0;
-  private static final double ANGLE_KD = 0.0;
+  private static final double ANGLE_KD = 0.05;
 
   private static final double ANGLE_KS = 0.1891233333;
-  private static final double ANGLE_KV = 0.4399866667;
+  private static final double ANGLE_KV =
+      0.4399866667 * 2 * Math.PI; // convert from V/(radians/s) to V/(rotations/s)
   private static final double ANGLE_KA = 0.001663333333;
 
   /* Drive Motor PID Values */
@@ -58,20 +60,18 @@ public class NovaRobotConfig extends RobotConfig {
   private static final double DRIVE_KV = 2.7637325;
   private static final double DRIVE_KA = 0.0139575;
 
-  private static final SwerveType SWERVE_TYPE = SwerveType.MK4I;
-
-  private static final double MAX_VELOCITY_METERS_PER_SECOND = 4.78;
+  private static final double MAX_VELOCITY_METERS_PER_SECOND = 3.5;
   private static final double MAX_COAST_VELOCITY_METERS_PER_SECOND = 0.05;
   private static final double SLOW_MODE_MULTIPLIER = 0.75;
 
-  private static final double MAX_DRIVE_ACCELERATION_METERS_PER_SECOND_SQUARED = 10.0;
-  private static final double MAX_TURN_ACCELERATION_RADIANS_PER_SECOND_SQUARED = 4.0 * Math.PI;
+  private static final double MAX_DRIVE_ACCELERATION_METERS_PER_SECOND_SQUARED = 11.365;
+  private static final double MAX_TURN_ACCELERATION_RADIANS_PER_SECOND_SQUARED = 36.0;
 
   private static final String CAN_BUS_NAME = "canbus1";
 
-  private static final String CAMERA_NAME_0 = "OV9281";
+  private static final String CAMERA_NAME_0 = "OV2311";
 
-  private static final String CAMERA_NAME_1 = "OV9281R";
+  private static final String CAMERA_NAME_1 = "OV2311R";
 
   private static final Transform3d ROBOT_TO_CAMERA_0 =
       new Transform3d(
@@ -89,9 +89,8 @@ public class NovaRobotConfig extends RobotConfig {
               Units.inchesToMeters(49.240)),
           new Rotation3d(0, Units.degreesToRadians(25), Units.degreesToRadians(-30)));
 
-  private static final double AUTO_MAX_SPEED_METERS_PER_SECOND = MAX_VELOCITY_METERS_PER_SECOND;
-  private static final double AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED =
-      MAX_DRIVE_ACCELERATION_METERS_PER_SECOND_SQUARED;
+  private static final double AUTO_MAX_SPEED_METERS_PER_SECOND = 3.5;
+  private static final double AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED = 10;
   private static final double AUTO_DRIVE_P_CONTROLLER = 5.0;
   private static final double AUTO_DRIVE_I_CONTROLLER = 0.0;
   private static final double AUTO_DRIVE_D_CONTROLLER = 0.0;
@@ -110,7 +109,12 @@ public class NovaRobotConfig extends RobotConfig {
 
   private static final double SQUARING_SPEED_METERS_PER_SECOND = 1.0;
 
-  private static final int LED_COUNT = 200;
+  // Drive Facing Angle constants
+  private static final double DRIVE_FACING_ANGLE_KP = 7.0;
+  private static final double DRIVE_FACING_ANGLE_KD = 0.1;
+  private static final double DRIVE_FACING_ANGLE_KI = 0.0;
+
+  private static final int LED_COUNT = 85;
 
   @Override
   public boolean getPhoenix6Licensed() {
@@ -178,8 +182,8 @@ public class NovaRobotConfig extends RobotConfig {
   }
 
   @Override
-  public SwerveType getSwerveType() {
-    return SWERVE_TYPE;
+  public SwerveConstants getSwerveConstants() {
+    return SwerveConstants.MK4I_L2_CONSTANTS;
   }
 
   @Override
@@ -235,6 +239,11 @@ public class NovaRobotConfig extends RobotConfig {
   @Override
   public double getWheelbase() {
     return WHEELBASE_METERS;
+  }
+
+  @Override
+  public double getWheelDiameterMeters() {
+    return WHEEL_DIAMETER_METERS;
   }
 
   @Override
@@ -395,8 +404,23 @@ public class NovaRobotConfig extends RobotConfig {
   }
 
   @Override
+  public double getDriveFacingAngleThetaKP() {
+    return DRIVE_FACING_ANGLE_KP;
+  }
+
+  @Override
+  public double getDriveFacingAngleThetaKI() {
+    return DRIVE_FACING_ANGLE_KI;
+  }
+
+  @Override
+  public double getDriveFacingAngleThetaKD() {
+    return DRIVE_FACING_ANGLE_KD;
+  }
+
+  @Override
   public LED_HARDWARE getLEDHardware() {
-    return LED_HARDWARE.CANDLE;
+    return LED_HARDWARE.RIO;
   }
 
   @Override
