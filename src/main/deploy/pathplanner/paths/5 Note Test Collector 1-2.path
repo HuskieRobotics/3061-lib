@@ -1,0 +1,70 @@
+{
+  "version": 1.0,
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 1.20862210340683,
+        "y": 4.2978770123018135
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 2.719776371085736,
+        "y": 4.298767777972234
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 2.625633325446393,
+        "y": 4.2978770123018135
+      },
+      "prevControl": {
+        "x": 1.838671547819133,
+        "y": 4.288316127439304
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": null
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "eventMarkers": [
+    {
+      "name": "New Event Marker",
+      "waypointRelativePos": 0.5,
+      "command": {
+        "type": "parallel",
+        "data": {
+          "commands": [
+            {
+              "type": "named",
+              "data": {
+                "name": "Shoot"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "globalConstraints": {
+    "maxVelocity": 4.0,
+    "maxAcceleration": 4.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": -90.0,
+    "rotateFast": false
+  },
+  "reversed": false,
+  "folder": "5 Note Test Collector Side",
+  "previewStartingState": {
+    "rotation": 178.32791389357848,
+    "velocity": 0
+  },
+  "useDefaultConstraints": true
+}
