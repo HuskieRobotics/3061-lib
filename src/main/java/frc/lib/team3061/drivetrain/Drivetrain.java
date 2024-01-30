@@ -735,6 +735,7 @@ public class Drivetrain extends SubsystemBase {
     // steerPositionDeg is a value that is between (-180, 180]
     // angle check
     // check if angle is in threshold
+    
     if (this.inputs.swerve[swerveModuleNumber].steerPositionDeg > angleTarget - angleTolerance
         && this.inputs.swerve[swerveModuleNumber].steerPositionDeg < angleTarget + angleTolerance) {
     }
@@ -847,7 +848,7 @@ public class Drivetrain extends SubsystemBase {
             .andThen(
                 Commands.runOnce(
                     () -> {
-                      for (int i = 0; i < 4; i++) {
+                      for (int i = 0; i < this.inputs.swerve.length; i++) {
                         checkSwerveModule(
                             i, angleTarget, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
                       }
