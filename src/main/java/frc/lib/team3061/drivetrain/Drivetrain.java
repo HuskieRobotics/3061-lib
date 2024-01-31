@@ -717,47 +717,71 @@ public class Drivetrain extends SubsystemBase {
       double velocityTolerance) {
     // Need to check for both velocity and rotation
 
-    // Velocity check
-    if (Math.abs(inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec)
-            < velocityTarget - velocityTolerance
-        && Math.abs(inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec)
-            < velocityTarget + velocityTolerance) {
-    } else {
-      FaultReporter.getInstance()
-          .addFault(
-              SUBSYSTEM_NAME,
-              "[System Check] Swerve module "
-                  + getSwerveLocation(swerveModuleNumber)
-                  + " not moving as fast as expected");
-    }
+    Boolean isOffset = false;
+    
+    
     // Check to see if the direction is rotated properly, thresholds still need to be checked and
     // see if they are correct
     // steerPositionDeg is a value that is between (-180, 180]
-    // angle check
     // check if angle is in threshold
 
     if (this.inputs.swerve[swerveModuleNumber].steerPositionDeg > angleTarget - angleTolerance
-        && this.inputs.swerve[swerveModuleNumber].steerPositionDeg < angleTarget + angleTolerance) {
-    }
-    // check if angle is in threshold +- 180
-    else if (this.inputs.swerve[swerveModuleNumber].steerPositionDeg
-            > angleTarget - angleTolerance - 180
-        && this.inputs.swerve[swerveModuleNumber].steerPositionDeg
-            < angleTarget + angleTolerance - 180) {
-    } else if (this.inputs.swerve[swerveModuleNumber].steerPositionDeg
-            > angleTarget - angleTolerance + 180
-        && this.inputs.swerve[swerveModuleNumber].steerPositionDeg
-            < angleTarget + angleTolerance + 180) {
-    }
-    // if not, add fault
-    else {
-      FaultReporter.getInstance()
-          .addFault(
-              SUBSYSTEM_NAME,
-              "[System Check] Swerve module "
-                  + getSwerveLocation(swerveModuleNumber)
-                  + " not rotating in the threshold as expected");
-    }
+            && this.inputs.swerve[swerveModuleNumber].steerPositionDeg < angleTarget + angleTolerance) {
+          isOffset = false;
+        }
+        // check if angle is in threshold +- 180
+        else if (this.inputs.swerve[swerveModuleNumber].steerPositionDeg
+                > angleTarget - angleTolerance - 180
+            && this.inputs.swerve[swerveModuleNumber].steerPositionDeg
+                < angleTarget + angleTolerance - 180) {
+          isOffset = true;
+        } else if (this.inputs.swerve[swerveModuleNumber].steerPositionDeg
+                > angleTarget - angleTolerance + 180
+            && this.inputs.swerve[swerveModuleNumber].steerPositionDeg
+                < angleTarget + angleTolerance + 180) {
+          isOffset = true;
+        }
+        // if not, add fault
+        else {
+          FaultReporter.getInstance()
+              .addFault(
+                  SUBSYSTEM_NAME,
+                  "[System Check] Swerve module "
+                      + getSwerveLocation(swerveModuleNumber)
+                      + " not rotating in the threshold as expected");
+        }
+    // Velocity check
+    // We first need to check the rotation and the
+    // If there IS an offset, then you negate the velocity 
+    if (!isOffset) {
+          if (inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec
+                < velocityTarget - velocityTolerance
+            && inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec
+                < velocityTarget + velocityTolerance) {
+        } else {
+          FaultReporter.getInstance()
+              .addFault(
+                  SUBSYSTEM_NAME,
+                  "[System Check] Swerve module "
+                      + getSwerveLocation(swerveModuleNumber)
+                      + " not moving as fast as expected");
+        }
+      }
+      else  { // determines 
+        if (inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec
+                < -(velocityTarget - velocityTolerance)
+            && inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec
+                < -(velocityTarget + velocityTolerance)) {
+        } else {
+          FaultReporter.getInstance()
+              .addFault(
+                  SUBSYSTEM_NAME,
+                  "[System Check] Swerve module "
+                      + getSwerveLocation(swerveModuleNumber)
+                      + " not moving as fast as expected");
+        }
+      }
+       
   }
 
   private Command getSwerveCheckCommand(SwerveCheckTypes type) {
