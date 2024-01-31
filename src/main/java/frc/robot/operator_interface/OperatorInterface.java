@@ -66,7 +66,6 @@ public interface OperatorInterface {
   }
 
   public default Trigger getSystemTestButton() {
-    return new Trigger(()->false);
+    return new Trigger(() -> false);
   }
- 
 }

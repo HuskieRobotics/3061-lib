@@ -42,7 +42,7 @@ public class SingleHandheldOI implements OperatorInterface {
 
   @Override
   public Trigger getXStanceButton() {
-    return new Trigger(controller::getYButton); // this one 
+    return new Trigger(controller::getYButton); // this one
   }
 
   @Override

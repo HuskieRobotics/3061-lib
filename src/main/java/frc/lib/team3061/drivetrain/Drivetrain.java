@@ -735,7 +735,7 @@ public class Drivetrain extends SubsystemBase {
     // steerPositionDeg is a value that is between (-180, 180]
     // angle check
     // check if angle is in threshold
-    
+
     if (this.inputs.swerve[swerveModuleNumber].steerPositionDeg > angleTarget - angleTolerance
         && this.inputs.swerve[swerveModuleNumber].steerPositionDeg < angleTarget + angleTolerance) {
     }
@@ -797,8 +797,9 @@ public class Drivetrain extends SubsystemBase {
         return Commands.parallel(
             Commands.run(
                 () -> {
-                  io.driveRobotRelative(0, 0, -1, false);
-                }),
+                  this.drive(0, 0, -1, false, false);
+                },
+                this),
             Commands.waitSeconds(1)
                 .andThen(
                     Commands.runOnce(
@@ -816,8 +817,9 @@ public class Drivetrain extends SubsystemBase {
         return Commands.parallel(
             Commands.run(
                 () -> {
-                  io.driveRobotRelative(0, 0, 1, false);
-                }),
+                  this.drive(0, 0, 1, false, false);
+                },
+                this),
             Commands.waitSeconds(1)
                 .andThen(
                     Commands.runOnce(
@@ -842,8 +844,9 @@ public class Drivetrain extends SubsystemBase {
     return Commands.parallel(
         Commands.run(
             () -> {
-              io.driveRobotRelative(xVelocity, yVelocity, rotationalVelocity, false);
-            }),
+              this.drive(xVelocity, yVelocity, rotationalVelocity, false, false);
+            },
+            this),
         Commands.waitSeconds(1)
             .andThen(
                 Commands.runOnce(
@@ -878,34 +881,16 @@ public class Drivetrain extends SubsystemBase {
   }
 
   public Command getSystemCheckCommand() {
-    disableFieldRelative();
     return Commands.sequence(
-            Commands.run(
-                () -> {
-                  getSwerveCheckCommand(SwerveCheckTypes.LEFT);
-                }),
-            Commands.run(
-                () -> {
-                  getSwerveCheckCommand(SwerveCheckTypes.RIGHT);
-                }),
-            Commands.run(
-                () -> {
-                  getSwerveCheckCommand(SwerveCheckTypes.FORWARD);
-                }),
-            Commands.run(
-                () -> {
-                  getSwerveCheckCommand(SwerveCheckTypes.BACKWARD);
-                }),
-            Commands.run(
-                () -> {
-                  getSwerveCheckCommand(SwerveCheckTypes.CLOCKWISE);
-                }),
-            Commands.run(
-                () -> {
-                  getSwerveCheckCommand(SwerveCheckTypes.COUNTERCLOCKWISE);
-                }))
+            getSwerveCheckCommand(SwerveCheckTypes.LEFT),
+            getSwerveCheckCommand(SwerveCheckTypes.RIGHT),
+            getSwerveCheckCommand(SwerveCheckTypes.FORWARD),
+            getSwerveCheckCommand(SwerveCheckTypes.BACKWARD),
+            getSwerveCheckCommand(SwerveCheckTypes.CLOCKWISE),
+            getSwerveCheckCommand(SwerveCheckTypes.COUNTERCLOCKWISE))
         .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
-        .andThen(Commands.runOnce(() -> this.drive(0, 0, 0, true, false)));
+        .andThen(Commands.runOnce(() -> this.drive(0, 0, 0, true, false), this))
+        .withName(SUBSYSTEM_NAME + "SystemCheck");
   }
 
   /**
