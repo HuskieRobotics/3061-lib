@@ -718,70 +718,67 @@ public class Drivetrain extends SubsystemBase {
     // Need to check for both velocity and rotation
 
     Boolean isOffset = false;
-    
-    
+
     // Check to see if the direction is rotated properly, thresholds still need to be checked and
     // see if they are correct
     // steerPositionDeg is a value that is between (-180, 180]
     // check if angle is in threshold
 
     if (this.inputs.swerve[swerveModuleNumber].steerPositionDeg > angleTarget - angleTolerance
-            && this.inputs.swerve[swerveModuleNumber].steerPositionDeg < angleTarget + angleTolerance) {
-          isOffset = false;
-        }
-        // check if angle is in threshold +- 180
-        else if (this.inputs.swerve[swerveModuleNumber].steerPositionDeg
-                > angleTarget - angleTolerance - 180
-            && this.inputs.swerve[swerveModuleNumber].steerPositionDeg
-                < angleTarget + angleTolerance - 180) {
-          isOffset = true;
-        } else if (this.inputs.swerve[swerveModuleNumber].steerPositionDeg
-                > angleTarget - angleTolerance + 180
-            && this.inputs.swerve[swerveModuleNumber].steerPositionDeg
-                < angleTarget + angleTolerance + 180) {
-          isOffset = true;
-        }
-        // if not, add fault
-        else {
-          FaultReporter.getInstance()
-              .addFault(
-                  SUBSYSTEM_NAME,
-                  "[System Check] Swerve module "
-                      + getSwerveLocation(swerveModuleNumber)
-                      + " not rotating in the threshold as expected");
-        }
+        && this.inputs.swerve[swerveModuleNumber].steerPositionDeg < angleTarget + angleTolerance) {
+      isOffset = false;
+    }
+    // check if angle is in threshold +- 180
+    else if (this.inputs.swerve[swerveModuleNumber].steerPositionDeg
+            > angleTarget - angleTolerance - 180
+        && this.inputs.swerve[swerveModuleNumber].steerPositionDeg
+            < angleTarget + angleTolerance - 180) {
+      isOffset = true;
+    } else if (this.inputs.swerve[swerveModuleNumber].steerPositionDeg
+            > angleTarget - angleTolerance + 180
+        && this.inputs.swerve[swerveModuleNumber].steerPositionDeg
+            < angleTarget + angleTolerance + 180) {
+      isOffset = true;
+    }
+    // if not, add fault
+    else {
+      FaultReporter.getInstance()
+          .addFault(
+              SUBSYSTEM_NAME,
+              "[System Check] Swerve module "
+                  + getSwerveLocation(swerveModuleNumber)
+                  + " not rotating in the threshold as expected");
+    }
     // Velocity check
     // We first need to check the rotation and the
-    // If there IS an offset, then you negate the velocity 
+    // If there IS an offset, then you negate the velocity
     if (!isOffset) {
-          if (inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec
-                < velocityTarget - velocityTolerance
-            && inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec
-                < velocityTarget + velocityTolerance) {
-        } else {
-          FaultReporter.getInstance()
-              .addFault(
-                  SUBSYSTEM_NAME,
-                  "[System Check] Swerve module "
-                      + getSwerveLocation(swerveModuleNumber)
-                      + " not moving as fast as expected");
-        }
+      if (inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec
+              < velocityTarget - velocityTolerance
+          && inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec
+              < velocityTarget + velocityTolerance) {
+      } else {
+        FaultReporter.getInstance()
+            .addFault(
+                SUBSYSTEM_NAME,
+                "[System Check] Swerve module "
+                    + getSwerveLocation(swerveModuleNumber)
+                    + " not moving as fast as expected");
       }
-      else  { // determines 
-        if (inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec
-                < -(velocityTarget - velocityTolerance)
-            && inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec
-                < -(velocityTarget + velocityTolerance)) {
-        } else {
-          FaultReporter.getInstance()
-              .addFault(
-                  SUBSYSTEM_NAME,
-                  "[System Check] Swerve module "
-                      + getSwerveLocation(swerveModuleNumber)
-                      + " not moving as fast as expected");
-        }
+    } else { // determines
+      if (inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec
+              < -(velocityTarget - velocityTolerance)
+          && inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec
+              < -(velocityTarget + velocityTolerance)) {
+      } else {
+        FaultReporter.getInstance()
+            .addFault(
+                SUBSYSTEM_NAME,
+                "[System Check] Swerve module "
+                    + getSwerveLocation(swerveModuleNumber)
+                    + " not moving as fast as expected");
       }
-       
+    }
   }
 
   private Command getSwerveCheckCommand(SwerveCheckTypes type) {
@@ -819,44 +816,62 @@ public class Drivetrain extends SubsystemBase {
         break;
       case CLOCKWISE:
         return Commands.parallel(
-            Commands.run(
-                () -> {
-                  this.drive(0, 0, -1, false, false);
-                },
-                this),
-            Commands.waitSeconds(1)
-                .andThen(
-                    Commands.runOnce(
-                        () -> {
-                          checkSwerveModule(
-                              0, 45, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
-                          checkSwerveModule(
-                              3, 45, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
-                          checkSwerveModule(
-                              1, 135, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
-                          checkSwerveModule(
-                              2, 135, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
-                        })));
+                Commands.run(
+                    () -> {
+                      this.drive(0, 0, -1, false, false);
+                    },
+                    this),
+                Commands.waitSeconds(1)
+                    .andThen(
+                        Commands.runOnce(
+                            () -> {
+                              checkSwerveModule(
+                                  0,
+                                  45,
+                                  1,
+                                  .5 /*RobotConfig.getInstance().getRobotMaxVelocity() */,
+                                  .1);
+                              checkSwerveModule(
+                                  3,
+                                  45,
+                                  1,
+                                  .5 /*RobotConfig.getInstance().getRobotMaxVelocity() */,
+                                  .1);
+                              checkSwerveModule(
+                                  1,
+                                  135,
+                                  1,
+                                  .5 /*RobotConfig.getInstance().getRobotMaxVelocity() */,
+                                  .1);
+                              checkSwerveModule(
+                                  2,
+                                  135,
+                                  1,
+                                  .5 /*RobotConfig.getInstance().getRobotMaxVelocity() */,
+                                  .1);
+                            })))
+            .withTimeout(5);
       case COUNTERCLOCKWISE:
         return Commands.parallel(
-            Commands.run(
-                () -> {
-                  this.drive(0, 0, 1, false, false);
-                },
-                this),
-            Commands.waitSeconds(1)
-                .andThen(
-                    Commands.runOnce(
-                        () -> {
-                          checkSwerveModule(
-                              0, -45, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
-                          checkSwerveModule(
-                              3, -45, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
-                          checkSwerveModule(
-                              1, -135, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
-                          checkSwerveModule(
-                              2, -135, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
-                        })));
+                Commands.run(
+                    () -> {
+                      this.drive(0, 0, 1, false, false);
+                    },
+                    this),
+                Commands.waitSeconds(1)
+                    .andThen(
+                        Commands.runOnce(
+                            () -> {
+                              checkSwerveModule(
+                                  0, -45, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
+                              checkSwerveModule(
+                                  3, -45, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
+                              checkSwerveModule(
+                                  1, -135, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
+                              checkSwerveModule(
+                                  2, -135, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
+                            })))
+            .withTimeout(5);
       default:
         xVelocity = 0;
         yVelocity = 0;
@@ -866,20 +881,25 @@ public class Drivetrain extends SubsystemBase {
     }
 
     return Commands.parallel(
-        Commands.run(
-            () -> {
-              this.drive(xVelocity, yVelocity, rotationalVelocity, false, false);
-            },
-            this),
-        Commands.waitSeconds(1)
-            .andThen(
-                Commands.runOnce(
-                    () -> {
-                      for (int i = 0; i < this.inputs.swerve.length; i++) {
-                        checkSwerveModule(
-                            i, angleTarget, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
-                      }
-                    })));
+            Commands.run(
+                () -> {
+                  this.drive(xVelocity, yVelocity, rotationalVelocity, false, false);
+                },
+                this),
+            Commands.waitSeconds(1)
+                .andThen(
+                    Commands.runOnce(
+                        () -> {
+                          for (int i = 0; i < this.inputs.swerve.length; i++) {
+                            checkSwerveModule(
+                                i,
+                                angleTarget,
+                                1,
+                                RobotConfig.getInstance().getRobotMaxVelocity(),
+                                .1);
+                          }
+                        })))
+        .withTimeout(2);
   }
 
   /**
@@ -906,6 +926,8 @@ public class Drivetrain extends SubsystemBase {
 
   public Command getSystemCheckCommand() {
     return Commands.sequence(
+            Commands.runOnce(() -> this.disableFieldRelative(), null),
+            Commands.runOnce(() -> FaultReporter.getInstance().clearFaults(SUBSYSTEM_NAME)),
             getSwerveCheckCommand(SwerveCheckTypes.LEFT),
             getSwerveCheckCommand(SwerveCheckTypes.RIGHT),
             getSwerveCheckCommand(SwerveCheckTypes.FORWARD),
