@@ -781,6 +781,8 @@ public class Drivetrain extends SubsystemBase {
     }
   }
 
+  //TODO: refactor adding faults to be less repetitive.
+
   private Command getSwerveCheckCommand(SwerveCheckTypes type) {
 
     double xVelocity;
@@ -895,7 +897,7 @@ public class Drivetrain extends SubsystemBase {
                                 i,
                                 angleTarget,
                                 1,
-                                RobotConfig.getInstance().getRobotMaxVelocity(),
+                                rotationalVelocity,
                                 .1);
                           }
                         })))
@@ -926,7 +928,7 @@ public class Drivetrain extends SubsystemBase {
 
   public Command getSystemCheckCommand() {
     return Commands.sequence(
-            Commands.runOnce(() -> this.disableFieldRelative(), null),
+            Commands.runOnce(() -> this.disableFieldRelative(), this),
             Commands.runOnce(() -> FaultReporter.getInstance().clearFaults(SUBSYSTEM_NAME)),
             getSwerveCheckCommand(SwerveCheckTypes.LEFT),
             getSwerveCheckCommand(SwerveCheckTypes.RIGHT),
