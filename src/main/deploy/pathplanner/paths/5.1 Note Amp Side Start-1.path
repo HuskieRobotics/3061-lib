@@ -1,0 +1,113 @@
+{
+  "version": 1.0,
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 1.3374413054104268,
+        "y": 6.171610859626855
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 2.719320017812645,
+        "y": 6.206743369264199
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 3.5156569029257874,
+        "y": 6.285005032973029
+      },
+      "prevControl": {
+        "x": 2.0166698250657547,
+        "y": 6.1796075040609955
+      },
+      "nextControl": {
+        "x": 5.179250318972586,
+        "y": 6.401976445038819
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 5.904667558265215,
+        "y": 7.29585116802188
+      },
+      "prevControl": {
+        "x": 4.663318884412376,
+        "y": 7.272429494930317
+      },
+      "nextControl": {
+        "x": 6.058402222468381,
+        "y": 7.298751822063449
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 8.809051002361265,
+        "y": 7.434449054083293
+      },
+      "prevControl": {
+        "x": 8.022089224734005,
+        "y": 7.424888169220783
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": null
+    }
+  ],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 1.0,
+      "rotationDegrees": -173.17884763521565,
+      "rotateFast": false
+    },
+    {
+      "waypointRelativePos": 2,
+      "rotationDegrees": -89.07213076111685,
+      "rotateFast": false
+    }
+  ],
+  "constraintZones": [],
+  "eventMarkers": [
+    {
+      "name": "New Event Marker",
+      "waypointRelativePos": 1.0,
+      "command": {
+        "type": "parallel",
+        "data": {
+          "commands": [
+            {
+              "type": "named",
+              "data": {
+                "name": "Shoot"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "globalConstraints": {
+    "maxVelocity": 4.0,
+    "maxAcceleration": 4.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": -90.0,
+    "rotateFast": false
+  },
+  "reversed": false,
+  "folder": "5 Note Amp Side 2",
+  "previewStartingState": {
+    "rotation": -148.70614610803423,
+    "velocity": 0
+  },
+  "useDefaultConstraints": true
+}

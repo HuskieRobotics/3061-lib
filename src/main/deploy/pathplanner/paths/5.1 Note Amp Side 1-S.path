@@ -1,0 +1,76 @@
+{
+  "version": 1.0,
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 8.81,
+        "y": 7.43
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 9.301539539906965,
+        "y": 7.4360055871686095
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 5.857824212082089,
+        "y": 6.850839379282182
+      },
+      "prevControl": {
+        "x": 5.904667558265214,
+        "y": 6.850839379282182
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": null
+    }
+  ],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.5,
+      "rotationDegrees": -178.5790007671593,
+      "rotateFast": true
+    }
+  ],
+  "constraintZones": [],
+  "eventMarkers": [
+    {
+      "name": "New Event Marker",
+      "waypointRelativePos": 0.1,
+      "command": {
+        "type": "parallel",
+        "data": {
+          "commands": [
+            {
+              "type": "named",
+              "data": {
+                "name": "Shoot"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "globalConstraints": {
+    "maxVelocity": 4.0,
+    "maxAcceleration": 4.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": -142.30575953331075,
+    "rotateFast": false
+  },
+  "reversed": false,
+  "folder": "5 Note Amp Side 2",
+  "previewStartingState": {
+    "rotation": -91.81069275455403,
+    "velocity": 0
+  },
+  "useDefaultConstraints": true
+}

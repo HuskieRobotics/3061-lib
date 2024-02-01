@@ -1,0 +1,49 @@
+{
+  "version": 1.0,
+  "startingPose": {
+    "position": {
+      "x": 1.3374413054104268,
+      "y": 6.171610859626855
+    },
+    "rotation": -141.6636300930302
+  },
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "5.1 Note Amp Side Start-1"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "5.1 Note Amp Side 1-S"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "5.1Note Amp Side S-2"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "5.1 Note Amp Side 2-m"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "5.1 Amp Side 3-4"
+          }
+        }
+      ]
+    }
+  },
+  "folder": null,
+  "choreoAuto": false
+}

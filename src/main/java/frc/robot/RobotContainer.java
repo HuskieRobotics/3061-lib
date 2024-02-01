@@ -475,8 +475,11 @@ public class RobotContainer {
     Command fiveNoteCommand = new PathPlannerAuto("5 Note Test Amp Side");
     autoChooser.addOption("5 Note Test Amp Side", fiveNoteCommand);
 
-    Command fiveNoteCollectorSideCommand = new PathPlannerAuto("5 Note Test Collector Side");
-    autoChooser.addOption("5 Note Test Collector Side", fiveNoteCollectorSideCommand);
+    Command fiveNoteCollectorSideCommand2 = new PathPlannerAuto("5 Note Test Collector Side");
+    autoChooser.addOption("5 Note Test Collector Side", fiveNoteCollectorSideCommand2);
+
+    Command fiveNoteCommand3 = new PathPlannerAuto("5.1 Amp Side 2");
+    autoChooser.addOption("5.1 Amp Side 2", fiveNoteCommand3);
 
     /************ Drive Velocity Tuning ************
      *
