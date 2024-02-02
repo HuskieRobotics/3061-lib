@@ -721,22 +721,24 @@ public class Drivetrain extends SubsystemBase {
 
     // Check to see if the direction is rotated properly, thresholds still need to be checked and
     // see if they are correct
-    // steerPositionDeg is a value that is between (-180, 180]
+    // steerAbsolutePositionDeg is a value that is between (-180, 180]
     // check if angle is in threshold
 
-    if (this.inputs.swerve[swerveModuleNumber].steerPositionDeg > angleTarget - angleTolerance
-        && this.inputs.swerve[swerveModuleNumber].steerPositionDeg < angleTarget + angleTolerance) {
-      isOffset = false;
+    if (this.inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg
+            > angleTarget - angleTolerance
+        && this.inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg
+            < angleTarget + angleTolerance) {
+
     }
     // check if angle is in threshold +- 180
-    else if (this.inputs.swerve[swerveModuleNumber].steerPositionDeg
+    else if (this.inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg
             > angleTarget - angleTolerance - 180
-        && this.inputs.swerve[swerveModuleNumber].steerPositionDeg
+        && this.inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg
             < angleTarget + angleTolerance - 180) {
       isOffset = true;
-    } else if (this.inputs.swerve[swerveModuleNumber].steerPositionDeg
+    } else if (this.inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg
             > angleTarget - angleTolerance + 180
-        && this.inputs.swerve[swerveModuleNumber].steerPositionDeg
+        && this.inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg
             < angleTarget + angleTolerance + 180) {
       isOffset = true;
     }
@@ -747,14 +749,17 @@ public class Drivetrain extends SubsystemBase {
               SUBSYSTEM_NAME,
               "[System Check] Swerve module "
                   + getSwerveLocation(swerveModuleNumber)
-                  + " not rotating in the threshold as expected");
+                  + " not rotating in the threshold as expected. Should be: "
+                  + angleTarget
+                  + " is: "
+                  + inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg);
     }
     // Velocity check
     // We first need to check the rotation and the
     // If there IS an offset, then you negate the velocity
     if (!isOffset) {
       if (inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec
-              < velocityTarget - velocityTolerance
+              > velocityTarget - velocityTolerance
           && inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec
               < velocityTarget + velocityTolerance) {
       } else {
@@ -763,25 +768,31 @@ public class Drivetrain extends SubsystemBase {
                 SUBSYSTEM_NAME,
                 "[System Check] Swerve module "
                     + getSwerveLocation(swerveModuleNumber)
-                    + " not moving as fast as expected");
+                    + " not moving as fast as expected. Should be: "
+                    + velocityTarget
+                    + " is: "
+                    + inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec);
       }
     } else { // determines
       if (inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec
               < -(velocityTarget - velocityTolerance)
           && inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec
-              < -(velocityTarget + velocityTolerance)) {
+              > -(velocityTarget + velocityTolerance)) {
       } else {
         FaultReporter.getInstance()
             .addFault(
                 SUBSYSTEM_NAME,
                 "[System Check] Swerve module "
                     + getSwerveLocation(swerveModuleNumber)
-                    + " not moving as fast as expected");
+                    + " not moving as fast as expected. REVERSED Should be: "
+                    + velocityTarget
+                    + " is: "
+                    + inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec);
       }
     }
   }
 
-  //TODO: refactor adding faults to be less repetitive.
+  // TODO: refactor adding faults to be less repetitive.
 
   private Command getSwerveCheckCommand(SwerveCheckTypes type) {
 
@@ -790,31 +801,36 @@ public class Drivetrain extends SubsystemBase {
     double rotationalVelocity;
 
     double angleTarget;
+    double velocityTarget;
 
     switch (type) {
       case LEFT:
         xVelocity = 0;
         yVelocity = 1;
         rotationalVelocity = 0;
-        angleTarget = 180;
+        velocityTarget = 1;
+        angleTarget = -90;
         break;
       case RIGHT:
         xVelocity = 0;
         yVelocity = -1;
         rotationalVelocity = 0;
-        angleTarget = 0;
+        velocityTarget = -1;
+        angleTarget = 90;
         break;
       case FORWARD:
         xVelocity = 1;
         yVelocity = 0;
         rotationalVelocity = 0;
-        angleTarget = 90;
+        velocityTarget = -1;
+        angleTarget = 0;
         break;
       case BACKWARD:
         xVelocity = -1;
         yVelocity = 0;
         rotationalVelocity = 0;
-        angleTarget = -90;
+        velocityTarget = -1;
+        angleTarget = 180;
         break;
       case CLOCKWISE:
         return Commands.parallel(
@@ -879,6 +895,7 @@ public class Drivetrain extends SubsystemBase {
         yVelocity = 0;
         rotationalVelocity = 0;
         angleTarget = 0;
+        velocityTarget = 0;
         break;
     }
 
@@ -893,12 +910,7 @@ public class Drivetrain extends SubsystemBase {
                     Commands.runOnce(
                         () -> {
                           for (int i = 0; i < this.inputs.swerve.length; i++) {
-                            checkSwerveModule(
-                                i,
-                                angleTarget,
-                                1,
-                                rotationalVelocity,
-                                .1);
+                            checkSwerveModule(i, angleTarget, 10, velocityTarget, 2);
                           }
                         })))
         .withTimeout(2);
@@ -943,7 +955,7 @@ public class Drivetrain extends SubsystemBase {
 
   /**
    * If the robot is enabled and brake mode is not enabled, enable it. If the robot is disabled, has
-   * stopped moving for the specified period of time, and brake mode is enabled, disable it.
+   * stopped moving for the specified period of time, and brake mode is enabled, disable it.F%
    */
   private void updateBrakeMode() {
     if (DriverStation.isEnabled() && !brakeMode) {
