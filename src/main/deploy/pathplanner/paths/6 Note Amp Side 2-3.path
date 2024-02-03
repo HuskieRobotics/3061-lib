@@ -1,0 +1,55 @@
+{
+  "version": 1.0,
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 8.45,
+        "y": 5.77
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 3.45710272019688,
+        "y": 6.67517683109546
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 2.883271729453586,
+        "y": 6.991369417831561
+      },
+      "prevControl": {
+        "x": 2.9066934025451485,
+        "y": 7.003080254377343
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": null
+    }
+  ],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.0,
+      "rotationDegrees": 176.94187806593595,
+      "rotateFast": true
+    }
+  ],
+  "constraintZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 4.0,
+    "maxAcceleration": 4.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": -86.00908690157021,
+    "rotateFast": false
+  },
+  "reversed": false,
+  "folder": "6 Note Test Amp Side",
+  "previewStartingState": null,
+  "useDefaultConstraints": false
+}
