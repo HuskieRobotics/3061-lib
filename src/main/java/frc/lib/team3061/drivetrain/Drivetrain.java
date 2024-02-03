@@ -705,7 +705,7 @@ public class Drivetrain extends SubsystemBase {
   }
 
   /*
-   * Checks the swerve module to see if it is moving as expected or is in the rotation threshold
+   * Checks the swerve module to see if its velocity and rotation are moving as expected 
    * @param swerveModuleNumber the swerve module number to check
    */
 
@@ -715,21 +715,18 @@ public class Drivetrain extends SubsystemBase {
       double angleTolerance,
       double velocityTarget,
       double velocityTolerance) {
-    // Need to check for both velocity and rotation
 
-    Boolean isOffset = false;
+      Boolean isOffset = false;
 
-    // Check to see if the direction is rotated properly, thresholds still need to be checked and
-    // see if they are correct
+    // Check to see if the direction is rotated properly
     // steerAbsolutePositionDeg is a value that is between (-180, 180]
-    // check if angle is in threshold
 
     if (this.inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg
             > angleTarget - angleTolerance
         && this.inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg
             < angleTarget + angleTolerance) {
-
     }
+   
     // check if angle is in threshold +- 180
     else if (this.inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg
             > angleTarget - angleTolerance - 180
@@ -754,9 +751,10 @@ public class Drivetrain extends SubsystemBase {
                   + " is: "
                   + inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg);
     }
-    // Velocity check
-    // We first need to check the rotation and the
-    // If there IS an offset, then you negate the velocity
+    
+    
+    // Checks the velocity of the swerve module depending on if there is an offset 
+
     if (!isOffset) {
       if (inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec
               > velocityTarget - velocityTolerance
@@ -773,7 +771,7 @@ public class Drivetrain extends SubsystemBase {
                     + " is: "
                     + inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec);
       }
-    } else { // determines
+    } else {  // if there is an offset, check the velocity in the opposite direction
       if (inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec
               < -(velocityTarget - velocityTolerance)
           && inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec
@@ -792,7 +790,6 @@ public class Drivetrain extends SubsystemBase {
     }
   }
 
-  // TODO: refactor adding faults to be less repetitive.
 
   private Command getSwerveCheckCommand(SwerveCheckTypes type) {
 
@@ -809,7 +806,7 @@ public class Drivetrain extends SubsystemBase {
         yVelocity = 1;
         rotationalVelocity = 0;
         velocityTarget = 1;
-        angleTarget = -90;
+        angleTarget = 90;
         break;
       case RIGHT:
         xVelocity = 0;
@@ -822,7 +819,7 @@ public class Drivetrain extends SubsystemBase {
         xVelocity = 1;
         yVelocity = 0;
         rotationalVelocity = 0;
-        velocityTarget = -1;
+        velocityTarget = 1;
         angleTarget = 0;
         break;
       case BACKWARD:
@@ -830,13 +827,13 @@ public class Drivetrain extends SubsystemBase {
         yVelocity = 0;
         rotationalVelocity = 0;
         velocityTarget = -1;
-        angleTarget = 180;
+        angleTarget = 0;
         break;
       case CLOCKWISE:
         return Commands.parallel(
                 Commands.run(
                     () -> {
-                      this.drive(0, 0, -1, false, false);
+                      this.drive(0, 0, -Math.PI, false, false);
                     },
                     this),
                 Commands.waitSeconds(1)
@@ -845,51 +842,55 @@ public class Drivetrain extends SubsystemBase {
                             () -> {
                               checkSwerveModule(
                                   0,
-                                  45,
-                                  1,
-                                  .5 /*RobotConfig.getInstance().getRobotMaxVelocity() */,
-                                  .1);
-                              checkSwerveModule(
-                                  3,
-                                  45,
-                                  1,
-                                  .5 /*RobotConfig.getInstance().getRobotMaxVelocity() */,
-                                  .1);
-                              checkSwerveModule(
-                                  1,
                                   135,
                                   1,
-                                  .5 /*RobotConfig.getInstance().getRobotMaxVelocity() */,
+                                  -0.38
+                                      * Math
+                                          .PI , 
+                                  .1);
+                              checkSwerveModule(
+                                  1,
+                                  45,
+                                  1,
+                                  -0.38
+                                      * Math
+                                          .PI ,
                                   .1);
                               checkSwerveModule(
                                   2,
+                                  45,
+                                  1,
+                                  0.38
+                                      * Math
+                                          .PI ,
+                                  .1);
+                              checkSwerveModule(
+                                  3,
                                   135,
                                   1,
-                                  .5 /*RobotConfig.getInstance().getRobotMaxVelocity() */,
+                                  0.38
+                                      * Math
+                                          .PI,
                                   .1);
                             })))
-            .withTimeout(5);
+            .withTimeout(1);
       case COUNTERCLOCKWISE:
         return Commands.parallel(
                 Commands.run(
                     () -> {
-                      this.drive(0, 0, 1, false, false);
+                      this.drive(0, 0, Math.PI, false, false);
                     },
                     this),
                 Commands.waitSeconds(1)
                     .andThen(
                         Commands.runOnce(
                             () -> {
-                              checkSwerveModule(
-                                  0, -45, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
-                              checkSwerveModule(
-                                  3, -45, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
-                              checkSwerveModule(
-                                  1, -135, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
-                              checkSwerveModule(
-                                  2, -135, 1, RobotConfig.getInstance().getRobotMaxVelocity(), .1);
+                              checkSwerveModule(0, 135, 1, .38 * Math.PI, .1);
+                              checkSwerveModule(1, 45, 1, .38 * Math.PI, .1);
+                              checkSwerveModule(2, 45, 1, -.38 * Math.PI, .1);
+                              checkSwerveModule(3, 135, 1, -.38 * Math.PI, .1);
                             })))
-            .withTimeout(5);
+            .withTimeout(1);
       default:
         xVelocity = 0;
         yVelocity = 0;
@@ -910,7 +911,7 @@ public class Drivetrain extends SubsystemBase {
                     Commands.runOnce(
                         () -> {
                           for (int i = 0; i < this.inputs.swerve.length; i++) {
-                            checkSwerveModule(i, angleTarget, 10, velocityTarget, 2);
+                            checkSwerveModule(i, angleTarget, 1, velocityTarget, 0.1);
                           }
                         })))
         .withTimeout(2);
