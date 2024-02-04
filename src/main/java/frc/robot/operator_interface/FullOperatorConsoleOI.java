@@ -101,9 +101,4 @@ public class FullOperatorConsoleOI implements OperatorInterface {
   public Trigger getVisionIsEnabledSwitch() {
     return operatorPanelButtons[10];
   }
-
-  @Override
-  public Trigger getSystemTestButton() {
-    return translateJoystickButtons[10];
-  }
 }

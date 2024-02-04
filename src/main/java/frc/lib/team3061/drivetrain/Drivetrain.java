@@ -4,9 +4,8 @@
 
 package frc.lib.team3061.drivetrain;
 
-import static frc.lib.team3061.drivetrain.DrivetrainConstants.SUBSYSTEM_NAME;
-import static frc.lib.team3061.drivetrain.DrivetrainConstants.TESTING;
-import static frc.robot.Constants.LOOP_PERIOD_SECS;
+import static frc.lib.team3061.drivetrain.DrivetrainConstants.*;
+import static frc.robot.Constants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
@@ -956,7 +955,7 @@ public class Drivetrain extends SubsystemBase {
 
   /**
    * If the robot is enabled and brake mode is not enabled, enable it. If the robot is disabled, has
-   * stopped moving for the specified period of time, and brake mode is enabled, disable it.F%
+   * stopped moving for the specified period of time, and brake mode is enabled, disable it.
    */
   private void updateBrakeMode() {
     if (DriverStation.isEnabled() && !brakeMode) {
