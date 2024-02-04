@@ -696,7 +696,7 @@ public abstract class RobotConfig {
   public enum LED_HARDWARE {
     RIO,
     CANDLE
-  };
+  }
 
   /*
    * Returns the swerve control mode. Defaults to voltage. For the DrivetrainIOGeneric class, only

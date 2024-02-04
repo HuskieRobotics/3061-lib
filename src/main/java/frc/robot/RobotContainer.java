@@ -9,7 +9,6 @@ import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
@@ -173,26 +172,16 @@ public class RobotContainer {
     DrivetrainIO drivetrainIO = new DrivetrainIOCTRE();
     drivetrain = new Drivetrain(drivetrainIO);
 
-    // String[] cameraNames = config.getCameraNames();
-    // Transform3d[] robotToCameraTransforms = config.getRobotToCameraTransforms();
-    // VisionIO[] visionIOs = new VisionIO[cameraNames.length];
-    // AprilTagFieldLayout layout;
-    // try {
-    //   layout = new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
-    // } catch (IOException e) {
-    //   layout = new AprilTagFieldLayout(new ArrayList<>(), 16.4592, 8.2296);
-    // }
-    // for (int i = 0; i < visionIOs.length; i++) {
-    //   visionIOs[i] = new VisionIOPhotonVision(cameraNames[i], layout,
-    // robotToCameraTransforms[i]);
-    // }
-    // vision = new Vision(visionIOs);
-
-    // FIXME: re-enable cameras when installed
     String[] cameraNames = config.getCameraNames();
     VisionIO[] visionIOs = new VisionIO[cameraNames.length];
+    AprilTagFieldLayout layout;
+    try {
+      layout = new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
+    } catch (IOException e) {
+      layout = new AprilTagFieldLayout(new ArrayList<>(), 16.4592, 8.2296);
+    }
     for (int i = 0; i < visionIOs.length; i++) {
-      visionIOs[i] = new VisionIO() {};
+      visionIOs[i] = new VisionIOPhotonVision(cameraNames[i], layout);
     }
     vision = new Vision(visionIOs);
 
@@ -250,7 +239,6 @@ public class RobotContainer {
               });
     } else {
       String[] cameraNames = config.getCameraNames();
-      Transform3d[] robotToCameraTransforms = config.getRobotToCameraTransforms();
       VisionIO[] visionIOs = new VisionIO[cameraNames.length];
       AprilTagFieldLayout layout;
       try {
@@ -259,7 +247,7 @@ public class RobotContainer {
         layout = new AprilTagFieldLayout(new ArrayList<>(), 16.4592, 8.2296);
       }
       for (int i = 0; i < visionIOs.length; i++) {
-        visionIOs[i] = new VisionIOPhotonVision(cameraNames[i], layout, robotToCameraTransforms[i]);
+        visionIOs[i] = new VisionIOPhotonVision(cameraNames[i], layout);
       }
       vision = new Vision(visionIOs);
     }
