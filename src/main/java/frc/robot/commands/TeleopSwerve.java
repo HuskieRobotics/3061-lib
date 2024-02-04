@@ -1,11 +1,13 @@
 package frc.robot.commands;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.Drivetrain;
 import frc.lib.team6328.util.TunableNumber;
 import frc.robot.Constants;
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 /**
@@ -27,6 +29,8 @@ public class TeleopSwerve extends Command {
   private final DoubleSupplier translationXSupplier;
   private final DoubleSupplier translationYSupplier;
   private final DoubleSupplier rotationSupplier;
+  private final Supplier<Rotation2d> angleSupplier;
+  private final boolean driveFacingAngle;
 
   private static final double DEADBAND = 0.1;
   private double lastAngularVelocity;
@@ -67,6 +71,34 @@ public class TeleopSwerve extends Command {
     this.translationXSupplier = translationXSupplier;
     this.translationYSupplier = translationYSupplier;
     this.rotationSupplier = rotationSupplier;
+    this.angleSupplier = null;
+    this.driveFacingAngle = false;
+
+    addRequirements(drivetrain);
+  }
+
+  /**
+   * Create a new TeleopSwerve command object.
+   *
+   * @param drivetrain the drivetrain subsystem instructed by this command
+   * @param translationXSupplier the supplier of the translation x value as a percentage of the
+   *     maximum velocity as defined by the standard field or robot coordinate system
+   * @param translationYSupplier the supplier of the translation y value as a percentage of the
+   *     maximum velocity as defined by the standard field or robot coordinate system
+   * @param rotationSupplier the supplier of the rotation value as a percentage of the maximum
+   *     rotational velocity as defined by the standard field or robot coordinate system
+   */
+  public TeleopSwerve(
+      Drivetrain drivetrain,
+      DoubleSupplier translationXSupplier,
+      DoubleSupplier translationYSupplier,
+      Supplier<Rotation2d> angleSupplier) {
+    this.drivetrain = drivetrain;
+    this.translationXSupplier = translationXSupplier;
+    this.translationYSupplier = translationYSupplier;
+    this.rotationSupplier = null;
+    this.angleSupplier = angleSupplier;
+    this.driveFacingAngle = true;
 
     addRequirements(drivetrain);
   }
@@ -88,11 +120,15 @@ public class TeleopSwerve extends Command {
     // more responsive to small changes in the controller
     double xPercentage = modifyAxis(translationXSupplier.getAsDouble(), joystickPower.get());
     double yPercentage = modifyAxis(translationYSupplier.getAsDouble(), joystickPower.get());
-    double rotationPercentage = modifyAxis(rotationSupplier.getAsDouble(), joystickPower.get());
 
     double xVelocity = xPercentage * maxVelocityMetersPerSecond;
     double yVelocity = yPercentage * maxVelocityMetersPerSecond;
-    double rotationalVelocity = rotationPercentage * maxAngularVelocityRadiansPerSecond;
+    double rotationalVelocity = 0.0;
+
+    if (!this.driveFacingAngle) {
+      double rotationPercentage = modifyAxis(rotationSupplier.getAsDouble(), joystickPower.get());
+      rotationalVelocity = rotationPercentage * maxAngularVelocityRadiansPerSecond;
+    }
 
     Logger.recordOutput("TeleopSwerve/xVelocity", xVelocity);
     Logger.recordOutput("TeleopSwerve/yVelocity", yVelocity);
@@ -115,14 +151,16 @@ public class TeleopSwerve extends Command {
                 + Math.copySign(driveAccelerationMetersPer20Ms, yVelocity - lastYVelocity);
       }
 
-      double turnAccelerationRadiansPer20Ms =
-          maxTurnAcceleration.get() * Constants.LOOP_PERIOD_SECS;
+      if (!this.driveFacingAngle) {
+        double turnAccelerationRadiansPer20Ms =
+            maxTurnAcceleration.get() * Constants.LOOP_PERIOD_SECS;
 
-      if (Math.abs(rotationalVelocity - lastAngularVelocity) > turnAccelerationRadiansPer20Ms) {
-        rotationalVelocity =
-            lastAngularVelocity
-                + Math.copySign(
-                    turnAccelerationRadiansPer20Ms, rotationalVelocity - lastAngularVelocity);
+        if (Math.abs(rotationalVelocity - lastAngularVelocity) > turnAccelerationRadiansPer20Ms) {
+          rotationalVelocity =
+              lastAngularVelocity
+                  + Math.copySign(
+                      turnAccelerationRadiansPer20Ms, rotationalVelocity - lastAngularVelocity);
+        }
       }
     }
 
@@ -130,7 +168,12 @@ public class TeleopSwerve extends Command {
     lastYVelocity = yVelocity;
     lastAngularVelocity = rotationalVelocity;
 
-    drivetrain.drive(xVelocity, yVelocity, rotationalVelocity, true, drivetrain.getFieldRelative());
+    if (this.driveFacingAngle) {
+      drivetrain.driveFacingAngle(xVelocity, yVelocity, angleSupplier.get(), true);
+    } else {
+      drivetrain.drive(
+          xVelocity, yVelocity, rotationalVelocity, true, drivetrain.getFieldRelative());
+    }
   }
 
   /**

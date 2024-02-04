@@ -8,6 +8,7 @@ import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -37,7 +38,6 @@ import frc.lib.team3061.vision.VisionIOSim;
 import frc.robot.Constants.Mode;
 import frc.robot.commands.FeedForwardCharacterization;
 import frc.robot.commands.FeedForwardCharacterization.FeedForwardCharacterizationData;
-import frc.robot.commands.RotateToAngle;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.configs.DefaultRobotConfig;
 import frc.robot.configs.NovaCTRERobotConfig;
@@ -534,16 +534,16 @@ public class RobotContainer {
 
     // lock rotation to the nearest 180° while driving
     oi.getLock180Button()
-        .onTrue(
-            new RotateToAngle(
+        .whileTrue(
+            new TeleopSwerve(
                 drivetrain,
                 oi::getTranslateX,
                 oi::getTranslateY,
                 () ->
                     (drivetrain.getPose().getRotation().getDegrees() > -90
                             && drivetrain.getPose().getRotation().getDegrees() < 90)
-                        ? 0.0
-                        : 180.0));
+                        ? Rotation2d.fromDegrees(0.0)
+                        : Rotation2d.fromDegrees(180.0)));
 
     // field-relative toggle
     oi.getFieldRelativeButton()

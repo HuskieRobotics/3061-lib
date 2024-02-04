@@ -633,6 +633,39 @@ public abstract class RobotConfig {
   }
 
   /**
+   * Returns the proportional constant for the PID controller for rotational motion when driving
+   * facing angle. See TeleopSwerve for more information. Defaults to 0.
+   *
+   * @return the proportional constant for the PID controller for rotational motion when driving
+   *     facing angle
+   */
+  public double getDriveFacingAngleThetaKP() {
+    return 0.0;
+  }
+
+  /**
+   * Returns the integral constant for the PID controller for rotational motion when driving facing
+   * angle. See TeleopSwerve for more information. Defaults to 0.
+   *
+   * @return the integral constant for the PID controller for rotational motion when driving facing
+   *     angle
+   */
+  public double getDriveFacingAngleThetaKI() {
+    return 0.0;
+  }
+
+  /**
+   * Returns the derivative constant for the PID controller for rotational motion when driving
+   * facing angle. See TeleopSwerve for more information. Defaults to 0.
+   *
+   * @return the derivative constant for the PID controller for rotational motion when driving
+   *     facing angle
+   */
+  public double getDriveFacingAngleThetaKD() {
+    return 0.0;
+  }
+
+  /**
    * Returns the frequency at which the robot's odometry will be updated. Defaults to 250 Hz. This
    * value needs to match the hardware-specific Drivetrain code. For the DrivetrainIOCTRE class, the
    * value is 250 Hz; the DrivetrainIOGeneric class, 50 Hz.

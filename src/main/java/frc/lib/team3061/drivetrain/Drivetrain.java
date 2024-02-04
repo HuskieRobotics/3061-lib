@@ -372,6 +372,39 @@ public class Drivetrain extends SubsystemBase {
   }
 
   /**
+   * Controls the drivetrain to move the robot with the desired velocities in the x and y
+   * directions, while keeping the robot aligned to the specified target rotation. The velocities
+   * must be specified from the field's frame of reference as field relative mode is assumed. In the
+   * field frame of reference, the origin of the field to the lower left corner (i.e., the corner of
+   * the field to the driver's right). Zero degrees is away from the driver and increases in the CCW
+   * direction.
+   *
+   * <p>If the translation slow mode feature is enabled, the corresponding velocities will be scaled
+   * to enable finer control.
+   *
+   * @param xVelocity the desired velocity in the x direction (m/s)
+   * @param yVelocity the desired velocity in the y direction (m/s)
+   * @param targetDirection the desired direction of the robot's orientation. Zero degrees is away
+   *     from the driver and increases in the CCW direction.
+   * @param isOpenLoop true for open-loop control; false for closed-loop control
+   */
+  public void driveFacingAngle(
+      double xVelocity, double yVelocity, Rotation2d targetDirection, boolean isOpenLoop) {
+
+    // get the slow-mode multiplier from the config
+    double slowModeMultiplier = RobotConfig.getInstance().getRobotSlowModeMultiplier();
+
+    // if translation or rotation is in slow mode, multiply the x and y velocities by the
+    // slow-mode multiplier
+    if (isTranslationSlowMode) {
+      xVelocity *= slowModeMultiplier;
+      yVelocity *= slowModeMultiplier;
+    }
+
+    this.io.driveFieldRelativeFacingAngle(xVelocity, yVelocity, targetDirection, isOpenLoop);
+  }
+
+  /**
    * Stops the motion of the robot. Since the motors are in break mode, the robot will stop soon
    * after this method is invoked.
    */

@@ -16,22 +16,22 @@ public class PracticeRobotConfig extends RobotConfig {
   private static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 13;
   private static final int FRONT_LEFT_MODULE_STEER_MOTOR = 12;
   private static final int FRONT_LEFT_MODULE_STEER_ENCODER = 14;
-  private static final double FRONT_LEFT_MODULE_STEER_OFFSET_ROT = -0.22591;
+  private static final double FRONT_LEFT_MODULE_STEER_OFFSET_ROT = -0.013428 + 0.5;
 
   private static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 16;
   private static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 15;
   private static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 17;
-  private static final double FRONT_RIGHT_MODULE_STEER_OFFSET_ROT = -0.390381;
+  private static final double FRONT_RIGHT_MODULE_STEER_OFFSET_ROT = -0.342773;
 
   private static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 7;
   private static final int BACK_LEFT_MODULE_STEER_MOTOR = 6;
   private static final int BACK_LEFT_MODULE_STEER_ENCODER = 8;
-  private static final double BACK_LEFT_MODULE_STEER_OFFSET_ROT = 0.327393;
+  private static final double BACK_LEFT_MODULE_STEER_OFFSET_ROT = 0.263184 + 0.5;
 
   private static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 10;
   private static final int BACK_RIGHT_MODULE_STEER_MOTOR = 9;
   private static final int BACK_RIGHT_MODULE_STEER_ENCODER = 11;
-  private static final double BACK_RIGHT_MODULE_STEER_OFFSET_ROT = -0.336670;
+  private static final double BACK_RIGHT_MODULE_STEER_OFFSET_ROT = -0.024658;
 
   private static final int GYRO_ID = 3;
 
@@ -112,6 +112,11 @@ public class PracticeRobotConfig extends RobotConfig {
   private static final double DRIVE_TO_POSE_THETA_TOLERANCE_RADIANS = 0.008;
 
   private static final double SQUARING_SPEED_METERS_PER_SECOND = 1.0;
+
+  // Drive Facing Angle constants
+  private static final double DRIVE_FACING_ANGLE_KP = 2.0;
+  private static final double DRIVE_FACING_ANGLE_KD = 0.1;
+  private static final double DRIVE_FACING_ANGLE_KI = 0.0;
 
   private static final int LED_COUNT = 85;
 
@@ -400,6 +405,21 @@ public class PracticeRobotConfig extends RobotConfig {
   @Override
   public double getMoveToPathFinalVelocity() {
     return SQUARING_SPEED_METERS_PER_SECOND;
+  }
+
+  @Override
+  public double getDriveFacingAngleThetaKP() {
+    return DRIVE_FACING_ANGLE_KP;
+  }
+
+  @Override
+  public double getDriveFacingAngleThetaKI() {
+    return DRIVE_FACING_ANGLE_KI;
+  }
+
+  @Override
+  public double getDriveFacingAngleThetaKD() {
+    return DRIVE_FACING_ANGLE_KD;
   }
 
   @Override
