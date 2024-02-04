@@ -35,7 +35,6 @@ public class PracticeRobotConfig extends RobotConfig {
 
   private static final int GYRO_ID = 3;
 
-  // FIXME: needs to be reviewed before the bot is driven
   private static final double TRACKWIDTH_METERS = 0.57785; // 22.75
   private static final double WHEELBASE_METERS = 0.57785; // 22.75
   private static final double WHEEL_DIAMETER_METERS = 0.09659072671;
@@ -69,29 +68,28 @@ public class PracticeRobotConfig extends RobotConfig {
   private static final double MAX_DRIVE_ACCELERATION_METERS_PER_SECOND_SQUARED = 11.365;
   private static final double MAX_TURN_ACCELERATION_RADIANS_PER_SECOND_SQUARED = 36.0;
 
-  // FIXME: update the camera names once they have been installed
   private static final String CAN_BUS_NAME = "canbus1";
 
-  private static final String CAMERA_NAME_0 = "OV2311";
+  private static final String CAMERA_NAME_0 = "OV2311L";
+  private static final String CAMERA_NAME_1 = "OV2311F";
 
-  private static final String CAMERA_NAME_1 = "OV2311R";
-
-  // FIXME: update the camera transformations once they have been installed
+  // left camera
   private static final Transform3d ROBOT_TO_CAMERA_0 =
       new Transform3d(
           new Translation3d(
-              Units.inchesToMeters(-10.406),
-              Units.inchesToMeters(6.603),
-              Units.inchesToMeters(49.240)),
-          new Rotation3d(0, Units.degreesToRadians(25), Units.degreesToRadians(30)));
+              Units.inchesToMeters(5.500),
+              Units.inchesToMeters(10.329),
+              Units.inchesToMeters(18.387)),
+          new Rotation3d(0, Units.degreesToRadians(-35), Units.degreesToRadians(90)));
 
+  // left camera
   private static final Transform3d ROBOT_TO_CAMERA_1 =
       new Transform3d(
           new Translation3d(
-              Units.inchesToMeters(-10.406),
-              Units.inchesToMeters(-6.603),
-              Units.inchesToMeters(49.240)),
-          new Rotation3d(0, Units.degreesToRadians(25), Units.degreesToRadians(-30)));
+              Units.inchesToMeters(7.329),
+              Units.inchesToMeters(-8.500),
+              Units.inchesToMeters(18.387)),
+          new Rotation3d(0, Units.degreesToRadians(-35), Units.degreesToRadians(0)));
 
   private static final double AUTO_MAX_SPEED_METERS_PER_SECOND = 3.5;
   private static final double AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED = 10;

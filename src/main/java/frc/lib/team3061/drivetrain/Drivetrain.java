@@ -784,7 +784,6 @@ public class Drivetrain extends SubsystemBase {
                   + inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg);
     }
     
-    
     // Checks the velocity of the swerve module depending on if there is an offset 
 
     if (!isOffset) {
@@ -821,7 +820,6 @@ public class Drivetrain extends SubsystemBase {
       }
     }
   }
-
 
   private Command getSwerveCheckCommand(SwerveCheckTypes type) {
 
@@ -872,38 +870,10 @@ public class Drivetrain extends SubsystemBase {
                     .andThen(
                         Commands.runOnce(
                             () -> {
-                              checkSwerveModule(
-                                  0,
-                                  135,
-                                  1,
-                                  -0.38
-                                      * Math
-                                          .PI , 
-                                  .1);
-                              checkSwerveModule(
-                                  1,
-                                  45,
-                                  1,
-                                  -0.38
-                                      * Math
-                                          .PI ,
-                                  .1);
-                              checkSwerveModule(
-                                  2,
-                                  45,
-                                  1,
-                                  0.38
-                                      * Math
-                                          .PI ,
-                                  .1);
-                              checkSwerveModule(
-                                  3,
-                                  135,
-                                  1,
-                                  0.38
-                                      * Math
-                                          .PI,
-                                  .1);
+                              checkSwerveModule(0, 135, 1, -0.38 * Math.PI, .1);
+                              checkSwerveModule(1, 45, 1, -0.38 * Math.PI, .1);
+                              checkSwerveModule(2, 45, 1, 0.38 * Math.PI, .1);
+                              checkSwerveModule(3, 135, 1, 0.38 * Math.PI, .1);
                             })))
             .withTimeout(1);
       case COUNTERCLOCKWISE:
