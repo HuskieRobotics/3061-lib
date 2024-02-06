@@ -113,12 +113,10 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
 
   // The closed-loop output type to use for the steer motors
   // This affects the PID/FF gains for the steer motors
-  // TorqueCurrentFOC is not currently supported in simulation.
   private static final ClosedLoopOutputType steerClosedLoopOutput = getSteerClosedLoopOutputType();
 
   // The closed-loop output type to use for the drive motors
   // This affects the PID/FF gains for the drive motors
-  // TorqueCurrentFOC is not currently supported in simulation.
   private static final ClosedLoopOutputType driveClosedLoopOutput = getDriveClosedLoopOutputType();
 
   private static final double COUPLE_RATIO = 0.0;
@@ -641,9 +639,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   }
 
   private static ClosedLoopOutputType getSteerClosedLoopOutputType() {
-    if (Constants.getMode() == Constants.Mode.SIM) {
-      return ClosedLoopOutputType.Voltage;
-    } else if (RobotConfig.getInstance().getSwerveSteerControlMode()
+    if (RobotConfig.getInstance().getSwerveSteerControlMode()
         == RobotConfig.SWERVE_CONTROL_MODE.TORQUE_CURRENT_FOC) {
       return ClosedLoopOutputType.TorqueCurrentFOC;
     } else {
@@ -652,9 +648,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   }
 
   private static ClosedLoopOutputType getDriveClosedLoopOutputType() {
-    if (Constants.getMode() == Constants.Mode.SIM) {
-      return ClosedLoopOutputType.Voltage;
-    } else if (RobotConfig.getInstance().getSwerveDriveControlMode()
+    if (RobotConfig.getInstance().getSwerveDriveControlMode()
         == RobotConfig.SWERVE_CONTROL_MODE.TORQUE_CURRENT_FOC) {
       return ClosedLoopOutputType.TorqueCurrentFOC;
     } else {

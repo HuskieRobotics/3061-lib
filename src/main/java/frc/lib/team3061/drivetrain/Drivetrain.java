@@ -737,7 +737,7 @@ public class Drivetrain extends SubsystemBase {
   }
 
   /*
-   * Checks the swerve module to see if its velocity and rotation are moving as expected 
+   * Checks the swerve module to see if its velocity and rotation are moving as expected
    * @param swerveModuleNumber the swerve module number to check
    */
 
@@ -748,7 +748,7 @@ public class Drivetrain extends SubsystemBase {
       double velocityTarget,
       double velocityTolerance) {
 
-      Boolean isOffset = false;
+    Boolean isOffset = false;
 
     // Check to see if the direction is rotated properly
     // steerAbsolutePositionDeg is a value that is between (-180, 180]
@@ -758,7 +758,7 @@ public class Drivetrain extends SubsystemBase {
         && this.inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg
             < angleTarget + angleTolerance) {
     }
-   
+
     // check if angle is in threshold +- 180
     else if (this.inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg
             > angleTarget - angleTolerance - 180
@@ -783,8 +783,8 @@ public class Drivetrain extends SubsystemBase {
                   + " is: "
                   + inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg);
     }
-    
-    // Checks the velocity of the swerve module depending on if there is an offset 
+
+    // Checks the velocity of the swerve module depending on if there is an offset
 
     if (!isOffset) {
       if (inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec
@@ -802,7 +802,7 @@ public class Drivetrain extends SubsystemBase {
                     + " is: "
                     + inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec);
       }
-    } else {  // if there is an offset, check the velocity in the opposite direction
+    } else { // if there is an offset, check the velocity in the opposite direction
       if (inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec
               < -(velocityTarget - velocityTolerance)
           && inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec
