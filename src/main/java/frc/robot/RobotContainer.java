@@ -152,10 +152,10 @@ public class RobotContainer {
         config = new DefaultRobotConfig();
         break;
       case ROBOT_2023_NOVA_CTRE:
-      case ROBOT_SIMBOT_CTRE:
         config = new NovaCTRERobotConfig();
         break;
       case ROBOT_2023_NOVA_CTRE_FOC:
+      case ROBOT_SIMBOT_CTRE:
         config = new NovaCTRETCFRobotConfig();
         break;
       case ROBOT_2023_NOVA:

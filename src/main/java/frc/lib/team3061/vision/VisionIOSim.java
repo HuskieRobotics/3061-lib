@@ -46,9 +46,11 @@ public class VisionIOSim implements VisionIO {
    */
   public VisionIOSim(
       AprilTagFieldLayout layout, Supplier<Pose2d> poseSupplier, Transform3d robotToCamera) {
+    // the higher-level subsystem code handles the robot to camera transform; we rely on
+    // PhotonVision just to determine the pose of the camera.
     this.photonEstimator =
         new PhotonPoseEstimator(
-            layout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, camera, robotToCamera);
+            layout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, camera, new Transform3d());
     this.poseSupplier = poseSupplier;
 
     this.visionSim = new VisionSystemSim(CAMERA_NAME);
