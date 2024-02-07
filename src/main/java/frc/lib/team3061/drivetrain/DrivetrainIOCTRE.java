@@ -121,7 +121,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
 
   private static final double COUPLE_RATIO = 0.0;
   private static final double STEER_INERTIA = 0.00001;
-  private static final double DRIVE_INERTIA = 0.001;
+  private static final double DRIVE_INERTIA = 0.01;
 
   private static final SwerveDrivetrainConstants drivetrainConstants =
       new SwerveDrivetrainConstants()
