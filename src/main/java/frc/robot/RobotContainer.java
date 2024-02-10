@@ -481,6 +481,14 @@ public class RobotContainer {
     Command fiveNoteCommand3 = new PathPlannerAuto("5.1 Amp Side 2");
     autoChooser.addOption("5.1 Amp Side 2", fiveNoteCommand3);
 
+     /************ 6 Note ************
+     *
+     * used for testing the 6 note autonomous (Still Testing)
+     *
+     */
+     Command sixNoteCommand1 = new PathPlannerAuto("6 Note Test Amp Side");
+    autoChooser.addOption("6 Note Test Amp Side", sixNoteCommand1);
+
     /************ Drive Velocity Tuning ************
      *
      * useful for tuning the drive velocity PID controller

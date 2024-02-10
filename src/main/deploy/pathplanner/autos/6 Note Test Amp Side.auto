@@ -1,0 +1,49 @@
+{
+  "version": 1.0,
+  "startingPose": {
+    "position": {
+      "x": 1.290597959227301,
+      "y": 6.206743369264199
+    },
+    "rotation": -154.23067237566136
+  },
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "6 Note Amp Start-1"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "6 Note Amp 1-S"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "6 Note Amp S-2"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "6 Note Amp Side 2-3"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "6 Note Amp Side 4-5"
+          }
+        }
+      ]
+    }
+  },
+  "folder": null,
+  "choreoAuto": false
+}
