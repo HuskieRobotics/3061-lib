@@ -581,7 +581,7 @@ public class RobotContainer {
     oi.getTurboButton().onFalse(Commands.runOnce(drivetrain::disableTurbo, drivetrain));
 
     // noise test
-    oi.getTestNoise().onTrue(Commands.runOnce(() -> drivetrain.setMode(DriveMode.SOUND)));
+    oi.getTestNoise().onTrue(Commands.runOnce(() -> drivetrain.playSounds(1000)));
     oi.getTestNoise().onFalse(Commands.runOnce(() -> drivetrain.setMode(DriveMode.NORMAL)));
   }
 

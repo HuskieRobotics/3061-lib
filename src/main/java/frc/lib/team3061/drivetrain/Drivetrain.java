@@ -905,24 +905,20 @@ public class Drivetrain extends SubsystemBase {
 
             // Tests for gyro clockwise
             Commands.parallel(
-                Commands.run(
-                    () -> {
-                      io.driveRobotRelative(0, 0, 1, false);
-                    }),
-                Commands.waitSeconds(1)
-                    .andThen(
-                        Commands.runOnce(
-                            () -> {
-                              checkSwerveModule(0, 3);
-                              checkSwerveModule(3, 3);
-                              checkSwerveModule(1, 4);
-                              checkSwerveModule(2, 4);
-                            })))
-            // Commands.run(() -> io.playSounds(1000))
-
-            )
-        .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
-        .andThen(Commands.runOnce(() -> this.drive(0, 0, 0, true, false)));
+                  Commands.run(
+                      () -> {
+                        io.driveRobotRelative(0, 0, 1, false);
+                      }),
+                  Commands.waitSeconds(1)
+                      .andThen(
+                          Commands.runOnce(
+                              () -> {
+                                getGyroCheckCommand();
+                              }))),
+              Commands.run(() -> io.playSounds(1000)));
+              
+        // .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
+        // .andThen(Commands.runOnce(() -> this.drive(0, 0, 0, true, false)));
   }
 
   /*

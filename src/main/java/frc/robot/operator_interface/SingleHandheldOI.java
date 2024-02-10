@@ -60,4 +60,9 @@ public class SingleHandheldOI implements OperatorInterface {
     // vision is always enabled with Xbox as there is no switch to disable
     return new Trigger(() -> true);
   }
+
+  @Override
+  public Trigger getPlaySoundButton() {
+    return new Trigger(controller::getAButton);
+  }
 }
