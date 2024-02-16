@@ -1,7 +1,6 @@
 package frc.lib.team3061.vision;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFieldLayout.OriginPosition;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -26,14 +25,17 @@ public class VisionIOSim implements VisionIO {
   private static final double DIAGONAL_FOV = 160; // FOV in degrees
   private static final int IMG_WIDTH = 1280; // image width in px
   private static final int IMG_HEIGHT = 960; // image heigh in px
+  private static final int EXPIRATION_COUNT = 5;
+
   private final PhotonCamera camera = new PhotonCamera(CAMERA_NAME);
   private final PhotonPoseEstimator photonEstimator;
+  private final boolean[] tagsSeen;
   private double lastTimestamp = 0;
+  private int cyclesWithNoResults = 0;
 
   private Supplier<Pose2d> poseSupplier;
   private VisionSystemSim visionSim;
   private PhotonCameraSim cameraSim;
-  private AprilTagFieldLayout layout;
 
   /**
    * Creates a new VisionIOSim object.
@@ -47,7 +49,6 @@ public class VisionIOSim implements VisionIO {
     this.photonEstimator =
         new PhotonPoseEstimator(
             layout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, camera, robotToCamera);
-    this.layout = layout;
     this.poseSupplier = poseSupplier;
 
     this.visionSim = new VisionSystemSim(CAMERA_NAME);
@@ -64,8 +65,8 @@ public class VisionIOSim implements VisionIO {
     visionSim.addCamera(cameraSim, robotToCamera);
     cameraSim.enableDrawWireframe(true);
 
-    // default to the blue alliance; can be changed by invoking the setLayoutOrigin method
-    layout.setOrigin(OriginPosition.kBlueAllianceWallRightSide);
+    // the index of the array corresponds to the tag ID; so, add one since there is no tag ID 0
+    this.tagsSeen = new boolean[layout.getTags().size() + 1];
   }
 
   /**
@@ -80,34 +81,33 @@ public class VisionIOSim implements VisionIO {
     Optional<EstimatedRobotPose> visionEstimate = this.photonEstimator.update();
     double latestTimestamp = camera.getLatestResult().getTimestampSeconds();
 
-    boolean newResult = Math.abs(latestTimestamp - lastTimestamp) > 1e-5;
+    this.cyclesWithNoResults += 1;
+
+    boolean newResult = Math.abs(latestTimestamp - this.lastTimestamp) > 1e-5;
     if (newResult) {
       visionEstimate.ifPresent(
           estimate -> {
-            inputs.estimatedRobotPose = estimate.estimatedPose;
-            inputs.estimatedRobotPoseTimestamp = estimate.timestampSeconds;
-            int[] tags = new int[estimate.targetsUsed.size()];
-            for (int i = 0; i < estimate.targetsUsed.size(); i++) {
-              tags[i] = estimate.targetsUsed.get(i).getFiducialId();
+            inputs.estimatedCameraPose = estimate.estimatedPose;
+            inputs.estimatedCameraPoseTimestamp = estimate.timestampSeconds;
+            for (int i = 0; i < this.tagsSeen.length; i++) {
+              this.tagsSeen[i] = false;
             }
-            inputs.estimatedRobotPoseTags = tags;
+            for (int i = 0; i < estimate.targetsUsed.size(); i++) {
+              this.tagsSeen[estimate.targetsUsed.get(i).getFiducialId()] = true;
+            }
+            inputs.tagsSeen = this.tagsSeen;
             inputs.lastCameraTimestamp = latestTimestamp;
-            lastTimestamp = latestTimestamp;
+            this.lastTimestamp = latestTimestamp;
+            this.cyclesWithNoResults = 0;
           });
     }
-  }
 
-  /**
-   * Sets the origin position of the AprilTag field layout and updates the simulated vision targets
-   * based on the new origin.
-   *
-   * @param origin the origin position of the AprilTag field layout
-   */
-  @Override
-  public void setLayoutOrigin(OriginPosition origin) {
-    layout.setOrigin(origin);
-
-    this.visionSim.clearVisionTargets();
-    this.visionSim.addAprilTags(layout);
+    // if no tags have been seen for the specified number of cycles, clear the array
+    if (this.cyclesWithNoResults == EXPIRATION_COUNT) {
+      for (int i = 0; i < this.tagsSeen.length; i++) {
+        this.tagsSeen[i] = false;
+      }
+      inputs.tagsSeen = this.tagsSeen;
+    }
   }
 }

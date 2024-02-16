@@ -11,7 +11,7 @@ import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
  * Refer to the README for how to represent your robot's configuration. For more information on
  * these methods, refer to the documentation in the RobotConfig class.
  */
-public class NovaCTRERobotConfig extends RobotConfig {
+public class NovaCTRETCFRobotConfig extends RobotConfig {
 
   private static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 13;
   private static final int FRONT_LEFT_MODULE_STEER_MOTOR = 12;
@@ -52,13 +52,13 @@ public class NovaCTRERobotConfig extends RobotConfig {
   private static final double ANGLE_KA = 0.001663333333;
 
   /* Drive Motor PID Values */
-  private static final double DRIVE_KP = 0.3;
+  private static final double DRIVE_KP = 8.0;
   private static final double DRIVE_KI = 0.0;
   private static final double DRIVE_KD = 0.0;
 
-  private static final double DRIVE_KS = 0.4004375;
-  private static final double DRIVE_KV = 2.7637325;
-  private static final double DRIVE_KA = 0.0139575;
+  private static final double DRIVE_KS = 5.0;
+  private static final double DRIVE_KV = 0.0;
+  private static final double DRIVE_KA = 0.0;
 
   private static final double MAX_VELOCITY_METERS_PER_SECOND = 3.5;
   private static final double MAX_COAST_VELOCITY_METERS_PER_SECOND = 0.05;
@@ -67,7 +67,7 @@ public class NovaCTRERobotConfig extends RobotConfig {
   private static final double MAX_DRIVE_ACCELERATION_METERS_PER_SECOND_SQUARED = 11.365;
   private static final double MAX_TURN_ACCELERATION_RADIANS_PER_SECOND_SQUARED = 36.0;
 
-  private static final String CAN_BUS_NAME = "";
+  private static final String CAN_BUS_NAME = "canbus1";
 
   private static final String CAMERA_NAME_0 = "OV2311";
 
@@ -110,7 +110,7 @@ public class NovaCTRERobotConfig extends RobotConfig {
   private static final double SQUARING_SPEED_METERS_PER_SECOND = 1.0;
 
   // Drive Facing Angle constants
-  private static final double DRIVE_FACING_ANGLE_KP = 7.0;
+  private static final double DRIVE_FACING_ANGLE_KP = 6.0;
   private static final double DRIVE_FACING_ANGLE_KD = 0.1;
   private static final double DRIVE_FACING_ANGLE_KI = 0.0;
 
@@ -173,9 +173,7 @@ public class NovaCTRERobotConfig extends RobotConfig {
 
   @Override
   public double getDriveKV() {
-    return DRIVE_KV
-        / (getSwerveConstants().getDriveGearRatio()
-            / (getWheelDiameterMeters() * Math.PI)); // convert from V/(m/s) to V/(rotations/s)
+    return DRIVE_KV;
   }
 
   @Override
@@ -442,6 +440,6 @@ public class NovaCTRERobotConfig extends RobotConfig {
 
   @Override
   public SWERVE_CONTROL_MODE getSwerveDriveControlMode() {
-    return SWERVE_CONTROL_MODE.VOLTAGE;
+    return SWERVE_CONTROL_MODE.TORQUE_CURRENT_FOC;
   }
 }

@@ -1,6 +1,5 @@
 package frc.lib.team3061.vision;
 
-import edu.wpi.first.apriltag.AprilTagFieldLayout.OriginPosition;
 import edu.wpi.first.math.geometry.Pose3d;
 import org.littletonrobotics.junction.AutoLog;
 
@@ -15,9 +14,9 @@ import org.littletonrobotics.junction.AutoLog;
 public interface VisionIO {
   @AutoLog
   public static class VisionIOInputs {
-    Pose3d estimatedRobotPose = new Pose3d();
-    double estimatedRobotPoseTimestamp = 0.0;
-    int[] estimatedRobotPoseTags = new int[] {};
+    Pose3d estimatedCameraPose = new Pose3d();
+    double estimatedCameraPoseTimestamp = 0.0;
+    boolean[] tagsSeen = new boolean[] {};
     double lastCameraTimestamp = 0.0;
   }
 
@@ -27,11 +26,4 @@ public interface VisionIO {
    * @param inputs the inputs to update
    */
   public default void updateInputs(VisionIOInputs inputs) {}
-
-  /**
-   * Sets the origin of the AprilTag field layout. This is invoked once the alliance color is known.
-   *
-   * @param origin the origin of the AprilTag field layout
-   */
-  public default void setLayoutOrigin(OriginPosition origin) {}
 }

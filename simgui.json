@@ -12,5 +12,8 @@
       "/SmartDashboard/SystemStatus/SwerveModule3/SystemCheck": "Command",
       "/SmartDashboard/VisionSystemSim-simCamera/Sim Field": "Field2d"
     }
+  },
+  "NetworkTables Info": {
+    "visible": true
   }
 }

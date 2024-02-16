@@ -18,6 +18,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
@@ -27,6 +28,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.DrivetrainIO.SwerveIOInputs;
+import frc.lib.team3061.leds.LEDs;
 import frc.lib.team6328.util.Alert;
 import frc.lib.team6328.util.Alert.AlertType;
 import frc.lib.team6328.util.TunableNumber;
@@ -76,6 +78,7 @@ public class Drivetrain extends SubsystemBase {
   private boolean brakeMode;
   private Timer brakeModeTimer = new Timer();
   private static final double BREAK_MODE_DELAY_SEC = 10.0;
+  private static final double LEDS_FALLEN_ANGLE_DEGREES = 60.0; // Threshold to detect falls
 
   private DriveMode driveMode = DriveMode.NORMAL;
 
@@ -88,6 +91,8 @@ public class Drivetrain extends SubsystemBase {
 
   private ChassisSpeeds prevSpeeds = new ChassisSpeeds();
   private double[] prevSteerVelocitiesRevPerMin = new double[4];
+
+  private DriverStation.Alliance alliance = DriverStation.Alliance.Blue;
 
   /**
    * Creates a new Drivetrain subsystem.
@@ -146,7 +151,7 @@ public class Drivetrain extends SubsystemBase {
             new ReplanningConfig() // Default path replanning config. See the API for the options
             // here
             ),
-        () -> false,
+        this::shouldFlipAutoPath,
         this // Reference to this subsystem to set requirements
         );
   }
@@ -302,9 +307,10 @@ public class Drivetrain extends SubsystemBase {
    * rotational directions. The velocities may be specified from either the robot's frame of
    * reference of the field's frame of reference. In the robot's frame of reference, the positive x
    * direction is forward; the positive y direction, left; position rotation, CCW. In the field
-   * frame of reference, the origin of the field to the lower left corner (i.e., the corner of the
-   * field to the driver's right). Zero degrees is away from the driver and increases in the CCW
-   * direction.
+   * frame of reference, the positive x direction is away from the driver and the positive y
+   * direction is to the driver's left. This method accounts for the fact that the origin of the
+   * field is always the corner to the right of the blue alliance driver station. A positive
+   * rotational velocity always rotates the robot in the CCW direction.
    *
    * <p>If the translation or rotation slow mode features are enabled, the corresponding velocities
    * will be scaled to enable finer control.
@@ -347,13 +353,55 @@ public class Drivetrain extends SubsystemBase {
       }
 
       if (isFieldRelative) {
-        this.io.driveFieldRelative(xVelocity, yVelocity, rotationalVelocity, isOpenLoop);
+        // the origin of the field is always the corner to the right of the blue alliance driver
+        // station. As a result, "forward" from a field-relative perspective when on the red
+        // alliance, is in the negative x direction. Similarly, "left" from a field-relative
+        // perspective when on the red alliance is in the negative y direction.
+        int allianceMultiplier = this.alliance == Alliance.Blue ? 1 : -1;
+        this.io.driveFieldRelative(
+            allianceMultiplier * xVelocity,
+            allianceMultiplier * yVelocity,
+            rotationalVelocity,
+            isOpenLoop);
       } else {
         this.io.driveRobotRelative(xVelocity, yVelocity, rotationalVelocity, isOpenLoop);
       }
     } else {
       this.io.holdXStance();
     }
+  }
+
+  /**
+   * Controls the drivetrain to move the robot with the desired velocities in the x and y
+   * directions, while keeping the robot aligned to the specified target rotation. The velocities
+   * must be specified from the field's frame of reference as field relative mode is assumed. In the
+   * field frame of reference, the origin of the field to the lower left corner (i.e., the corner of
+   * the field to the driver's right). Zero degrees is away from the driver and increases in the CCW
+   * direction.
+   *
+   * <p>If the translation slow mode feature is enabled, the corresponding velocities will be scaled
+   * to enable finer control.
+   *
+   * @param xVelocity the desired velocity in the x direction (m/s)
+   * @param yVelocity the desired velocity in the y direction (m/s)
+   * @param targetDirection the desired direction of the robot's orientation. Zero degrees is away
+   *     from the driver and increases in the CCW direction.
+   * @param isOpenLoop true for open-loop control; false for closed-loop control
+   */
+  public void driveFacingAngle(
+      double xVelocity, double yVelocity, Rotation2d targetDirection, boolean isOpenLoop) {
+
+    // get the slow-mode multiplier from the config
+    double slowModeMultiplier = RobotConfig.getInstance().getRobotSlowModeMultiplier();
+
+    // if translation or rotation is in slow mode, multiply the x and y velocities by the
+    // slow-mode multiplier
+    if (isTranslationSlowMode) {
+      xVelocity *= slowModeMultiplier;
+      yVelocity *= slowModeMultiplier;
+    }
+
+    this.io.driveFieldRelativeFacingAngle(xVelocity, yVelocity, targetDirection, isOpenLoop);
   }
 
   /**
@@ -402,6 +450,12 @@ public class Drivetrain extends SubsystemBase {
     Logger.processInputs(SUBSYSTEM_NAME + "/FR", this.inputs.swerve[1]);
     Logger.processInputs(SUBSYSTEM_NAME + "/BL", this.inputs.swerve[2]);
     Logger.processInputs(SUBSYSTEM_NAME + "/BR", this.inputs.swerve[3]);
+
+    // Check for fallen robot
+    LEDs.getInstance()
+        .setFallen(
+            Math.abs(this.inputs.gyro.pitchDeg) > LEDS_FALLEN_ANGLE_DEGREES
+                || Math.abs(this.inputs.gyro.rollDeg) > LEDS_FALLEN_ANGLE_DEGREES);
 
     // update the brake mode based on the robot's velocity and state (enabled/disabled)
     updateBrakeMode();
@@ -666,10 +720,240 @@ public class Drivetrain extends SubsystemBase {
     return this.isMoveToPoseEnabled;
   }
 
-  private Command getSystemCheckCommand() {
-    return Commands.sequence(Commands.sequence(Commands.waitSeconds(0.25)))
+  // method to convert swerve module number to location
+  private String getSwerveLocation(int swerveModuleNumber) {
+    switch (swerveModuleNumber) {
+      case 0:
+        return "FL";
+      case 1:
+        return "FR";
+      case 2:
+        return "BL";
+      case 3:
+        return "BR";
+      default:
+        return "UNKNOWN";
+    }
+  }
+
+  /*
+   * Checks the swerve module to see if its velocity and rotation are moving as expected 
+   * @param swerveModuleNumber the swerve module number to check
+   */
+
+  private void checkSwerveModule(
+      int swerveModuleNumber,
+      double angleTarget,
+      double angleTolerance,
+      double velocityTarget,
+      double velocityTolerance) {
+
+      Boolean isOffset = false;
+
+    // Check to see if the direction is rotated properly
+    // steerAbsolutePositionDeg is a value that is between (-180, 180]
+
+    if (this.inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg
+            > angleTarget - angleTolerance
+        && this.inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg
+            < angleTarget + angleTolerance) {
+    }
+   
+    // check if angle is in threshold +- 180
+    else if (this.inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg
+            > angleTarget - angleTolerance - 180
+        && this.inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg
+            < angleTarget + angleTolerance - 180) {
+      isOffset = true;
+    } else if (this.inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg
+            > angleTarget - angleTolerance + 180
+        && this.inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg
+            < angleTarget + angleTolerance + 180) {
+      isOffset = true;
+    }
+    // if not, add fault
+    else {
+      FaultReporter.getInstance()
+          .addFault(
+              SUBSYSTEM_NAME,
+              "[System Check] Swerve module "
+                  + getSwerveLocation(swerveModuleNumber)
+                  + " not rotating in the threshold as expected. Should be: "
+                  + angleTarget
+                  + " is: "
+                  + inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg);
+    }
+    
+    // Checks the velocity of the swerve module depending on if there is an offset 
+
+    if (!isOffset) {
+      if (inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec
+              > velocityTarget - velocityTolerance
+          && inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec
+              < velocityTarget + velocityTolerance) {
+      } else {
+        FaultReporter.getInstance()
+            .addFault(
+                SUBSYSTEM_NAME,
+                "[System Check] Swerve module "
+                    + getSwerveLocation(swerveModuleNumber)
+                    + " not moving as fast as expected. Should be: "
+                    + velocityTarget
+                    + " is: "
+                    + inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec);
+      }
+    } else {  // if there is an offset, check the velocity in the opposite direction
+      if (inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec
+              < -(velocityTarget - velocityTolerance)
+          && inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec
+              > -(velocityTarget + velocityTolerance)) {
+      } else {
+        FaultReporter.getInstance()
+            .addFault(
+                SUBSYSTEM_NAME,
+                "[System Check] Swerve module "
+                    + getSwerveLocation(swerveModuleNumber)
+                    + " not moving as fast as expected. REVERSED Should be: "
+                    + velocityTarget
+                    + " is: "
+                    + inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec);
+      }
+    }
+  }
+
+  private Command getSwerveCheckCommand(SwerveCheckTypes type) {
+
+    double xVelocity;
+    double yVelocity;
+    double rotationalVelocity;
+
+    double angleTarget;
+    double velocityTarget;
+
+    switch (type) {
+      case LEFT:
+        xVelocity = 0;
+        yVelocity = 1;
+        rotationalVelocity = 0;
+        velocityTarget = 1;
+        angleTarget = 90;
+        break;
+      case RIGHT:
+        xVelocity = 0;
+        yVelocity = -1;
+        rotationalVelocity = 0;
+        velocityTarget = -1;
+        angleTarget = 90;
+        break;
+      case FORWARD:
+        xVelocity = 1;
+        yVelocity = 0;
+        rotationalVelocity = 0;
+        velocityTarget = 1;
+        angleTarget = 0;
+        break;
+      case BACKWARD:
+        xVelocity = -1;
+        yVelocity = 0;
+        rotationalVelocity = 0;
+        velocityTarget = -1;
+        angleTarget = 0;
+        break;
+      case CLOCKWISE:
+        return Commands.parallel(
+                Commands.run(
+                    () -> {
+                      this.drive(0, 0, -Math.PI, false, false);
+                    },
+                    this),
+                Commands.waitSeconds(1)
+                    .andThen(
+                        Commands.runOnce(
+                            () -> {
+                              checkSwerveModule(0, 135, 1, -0.38 * Math.PI, .1);
+                              checkSwerveModule(1, 45, 1, -0.38 * Math.PI, .1);
+                              checkSwerveModule(2, 45, 1, 0.38 * Math.PI, .1);
+                              checkSwerveModule(3, 135, 1, 0.38 * Math.PI, .1);
+                            })))
+            .withTimeout(1);
+      case COUNTERCLOCKWISE:
+        return Commands.parallel(
+                Commands.run(
+                    () -> {
+                      this.drive(0, 0, Math.PI, false, false);
+                    },
+                    this),
+                Commands.waitSeconds(1)
+                    .andThen(
+                        Commands.runOnce(
+                            () -> {
+                              checkSwerveModule(0, 135, 1, .38 * Math.PI, .1);
+                              checkSwerveModule(1, 45, 1, .38 * Math.PI, .1);
+                              checkSwerveModule(2, 45, 1, -.38 * Math.PI, .1);
+                              checkSwerveModule(3, 135, 1, -.38 * Math.PI, .1);
+                            })))
+            .withTimeout(1);
+      default:
+        xVelocity = 0;
+        yVelocity = 0;
+        rotationalVelocity = 0;
+        angleTarget = 0;
+        velocityTarget = 0;
+        break;
+    }
+
+    return Commands.parallel(
+            Commands.run(
+                () -> {
+                  this.drive(xVelocity, yVelocity, rotationalVelocity, false, false);
+                },
+                this),
+            Commands.waitSeconds(1)
+                .andThen(
+                    Commands.runOnce(
+                        () -> {
+                          for (int i = 0; i < this.inputs.swerve.length; i++) {
+                            checkSwerveModule(i, angleTarget, 1, velocityTarget, 0.1);
+                          }
+                        })))
+        .withTimeout(2);
+  }
+
+  /**
+   * This method should be invoked once the alliance color is known. Refer to the RobotContainer's
+   * checkAllianceColor method for best practices on when to check the alliance's color. The
+   * alliance color is needed when running auto paths as those paths are always defined for
+   * blue-alliance robots and need to be flipped for red-alliance robots.
+   *
+   * @param newAlliance the new alliance color
+   */
+  public void updateAlliance(DriverStation.Alliance newAlliance) {
+    this.alliance = newAlliance;
+  }
+
+  /**
+   * Returns true if the auto path, which is always defined for a blue alliance robot, should be
+   * flipped to the red alliance side of the field.
+   *
+   * @return true if the auto path should be flipped to the red alliance side of the field
+   */
+  public boolean shouldFlipAutoPath() {
+    return this.alliance == Alliance.Red;
+  }
+
+  public Command getSystemCheckCommand() {
+    return Commands.sequence(
+            Commands.runOnce(() -> this.disableFieldRelative(), this),
+            Commands.runOnce(() -> FaultReporter.getInstance().clearFaults(SUBSYSTEM_NAME)),
+            getSwerveCheckCommand(SwerveCheckTypes.LEFT),
+            getSwerveCheckCommand(SwerveCheckTypes.RIGHT),
+            getSwerveCheckCommand(SwerveCheckTypes.FORWARD),
+            getSwerveCheckCommand(SwerveCheckTypes.BACKWARD),
+            getSwerveCheckCommand(SwerveCheckTypes.CLOCKWISE),
+            getSwerveCheckCommand(SwerveCheckTypes.COUNTERCLOCKWISE))
         .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
-        .andThen(Commands.runOnce(() -> drive(0, 0, 0, true, false), this));
+        .andThen(Commands.runOnce(() -> this.drive(0, 0, 0, true, false), this))
+        .withName(SUBSYSTEM_NAME + "SystemCheck");
   }
 
   /**
@@ -705,5 +989,14 @@ public class Drivetrain extends SubsystemBase {
   private enum DriveMode {
     NORMAL,
     X
+  }
+
+  private enum SwerveCheckTypes {
+    LEFT,
+    RIGHT,
+    FORWARD,
+    BACKWARD,
+    CLOCKWISE,
+    COUNTERCLOCKWISE
   }
 }

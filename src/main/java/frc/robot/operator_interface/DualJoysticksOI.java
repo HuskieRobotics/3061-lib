@@ -55,6 +55,11 @@ public class DualJoysticksOI implements OperatorInterface {
   }
 
   @Override
+  public Trigger getLock180Button() {
+    return rotateJoystickButtons[2];
+  }
+
+  @Override
   public Trigger getXStanceButton() {
     return rotateJoystickButtons[4];
   }

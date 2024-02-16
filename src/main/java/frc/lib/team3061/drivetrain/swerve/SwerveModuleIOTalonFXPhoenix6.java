@@ -31,7 +31,6 @@ import edu.wpi.first.wpilibj.simulation.LinearSystemSim;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.DrivetrainIO.SwerveIOInputs;
-import frc.lib.team3061.drivetrain.swerve.SwerveConstants.SwerveType;
 import frc.lib.team6328.util.Alert;
 import frc.lib.team6328.util.Alert.AlertType;
 import frc.lib.team6328.util.TunableNumber;
@@ -46,17 +45,17 @@ import java.util.List;
 public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
 
   private final TunableNumber driveKp =
-      new TunableNumber("Drive/DriveKp", RobotConfig.getInstance().getSwerveDriveKP());
+      new TunableNumber("Drivetrain/DriveKp", RobotConfig.getInstance().getSwerveDriveKP());
   private final TunableNumber driveKi =
-      new TunableNumber("Drive/DriveKi", RobotConfig.getInstance().getSwerveDriveKI());
+      new TunableNumber("Drivetrain/DriveKi", RobotConfig.getInstance().getSwerveDriveKI());
   private final TunableNumber driveKd =
-      new TunableNumber("Drive/DriveKd", RobotConfig.getInstance().getSwerveDriveKD());
+      new TunableNumber("Drivetrain/DriveKd", RobotConfig.getInstance().getSwerveDriveKD());
   private final TunableNumber turnKp =
-      new TunableNumber("Drive/TurnKp", RobotConfig.getInstance().getSwerveAngleKP());
+      new TunableNumber("Drivetrain/TurnKp", RobotConfig.getInstance().getSwerveAngleKP());
   private final TunableNumber turnKi =
-      new TunableNumber("Drive/TurnKi", RobotConfig.getInstance().getSwerveAngleKI());
+      new TunableNumber("Drivetrain/TurnKi", RobotConfig.getInstance().getSwerveAngleKI());
   private final TunableNumber turnKd =
-      new TunableNumber("Drive/TurnKd", RobotConfig.getInstance().getSwerveAngleKD());
+      new TunableNumber("Drivetrain/TurnKd", RobotConfig.getInstance().getSwerveAngleKD());
 
   private final double wheelCircumference;
   private final double driveGearRatio;
@@ -113,24 +112,13 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
       int moduleNumber, int driveMotorID, int angleMotorID, int canCoderID, double angleOffsetRot) {
 
     this.angleOffsetRot = angleOffsetRot;
-
-    if (RobotConfig.getInstance().getSwerveType() == SwerveType.MK4) {
-
-      wheelCircumference = MK4_L2_WHEEL_CIRCUMFERENCE;
-      driveGearRatio = MK4_L2_DRIVE_GEAR_RATIO;
-      driveMotorInverted = MK4_L2_DRIVE_MOTOR_INVERTED;
-      angleGearRatio = MK4_L2_ANGLE_GEAR_RATIO;
-      angleMotorInverted = MK4_L2_ANGLE_MOTOR_INVERTED;
-      canCoderInverted = MK4_L2_CAN_CODER_INVERTED;
-    } else { // MK4I
-
-      wheelCircumference = MK4I_L2_WHEEL_CIRCUMFERENCE;
-      driveGearRatio = MK4I_L2_DRIVE_GEAR_RATIO;
-      driveMotorInverted = MK4I_L2_DRIVE_MOTOR_INVERTED;
-      angleGearRatio = MK4I_L2_ANGLE_GEAR_RATIO;
-      angleMotorInverted = MK4I_L2_ANGLE_MOTOR_INVERTED;
-      canCoderInverted = MK4I_L2_CAN_CODER_INVERTED;
-    }
+    SwerveConstants swerveConstants = RobotConfig.getInstance().getSwerveConstants();
+    wheelCircumference = RobotConfig.getInstance().getWheelDiameterMeters() * Math.PI;
+    driveGearRatio = swerveConstants.getDriveGearRatio();
+    driveMotorInverted = swerveConstants.isDriveMotorInverted();
+    angleGearRatio = swerveConstants.getAngleGearRatio();
+    angleMotorInverted = swerveConstants.isAngleMotorInverted();
+    canCoderInverted = swerveConstants.isCanCoderInverted();
 
     configAngleEncoder(canCoderID);
     configAngleMotor(angleMotorID, canCoderID);
