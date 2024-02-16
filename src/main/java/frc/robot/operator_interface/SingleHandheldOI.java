@@ -31,6 +31,11 @@ public class SingleHandheldOI implements OperatorInterface {
   }
 
   @Override
+  public Trigger getKickerButton() {
+    return new Trigger(controller::getAButton);
+  }
+
+  @Override
   public Trigger getFieldRelativeButton() {
     return new Trigger(controller::getBButton);
   }

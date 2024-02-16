@@ -2,8 +2,7 @@ package frc.robot.subsystems.shooter;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionVoltage;
-import com.ctre.phoenix6.controls.TorqueCurrentFOC;
-import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.TalonFX;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.swerve.Conversions;
@@ -12,11 +11,12 @@ import frc.lib.team6328.util.Alert.AlertType;
 import frc.robot.subsystems.shooter.ShooterIO.ShooterIOInputs;
 
 public class ShooterIOTalonFX implements ShooterIO {
-  private TalonFX rightMotor;
-  private TalonFX leftMotor;
+  private TalonFX shootMotorTop;
+  private TalonFX shootMotorBottom;
+  private TalonFX kickerMotor;
 
-  private VoltageOut voltageRequest;
-  private TorqueCurrentFOC currentRequest;
+  private VelocityTorqueCurrentFOC velocityRequest;
+  private VelocityTorqueCurrentFOC velocityRequestKicker;
   private PositionVoltage positionRequest;
 
   private Alert configAlert =
@@ -24,7 +24,7 @@ public class ShooterIOTalonFX implements ShooterIO {
 
   /** Create a TalonFX-specific generic SubsystemIO */
   public ShooterIOTalonFX() {
-    configMotor(ShooterConstants.RIGHT_MOTOR_CAN_ID, ShooterConstants.LEFT_MOTOR_CAN_ID);
+    configMotor(ShooterConstants.RIGHT_MOTOR_CAN_ID, ShooterConstants.LEFT_MOTOR_CAN_ID, ShooterConstants.KICKER_MOTOR_CAN_ID);
   }
 
   /**
@@ -34,7 +34,7 @@ public class ShooterIOTalonFX implements ShooterIO {
    */
   @Override
   public void updateInputs(ShooterIOInputs inputs) {
-    inputs.appliedVoltage = rightMotor.getMotorVoltage().getValueAsDouble();
+    inputs.appliedVelocity = shootMotorTop.getMotorVoltage().getValueAsDouble();
   }
 
   /**
@@ -51,36 +51,43 @@ public class ShooterIOTalonFX implements ShooterIO {
             .withFeedForward(arbitraryFeedForward));
   }
 
-  public void setAppliedVoltage(double volts) {
-    rightMotor.setControl(voltageRequest.withOutput(volts));
+  public void setVelocity(double velocity) {
+    shootMotorTop.setControl(velocityRequest.withVelocity(velocity));
   }
 
-  public void setRightMotor(double volts) {
-    rightMotor.setControl(voltageRequest.withOutput(volts));
+  public void setKickerMotor(double velocity) {
+    kickerMotor.setControl(velocityRequestKicker.withVelocity(velocity));
   }
 
-  public void setLeftMotor(double volts) {
-    leftMotor.setControl(voltageRequest.withOutput(volts));
+  public void setTopMotor(double velocity) {
+    shootMotorTop.setControl(velocityRequest.withVelocity(velocity));
   }
 
-  private void configMotor(int rightMotorID, int leftMotorID) {
+  public void setBottomMotor(double velocity) {
+    shootMotorBottom.setControl(velocityRequest.withVelocity(velocity));
+  }
 
-    this.rightMotor = new TalonFX(rightMotorID, RobotConfig.getInstance().getCANBusName());
-    this.leftMotor = new TalonFX(leftMotorID, RobotConfig.getInstance().getCANBusName());
+  private void configMotor(int rightMotorID, int leftMotorID, int kickerMotorID) {
 
-    this.leftMotor.setInverted(true);
-    this.rightMotor.setInverted(true);
+    this.shootMotorTop = new TalonFX(rightMotorID, RobotConfig.getInstance().getCANBusName());
+    this.shootMotorBottom = new TalonFX(leftMotorID, RobotConfig.getInstance().getCANBusName());
+    this.kickerMotor =
+        new TalonFX(
+            ShooterConstants.KICKER_MOTOR_CAN_ID, RobotConfig.getInstance().getCANBusName());
+
+    this.shootMotorBottom.setInverted(true);
+    this.shootMotorTop.setInverted(true);
     // this.leftMotor.setControl(new StrictFollower(ShooterConstants.RIGHT_MOTOR_CAN_ID));
 
-    TalonFXConfiguration config = new TalonFXConfiguration();
+    //TalonFXConfiguration config = new TalonFXConfiguration();
 
-    this.rightMotor.setPosition(0);
-    this.leftMotor.setPosition(0);
+    // this.rightMotor.setPosition(0);
+    // this.leftMotor.setPosition(0);
 
-    this.voltageRequest = new VoltageOut(0.0);
-    // this.voltageRequest.EnableFOC = RobotConfig.getInstance().getPhoenix6Licensed();
-    // this.currentRequest = new TorqueCurrentFOC(0.0);
-    this.positionRequest = new PositionVoltage(0.0).withSlot(0);
-    this.positionRequest.EnableFOC = RobotConfig.getInstance().getPhoenix6Licensed();
+    // this.velocityRequest = new VelocityTorqueCurrentFOC(0.0);
+    // // this.voltageRequest.EnableFOC = RobotConfig.getInstance().getPhoenix6Licensed();
+    // // this.currentRequest = new TorqueCurrentFOC(0.0);
+    // this.positionRequest = new PositionVoltage(0.0).withSlot(0);
+    // this.positionRequest.EnableFOC = RobotConfig.getInstance().getPhoenix6Licensed();
   }
 }

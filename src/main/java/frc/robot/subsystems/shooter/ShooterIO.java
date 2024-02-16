@@ -6,7 +6,7 @@ public interface ShooterIO {
   /** Contains all of the input data received from hardware. */
   @AutoLog
   public static class ShooterIOInputs {
-    double appliedVoltage = 0.0;
+    double appliedVelocity = 0.0;
   }
 
   /** Updates the set of loggable inputs. */
@@ -31,11 +31,13 @@ public interface ShooterIO {
    *
    * @param voltage
    */
-  public default void setAppliedVoltage(double volts) {}
+  public default void setVelocity(double velocity) {}
 
-  public default void setRightMotor(double volts) {}
+  public default void setTopMotor(double velocity) {}
 
-  public default void setLeftMotor(double volts) {}
+  public default void setBottomMotor(double velocity) {}
+
+  public default void setKickerMotor(double velocity) {}
 
   /**
    * Set the motor position to the specified value in degrees.

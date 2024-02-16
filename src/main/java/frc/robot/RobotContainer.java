@@ -34,6 +34,7 @@ import frc.lib.team3061.vision.VisionConstants;
 import frc.lib.team3061.vision.VisionIO;
 import frc.lib.team3061.vision.VisionIOPhotonVision;
 import frc.lib.team3061.vision.VisionIOSim;
+import frc.lib.team6328.util.TunableNumber;
 import frc.robot.Constants.Mode;
 import frc.robot.commands.FeedForwardCharacterization;
 import frc.robot.commands.FeedForwardCharacterization.FeedForwardCharacterizationData;
@@ -46,8 +47,6 @@ import frc.robot.configs.PracticeRobotConfig;
 import frc.robot.operator_interface.OISelector;
 import frc.robot.operator_interface.OperatorInterface;
 import frc.robot.subsystems.shooter.Shooter;
-import frc.robot.subsystems.shooter.ShooterIO;
-import frc.robot.subsystems.shooter.ShooterIOTalonFX;
 import frc.robot.subsystems.subsystem.Subsystem;
 import frc.robot.subsystems.subsystem.SubsystemIO;
 import java.io.IOException;
@@ -82,6 +81,8 @@ public class RobotContainer {
 
   // RobotContainer singleton
   private static RobotContainer robotContainer = new RobotContainer();
+
+  private final TunableNumber kickerTunable = new TunableNumber("Kicker Velocity", 0.0);
 
   /**
    * Create the container for the robot. Contains subsystems, operator interface (OI) devices, and
@@ -320,6 +321,8 @@ public class RobotContainer {
     configureSubsystemCommands();
 
     configureVisionCommands();
+
+    configureTestCommands();
 
     // Endgame alerts
     new Trigger(
@@ -584,6 +587,23 @@ public class RobotContainer {
             Commands.parallel(
                 Commands.runOnce(() -> vision.enable(false), vision),
                 Commands.runOnce(drivetrain::resetPoseRotationToGyro)));
+  }
+
+  private void configureTestCommands() {
+    oi.getKickerButton()
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  shooter.setKickerVelocity(kickerTunable.get());
+                },
+                shooter));
+    oi.getKickerButton()
+        .onFalse(
+            Commands.runOnce(
+                () -> {
+                  shooter.setKickerVelocity(0);
+                },
+                shooter));
   }
 
   /**

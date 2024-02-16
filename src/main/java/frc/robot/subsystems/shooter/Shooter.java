@@ -9,11 +9,10 @@ public class Shooter extends SubsystemBase {
   private ShooterIOInputs inputs;
   private boolean controlBoth = false;
 
-  private TunableNumber appliedVoltsTunable = new TunableNumber("Shooter/AppliedVolts", 0.0);
-  private TunableNumber appliedVoltsRightTunable =
-      new TunableNumber("Shooter/AppliedVoltsRight", 0.0);
-  private TunableNumber appliedVoltsLeftTunable =
-      new TunableNumber("Shooter/AppliedVoltsLeft", 0.0);
+  private TunableNumber velocityTunable = new TunableNumber("Shooter/Velocity", 0.0);
+  private TunableNumber velocityRightTunable = new TunableNumber("Shooter/VelocityTop", 0.0);
+  private TunableNumber velocityLeftTunable = new TunableNumber("Shooter/VelocityBottom", 0.0);
+  private TunableNumber 
 
   public Shooter(ShooterIO io) {
     this.io = io;
@@ -27,23 +26,27 @@ public class Shooter extends SubsystemBase {
   @Override
   public void periodic() {
     if (controlBoth) {
-      this.setAppliedVoltage(appliedVoltsTunable.get());
+      this.setVelocity(velocityTunable.get());
       io.updateInputs(inputs);
     } else {
-      this.setRightMotor(appliedVoltsRightTunable.get());
-      this.setLeftMotor(appliedVoltsLeftTunable.get());
+      this.setRightMotor(velocityRightTunable.get());
+      this.setLeftMotor(velocityLeftTunable.get());
     }
   }
 
-  public void setAppliedVoltage(double volts) {
-    io.setAppliedVoltage(volts);
+  public void setVelocity(double velocity) {
+    io.setVelocity(velocity);
   }
 
-  public void setRightMotor(double volts) {
-    io.setRightMotor(volts);
+  public void setKickerVelocity(double velocity) {
+    io.setKickerMotor(velocity);
   }
 
-  public void setLeftMotor(double volts) {
-    io.setLeftMotor(volts);
+  public void setRightMotor(double velocity) {
+    io.setTopMotor(velocity);
+  }
+
+  public void setLeftMotor(double velocity) {
+    io.setBottomMotor(velocity);
   }
 }
