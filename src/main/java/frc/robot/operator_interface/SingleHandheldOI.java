@@ -62,7 +62,7 @@ public class SingleHandheldOI implements OperatorInterface {
   }
 
   @Override
-  public Trigger getPlaySoundButton() {
+  public Trigger getTestNoise() {
     return new Trigger(controller::getAButton);
   }
 }

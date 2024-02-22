@@ -216,9 +216,8 @@ public class Drivetrain extends SubsystemBase {
 
   /**
    * Returns the yaw of the drivetrain as reported by the gyro in degrees. Usually, the getRotation
-   * method should be invoked instead.
-   * Yaw does not roll over.
-   * 
+   * method should be invoked instead. Yaw does not roll over.
+   *
    * @return the yaw of the drivetrain as reported by the gyro in degrees
    */
   public double getYaw() {
@@ -367,8 +366,6 @@ public class Drivetrain extends SubsystemBase {
       } else {
         this.io.driveRobotRelative(xVelocity, yVelocity, rotationalVelocity, isOpenLoop);
       }
-    } else if (driveMode == DriveMode.SOUND) {
-      io.playSounds(1000);
     } else {
       this.io.holdXStance();
     }
@@ -806,161 +803,162 @@ public class Drivetrain extends SubsystemBase {
   private Command getSystemCheckCommand() {
     disableFieldRelative();
     return Commands.sequence(
-            // Tests for driving to the left
-            Commands.parallel(
-                Commands.run(
-                    () -> {
-                      io.driveRobotRelative(0, 1, 0, false);
-                    }),
-                Commands.waitSeconds(1)
-                    .andThen(
-                        Commands.runOnce(
-                            () -> {
-                              for (int i = 0; i < 4; i++) {
-                                checkSwerveModule(i, 0);
-                              }
-                            }))),
+        // Tests for driving to the left
+        Commands.parallel(
+            Commands.run(
+                () -> {
+                  io.driveRobotRelative(0, 1, 0, false);
+                }),
+            Commands.waitSeconds(1)
+                .andThen(
+                    Commands.runOnce(
+                        () -> {
+                          for (int i = 0; i < 4; i++) {
+                            checkSwerveModule(i, 0);
+                          }
+                        }))),
 
-            // Tests for driving to the right
-            Commands.parallel(
-                Commands.run(
-                    () -> {
-                      io.driveRobotRelative(0, -1, 0, false);
-                    }),
-                Commands.waitSeconds(1)
-                    .andThen(
-                        Commands.runOnce(
-                            () -> {
-                              for (int i = 0; i < 4; i++) {
-                                checkSwerveModule(i, 0);
-                              }
-                            }))),
+        // Tests for driving to the right
+        Commands.parallel(
+            Commands.run(
+                () -> {
+                  io.driveRobotRelative(0, -1, 0, false);
+                }),
+            Commands.waitSeconds(1)
+                .andThen(
+                    Commands.runOnce(
+                        () -> {
+                          for (int i = 0; i < 4; i++) {
+                            checkSwerveModule(i, 0);
+                          }
+                        }))),
 
-            // Tests for driving wheels forwards
-            Commands.parallel(
-                Commands.run(
-                    () -> {
-                      io.driveRobotRelative(1, 0, 0, false);
-                    }),
-                Commands.waitSeconds(1)
-                    .andThen(
-                        Commands.runOnce(
-                            () -> {
-                              for (int i = 0; i < 4; i++) {
-                                checkSwerveModule(i, 1);
-                              }
-                            }))),
+        // Tests for driving wheels forwards
+        Commands.parallel(
+            Commands.run(
+                () -> {
+                  io.driveRobotRelative(1, 0, 0, false);
+                }),
+            Commands.waitSeconds(1)
+                .andThen(
+                    Commands.runOnce(
+                        () -> {
+                          for (int i = 0; i < 4; i++) {
+                            checkSwerveModule(i, 1);
+                          }
+                        }))),
 
-            // Tests for driving wheels backwards
-            Commands.parallel(
-                Commands.run(
-                    () -> {
-                      io.driveRobotRelative(-1, 0, 0, false);
-                    }),
-                Commands.waitSeconds(1)
-                    .andThen(
-                        Commands.runOnce(
-                            () -> {
-                              for (int i = 0; i < 4; i++) {
-                                checkSwerveModule(i, 1);
-                              }
-                            }))),
+        // Tests for driving wheels backwards
+        Commands.parallel(
+            Commands.run(
+                () -> {
+                  io.driveRobotRelative(-1, 0, 0, false);
+                }),
+            Commands.waitSeconds(1)
+                .andThen(
+                    Commands.runOnce(
+                        () -> {
+                          for (int i = 0; i < 4; i++) {
+                            checkSwerveModule(i, 1);
+                          }
+                        }))),
 
-            // Tests for driving wheels clockwise
-            Commands.parallel(
-                Commands.run(
-                    () -> {
-                      io.driveRobotRelative(0, 0, -1, false);
-                    }),
-                Commands.waitSeconds(1)
-                    .andThen(
-                        Commands.runOnce(
-                            () -> {
-                              // We use direction number '3' to check for clockwise rotation on FL
-                              // (0) and BR (4) wheels (they are rotated the same)
-                              // We use direction number '4' to check for clockwise rotation on FR
-                              // (1) and BL (2) wheels (they are also rotated the same)
+        // Tests for driving wheels clockwise
+        Commands.parallel(
+            Commands.run(
+                () -> {
+                  io.driveRobotRelative(0, 0, -1, false);
+                }),
+            Commands.waitSeconds(1)
+                .andThen(
+                    Commands.runOnce(
+                        () -> {
+                          // We use direction number '3' to check for clockwise rotation on FL
+                          // (0) and BR (4) wheels (they are rotated the same)
+                          // We use direction number '4' to check for clockwise rotation on FR
+                          // (1) and BL (2) wheels (they are also rotated the same)
 
-                              checkSwerveModule(0, 3);
-                              checkSwerveModule(3, 3);
-                              checkSwerveModule(1, 4);
-                              checkSwerveModule(2, 4);
-                            }))),
+                          checkSwerveModule(0, 3);
+                          checkSwerveModule(3, 3);
+                          checkSwerveModule(1, 4);
+                          checkSwerveModule(2, 4);
+                        }))),
 
-            // Tests for driving wheels counterclockwise
-            Commands.parallel(
-                Commands.run(
-                    () -> {
-                      io.driveRobotRelative(0, 0, 1, false);
-                    }),
-                Commands.waitSeconds(1)
-                    .andThen(
-                        Commands.runOnce(
-                            () -> {
-                              checkSwerveModule(0, 3);
-                              checkSwerveModule(3, 3);
-                              checkSwerveModule(1, 4);
-                              checkSwerveModule(2, 4);
-                            }))),
+        // Tests for driving wheels counterclockwise
+        Commands.parallel(
+            Commands.run(
+                () -> {
+                  io.driveRobotRelative(0, 0, 1, false);
+                }),
+            Commands.waitSeconds(1)
+                .andThen(
+                    Commands.runOnce(
+                        () -> {
+                          checkSwerveModule(0, 3);
+                          checkSwerveModule(3, 3);
+                          checkSwerveModule(1, 4);
+                          checkSwerveModule(2, 4);
+                        }))),
 
-            // Tests for gyro clockwise
-            Commands.parallel(
-                  Commands.run(
-                      () -> {
-                        io.driveRobotRelative(0, 0, 1, false);
-                      }),
-                  Commands.waitSeconds(1)
-                      .andThen(
-                          Commands.runOnce(
-                              () -> {
-                                getGyroCheckCommand();
-                              }))),
-              Commands.run(() -> io.playSounds(1000)));
-              
-        // .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
-        // .andThen(Commands.runOnce(() -> this.drive(0, 0, 0, true, false)));
+        // Tests for gyro clockwise
+        Commands.parallel(
+            Commands.run(
+                () -> {
+                  io.driveRobotRelative(0, 0, 1, false);
+                }),
+            Commands.waitSeconds(1)
+                .andThen(
+                    Commands.runOnce(
+                        () -> {
+                          getGyroCheckCommand();
+                        }))),
+        Commands.run(() -> io.playSounds(1000)));
+
+    // .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
+    // .andThen(Commands.runOnce(() -> this.drive(0, 0, 0, true, false)));
   }
 
   /*
-   * Plays a sound for .5 seconds
+   * Plays a sound for specified seconds
+   * @param time how long to play the sound
    */
-  private Command playSoundCommand()
-  {
-    return Commands.sequence(Commands.runOnce(() -> {io.playSounds(1000);}),
-        Commands.waitSeconds(.5)
-          .andThen(Commands.runOnce(() -> {
-            io.playSounds(0);
-        })));
+  private Command playSoundCommand(double time) {
+    return Commands.run(() -> io.playSounds(1000), this)
+        .withTimeout(time)
+        .andThen(() -> io.playSounds(0));
   }
 
   // turn robot specified degrees to right, then back to the starting position.
   private Command getGyroCheckCommand() {
     double originalYaw = this.getYaw();
     double angleTarget = 45;
-    
-    return Commands.sequence(
-        playSoundCommand(),
-        Commands.waitUntil(() -> (Math.abs(this.getYaw() - originalYaw) >= angleTarget)).withTimeout(15)
-          .andThen(playSoundCommand()),
-        Commands.either(
-          Commands.none(), 
-          Commands.runOnce(() -> {
-            FaultReporter.getInstance().addFault(SUBSYSTEM_NAME, "Gyro not turning as expected");
-             }), 
-          (() -> (Math.abs(this.getYaw() - originalYaw) >= angleTarget))),
-          
-          playSoundCommand(),
-          Commands.waitUntil(() -> (Math.abs(this.getYaw() - originalYaw) <= 0)).withTimeout(15)
-            .andThen(playSoundCommand()),
-          Commands.either(
-            Commands.none(), 
-            Commands.runOnce(() -> {
-              FaultReporter.getInstance().addFault(SUBSYSTEM_NAME, "Gyro not turning as expected");
-              }), 
-            (() -> (Math.abs(this.getYaw() - originalYaw) <= 0)))
-            );
+    double time = .5;
 
-      
+    return Commands.sequence(
+        playSoundCommand(time),
+        Commands.waitUntil(() -> (Math.abs(this.getYaw() - originalYaw) >= angleTarget))
+            .withTimeout(15)
+            .andThen(playSoundCommand(time)),
+        Commands.either(
+            Commands.none(),
+            Commands.runOnce(
+                () -> {
+                  FaultReporter.getInstance()
+                      .addFault(SUBSYSTEM_NAME, "Gyro not turning as expected");
+                }),
+            (() -> (Math.abs(this.getYaw() - originalYaw) >= angleTarget))),
+        playSoundCommand(time),
+        Commands.waitUntil(() -> (Math.abs(this.getYaw() - originalYaw) <= 0))
+            .withTimeout(15)
+            .andThen(playSoundCommand(time)),
+        Commands.either(
+            Commands.none(),
+            Commands.runOnce(
+                () -> {
+                  FaultReporter.getInstance()
+                      .addFault(SUBSYSTEM_NAME, "Gyro not turning as expected");
+                }),
+            (() -> (Math.abs(this.getYaw() - originalYaw) <= 0))));
   }
 
   public void playSounds(double pitch) {
@@ -1003,7 +1001,6 @@ public class Drivetrain extends SubsystemBase {
 
   public enum DriveMode {
     NORMAL,
-    X,
-    SOUND
+    X
   }
 }

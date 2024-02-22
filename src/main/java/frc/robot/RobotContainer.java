@@ -19,7 +19,6 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.Drivetrain;
-import frc.lib.team3061.drivetrain.Drivetrain.DriveMode;
 import frc.lib.team3061.drivetrain.DrivetrainIO;
 import frc.lib.team3061.drivetrain.DrivetrainIOCTRE;
 import frc.lib.team3061.drivetrain.DrivetrainIOGeneric;
@@ -581,8 +580,8 @@ public class RobotContainer {
     oi.getTurboButton().onFalse(Commands.runOnce(drivetrain::disableTurbo, drivetrain));
 
     // noise test
-    oi.getTestNoise().onTrue(Commands.runOnce(() -> drivetrain.playSounds(1000)));
-    oi.getTestNoise().onFalse(Commands.runOnce(() -> drivetrain.setMode(DriveMode.NORMAL)));
+    oi.getTestNoise().onTrue(Commands.run(() -> drivetrain.playSounds(1000), drivetrain));
+    oi.getTestNoise().onFalse(Commands.runOnce(() -> drivetrain.playSounds(0), drivetrain));
   }
 
   private void configureSubsystemCommands() {
