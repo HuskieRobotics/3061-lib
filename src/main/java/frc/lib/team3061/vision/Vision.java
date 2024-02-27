@@ -51,10 +51,14 @@ public class Vision extends SubsystemBase {
   private RobotOdometry odometry;
   private final TunableNumber poseDifferenceThreshold =
       new TunableNumber("Vision/VisionPoseThreshold", POSE_DIFFERENCE_THRESHOLD_METERS);
-  private final TunableNumber stdDevSlope = new TunableNumber("Vision/stdDevSlope", 0.10);
-  private final TunableNumber stdDevPower = new TunableNumber("Vision/stdDevPower", 2.0);
+  private final TunableNumber stdDevSlopeDistance =
+      new TunableNumber("Vision/StdDevSlopeDistance", 0.10);
+  private final TunableNumber stdDevPowerDistance =
+      new TunableNumber("Vision/stdDevPowerDistance", 2.0);
   private final TunableNumber stdDevMultiTagFactor =
       new TunableNumber("Vision/stdDevMultiTagFactor", 0.2);
+  private final TunableNumber stdDevFactorAmbiguity =
+      new TunableNumber("Vision/StdDevSlopeFactorAmbiguity", 1.0);
 
   /**
    * Create a new Vision subsystem. The number of VisionIO objects passed to the constructor must
@@ -148,15 +152,19 @@ public class Vision extends SubsystemBase {
               RobotConfig.getInstance().getRobotToCameraTransforms()[i].inverse());
       Pose2d estimatedRobotPose2d = estimatedRobotPose3d.toPose2d();
 
-      // only update the pose estimator if the vision subsystem is enabled
-      if (isEnabled) {
+      // only update the pose estimator if the vision subsystem is enabled and vision's estimated
+      // pose is within the specified tolerance of the current pose
+      if (isEnabled
+          && estimatedRobotPose2d
+                  .getTranslation()
+                  .getDistance(odometry.getEstimatedPosition().getTranslation())
+              < MAX_POSE_DIFFERENCE_METERS) {
         // when updating the pose estimator, specify standard deviations based on the distance
         // from the robot to the AprilTag (the greater the distance, the less confident we are
         // in the measurement)
+        Matrix<N3, N1> stdDev = getStandardDeviations(i, estimatedRobotPose2d, ios[i].minAmbiguity);
         odometry.addVisionMeasurement(
-            estimatedRobotPose2d,
-            ios[i].estimatedCameraPoseTimestamp,
-            getStandardDeviations(i, estimatedRobotPose2d));
+            estimatedRobotPose2d, ios[i].estimatedCameraPoseTimestamp, stdDev);
         isVisionUpdating = true;
       }
 
@@ -241,8 +249,11 @@ public class Vision extends SubsystemBase {
    *
    * @param estimatedPose The estimated pose to guess standard deviations for.
    */
-  private Matrix<N3, N1> getStandardDeviations(int index, Pose2d estimatedPose) {
-    Matrix<N3, N1> estStdDevs = VecBuilder.fill(1, 1, 2);
+  private Matrix<N3, N1> getStandardDeviations(
+      int index, Pose2d estimatedPose, double minAmbiguity) {
+    // The gyro is very accurate; so, rely on the vision pose estimation primarily for x and y
+    // position and not for rotation.
+    Matrix<N3, N1> estStdDevs = VecBuilder.fill(1, 1, 10);
     int numTags = 0;
     double avgDist = 0;
     for (int tagID = 0; tagID < ios[index].tagsSeen.length; tagID++) {
@@ -264,8 +275,13 @@ public class Vision extends SubsystemBase {
     if (numTags == 1 && avgDist > MAX_DISTANCE_TO_TARGET_METERS) {
       estStdDevs = VecBuilder.fill(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
     } else {
-      estStdDevs = estStdDevs.times(stdDevSlope.get() * (Math.pow(avgDist, stdDevPower.get())));
+      estStdDevs =
+          estStdDevs.times(
+              stdDevSlopeDistance.get() * (Math.pow(avgDist, stdDevPowerDistance.get())));
     }
+
+    // Adjust standard deviations based on the ambiguity of the pose
+    estStdDevs = estStdDevs.times(stdDevFactorAmbiguity.get() * minAmbiguity / MAXIMUM_AMBIGUITY);
 
     return estStdDevs;
   }
