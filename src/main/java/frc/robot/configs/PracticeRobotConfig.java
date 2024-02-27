@@ -31,7 +31,7 @@ public class PracticeRobotConfig extends RobotConfig {
   private static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 10;
   private static final int BACK_RIGHT_MODULE_STEER_MOTOR = 9;
   private static final int BACK_RIGHT_MODULE_STEER_ENCODER = 11;
-  private static final double BACK_RIGHT_MODULE_STEER_OFFSET_ROT = -0.024658;
+  private static final double BACK_RIGHT_MODULE_STEER_OFFSET_ROT = 0.117188;
 
   private static final int GYRO_ID = 3;
 
@@ -81,6 +81,7 @@ public class PracticeRobotConfig extends RobotConfig {
               Units.inchesToMeters(10.329),
               Units.inchesToMeters(18.387)),
           new Rotation3d(0, Units.degreesToRadians(-35), Units.degreesToRadians(90)));
+  // pitch 45 degrees
 
   // left camera
   private static final Transform3d ROBOT_TO_CAMERA_1 =
