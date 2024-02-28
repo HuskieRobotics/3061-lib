@@ -22,7 +22,7 @@ public final class VisionConstants {
   // the maximum distance between the robot's pose derived from the target and the current robot's
   // estimated pose for the target to be used to update the robot's pose (essentially, always use a
   // valid target to update the robot's pose)
-  public static final double MAX_POSE_DIFFERENCE_METERS = 1000.0;
+  public static final double MAX_POSE_DIFFERENCE_METERS = 2.0;
 
   // the maximum distance between the robot and the target, for the target to be used to update the
   // robot's pose

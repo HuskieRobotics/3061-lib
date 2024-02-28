@@ -9,6 +9,7 @@ import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
@@ -533,6 +534,23 @@ public class RobotContainer {
                         ? Rotation2d.fromDegrees(0.0)
                         : Rotation2d.fromDegrees(180.0)));
 
+    oi.getLockToSpeakerButton()
+        .whileTrue(
+            new TeleopSwerve(
+                drivetrain,
+                oi::getTranslateX,
+                oi::getTranslateY,
+                () -> {
+                  Transform2d translation =
+                      new Transform2d(
+                          Field2d.getInstance().getAllianceSpeakerCenter().getX()
+                              - drivetrain.getPose().getX(),
+                          Field2d.getInstance().getAllianceSpeakerCenter().getY()
+                              - drivetrain.getPose().getY(),
+                          new Rotation2d());
+                  return new Rotation2d(Math.atan2(translation.getY(), translation.getX()));
+                }));
+
     // field-relative toggle
     oi.getFieldRelativeButton()
         .toggleOnTrue(
@@ -600,6 +618,7 @@ public class RobotContainer {
     if (alliance.isPresent() && alliance.get() != lastAlliance) {
       this.lastAlliance = alliance.get();
       this.drivetrain.updateAlliance(this.lastAlliance);
+      Field2d.getInstance().updateAlliance(this.lastAlliance);
     }
   }
 }

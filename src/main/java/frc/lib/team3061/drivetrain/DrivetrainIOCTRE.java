@@ -284,6 +284,11 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
         driveFacingAngleThetaKi.get(),
         driveFacingAngleThetaKd.get());
     this.driveFacingAngleRequest.HeadingController.enableContinuousInput(0, Math.PI * 2);
+
+    // always define 0° (towards the red alliance) as "forward"; the Drivetrain subsystem handles
+    //  the definition of forward based on the current alliance
+    this.driveFacingAngleRequest.ForwardReference = SwerveRequest.ForwardReference.RedAlliance;
+    this.driveFieldCentricRequest.ForwardReference = SwerveRequest.ForwardReference.RedAlliance;
   }
 
   @Override

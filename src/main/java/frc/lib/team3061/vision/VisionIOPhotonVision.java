@@ -1,5 +1,7 @@
 package frc.lib.team3061.vision;
 
+import static frc.lib.team3061.vision.VisionConstants.*;
+
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Transform3d;
 import frc.lib.team6328.util.Alert;
@@ -9,6 +11,7 @@ import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
+import org.photonvision.targeting.PhotonTrackedTarget;
 
 /**
  * PhotonVision-based implementation of the VisionIO interface.
@@ -56,6 +59,14 @@ public class VisionIOPhotonVision implements VisionIO {
 
     boolean newResult = Math.abs(latestTimestamp - this.lastTimestamp) > 1e-5;
     if (newResult) {
+      double minAmbiguity = 10.0;
+      for (PhotonTrackedTarget target : camera.getLatestResult().getTargets()) {
+        if (target.getPoseAmbiguity() < minAmbiguity) {
+          minAmbiguity = target.getPoseAmbiguity();
+        }
+      }
+      inputs.minAmbiguity = minAmbiguity;
+
       visionEstimate.ifPresent(
           estimate -> {
             inputs.estimatedCameraPose = estimate.estimatedPose;
