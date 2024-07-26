@@ -13,6 +13,8 @@ import edu.wpi.first.wpilibj2.command.button.*;
 /** Interface for all driver and operator controls. */
 public interface OperatorInterface {
 
+  // drivetrain, generic
+
   public default double getTranslateX() {
     return 0.0;
   }
@@ -61,11 +63,10 @@ public interface OperatorInterface {
     return new Trigger(() -> false);
   }
 
-  public default Trigger getInterruptAll() {
-    return new Trigger(() -> false);
-  }
+  // drivetrain, game-specific
 
-  public default Trigger getLockToSpeakerButton() {
+  // miscellaneous
+  public default Trigger getInterruptAll() {
     return new Trigger(() -> false);
   }
 }

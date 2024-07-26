@@ -38,6 +38,7 @@ public class Vision extends SubsystemBase {
   private double[] lastTimestamps;
   private final Pose2d[] detectedAprilTags;
   private int[] cyclesWithNoResults;
+  private int[] updatePoseCount;
 
   private AprilTagFieldLayout layout;
   private Alert noAprilTagLayoutAlert =
@@ -72,6 +73,7 @@ public class Vision extends SubsystemBase {
     this.visionIOs = visionIOs;
     this.lastTimestamps = new double[visionIOs.length];
     this.cyclesWithNoResults = new int[visionIOs.length];
+    this.updatePoseCount = new int[visionIOs.length];
     this.ios = new VisionIOInputsAutoLogged[visionIOs.length];
     for (int i = 0; i < visionIOs.length; i++) {
       this.ios[i] = new VisionIOInputsAutoLogged();
@@ -145,16 +147,18 @@ public class Vision extends SubsystemBase {
 
   private void processNewVisionData(int i) {
     // only process the vision data if the timestamp is newer than the last one
-    if (this.lastTimestamps[i] < ios[i].lastCameraTimestamp) {
-      this.lastTimestamps[i] = ios[i].lastCameraTimestamp;
+    if (this.lastTimestamps[i] < ios[i].estimatedCameraPoseTimestamp) {
+      this.lastTimestamps[i] = ios[i].estimatedCameraPoseTimestamp;
       Pose3d estimatedRobotPose3d =
           ios[i].estimatedCameraPose.plus(
               RobotConfig.getInstance().getRobotToCameraTransforms()[i].inverse());
       Pose2d estimatedRobotPose2d = estimatedRobotPose3d.toPose2d();
 
-      // only update the pose estimator if the vision subsystem is enabled and vision's estimated
+      // only update the pose estimator if the vision subsystem is enabled, the estimated pose is in
+      // the past, the ambiguity is less than the threshold, and vision's estimated
       // pose is within the specified tolerance of the current pose
       if (isEnabled
+          && ios[i].ambiguity < AMBIGUITY_THRESHOLD
           && estimatedRobotPose2d
                   .getTranslation()
                   .getDistance(odometry.getEstimatedPosition().getTranslation())
@@ -162,10 +166,16 @@ public class Vision extends SubsystemBase {
         // when updating the pose estimator, specify standard deviations based on the distance
         // from the robot to the AprilTag (the greater the distance, the less confident we are
         // in the measurement)
-        Matrix<N3, N1> stdDev = getStandardDeviations(i, estimatedRobotPose2d, ios[i].minAmbiguity);
-        odometry.addVisionMeasurement(
-            estimatedRobotPose2d, ios[i].estimatedCameraPoseTimestamp, stdDev);
+        double timeStamp =
+            Math.min(ios[i].estimatedCameraPoseTimestamp, Logger.getRealTimestamp() / 1e6);
+        Matrix<N3, N1> stdDev = getStandardDeviations(i, estimatedRobotPose2d, ios[i].ambiguity);
+        odometry.addVisionMeasurement(estimatedRobotPose2d, timeStamp, stdDev);
         isVisionUpdating = true;
+        this.updatePoseCount[i]++;
+        Logger.recordOutput(SUBSYSTEM_NAME + "/" + i + "/UpdatePoseCount", this.updatePoseCount[i]);
+        Logger.recordOutput(SUBSYSTEM_NAME + "/" + i + "/StdDevX", stdDev.get(0, 0));
+        Logger.recordOutput(SUBSYSTEM_NAME + "/" + i + "/StdDevY", stdDev.get(1, 0));
+        Logger.recordOutput(SUBSYSTEM_NAME + "/" + i + "/StdDevT", stdDev.get(2, 0));
       }
 
       Logger.recordOutput(SUBSYSTEM_NAME + "/" + i + "/CameraPose3d", ios[i].estimatedCameraPose);
@@ -173,6 +183,10 @@ public class Vision extends SubsystemBase {
           SUBSYSTEM_NAME + "/" + i + "/CameraPose2d", ios[i].estimatedCameraPose.toPose2d());
       Logger.recordOutput(SUBSYSTEM_NAME + "/" + i + "/RobotPose3d", estimatedRobotPose3d);
       Logger.recordOutput(SUBSYSTEM_NAME + "/" + i + "/RobotPose2d", estimatedRobotPose2d);
+      Logger.recordOutput(
+          SUBSYSTEM_NAME + "/" + i + "/TimestampDifference",
+          Logger.getRealTimestamp() / 1e6 - ios[i].estimatedCameraPoseTimestamp);
+
       this.cyclesWithNoResults[i] = 0;
     } else {
       this.cyclesWithNoResults[i] += 1;
@@ -181,7 +195,8 @@ public class Vision extends SubsystemBase {
     // if no tags have been seen for the specified number of cycles, "zero" the robot pose
     // such that old data is not seen in AdvantageScope
     if (cyclesWithNoResults[i] == EXPIRATION_COUNT) {
-      Logger.recordOutput(SUBSYSTEM_NAME + "/" + i + "/RobotPose", new Pose2d());
+      Logger.recordOutput(SUBSYSTEM_NAME + "/" + i + "/RobotPose2d", new Pose2d());
+      Logger.recordOutput(SUBSYSTEM_NAME + "/" + i + "/RobotPose3d", new Pose3d());
     }
   }
 
@@ -204,12 +219,21 @@ public class Vision extends SubsystemBase {
     Pose3d robotPoseFromMostRecentData = null;
     double mostRecentTimestamp = 0.0;
     for (int i = 0; i < visionIOs.length; i++) {
-      if (ios[i].estimatedCameraPoseTimestamp > mostRecentTimestamp) {
-        robotPoseFromMostRecentData = ios[i].estimatedCameraPose;
+      if (ios[i].estimatedCameraPoseTimestamp > mostRecentTimestamp
+          && ios[i].ambiguity < AMBIGUITY_THRESHOLD) {
+        robotPoseFromMostRecentData =
+            ios[i].estimatedCameraPose.plus(
+                RobotConfig.getInstance().getRobotToCameraTransforms()[i].inverse());
         mostRecentTimestamp = ios[i].estimatedCameraPoseTimestamp;
       }
     }
-    return robotPoseFromMostRecentData;
+
+    // if the most recent vision data is more than a half second old, don't return the robot pose
+    if (Math.abs(mostRecentTimestamp - Logger.getRealTimestamp() / 1e6) > 0.5) {
+      return null;
+    } else {
+      return robotPoseFromMostRecentData;
+    }
   }
 
   /**
@@ -281,7 +305,8 @@ public class Vision extends SubsystemBase {
     }
 
     // Adjust standard deviations based on the ambiguity of the pose
-    estStdDevs = estStdDevs.times(stdDevFactorAmbiguity.get() * minAmbiguity / MAXIMUM_AMBIGUITY);
+    estStdDevs =
+        estStdDevs.times(stdDevFactorAmbiguity.get() * minAmbiguity / AMBIGUITY_SCALE_FACTOR);
 
     return estStdDevs;
   }

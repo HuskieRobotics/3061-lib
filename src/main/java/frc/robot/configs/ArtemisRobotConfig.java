@@ -11,33 +11,32 @@ import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
  * Refer to the README for how to represent your robot's configuration. For more information on
  * these methods, refer to the documentation in the RobotConfig class.
  */
-public class PracticeRobotConfig extends RobotConfig {
+public class ArtemisRobotConfig extends RobotConfig {
+  private static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 1;
+  private static final int FRONT_LEFT_MODULE_STEER_MOTOR = 2;
+  private static final int FRONT_LEFT_MODULE_STEER_ENCODER = 22;
+  private static final double FRONT_LEFT_MODULE_STEER_OFFSET_ROT = 0.358398;
 
-  private static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 13;
-  private static final int FRONT_LEFT_MODULE_STEER_MOTOR = 12;
-  private static final int FRONT_LEFT_MODULE_STEER_ENCODER = 14;
-  private static final double FRONT_LEFT_MODULE_STEER_OFFSET_ROT = 0.474121;
-
-  private static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 16;
-  private static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 15;
-  private static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 17;
-  private static final double FRONT_RIGHT_MODULE_STEER_OFFSET_ROT = -0.358398;
+  private static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 3;
+  private static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 4;
+  private static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 23;
+  private static final double FRONT_RIGHT_MODULE_STEER_OFFSET_ROT = 0.024414;
 
   private static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 7;
-  private static final int BACK_LEFT_MODULE_STEER_MOTOR = 6;
-  private static final int BACK_LEFT_MODULE_STEER_ENCODER = 8;
-  private static final double BACK_LEFT_MODULE_STEER_OFFSET_ROT = -0.234863;
+  private static final int BACK_LEFT_MODULE_STEER_MOTOR = 8;
+  private static final int BACK_LEFT_MODULE_STEER_ENCODER = 24;
+  private static final double BACK_LEFT_MODULE_STEER_OFFSET_ROT = -0.025635;
 
-  private static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 10;
-  private static final int BACK_RIGHT_MODULE_STEER_MOTOR = 9;
-  private static final int BACK_RIGHT_MODULE_STEER_ENCODER = 11;
-  private static final double BACK_RIGHT_MODULE_STEER_OFFSET_ROT = 0.161133;
+  private static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 5;
+  private static final int BACK_RIGHT_MODULE_STEER_MOTOR = 6;
+  private static final int BACK_RIGHT_MODULE_STEER_ENCODER = 25;
+  private static final double BACK_RIGHT_MODULE_STEER_OFFSET_ROT = -0.491699;
 
-  private static final int GYRO_ID = 3;
+  private static final int GYRO_ID = 26;
 
   private static final double TRACKWIDTH_METERS = 0.57785; // 22.75
   private static final double WHEELBASE_METERS = 0.57785; // 22.75
-  private static final double WHEEL_DIAMETER_METERS = 0.09659072671;
+  private static final double WHEEL_DIAMETER_METERS = 0.1027125;
   private static final double ROBOT_WIDTH_WITH_BUMPERS =
       0.88265; // meters //34.75 in , measure the actual bumpers
   private static final double ROBOT_LENGTH_WITH_BUMPERS = 0.88265; // meters // 34.75 in same above
@@ -47,50 +46,74 @@ public class PracticeRobotConfig extends RobotConfig {
   private static final double ANGLE_KI = 0.0;
   private static final double ANGLE_KD = 0.05;
 
-  private static final double ANGLE_KS = 0.1891233333;
-  private static final double ANGLE_KV =
-      0.4399866667 * 2 * Math.PI; // convert from V/(radians/s) to V/(rotations/s)
-  private static final double ANGLE_KA = 0.001663333333;
+  private static final double ANGLE_KS = 0.24719;
+  private static final double ANGLE_KV = 2.5845; // rps
+  private static final double ANGLE_KA = 0.030892;
 
   /* Drive Motor PID Values */
-  private static final double DRIVE_KP = 8.0;
+  private static final double DRIVE_KP = 10.0;
   private static final double DRIVE_KI = 0.0;
   private static final double DRIVE_KD = 0.0;
 
-  private static final double DRIVE_KS = 5.0;
+  private static final double DRIVE_KS = 0.23819;
   private static final double DRIVE_KV = 0.0;
   private static final double DRIVE_KA = 0.0;
 
-  private static final double MAX_VELOCITY_METERS_PER_SECOND = 3.5;
-  private static final double MAX_COAST_VELOCITY_METERS_PER_SECOND = 0.05;
-  private static final double SLOW_MODE_MULTIPLIER = 0.75;
+  private static final double MAX_VELOCITY_METERS_PER_SECOND =
+      4.5; // FIXME: confirm max velocity with real robot
+  private static final double MAX_COAST_VELOCITY_METERS_PER_SECOND =
+      0.05; // FIXME: Values taken from nova, need to be updated
+  private static final double SLOW_MODE_MULTIPLIER =
+      0.75; // FIXME: Values taken from nova, need to be updated
 
-  private static final double MAX_DRIVE_ACCELERATION_METERS_PER_SECOND_SQUARED = 11.365;
-  private static final double MAX_TURN_ACCELERATION_RADIANS_PER_SECOND_SQUARED = 36.0;
+  private static final double MAX_DRIVE_ACCELERATION_METERS_PER_SECOND_SQUARED =
+      9.467; // from Choreo estimate
+  private static final double MAX_TURN_ACCELERATION_RADIANS_PER_SECOND_SQUARED =
+      33.436; // from Choreo estimate
 
-  private static final String CAN_BUS_NAME = "";
+  private static final String CAN_BUS_NAME = "canbus1";
 
-  private static final String CAMERA_NAME_0 = "OV2311L";
-  private static final String CAMERA_NAME_1 = "OV2311F";
+  private static final String CAMERA_NAME_0 = "OV2311FR";
+  private static final String CAMERA_NAME_1 = "OV2311BR";
+  private static final String CAMERA_NAME_2 = "OV2311FL";
+  private static final String CAMERA_NAME_3 = "OV2311BL";
 
-  // left camera
+  // Front right camera
   private static final Transform3d ROBOT_TO_CAMERA_0 =
       new Transform3d(
           new Translation3d(
-              Units.inchesToMeters(5.500),
-              Units.inchesToMeters(10.329),
-              Units.inchesToMeters(18.387)),
-          new Rotation3d(0, Units.degreesToRadians(-35), Units.degreesToRadians(90)));
+              Units.inchesToMeters(11.064),
+              Units.inchesToMeters(-10.778),
+              Units.inchesToMeters(8.189)),
+          new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(0)));
   // pitch 45 degrees
 
-  // left camera
+  // Back right camera
   private static final Transform3d ROBOT_TO_CAMERA_1 =
       new Transform3d(
           new Translation3d(
-              Units.inchesToMeters(7.329),
-              Units.inchesToMeters(-8.500),
-              Units.inchesToMeters(18.387)),
-          new Rotation3d(0, Units.degreesToRadians(-35), Units.degreesToRadians(0)));
+              Units.inchesToMeters(-10.778),
+              Units.inchesToMeters(-11.064),
+              Units.inchesToMeters(8.189)),
+          new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(-90)));
+
+  // Front left camera
+  private static final Transform3d ROBOT_TO_CAMERA_2 =
+      new Transform3d(
+          new Translation3d(
+              Units.inchesToMeters(10.778),
+              Units.inchesToMeters(11.064),
+              Units.inchesToMeters(8.189)),
+          new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(90)));
+
+  // Back left camera
+  private static final Transform3d ROBOT_TO_CAMERA_3 =
+      new Transform3d(
+          new Translation3d(
+              Units.inchesToMeters(-11.064),
+              Units.inchesToMeters(10.778),
+              Units.inchesToMeters(8.189)),
+          new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(180)));
 
   private static final double AUTO_MAX_SPEED_METERS_PER_SECOND = 3.5;
   private static final double AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED = 10;
@@ -104,20 +127,21 @@ public class PracticeRobotConfig extends RobotConfig {
   // Drive to Pose constants
   private static final double DRIVE_TO_POSE_DRIVE_KP = 2.5;
   private static final double DRIVE_TO_POSE_DRIVE_KD = 0.0;
-  private static final double DRIVE_TO_POSE_THETA_KP = 18.0;
-  private static final double DRIVE_TO_POSE_THETA_KI = 10.0;
+  private static final double DRIVE_TO_POSE_THETA_KP = 4.5;
+  private static final double DRIVE_TO_POSE_THETA_KI = 0;
   private static final double DRIVE_TO_POSE_THETA_KD = 0.0;
-  private static final double DRIVE_TO_POSE_DRIVE_TOLERANCE_METERS = 0.08;
-  private static final double DRIVE_TO_POSE_THETA_TOLERANCE_RADIANS = 0.008;
+  private static final double DRIVE_TO_POSE_DRIVE_TOLERANCE_METERS = 0.06;
+  private static final double DRIVE_TO_POSE_THETA_TOLERANCE_RADIANS = 0.02;
+  private static final double DRIVE_TO_POSE_MAX_VELOCITY = 1.25;
 
   private static final double SQUARING_SPEED_METERS_PER_SECOND = 1.0;
 
   // Drive Facing Angle constants
-  private static final double DRIVE_FACING_ANGLE_KP = 2.0;
+  private static final double DRIVE_FACING_ANGLE_KP = 6.0;
   private static final double DRIVE_FACING_ANGLE_KD = 0.1;
   private static final double DRIVE_FACING_ANGLE_KI = 0.0;
 
-  private static final int LED_COUNT = 85;
+  private static final int LED_COUNT = 35;
 
   @Override
   public boolean getPhoenix6Licensed() {
@@ -186,7 +210,7 @@ public class PracticeRobotConfig extends RobotConfig {
 
   @Override
   public SwerveConstants getSwerveConstants() {
-    return SwerveConstants.MK4I_L3_CONSTANTS;
+    return SwerveConstants.MK4I_L3_PLUS_CONSTANTS;
   }
 
   @Override
@@ -261,7 +285,9 @@ public class PracticeRobotConfig extends RobotConfig {
 
   @Override
   public Transform3d[] getRobotToCameraTransforms() {
-    return new Transform3d[] {ROBOT_TO_CAMERA_0, ROBOT_TO_CAMERA_1};
+    return new Transform3d[] {
+      ROBOT_TO_CAMERA_0, ROBOT_TO_CAMERA_1, ROBOT_TO_CAMERA_2, ROBOT_TO_CAMERA_3
+    };
   }
 
   @Override
@@ -336,7 +362,7 @@ public class PracticeRobotConfig extends RobotConfig {
 
   @Override
   public String[] getCameraNames() {
-    return new String[] {CAMERA_NAME_0, CAMERA_NAME_1};
+    return new String[] {CAMERA_NAME_0, CAMERA_NAME_1, CAMERA_NAME_2, CAMERA_NAME_3};
   }
 
   @Override
@@ -366,7 +392,7 @@ public class PracticeRobotConfig extends RobotConfig {
 
   @Override
   public double getDriveToPoseDriveMaxVelocity() {
-    return 0.5;
+    return DRIVE_TO_POSE_MAX_VELOCITY;
   }
 
   @Override

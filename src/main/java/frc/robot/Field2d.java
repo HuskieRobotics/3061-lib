@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.Drivetrain;
+import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team6328.util.FieldConstants;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,7 +33,7 @@ public class Field2d {
 
   private Region2d[] regions;
 
-  private Alliance alliance;
+  private Alliance alliance = DriverStation.Alliance.Blue;
 
   /**
    * Get the singleton instance of the Field2d class.
@@ -212,19 +213,15 @@ public class Field2d {
     return alliance;
   }
 
-  public Pose2d getAllianceSpeakerCenter() {
+  public boolean hasFullyLeftAllianceSideOfField() {
     if (alliance == Alliance.Blue) {
-      return FieldConstants.BlueSpeaker.blueCenterSpeakerOpening;
+      return RobotOdometry.getInstance().getEstimatedPosition().getX()
+          > FieldConstants.StagingLocations.centerlineX
+              + RobotConfig.getInstance().getRobotLengthWithBumpers() / 2;
     } else {
-      return FieldConstants.RedSpeaker.redCenterSpeakerOpening;
-    }
-  }
-
-  public Pose2d getOpponentSpeakerCenter() {
-    if (alliance == Alliance.Blue) {
-      return FieldConstants.RedSpeaker.redCenterSpeakerOpening;
-    } else {
-      return FieldConstants.BlueSpeaker.blueCenterSpeakerOpening;
+      return RobotOdometry.getInstance().getEstimatedPosition().getX()
+          < FieldConstants.StagingLocations.centerlineX
+              - RobotConfig.getInstance().getRobotLengthWithBumpers() / 2;
     }
   }
 }

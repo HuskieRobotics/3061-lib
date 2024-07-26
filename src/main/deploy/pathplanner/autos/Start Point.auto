@@ -2,10 +2,10 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 7.07,
-      "y": 0.35
+      "x": 2.3661772442028295,
+      "y": 7.31444420234812
     },
-    "rotation": 90.0
+    "rotation": 0
   },
   "command": {
     "type": "sequential",
@@ -14,12 +14,12 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Tuning"
+            "pathName": "Start Point"
           }
         }
       ]
     }
   },
-  "folder": "Tuning",
+  "folder": null,
   "choreoAuto": false
 }

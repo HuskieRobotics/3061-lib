@@ -8,6 +8,7 @@ import static frc.lib.team3061.drivetrain.DrivetrainConstants.*;
 import static frc.robot.Constants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
@@ -16,6 +17,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -31,8 +33,11 @@ import frc.lib.team3061.drivetrain.DrivetrainIO.SwerveIOInputs;
 import frc.lib.team3061.leds.LEDs;
 import frc.lib.team6328.util.Alert;
 import frc.lib.team6328.util.Alert.AlertType;
+import frc.lib.team6328.util.FieldConstants;
 import frc.lib.team6328.util.TunableNumber;
 import frc.robot.Constants;
+import frc.robot.Field2d;
+import java.util.Optional;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
@@ -86,13 +91,23 @@ public class Drivetrain extends SubsystemBase {
 
   private boolean isMoveToPoseEnabled;
 
+  private double maxVelocity;
+
   private Alert noPoseAlert =
       new Alert("Attempted to reset pose from vision, but no pose was found.", AlertType.WARNING);
+  private static final String SYSTEM_CHECK_PREFIX = "[System Check] Swerve module ";
+  private static final String IS_LITERAL = " is: ";
 
   private ChassisSpeeds prevSpeeds = new ChassisSpeeds();
   private double[] prevSteerVelocitiesRevPerMin = new double[4];
 
-  private DriverStation.Alliance alliance = DriverStation.Alliance.Blue;
+  private DriverStation.Alliance alliance = Field2d.getInstance().getAlliance();
+
+  private Pose2d prevRobotPose = new Pose2d();
+  private int teleportedCount = 0;
+  private int constrainPoseToFieldCount = 0;
+
+  private boolean isRotationOverrideEnabled = false;
 
   /**
    * Creates a new Drivetrain subsystem.
@@ -110,6 +125,8 @@ public class Drivetrain extends SubsystemBase {
     this.isTurbo = true;
 
     this.isMoveToPoseEnabled = true;
+
+    this.maxVelocity = 0.5;
 
     ShuffleboardTab tabMain = Shuffleboard.getTab("MAIN");
     tabMain
@@ -154,6 +171,8 @@ public class Drivetrain extends SubsystemBase {
         this::shouldFlipAutoPath,
         this // Reference to this subsystem to set requirements
         );
+
+    PPHolonomicDriveController.setRotationTargetOverride(this::getRotationTargetOverride);
   }
 
   public ChassisSpeeds getRobotRelativeSpeeds() {
@@ -274,6 +293,7 @@ public class Drivetrain extends SubsystemBase {
    */
   public void resetPose(Pose2d pose) {
     this.io.resetPose(pose);
+    this.prevRobotPose = pose;
   }
 
   /**
@@ -282,7 +302,9 @@ public class Drivetrain extends SubsystemBase {
    * estimator.
    */
   public void resetPoseRotationToGyro() {
-    this.io.resetPose(new Pose2d(this.getPose().getTranslation(), this.getRotation()));
+    Pose2d newPose = new Pose2d(this.getPose().getTranslation(), this.getRotation());
+    this.io.resetPose(newPose);
+    this.prevRobotPose = newPose;
   }
 
   /**
@@ -297,6 +319,7 @@ public class Drivetrain extends SubsystemBase {
     if (pose != null) {
       noPoseAlert.set(false);
       this.io.resetPose(pose.toPose2d());
+      this.prevRobotPose = pose.toPose2d();
     } else {
       noPoseAlert.set(true);
     }
@@ -326,8 +349,7 @@ public class Drivetrain extends SubsystemBase {
    * @param yVelocity the desired velocity in the y direction (m/s)
    * @param rotationalVelocity the desired rotational velocity (rad/s)
    * @param isOpenLoop true for open-loop control; false for closed-loop control
-   * @param overrideFieldRelative true to force field-relative motion; false to use the current
-   *     setting
+   * @param isFieldRelative true to for field-relative motion; false, for robot-relative
    */
   public void drive(
       double xVelocity,
@@ -345,6 +367,15 @@ public class Drivetrain extends SubsystemBase {
       if (isTranslationSlowMode) {
         xVelocity *= slowModeMultiplier;
         yVelocity *= slowModeMultiplier;
+      }
+
+      if (Constants.DEMO_MODE) {
+        double velocity = Math.sqrt(Math.pow(xVelocity, 2) + Math.pow(yVelocity, 2));
+        if (velocity > this.maxVelocity) {
+          double scale = this.maxVelocity / velocity;
+          xVelocity *= scale;
+          yVelocity *= scale;
+        }
       }
 
       // if rotation is in slow mode, multiply the rotational velocity by the slow-mode multiplier
@@ -400,12 +431,24 @@ public class Drivetrain extends SubsystemBase {
       xVelocity *= slowModeMultiplier;
       yVelocity *= slowModeMultiplier;
     }
+
+    if (Constants.DEMO_MODE) {
+      double velocity = Math.sqrt(Math.pow(xVelocity, 2) + Math.pow(yVelocity, 2));
+      if (velocity > this.maxVelocity) {
+        double scale = this.maxVelocity / velocity;
+        xVelocity *= scale;
+        yVelocity *= scale;
+      }
+    }
+
     int allianceMultiplier = this.alliance == Alliance.Blue ? 1 : -1;
     this.io.driveFieldRelativeFacingAngle(
         xVelocity * allianceMultiplier,
         yVelocity * allianceMultiplier,
         targetDirection,
         isOpenLoop);
+
+    Logger.recordOutput(SUBSYSTEM_NAME + "/DriveFacingAngle/targetDirection", targetDirection);
   }
 
   /**
@@ -460,6 +503,51 @@ public class Drivetrain extends SubsystemBase {
         .setFallen(
             Math.abs(this.inputs.gyro.pitchDeg) > LEDS_FALLEN_ANGLE_DEGREES
                 || Math.abs(this.inputs.gyro.rollDeg) > LEDS_FALLEN_ANGLE_DEGREES);
+
+    // check for teleportation
+    if (this.inputs.drivetrain.robotPose.minus(prevRobotPose).getTranslation().getNorm() > 0.4) {
+      this.resetPose(prevRobotPose);
+      this.teleportedCount++;
+      Logger.recordOutput(SUBSYSTEM_NAME + "/TeleportedPose", this.inputs.drivetrain.robotPose);
+      Logger.recordOutput(SUBSYSTEM_NAME + "/TeleportCount", this.teleportedCount);
+    } else {
+      this.prevRobotPose = this.inputs.drivetrain.robotPose;
+    }
+
+    // check for position outside the field due to slipping
+    if (this.inputs.drivetrain.robotPose.getX() < 0) {
+      this.resetPose(
+          new Pose2d(
+              0,
+              this.inputs.drivetrain.robotPose.getY(),
+              this.inputs.drivetrain.robotPose.getRotation()));
+      this.constrainPoseToFieldCount++;
+    } else if (this.inputs.drivetrain.robotPose.getX() > FieldConstants.fieldLength) {
+      this.resetPose(
+          new Pose2d(
+              FieldConstants.fieldLength,
+              this.inputs.drivetrain.robotPose.getY(),
+              this.inputs.drivetrain.robotPose.getRotation()));
+      this.constrainPoseToFieldCount++;
+    }
+
+    if (this.inputs.drivetrain.robotPose.getY() < 0) {
+      this.resetPose(
+          new Pose2d(
+              this.inputs.drivetrain.robotPose.getX(),
+              0,
+              this.inputs.drivetrain.robotPose.getRotation()));
+      this.constrainPoseToFieldCount++;
+    } else if (this.inputs.drivetrain.robotPose.getY() > FieldConstants.fieldWidth) {
+      this.resetPose(
+          new Pose2d(
+              this.inputs.drivetrain.robotPose.getX(),
+              FieldConstants.fieldWidth,
+              this.inputs.drivetrain.robotPose.getRotation()));
+      this.constrainPoseToFieldCount++;
+    }
+    Logger.recordOutput(
+        SUBSYSTEM_NAME + "/ConstrainPoseToFieldCount", this.constrainPoseToFieldCount);
 
     // update the brake mode based on the robot's velocity and state (enabled/disabled)
     updateBrakeMode();
@@ -573,21 +661,30 @@ public class Drivetrain extends SubsystemBase {
   }
 
   /**
-   * Returns the desired velocity of the drivetrain in the x direction (units of m/s)
+   * Returns the measured velocity of the drivetrain in the x direction (units of m/s)
    *
-   * @return the desired velocity of the drivetrain in the x direction (units of m/s)
+   * @return the measured velocity of the drivetrain in the x direction (units of m/s)
    */
   public double getVelocityX() {
     return this.inputs.drivetrain.measuredVXMetersPerSec;
   }
 
   /**
-   * Returns the desired velocity of the drivetrain in the y direction (units of m/s)
+   * Returns the measured velocity of the drivetrain in the y direction (units of m/s)
    *
-   * @return the desired velocity of the drivetrain in the y direction (units of m/s)
+   * @return the measured velocity of the drivetrain in the y direction (units of m/s)
    */
   public double getVelocityY() {
     return this.inputs.drivetrain.measuredVYMetersPerSec;
+  }
+
+  /**
+   * Returns the measured rotational velocity of the drivetrain (units of rad/s)
+   *
+   * @return the measured rotational velocity of the drivetrain (units of rad/s)
+   */
+  public double getVelocityT() {
+    return this.inputs.drivetrain.measuredAngularVelocityRadPerSec;
   }
 
   /**
@@ -705,6 +802,22 @@ public class Drivetrain extends SubsystemBase {
     return avgAcceleration / LOOP_PERIOD_SECS;
   }
 
+  /** Runs in a circle at omega. */
+  public void runWheelDiameterCharacterization(double omegaSpeed) {
+    this.io.driveRobotRelative(0.0, 0.0, omegaSpeed, true);
+  }
+
+  /** Get the position of all drive wheels in radians. */
+  public double[] getWheelDiameterCharacterizationPosition() {
+    double[] positions = new double[inputs.swerve.length];
+    for (int i = 0; i < inputs.swerve.length; i++) {
+      positions[i] =
+          inputs.swerve[i].driveDistanceMeters
+              / (RobotConfig.getInstance().getWheelDiameterMeters() / 2.0);
+    }
+    return positions;
+  }
+
   /**
    * Enables or disables the move-to-pose feature. Refer to the MoveToPose command class for more
    * information.
@@ -752,74 +865,59 @@ public class Drivetrain extends SubsystemBase {
       double velocityTarget,
       double velocityTolerance) {
 
-    Boolean isOffset = false;
+    boolean isOffset = false;
 
     // Check to see if the direction is rotated properly
     // steerAbsolutePositionDeg is a value that is between (-180, 180]
-
-    if (this.inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg
-            > angleTarget - angleTolerance
-        && this.inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg
-            < angleTarget + angleTolerance) {
-    }
-
-    // check if angle is in threshold +- 180
-    else if (this.inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg
-            > angleTarget - angleTolerance - 180
-        && this.inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg
-            < angleTarget + angleTolerance - 180) {
+    if (Math.abs(
+            this.inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg - (angleTarget - 180))
+        < angleTolerance) {
       isOffset = true;
-    } else if (this.inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg
-            > angleTarget - angleTolerance + 180
-        && this.inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg
-            < angleTarget + angleTolerance + 180) {
+    } else if (Math.abs(
+            this.inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg - (angleTarget + 180))
+        < angleTolerance) {
       isOffset = true;
     }
     // if not, add fault
-    else {
+    else if (Math.abs(this.inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg - angleTarget)
+        > angleTolerance) {
       FaultReporter.getInstance()
           .addFault(
               SUBSYSTEM_NAME,
-              "[System Check] Swerve module "
+              SYSTEM_CHECK_PREFIX
                   + getSwerveLocation(swerveModuleNumber)
                   + " not rotating in the threshold as expected. Should be: "
                   + angleTarget
-                  + " is: "
+                  + IS_LITERAL
                   + inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg);
     }
 
     // Checks the velocity of the swerve module depending on if there is an offset
 
     if (!isOffset) {
-      if (inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec
-              > velocityTarget - velocityTolerance
-          && inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec
-              < velocityTarget + velocityTolerance) {
-      } else {
+      if (Math.abs(inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec - velocityTarget)
+          > velocityTolerance) {
         FaultReporter.getInstance()
             .addFault(
                 SUBSYSTEM_NAME,
-                "[System Check] Swerve module "
+                SYSTEM_CHECK_PREFIX
                     + getSwerveLocation(swerveModuleNumber)
                     + " not moving as fast as expected. Should be: "
                     + velocityTarget
-                    + " is: "
+                    + IS_LITERAL
                     + inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec);
       }
     } else { // if there is an offset, check the velocity in the opposite direction
-      if (inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec
-              < -(velocityTarget - velocityTolerance)
-          && inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec
-              > -(velocityTarget + velocityTolerance)) {
-      } else {
+      if (Math.abs(inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec + velocityTarget)
+          > velocityTolerance) {
         FaultReporter.getInstance()
             .addFault(
                 SUBSYSTEM_NAME,
-                "[System Check] Swerve module "
+                SYSTEM_CHECK_PREFIX
                     + getSwerveLocation(swerveModuleNumber)
                     + " not moving as fast as expected. REVERSED Should be: "
                     + velocityTarget
-                    + " is: "
+                    + IS_LITERAL
                     + inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec);
       }
     }
@@ -865,11 +963,7 @@ public class Drivetrain extends SubsystemBase {
         break;
       case CLOCKWISE:
         return Commands.parallel(
-                Commands.run(
-                    () -> {
-                      this.drive(0, 0, -Math.PI, false, false);
-                    },
-                    this),
+                Commands.run(() -> this.drive(0, 0, -Math.PI, false, false), this),
                 Commands.waitSeconds(1)
                     .andThen(
                         Commands.runOnce(
@@ -882,11 +976,7 @@ public class Drivetrain extends SubsystemBase {
             .withTimeout(1);
       case COUNTERCLOCKWISE:
         return Commands.parallel(
-                Commands.run(
-                    () -> {
-                      this.drive(0, 0, Math.PI, false, false);
-                    },
-                    this),
+                Commands.run(() -> this.drive(0, 0, Math.PI, false, false), this),
                 Commands.waitSeconds(1)
                     .andThen(
                         Commands.runOnce(
@@ -908,10 +998,7 @@ public class Drivetrain extends SubsystemBase {
 
     return Commands.parallel(
             Commands.run(
-                () -> {
-                  this.drive(xVelocity, yVelocity, rotationalVelocity, false, false);
-                },
-                this),
+                () -> this.drive(xVelocity, yVelocity, rotationalVelocity, false, false), this),
             Commands.waitSeconds(1)
                 .andThen(
                     Commands.runOnce(
@@ -947,7 +1034,7 @@ public class Drivetrain extends SubsystemBase {
 
   public Command getSystemCheckCommand() {
     return Commands.sequence(
-            Commands.runOnce(() -> this.disableFieldRelative(), this),
+            Commands.runOnce(this::disableFieldRelative, this),
             Commands.runOnce(() -> FaultReporter.getInstance().clearFaults(SUBSYSTEM_NAME)),
             getSwerveCheckCommand(SwerveCheckTypes.LEFT),
             getSwerveCheckCommand(SwerveCheckTypes.RIGHT),
@@ -965,9 +1052,11 @@ public class Drivetrain extends SubsystemBase {
    * stopped moving for the specified period of time, and brake mode is enabled, disable it.
    */
   private void updateBrakeMode() {
-    if (DriverStation.isEnabled() && !brakeMode) {
-      brakeMode = true;
-      setBrakeMode(true);
+    if (DriverStation.isEnabled()) {
+      if (!brakeMode) {
+        brakeMode = true;
+        setBrakeMode(true);
+      }
       brakeModeTimer.restart();
 
     } else if (!DriverStation.isEnabled()) {
@@ -988,6 +1077,36 @@ public class Drivetrain extends SubsystemBase {
 
   private void setBrakeMode(boolean enable) {
     this.io.setBrakeMode(enable);
+  }
+
+  public void enableRotationOverride() {
+    this.isRotationOverrideEnabled = true;
+  }
+
+  public void disableRotationOverride() {
+    this.isRotationOverrideEnabled = false;
+  }
+
+  public Optional<Rotation2d> getRotationTargetOverride() {
+    // Some condition that should decide if we want to override rotation
+    if (this.isRotationOverrideEnabled) {
+      Rotation2d targetRotation = new Rotation2d();
+      Logger.recordOutput(SUBSYSTEM_NAME + "/rotationOverride", targetRotation);
+      return Optional.of(targetRotation);
+    } else {
+      // return an empty optional when we don't want to override the path's rotation
+      return Optional.empty();
+    }
+  }
+
+  public Pose2d getFutureRobotPose(double secondsInFuture) {
+    // project the robot pose into the future based on the current translational velocity; don't
+    // project the current rotational velocity as that will adversely affect the control loop
+    // attempting to reach the rotational setpoint.
+    return this.getPose()
+        .exp(
+            new Twist2d(
+                this.getVelocityX() * secondsInFuture, this.getVelocityY() * secondsInFuture, 0.0));
   }
 
   private enum DriveMode {

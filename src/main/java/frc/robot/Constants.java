@@ -27,21 +27,21 @@ public final class Constants {
 
   // set to true in order to change all Tunable values via Shuffleboard
   public static final boolean TUNING_MODE = false;
+  public static final boolean DEMO_MODE = false;
 
-  private static final RobotType ROBOT = RobotType.ROBOT_PRACTICE;
+  private static final RobotType ROBOT = RobotType.ROBOT_SIMBOT_CTRE;
 
   private static final Alert invalidRobotAlert =
       new Alert("Invalid robot selected, using competition robot as default.", AlertType.ERROR);
 
   // FIXME: update for various robots
   public enum RobotType {
-    ROBOT_2023_NOVA_CTRE,
-    ROBOT_2023_NOVA_CTRE_FOC,
-    ROBOT_2023_NOVA,
     ROBOT_DEFAULT,
     ROBOT_SIMBOT,
     ROBOT_SIMBOT_CTRE,
-    ROBOT_PRACTICE
+    ROBOT_PRACTICE,
+    ROBOT_2024_ARTEMIS,
+    ROBOT_PRACTICE_BOARD
   }
 
   // FIXME: update for various robots
@@ -50,7 +50,7 @@ public final class Constants {
       if (ROBOT == RobotType.ROBOT_SIMBOT
           || ROBOT == RobotType.ROBOT_SIMBOT_CTRE) { // Invalid robot selected
         invalidRobotAlert.set(true);
-        return RobotType.ROBOT_DEFAULT;
+        return RobotType.ROBOT_2024_ARTEMIS;
       } else {
         return ROBOT;
       }
@@ -63,10 +63,9 @@ public final class Constants {
   public static Mode getMode() {
     switch (getRobot()) {
       case ROBOT_DEFAULT:
-      case ROBOT_2023_NOVA_CTRE:
-      case ROBOT_2023_NOVA_CTRE_FOC:
-      case ROBOT_2023_NOVA:
       case ROBOT_PRACTICE:
+      case ROBOT_PRACTICE_BOARD:
+      case ROBOT_2024_ARTEMIS:
         return RobotBase.isReal() ? Mode.REAL : Mode.REPLAY;
 
       case ROBOT_SIMBOT:

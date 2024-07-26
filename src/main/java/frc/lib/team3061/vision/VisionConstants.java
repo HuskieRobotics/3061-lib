@@ -17,12 +17,16 @@ public final class VisionConstants {
   public static final String SUBSYSTEM_NAME = "Vision";
 
   // the pose ambiguity must be less than this value for the target to be considered valid
-  public static final double MAXIMUM_AMBIGUITY = 0.2;
+  public static final double AMBIGUITY_THRESHOLD = 0.5;
+
+  // this factor is applied to the pose ambiguity when calculating the standard deviation to pass to
+  // the pose estimator
+  public static final double AMBIGUITY_SCALE_FACTOR = 0.2;
 
   // the maximum distance between the robot's pose derived from the target and the current robot's
   // estimated pose for the target to be used to update the robot's pose (essentially, always use a
   // valid target to update the robot's pose)
-  public static final double MAX_POSE_DIFFERENCE_METERS = 2.0;
+  public static final double MAX_POSE_DIFFERENCE_METERS = 2.5;
 
   // the maximum distance between the robot and the target, for the target to be used to update the
   // robot's pose

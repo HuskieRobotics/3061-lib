@@ -14,11 +14,13 @@ import static frc.robot.Constants.*;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.Drivetrain;
 import frc.lib.team6328.util.TunableNumber;
+import frc.robot.Field2d;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
@@ -75,7 +77,7 @@ public class DriveToPose extends Command {
   private static final TunableNumber thetaTolerance =
       new TunableNumber(
           "DriveToPose/ThetaTolerance", RobotConfig.getInstance().getDriveToPoseThetaTolerance());
-  private static final TunableNumber timeout = new TunableNumber("DriveToPose/timeout", 2.0);
+  private static final TunableNumber timeout = new TunableNumber("DriveToPose/timeout", 5.0);
 
   private final ProfiledPIDController xController =
       new ProfiledPIDController(
@@ -197,7 +199,10 @@ public class DriveToPose extends Command {
     if (yController.atGoal()) yVelocity = 0.0;
     if (thetaController.atGoal()) thetaVelocity = 0.0;
 
-    drivetrain.drive(xVelocity, yVelocity, thetaVelocity, true, true);
+    int allianceMultiplier = Field2d.getInstance().getAlliance() == Alliance.Blue ? 1 : -1;
+
+    drivetrain.drive(
+        allianceMultiplier * xVelocity, allianceMultiplier * yVelocity, thetaVelocity, true, true);
   }
 
   /**

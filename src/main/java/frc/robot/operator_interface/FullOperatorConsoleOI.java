@@ -63,11 +63,6 @@ public class FullOperatorConsoleOI implements OperatorInterface {
   }
 
   @Override
-  public Trigger getLockToSpeakerButton() {
-    return rotateJoystickButtons[3];
-  }
-
-  @Override
   public Trigger getResetGyroButton() {
     return translateJoystickButtons[4];
   }
