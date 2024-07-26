@@ -75,7 +75,7 @@
     "rotateFast": false
   },
   "reversed": false,
-  "folder": null,
+  "folder": "Tuning",
   "previewStartingState": {
     "rotation": 90.0,
     "velocity": 0

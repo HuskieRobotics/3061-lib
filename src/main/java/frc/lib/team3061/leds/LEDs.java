@@ -15,6 +15,8 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.team3061.RobotConfig;
+import frc.robot.Constants;
+import frc.robot.Field2d;
 import java.util.List;
 
 @java.lang.SuppressWarnings({"java:S6548"})
@@ -35,16 +37,13 @@ public abstract class LEDs extends SubsystemBase {
 
   // Robot state tracking
   private int loopCycleCount = 0;
-  private boolean distraction = false;
   private boolean fallen = false;
   private boolean endgameAlert = false;
   private boolean autoFinished = false;
   private double autoFinishedTime = 0.0;
   private boolean lowBatteryAlert = false;
-  private boolean demoMode = false;
 
   private boolean assignedAlliance = false;
-  private Alliance alliance = Alliance.Blue;
   private boolean lastEnabledAuto = false;
   private double lastEnabledTime = 0.0;
   private boolean estopped = false;
@@ -66,16 +65,18 @@ public abstract class LEDs extends SubsystemBase {
   protected static final int LENGTH = MIRROR_LEDS ? ACTUAL_LENGTH / 2 : ACTUAL_LENGTH;
   private static final int STATIC_LENGTH = LENGTH / 2;
   private static final int STATIC_SECTION_LENGTH = STATIC_LENGTH / 3;
-  private static final boolean PRIDE_LEDS = true;
+  private static final boolean PRIDE_LEDS = false;
   private static final int MIN_LOOP_CYCLE_COUNT = 10;
   private static final double STROBE_FAST_DURATION = 0.1;
   private static final double STROBE_SLOW_DURATION = 0.2;
   private static final double BREATH_DURATION = 1.0;
-  private static final double RAINBOW_CYCLE_LENGTH = 25.0;
-  private static final double RAINBOW_DURATION = 0.25;
+  private static final double PULSE_DURATION = 0.5;
+  private static final double RAINBOW_CYCLE_LENGTH = 30.0;
+  private static final double RAINBOW_DURATION = .25;
   private static final double WAVE_EXPONENT = 0.4;
   private static final double WAVE_FAST_CYCLE_LENGTH = 25.0;
   private static final double WAVE_FAST_DURATION = 0.25;
+  private static final double WAVE_MEDIUM_DURATION = 0.75;
   private static final double WAVE_SLOW_CYCLE_LENGTH = 25.0;
   private static final double WAVE_SLOW_DURATION = 3.0;
   private static final double WAVE_ALLIANCE_CYCLE_LENGTH = 15.0;
@@ -89,10 +90,7 @@ public abstract class LEDs extends SubsystemBase {
             () -> {
               synchronized (this) {
                 breath(
-                    Section.STATIC_LOW,
-                    Color.kWhite,
-                    Color.kBlack,
-                    System.currentTimeMillis() / 1000.0);
+                    Section.FULL, Color.kWhite, Color.kBlack, System.currentTimeMillis() / 1000.0);
                 this.updateLEDs();
               }
             });
@@ -130,13 +128,13 @@ public abstract class LEDs extends SubsystemBase {
         // Auto fade
         solid(1.0 - ((Timer.getFPGATimestamp() - lastEnabledTime) / AUTO_FADE_TIME), Color.kGreen);
 
-      } else if (lowBatteryAlert) {
-        // Low battery
-        solid(Section.FULL, Color.kOrangeRed);
-
-      } else if (PRIDE_LEDS) {
+      } else if (Constants.DEMO_MODE) {
         // Pride stripes
         updateToPridePattern();
+
+      } else if (lowBatteryAlert) {
+        // Low battery
+        solid(Section.FULL, new Color(255, 20, 0));
 
       } else {
         // Default pattern
@@ -158,38 +156,33 @@ public abstract class LEDs extends SubsystemBase {
     // Set special modes
 
     // Demo mode background
-    if (demoMode) {
+    if (Constants.DEMO_MODE) {
       wave(
           Section.FULL,
-          Color.kDarkOrange,
+          new Color(255, 30, 0),
           Color.kDarkBlue,
           WAVE_SLOW_CYCLE_LENGTH,
-          WAVE_SLOW_DURATION);
+          WAVE_MEDIUM_DURATION);
     }
 
-    if (distraction) {
-      strobe(Section.SHOULDER, Color.kWhite, STROBE_FAST_DURATION);
-    } else if (endgameAlert) {
-      strobe(Section.SHOULDER, Color.kBlue, STROBE_SLOW_DURATION);
+    if (endgameAlert) {
+      // Endgame alert
+      strobe(Section.FULL, Color.kYellow, STROBE_SLOW_DURATION);
     }
   }
 
   private void updateToAutoPattern() {
-    wave(
-        Section.FULL,
-        Color.kDarkOrange,
-        Color.kDarkBlue,
-        WAVE_FAST_CYCLE_LENGTH,
-        WAVE_FAST_DURATION);
-    if (autoFinished) {
-      double fullTime = LENGTH / WAVE_FAST_CYCLE_LENGTH * WAVE_FAST_DURATION;
-      solid((Timer.getFPGATimestamp() - autoFinishedTime) / fullTime, Color.kGreen);
-    }
+    orangePulse(Section.FULL, PULSE_DURATION);
+
+    // if (autoFinished) {
+    //   double fullTime = LENGTH / WAVE_FAST_CYCLE_LENGTH * WAVE_FAST_DURATION;
+    //   solid((Timer.getFPGATimestamp() - autoFinishedTime) / fullTime, Color.kGreen);
+    // }
   }
 
   private void updateToDisabledPattern() {
     if (assignedAlliance) {
-      if (alliance == Alliance.Red) {
+      if (Field2d.getInstance().getAlliance() == Alliance.Red) {
         wave(
             Section.FULL,
             Color.kRed,
@@ -207,7 +200,7 @@ public abstract class LEDs extends SubsystemBase {
     } else {
       wave(
           Section.FULL,
-          Color.kDarkOrange,
+          new Color(255, 30, 0),
           Color.kDarkBlue,
           WAVE_SLOW_CYCLE_LENGTH,
           WAVE_SLOW_DURATION);
@@ -233,7 +226,7 @@ public abstract class LEDs extends SubsystemBase {
             new Color(0.15, 0.3, 1.0)),
         3,
         5.0);
-    switch (alliance) {
+    switch (Field2d.getInstance().getAlliance()) {
       case Red:
         solid(Section.STATIC_LOW, Color.kRed);
         break;
@@ -246,9 +239,8 @@ public abstract class LEDs extends SubsystemBase {
   }
 
   private void updateState() {
-    // Update alliance color
+    // check for alliance assignment when connected to FMS
     if (DriverStation.isFMSAttached()) {
-      alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
       assignedAlliance = true;
     } else {
       assignedAlliance = false;
@@ -268,10 +260,6 @@ public abstract class LEDs extends SubsystemBase {
     }
   }
 
-  public void setDistraction(boolean distraction) {
-    this.distraction = distraction;
-  }
-
   public void setFallen(boolean fallen) {
     this.fallen = fallen;
   }
@@ -289,10 +277,6 @@ public abstract class LEDs extends SubsystemBase {
 
   public void setLowBatteryAlert(boolean lowBatteryAlert) {
     this.lowBatteryAlert = lowBatteryAlert;
-  }
-
-  public void setDemoMode(boolean demoMode) {
-    this.demoMode = demoMode;
   }
 
   protected abstract void updateLEDs();
@@ -363,6 +347,65 @@ public abstract class LEDs extends SubsystemBase {
         double blue = (c1.blue * (1 - ratio)) + (c2.blue * ratio);
         setLEDBuffer(i, new Color(red, green, blue));
       }
+    }
+  }
+
+  private void fire(Section section, double duration) {
+    double x = (1 - ((Timer.getFPGATimestamp() % duration) / duration)) * 2.0 * Math.PI;
+    double[] heat = new double[section.end() - section.start()];
+    double xDiffPerLed = (2.0 * Math.PI) / heat.length;
+
+    for (int i = 0; i < heat.length; i++) {
+      x += xDiffPerLed;
+      heat[i] = (Math.sin(x) + 1.0) / 2.0; // Heat level between 0 and 1
+    }
+
+    for (int i = 0; i < heat.length; i++) {
+      double ratio = heat[i];
+      // Use shades of blue and orange for the fire effect
+      int red = (int) (255 * ratio);
+      int green = (int) (20 * ratio);
+      int blue = 0; // Blend blue and orange
+
+      // Simulate rising and falling effect
+      double sinValue = Math.sin(x + (i * 0.2));
+      int offset = (int) ((sinValue + 1) / 2 * 255); // Scale to 0-255
+
+      // Apply the color and intensity to the LED
+      setLEDBuffer(
+          section.start() + i,
+          new Color(
+              Math.max(0, red - offset), Math.max(0, green - offset), Math.max(0, blue - offset)));
+    }
+  }
+
+  private void orangePulse(Section section, double duration) {
+    double x = (1 - ((Timer.getFPGATimestamp() % duration) / duration)) * 2.0 * Math.PI;
+    double[] heat = new double[section.end() - section.start()];
+    double xDiffPerLed = (2.0 * Math.PI) / heat.length;
+
+    for (int i = 0; i < heat.length; i++) {
+      x += xDiffPerLed;
+      heat[i] = (Math.sin(x) + 1.0) / 2.0; // Heat level between 0 and 1
+    }
+
+    for (int i = 0; i < heat.length; i++) {
+      double ratio = heat[i];
+
+      // Orange color
+      int red = (int) (255 * ratio);
+      int green = (int) (30 * ratio);
+      int blue = 0;
+      // int blue = (int) (10 * ratio);
+
+      // Simulate rising and falling effect
+      int offset = (int) (2 * Math.sin(x + (i * 0.2)));
+
+      // Apply the color to the LED
+      setLEDBuffer(
+          section.start() + i,
+          new Color(
+              Math.max(0, red - offset), Math.max(0, green - offset), Math.max(0, blue - offset)));
     }
   }
 

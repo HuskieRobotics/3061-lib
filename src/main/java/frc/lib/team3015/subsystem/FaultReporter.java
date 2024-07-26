@@ -1,5 +1,6 @@
 package frc.lib.team3015.subsystem;
 
+import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -41,6 +42,8 @@ public class FaultReporter {
 
   private final Map<String, SubsystemFaults> subsystemsFaults = new HashMap<>();
   private final boolean checkErrors;
+
+  private boolean startedCTRESignalLogger = false;
 
   private FaultReporter() {
     this.checkErrors = RobotBase.isReal();
@@ -91,13 +94,15 @@ public class FaultReporter {
         .schedule(
             Commands.repeatingSequence(
                     Commands.runOnce(this::checkForFaults), Commands.waitSeconds(0.25))
-                .ignoringDisable(true));
+                .ignoringDisable(true)
+                .withName("check for faults"));
 
     CommandScheduler.getInstance()
         .schedule(
             Commands.repeatingSequence(
                     Commands.runOnce(this::publishStatus), Commands.waitSeconds(1.0))
-                .ignoringDisable(true));
+                .ignoringDisable(true)
+                .withName("publish faults"));
   }
 
   private void publishStatus() {
@@ -185,6 +190,15 @@ public class FaultReporter {
         subsystemsFaults.getOrDefault(subsystemName, new SubsystemFaults());
     subsystemFaults.hardware.add(new SelfCheckingPhoenixMotor(label, phoenixMotor));
     subsystemsFaults.put(subsystemName, subsystemFaults);
+
+    // The following is the recommended workaround from CTRE to ensure that the CANivore has been
+    // enumerated by the root hub and therefore, hoot files will be properly generated.
+    if (!this.startedCTRESignalLogger) {
+      this.startedCTRESignalLogger = true;
+      phoenixMotor.getVersion().waitForUpdate(0.5);
+      SignalLogger.setPath("/media/sda1");
+      SignalLogger.start();
+    }
   }
 
   public void registerHardware(String subsystemName, String label, PWMMotorController pwmMotor) {

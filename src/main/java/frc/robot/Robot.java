@@ -4,7 +4,7 @@
 
 package frc.robot;
 
-import com.ctre.phoenix6.SignalLogger;
+import com.pathplanner.lib.commands.FollowPathCommand;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.hal.AllianceStationID;
@@ -100,8 +100,6 @@ public class Robot extends LoggedRobot {
 
         LoggedPowerDistribution.getInstance();
 
-        SignalLogger.setPath("/media/sda1");
-        SignalLogger.start();
         break;
 
       case SIM:
@@ -164,6 +162,12 @@ public class Robot extends LoggedRobot {
     PathPlannerLogging.setLogActivePathCallback(
         poses -> Logger.recordOutput("PathFollowing/activePath", poses.toArray(new Pose2d[0])));
 
+    // Due to the nature of how Java works, the first run of a path following command could have a
+    // significantly higher delay compared with subsequent runs, as all the classes involved will
+    // need to be loaded. To help alleviate this issue, you can run a warmup command in the
+    // background when code starts.
+    FollowPathCommand.warmupCommand().schedule();
+
     // Start timers
     disabledTimer.reset();
     disabledTimer.start();
@@ -218,6 +222,8 @@ public class Robot extends LoggedRobot {
       LEDs.getInstance().setAutoFinished(true);
     }
 
+    robotContainer.periodic();
+
     Threads.setCurrentThreadPriority(true, 10);
   }
 
@@ -249,6 +255,8 @@ public class Robot extends LoggedRobot {
     if (autonomousCommand != null) {
       autonomousCommand.schedule();
     }
+
+    robotContainer.autonomousInit();
   }
 
   /** This method is invoked at the start of the teleop period. */

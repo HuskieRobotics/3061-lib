@@ -13,6 +13,7 @@ import org.littletonrobotics.junction.AutoLog;
 public interface DrivetrainIO {
   @AutoLog
   public static class SwerveIOInputs {
+    public boolean driveEnabled = false;
     public double driveDistanceMeters = 0.0;
     public double driveVelocityMetersPerSec = 0.0;
     public double driveVelocityReferenceMetersPerSec = 0.0;
@@ -23,6 +24,7 @@ public interface DrivetrainIO {
     public double driveSupplyCurrentAmps = 0.0;
     public double driveTempCelsius = 0.0;
 
+    public boolean steerEnabled = false;
     public double steerAbsolutePositionDeg = 0.0;
     public double steerPositionDeg = 0.0;
     public double steerPositionReferenceDeg = 0.0;
@@ -46,8 +48,18 @@ public interface DrivetrainIO {
     double measuredVYMetersPerSec = 0.0;
     double measuredAngularVelocityRadPerSec = 0.0;
 
-    SwerveModuleState[] swerveReferenceStates = new SwerveModuleState[4];
-    SwerveModuleState[] swerveMeasuredStates = new SwerveModuleState[4];
+    SwerveModuleState[] swerveReferenceStates = {
+      new SwerveModuleState(),
+      new SwerveModuleState(),
+      new SwerveModuleState(),
+      new SwerveModuleState()
+    };
+    SwerveModuleState[] swerveMeasuredStates = {
+      new SwerveModuleState(),
+      new SwerveModuleState(),
+      new SwerveModuleState(),
+      new SwerveModuleState()
+    };
 
     Pose2d robotPoseWithoutGyro = new Pose2d();
     Pose2d robotPose = new Pose2d();
