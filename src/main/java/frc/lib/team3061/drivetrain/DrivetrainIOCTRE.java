@@ -5,6 +5,8 @@ import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
+import com.ctre.phoenix6.configs.MountPoseConfigs;
+import com.ctre.phoenix6.configs.Pigeon2Configuration;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.configs.TorqueCurrentConfigs;
@@ -131,7 +133,10 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   private static final SwerveDrivetrainConstants drivetrainConstants =
       new SwerveDrivetrainConstants()
           .withPigeon2Id(RobotConfig.getInstance().getGyroCANID())
-          .withCANbusName(RobotConfig.getInstance().getCANBusName());
+          .withCANbusName(RobotConfig.getInstance().getCANBusName())
+          .withPigeon2Configs(
+              new Pigeon2Configuration()
+                  .withMountPose(new MountPoseConfigs().withMountPoseRoll(-180.0)));
 
   private static final SwerveModuleConstantsFactory constantCreator =
       new SwerveModuleConstantsFactory()
