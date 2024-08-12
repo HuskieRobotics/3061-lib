@@ -1,5 +1,7 @@
 package frc.robot.configs;
 
+import com.ctre.phoenix6.configs.MountPoseConfigs;
+import com.ctre.phoenix6.configs.Pigeon2Configuration;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -450,6 +452,12 @@ public class ArtemisRobotConfig extends RobotConfig {
   @Override
   public double getOdometryUpdateFrequency() {
     return 250.0;
+  }
+
+  @Override
+  public Pigeon2Configuration getPigeonConfigForSwerveDrivetrain() {
+    return new Pigeon2Configuration()
+        .withMountPose(new MountPoseConfigs().withMountPoseRoll(-180.0));
   }
 
   @Override

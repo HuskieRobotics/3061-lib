@@ -1,5 +1,6 @@
 package frc.lib.team3061;
 
+import com.ctre.phoenix6.configs.Pigeon2Configuration;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -674,6 +675,16 @@ public abstract class RobotConfig {
    */
   public double getOdometryUpdateFrequency() {
     return 250.0;
+  }
+
+  /**
+   * Returns the Pigeon2 configuration for the swerve drivetrain. Defaults to an empty
+   * configuration, which means the Pigeon2 is mounted in the default orientation.
+   *
+   * @return the Pigeon2 configuration for the swerve drivetrain
+   */
+  public Pigeon2Configuration getPigeonConfigForSwerveDrivetrain() {
+    return new Pigeon2Configuration();
   }
 
   /**

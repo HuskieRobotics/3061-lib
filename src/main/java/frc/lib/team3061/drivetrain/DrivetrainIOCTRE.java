@@ -131,7 +131,8 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   private static final SwerveDrivetrainConstants drivetrainConstants =
       new SwerveDrivetrainConstants()
           .withPigeon2Id(RobotConfig.getInstance().getGyroCANID())
-          .withCANbusName(RobotConfig.getInstance().getCANBusName());
+          .withCANbusName(RobotConfig.getInstance().getCANBusName())
+          .withPigeon2Configs(RobotConfig.getInstance().getPigeonConfigForSwerveDrivetrain());
 
   private static final SwerveModuleConstantsFactory constantCreator =
       new SwerveModuleConstantsFactory()
