@@ -53,6 +53,46 @@ public class SelfCheckingPhoenixMotor implements SelfChecking {
     if (motor.getFault_UnstableSupplyV().getValue() == Boolean.TRUE) {
       faults.add(new SubsystemFault(String.format("[%s]: Supply voltage is unstable", label)));
     }
+    if (motor.getFault_BridgeBrownout().getValue() == Boolean.TRUE) {
+      faults.add(new SubsystemFault(String.format("[%s]: Bridge brownout detected", label)));
+    }
+    if (motor.getFault_RemoteSensorReset().getValue() == Boolean.TRUE) {
+      faults.add(new SubsystemFault(String.format("[%s]: Remote sensor reset", label)));
+    }
+    if (motor.getFault_MissingDifferentialFX().getValue() == Boolean.TRUE) {
+      faults.add(new SubsystemFault(String.format("[%s]: Missing Differential FX", label)));
+    }
+    if (motor.getFault_RemoteSensorPosOverflow().getValue() == Boolean.TRUE) {
+      faults.add(new SubsystemFault(String.format("[%s]: Remote sensor position overflow", label)));
+    }
+    if (motor.getFault_ReverseHardLimit().getValue() == Boolean.TRUE) {
+      faults.add(new SubsystemFault(String.format("[%s]: Reverse hard limit reached", label)));
+    }
+    if (motor.getFault_ForwardHardLimit().getValue() == Boolean.TRUE) {
+      faults.add(new SubsystemFault(String.format("[%s]: Forward hard limit reached", label)));
+    }
+    if (motor.getFault_ReverseSoftLimit().getValue() == Boolean.TRUE) {
+      faults.add(new SubsystemFault(String.format("[%s]: Reverse soft limit reached", label)));
+    }
+    if (motor.getFault_ForwardSoftLimit().getValue() == Boolean.TRUE) {
+      faults.add(new SubsystemFault(String.format("[%s]: Forward soft limit reached", label)));
+    }
+    if (motor.getFault_RemoteSensorDataInvalid().getValue() == Boolean.TRUE) {
+      faults.add(new SubsystemFault(String.format("[%s]: Remote sensor data invalid", label)));
+    }
+    if (motor.getFault_StatorCurrLimit().getValue() == Boolean.TRUE) {
+      faults.add(new SubsystemFault(String.format("[%s]: Stator current limit exceeded", label)));
+    }
+    if (motor.getFault_SupplyCurrLimit().getValue() == Boolean.TRUE) {
+      faults.add(new SubsystemFault(String.format("[%s]: Supply current limit exceeded", label)));
+    }
+    if (motor.getFault_UsingFusedCANcoderWhileUnlicensed().getValue() == Boolean.TRUE) {
+      faults.add(
+          new SubsystemFault(String.format("[%s]: Fused CANcoder used without license", label)));
+    }
+    if (motor.getFault_StaticBrakeDisabled().getValue() == Boolean.TRUE) {
+      faults.add(new SubsystemFault(String.format("[%s]: Static brake disabled", label)));
+    }
 
     this.statusSignal.refresh();
     if (this.statusSignal.getStatus() != StatusCode.OK) {
