@@ -41,7 +41,8 @@ public final class Constants {
     ROBOT_SIMBOT_CTRE,
     ROBOT_PRACTICE,
     ROBOT_COMPETITION,
-    ROBOT_PRACTICE_BOARD
+    ROBOT_PRACTICE_BOARD,
+    ROBOT_PRACTICE_NEW
   }
 
   // FIXME: update for various robots
@@ -64,6 +65,7 @@ public final class Constants {
     switch (getRobot()) {
       case ROBOT_DEFAULT:
       case ROBOT_PRACTICE:
+      case ROBOT_PRACTICE_NEW:
       case ROBOT_PRACTICE_BOARD:
       case ROBOT_COMPETITION:
         return RobotBase.isReal() ? Mode.REAL : Mode.REPLAY;

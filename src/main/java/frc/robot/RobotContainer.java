@@ -39,6 +39,7 @@ import frc.robot.commands.WheelDiameterCharacterization;
 import frc.robot.configs.ArtemisRobotConfig;
 import frc.robot.configs.DefaultRobotConfig;
 import frc.robot.configs.GenericDrivetrainRobotConfig;
+import frc.robot.configs.NewPracticeRobotConfig;
 import frc.robot.configs.PracticeBoardConfig;
 import frc.robot.configs.PracticeRobotConfig;
 import frc.robot.operator_interface.OISelector;
@@ -100,6 +101,7 @@ public class RobotContainer {
             break;
           }
         case ROBOT_PRACTICE:
+        case ROBOT_PRACTICE_NEW:
         case ROBOT_COMPETITION:
           {
             createCTRESubsystems();
@@ -160,6 +162,9 @@ public class RobotContainer {
       case ROBOT_COMPETITION:
       case ROBOT_SIMBOT_CTRE:
         config = new ArtemisRobotConfig();
+        break;
+      case ROBOT_PRACTICE_NEW:
+        config = new NewPracticeRobotConfig();
         break;
       case ROBOT_PRACTICE_BOARD:
         config = new PracticeBoardConfig();
