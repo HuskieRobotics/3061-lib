@@ -43,6 +43,10 @@ public class ArtemisRobotConfig extends RobotConfig {
       0.88265; // meters //34.75 in , measure the actual bumpers
   private static final double ROBOT_LENGTH_WITH_BUMPERS = 0.88265; // meters // 34.75 in same above
 
+  // FIXME: generate a new swerve drivetrain project from Tuner X and check the value of each of
+  // these
+  private static final double COUPLE_RATIO = 0.0;
+
   /* Angle Motor PID Values */
   private static final double ANGLE_KP = 100.0;
   private static final double ANGLE_KI = 0.0;
@@ -478,5 +482,10 @@ public class ArtemisRobotConfig extends RobotConfig {
   @Override
   public SWERVE_CONTROL_MODE getSwerveDriveControlMode() {
     return SWERVE_CONTROL_MODE.TORQUE_CURRENT_FOC;
+  }
+
+  @Override
+  public double getAzimuthSteerCouplingRatio() {
+    return COUPLE_RATIO;
   }
 }

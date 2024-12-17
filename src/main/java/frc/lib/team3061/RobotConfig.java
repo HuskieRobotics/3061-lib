@@ -734,6 +734,15 @@ public abstract class RobotConfig {
     return SWERVE_CONTROL_MODE.VOLTAGE;
   }
 
+  /**
+   * Returns the azimuth steer coupling ratio for the swerve drivetrain. Defaults to 0.
+   *
+   * @return the azimuth steer coupling ratio for the swerve drivetrain
+   */
+  public double getAzimuthSteerCouplingRatio() {
+    return 0.0;
+  }
+
   public enum SWERVE_CONTROL_MODE {
     VOLTAGE,
     TORQUE_CURRENT_FOC

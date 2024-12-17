@@ -123,7 +123,8 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   // TorqueCurrentFOC is not currently supported in simulation.
   private static final ClosedLoopOutputType driveClosedLoopOutput = getDriveClosedLoopOutputType();
 
-  private static final double COUPLE_RATIO = 0.0;
+  private static final double COUPLE_RATIO =
+      RobotConfig.getInstance().getAzimuthSteerCouplingRatio();
   private static final double STEER_INERTIA = 0.00001;
   private static final double DRIVE_INERTIA = 0.001;
 
