@@ -7,7 +7,6 @@ import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.configs.TorqueCurrentConfigs;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrain;
@@ -138,18 +137,12 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
       new SwerveModuleConstantsFactory()
           .withDriveMotorInitialConfigs(
               new TalonFXConfiguration()
-                  .withTorqueCurrent(
-                      new TorqueCurrentConfigs()
-                          .withPeakForwardTorqueCurrent(SwerveConstants.DRIVE_PEAK_CURRENT_LIMIT)
-                          .withPeakReverseTorqueCurrent(-SwerveConstants.DRIVE_PEAK_CURRENT_LIMIT))
                   .withCurrentLimits(
                       new CurrentLimitsConfigs()
                           .withSupplyCurrentLimit(SwerveConstants.DRIVE_CONTINUOUS_CURRENT_LIMIT)
                           .withSupplyCurrentThreshold(SwerveConstants.DRIVE_PEAK_CURRENT_LIMIT)
                           .withSupplyTimeThreshold(SwerveConstants.DRIVE_PEAK_CURRENT_DURATION)
-                          .withSupplyCurrentLimitEnable(SwerveConstants.DRIVE_ENABLE_CURRENT_LIMIT)
-                          .withStatorCurrentLimit(SwerveConstants.DRIVE_PEAK_CURRENT_LIMIT)
-                          .withStatorCurrentLimitEnable(
+                          .withSupplyCurrentLimitEnable(
                               SwerveConstants.DRIVE_ENABLE_CURRENT_LIMIT)))
           .withSteerMotorInitialConfigs(
               new TalonFXConfiguration()
@@ -168,7 +161,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
               RobotConfig.getInstance().getSwerveConstants().getAngleGearRatio())
           .withWheelRadius(
               Units.metersToInches(RobotConfig.getInstance().getWheelDiameterMeters() / 2.0))
-          .withSlipCurrent(800)
+          .withSlipCurrent(SwerveConstants.DRIVE_PEAK_CURRENT_LIMIT)
           .withSteerMotorGains(steerGains)
           .withDriveMotorGains(driveGains)
           .withSteerMotorClosedLoopOutput(steerClosedLoopOutput)

@@ -3,6 +3,7 @@ package frc.lib.team3061.leds;
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.util.Color;
+import frc.robot.Constants;
 
 public class LEDsRIO extends LEDs {
 
@@ -15,7 +16,7 @@ public class LEDsRIO extends LEDs {
     leds = new AddressableLED(0);
     buffer = new AddressableLEDBuffer(ACTUAL_LENGTH);
     // leds.setBitTiming(500, 200, 1200, 1300);
-    isGRB = true;
+    isGRB = Constants.getMode() != Constants.Mode.SIM;
     competitionBrightness = true;
 
     leds.setLength(ACTUAL_LENGTH);

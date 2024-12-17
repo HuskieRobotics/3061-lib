@@ -40,7 +40,7 @@ public final class Constants {
     ROBOT_SIMBOT,
     ROBOT_SIMBOT_CTRE,
     ROBOT_PRACTICE,
-    ROBOT_2024_ARTEMIS,
+    ROBOT_COMPETITION,
     ROBOT_PRACTICE_BOARD
   }
 
@@ -50,7 +50,7 @@ public final class Constants {
       if (ROBOT == RobotType.ROBOT_SIMBOT
           || ROBOT == RobotType.ROBOT_SIMBOT_CTRE) { // Invalid robot selected
         invalidRobotAlert.set(true);
-        return RobotType.ROBOT_2024_ARTEMIS;
+        return RobotType.ROBOT_COMPETITION;
       } else {
         return ROBOT;
       }
@@ -65,7 +65,7 @@ public final class Constants {
       case ROBOT_DEFAULT:
       case ROBOT_PRACTICE:
       case ROBOT_PRACTICE_BOARD:
-      case ROBOT_2024_ARTEMIS:
+      case ROBOT_COMPETITION:
         return RobotBase.isReal() ? Mode.REAL : Mode.REPLAY;
 
       case ROBOT_SIMBOT:

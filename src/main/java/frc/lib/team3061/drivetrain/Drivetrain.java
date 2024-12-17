@@ -31,6 +31,7 @@ import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.DrivetrainIO.SwerveIOInputs;
 import frc.lib.team3061.leds.LEDs;
+import frc.lib.team3061.leds.LEDs.States;
 import frc.lib.team6328.util.Alert;
 import frc.lib.team6328.util.Alert.AlertType;
 import frc.lib.team6328.util.FieldConstants;
@@ -499,10 +500,10 @@ public class Drivetrain extends SubsystemBase {
     Logger.processInputs(SUBSYSTEM_NAME + "/BR", this.inputs.swerve[3]);
 
     // Check for fallen robot
-    LEDs.getInstance()
-        .setFallen(
-            Math.abs(this.inputs.gyro.pitchDeg) > LEDS_FALLEN_ANGLE_DEGREES
-                || Math.abs(this.inputs.gyro.rollDeg) > LEDS_FALLEN_ANGLE_DEGREES);
+    if (Math.abs(this.inputs.gyro.pitchDeg) > LEDS_FALLEN_ANGLE_DEGREES
+        || Math.abs(this.inputs.gyro.rollDeg) > LEDS_FALLEN_ANGLE_DEGREES) {
+      LEDs.getInstance().requestState(States.FALLEN);
+    }
 
     // check for teleportation
     if (this.inputs.drivetrain.robotPose.minus(prevRobotPose).getTranslation().getNorm() > 0.4) {
@@ -550,7 +551,9 @@ public class Drivetrain extends SubsystemBase {
         SUBSYSTEM_NAME + "/ConstrainPoseToFieldCount", this.constrainPoseToFieldCount);
 
     // update the brake mode based on the robot's velocity and state (enabled/disabled)
-    updateBrakeMode();
+    // updateBrakeMode();
+
+    Logger.recordOutput(SUBSYSTEM_NAME + "/DriveMode", this.driveMode);
 
     // update tunables
     if (autoDriveKp.hasChanged() || autoDriveKi.hasChanged() || autoDriveKd.hasChanged()) {

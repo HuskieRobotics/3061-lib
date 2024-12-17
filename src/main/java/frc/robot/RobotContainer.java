@@ -100,7 +100,7 @@ public class RobotContainer {
             break;
           }
         case ROBOT_PRACTICE:
-        case ROBOT_2024_ARTEMIS:
+        case ROBOT_COMPETITION:
           {
             createCTRESubsystems();
             break;
@@ -157,7 +157,7 @@ public class RobotContainer {
       case ROBOT_PRACTICE:
         config = new PracticeRobotConfig();
         break;
-      case ROBOT_2024_ARTEMIS:
+      case ROBOT_COMPETITION:
       case ROBOT_SIMBOT_CTRE:
         config = new ArtemisRobotConfig();
         break;
@@ -319,11 +319,8 @@ public class RobotContainer {
                     && DriverStation.getMatchTime() > 0.0
                     && DriverStation.getMatchTime() <= Math.round(endgameAlert1.get()))
         .onTrue(
-            Commands.run(() -> LEDs.getInstance().setEndgameAlert(true))
-                .withTimeout(1)
-                .andThen(
-                    Commands.run(() -> LEDs.getInstance().setEndgameAlert(false))
-                        .withTimeout(1.0)));
+            Commands.run(() -> LEDs.getInstance().requestState(LEDs.States.ENDGAME_ALERT))
+                .withTimeout(1));
     new Trigger(
             () ->
                 DriverStation.isTeleopEnabled()
@@ -331,10 +328,11 @@ public class RobotContainer {
                     && DriverStation.getMatchTime() <= Math.round(endgameAlert2.get()))
         .onTrue(
             Commands.sequence(
-                Commands.run(() -> LEDs.getInstance().setEndgameAlert(true)).withTimeout(0.5),
-                Commands.run(() -> LEDs.getInstance().setEndgameAlert(false)).withTimeout(0.25),
-                Commands.run(() -> LEDs.getInstance().setEndgameAlert(true)).withTimeout(0.5),
-                Commands.run(() -> LEDs.getInstance().setEndgameAlert(false)).withTimeout(0.25)));
+                Commands.run(() -> LEDs.getInstance().requestState(LEDs.States.ENDGAME_ALERT))
+                    .withTimeout(0.5),
+                Commands.waitSeconds(0.25),
+                Commands.run(() -> LEDs.getInstance().requestState(LEDs.States.ENDGAME_ALERT))
+                    .withTimeout(0.5)));
 
     // interrupt all commands by running a command that requires every subsystem. This is used to
     // recover to a known state if the robot becomes "stuck" in a command.
@@ -622,4 +620,15 @@ public class RobotContainer {
   public void periodic() {}
 
   public void autonomousInit() {}
+
+  public void teleopInit() {
+    // check if the alliance color has changed based on the FMS data; if the robot power cycled
+    // during a match, this would be the first opportunity to check the alliance color based on FMS
+    // data.
+    this.checkAllianceColor();
+
+    // ensure that x-stance is disabled at the start of teleop as there is a possibility if the
+    //  auto command is interrupted, we could still be in x-stance
+    drivetrain.disableXstance();
+  }
 }

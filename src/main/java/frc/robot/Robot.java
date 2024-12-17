@@ -203,7 +203,7 @@ public class Robot extends LoggedRobot {
     }
     if (RobotController.getBatteryVoltage() < LOW_BATTERY_VOLTAGE
         && disabledTimer.hasElapsed(LOW_BATTERY_DISABLED_TIME)) {
-      LEDs.getInstance().setLowBatteryAlert(true);
+      LEDs.getInstance().requestState(LEDs.States.LOW_BATTERY);
       lowBatteryAlert.set(true);
     }
 
@@ -219,7 +219,6 @@ public class Robot extends LoggedRobot {
                 "*** Auto cancelled in %.2f secs ***", Timer.getFPGATimestamp() - autoStart));
       }
       autoMessagePrinted = true;
-      LEDs.getInstance().setAutoFinished(true);
     }
 
     robotContainer.periodic();
@@ -271,10 +270,7 @@ public class Robot extends LoggedRobot {
       autonomousCommand.cancel();
     }
 
-    // check if the alliance color has changed based on the FMS data; if the robot power cycled
-    // during a match, this would be the first opportunity to check the alliance color based on FMS
-    // data.
-    robotContainer.checkAllianceColor();
+    robotContainer.teleopInit();
   }
 
   /** This method is invoked at the start of the test period. */

@@ -18,6 +18,8 @@ import frc.lib.team3061.RobotConfig;
 import frc.robot.Constants;
 import frc.robot.Field2d;
 import java.util.List;
+import java.util.TreeSet;
+import java.util.function.BiConsumer;
 
 @java.lang.SuppressWarnings({"java:S6548"})
 public abstract class LEDs extends SubsystemBase {
@@ -35,20 +37,52 @@ public abstract class LEDs extends SubsystemBase {
     return instance;
   }
 
-  // Robot state tracking
-  private int loopCycleCount = 0;
-  private boolean fallen = false;
-  private boolean endgameAlert = false;
-  private boolean autoFinished = false;
-  private double autoFinishedTime = 0.0;
-  private boolean lowBatteryAlert = false;
+  /* based on FRC 6995's use of TreeSet to prioritize LED states as shared on CD:
+   * https://www.chiefdelphi.com/t/enums-and-subsytem-states/463974/31?u=gcschmit
+   */
 
+  private TreeSet<States> fullStates = new TreeSet<>();
+  private TreeSet<States> shoulderStates = new TreeSet<>();
+  private TreeSet<States> staticStates = new TreeSet<>();
+  private TreeSet<States> staticLowStates = new TreeSet<>();
+  private TreeSet<States> staticMidStates = new TreeSet<>();
+  private TreeSet<States> staticHighStates = new TreeSet<>();
+
+  /**
+   * Enum for LED states. Each state has a lambda function that accepts an LED subsystem and section
+   * of the LED strip on which to display the specified pattern corresponding to the state.
+   *
+   * <p>The order of the states in the enum is the priority order for the states. The first state in
+   * the enum is the highest priority state.
+   */
+  public enum States {
+    ESTOPPED((leds, section) -> leds.solid(section, Color.kRed)),
+    FALLEN((leds, section) -> leds.strobe(Section.FULL, Color.kWhite, STROBE_FAST_DURATION)),
+    AUTO_FADE(
+        (leds, section) ->
+            leds.solid(
+                1.0 - ((Timer.getFPGATimestamp() - leds.lastEnabledTime) / AUTO_FADE_TIME),
+                Color.kGreen)),
+    LOW_BATTERY((leds, section) -> leds.solid(section, new Color(255, 20, 0))),
+    DISABLED_DEMO_MODE((leds, section) -> leds.updateToPridePattern()),
+    DISABLED((leds, section) -> leds.updateToDisabledPattern(section)),
+    AUTO((leds, section) -> leds.orangePulse(section, PULSE_DURATION)),
+    ENDGAME_ALERT((leds, section) -> leds.strobe(section, Color.kYellow, STROBE_SLOW_DURATION)),
+    DEFAULT((leds, section) -> leds.solid(section, Color.kBlack));
+
+    public final BiConsumer<LEDs, Section> setter;
+
+    private States(BiConsumer<LEDs, Section> setter) {
+      this.setter = setter;
+    }
+  }
+
+  // robot state tracking
+  private int loopCycleCount = 0;
   private boolean assignedAlliance = false;
   private boolean lastEnabledAuto = false;
   private double lastEnabledTime = 0.0;
-  private boolean estopped = false;
 
-  // LED IO
   private final Notifier loadingNotifier;
 
   // Constants
@@ -65,7 +99,6 @@ public abstract class LEDs extends SubsystemBase {
   protected static final int LENGTH = MIRROR_LEDS ? ACTUAL_LENGTH / 2 : ACTUAL_LENGTH;
   private static final int STATIC_LENGTH = LENGTH / 2;
   private static final int STATIC_SECTION_LENGTH = STATIC_LENGTH / 3;
-  private static final boolean PRIDE_LEDS = false;
   private static final int MIN_LOOP_CYCLE_COUNT = 10;
   private static final double STROBE_FAST_DURATION = 0.1;
   private static final double STROBE_SLOW_DURATION = 0.2;
@@ -84,6 +117,7 @@ public abstract class LEDs extends SubsystemBase {
   private static final double AUTO_FADE_TIME = 2.5; // 3s nominal
   private static final double AUTO_FADE_MAX_TIME = 5.0; // Return to normal
 
+  // display a pattern while the code is loading
   protected LEDs() {
     loadingNotifier =
         new Notifier(
@@ -97,11 +131,48 @@ public abstract class LEDs extends SubsystemBase {
     loadingNotifier.startPeriodic(0.02);
   }
 
+  /**
+   * Request a state to be displayed on the LEDs. This method will display the state on the entire
+   * (full) LED strip if it is the highest priority state.
+   *
+   * @param state the state to display
+   */
+  public void requestState(States state) {
+    fullStates.add(state);
+  }
+
+  /**
+   * Request a state to be displayed on the LEDs. This method will display the state on the
+   * specified section of the LED strip if it is the highest priority state for that section.
+   *
+   * @param section the section of the LED strip on which to display the state
+   * @param state the state to display
+   */
+  public void requestState(Section section, States state) {
+    switch (section) {
+      case FULL:
+        fullStates.add(state);
+        break;
+      case SHOULDER:
+        shoulderStates.add(state);
+        break;
+      case STATIC:
+        staticStates.add(state);
+        break;
+      case STATIC_LOW:
+        staticLowStates.add(state);
+        break;
+      case STATIC_MID:
+        staticMidStates.add(state);
+        break;
+      case STATIC_HIGH:
+        staticHighStates.add(state);
+        break;
+    }
+  }
+
   @Override
   public synchronized void periodic() {
-    // update all state variables
-    updateState();
-
     // exit during initial cycles
     if (++loopCycleCount < MIN_LOOP_CYCLE_COUNT) {
       return;
@@ -110,96 +181,63 @@ public abstract class LEDs extends SubsystemBase {
     // stop loading notifier if running
     loadingNotifier.stop();
 
-    // select LED mode
-    updateLEDPattern();
+    /* currently, we always use the entire (full) LED strip for all states
+     * if in the future we use smaller sections for some states, we will need
+     * to update this to add the default state to the appropriate sections.
+     */
+    this.requestState(Section.FULL, States.DEFAULT);
 
-    // Update LEDs
-    this.updateLEDs();
-  }
+    // update internal state
+    updateInternalState();
 
-  private void updateLEDPattern() {
-    // default to off
-    solid(Section.FULL, Color.kBlack);
-
-    if (estopped) {
-      solid(Section.FULL, Color.kRed);
-    } else if (DriverStation.isDisabled()) {
-      if (lastEnabledAuto && Timer.getFPGATimestamp() - lastEnabledTime < AUTO_FADE_MAX_TIME) {
-        // Auto fade
-        solid(1.0 - ((Timer.getFPGATimestamp() - lastEnabledTime) / AUTO_FADE_TIME), Color.kGreen);
-
-      } else if (Constants.DEMO_MODE) {
-        // Pride stripes
-        updateToPridePattern();
-
-      } else if (lowBatteryAlert) {
-        // Low battery
-        solid(Section.FULL, new Color(255, 20, 0));
-
+    /*
+     * select LED mode
+     *   if there is a state requested that use the full (entire) LED strip, display it
+     *   otherwise, display the shoulder state and then,
+     *      if there is a state requested that uses the static section, display it
+     *      otherwise, display the static low, mid, and high requested states
+     */
+    if (!fullStates.isEmpty()) {
+      States fullState = fullStates.first();
+      fullState.setter.accept(this, Section.FULL);
+    } else {
+      States shoulderState = shoulderStates.first();
+      shoulderState.setter.accept(this, Section.SHOULDER);
+      if (!staticStates.isEmpty()) {
+        States staticState = staticStates.first();
+        staticState.setter.accept(this, Section.STATIC);
       } else {
-        // Default pattern
-        updateToDisabledPattern();
+        States staticLowState = staticLowStates.first();
+        staticLowState.setter.accept(this, Section.STATIC_LOW);
+        States staticMidState = staticMidStates.first();
+        staticMidState.setter.accept(this, Section.STATIC_MID);
+        States staticHighState = staticHighStates.first();
+        staticHighState.setter.accept(this, Section.STATIC_HIGH);
       }
-    } else if (fallen) {
-      strobe(Section.FULL, Color.kWhite, STROBE_FAST_DURATION);
-    } else if (DriverStation.isAutonomous()) {
-      updateToAutoPattern();
-    } else { // teleop
-
-      updateToTeleopPattern();
-    }
-  }
-
-  private void updateToTeleopPattern() {
-    // FIXME: add other patterns here based specific to the game
-
-    // Set special modes
-
-    // Demo mode background
-    if (Constants.DEMO_MODE) {
-      wave(
-          Section.FULL,
-          new Color(255, 30, 0),
-          Color.kDarkBlue,
-          WAVE_SLOW_CYCLE_LENGTH,
-          WAVE_MEDIUM_DURATION);
     }
 
-    if (endgameAlert) {
-      // Endgame alert
-      strobe(Section.FULL, Color.kYellow, STROBE_SLOW_DURATION);
-    }
+    // update LEDs
+    this.updateLEDs();
+
+    fullStates.clear();
+    shoulderStates.clear();
+    staticStates.clear();
+    staticLowStates.clear();
+    staticMidStates.clear();
+    staticHighStates.clear();
   }
 
-  private void updateToAutoPattern() {
-    orangePulse(Section.FULL, PULSE_DURATION);
-
-    // if (autoFinished) {
-    //   double fullTime = LENGTH / WAVE_FAST_CYCLE_LENGTH * WAVE_FAST_DURATION;
-    //   solid((Timer.getFPGATimestamp() - autoFinishedTime) / fullTime, Color.kGreen);
-    // }
-  }
-
-  private void updateToDisabledPattern() {
+  private void updateToDisabledPattern(Section section) {
     if (assignedAlliance) {
       if (Field2d.getInstance().getAlliance() == Alliance.Red) {
-        wave(
-            Section.FULL,
-            Color.kRed,
-            Color.kBlack,
-            WAVE_ALLIANCE_CYCLE_LENGTH,
-            WAVE_ALLIANCE_DURATION);
+        wave(section, Color.kRed, Color.kBlack, WAVE_ALLIANCE_CYCLE_LENGTH, WAVE_ALLIANCE_DURATION);
       } else {
         wave(
-            Section.FULL,
-            Color.kBlue,
-            Color.kBlack,
-            WAVE_ALLIANCE_CYCLE_LENGTH,
-            WAVE_ALLIANCE_DURATION);
+            section, Color.kBlue, Color.kBlack, WAVE_ALLIANCE_CYCLE_LENGTH, WAVE_ALLIANCE_DURATION);
       }
     } else {
       wave(
-          Section.FULL,
+          section,
           new Color(255, 30, 0),
           Color.kDarkBlue,
           WAVE_SLOW_CYCLE_LENGTH,
@@ -238,7 +276,7 @@ public abstract class LEDs extends SubsystemBase {
     }
   }
 
-  private void updateState() {
+  private void updateInternalState() {
     // check for alliance assignment when connected to FMS
     if (DriverStation.isFMSAttached()) {
       assignedAlliance = true;
@@ -246,37 +284,30 @@ public abstract class LEDs extends SubsystemBase {
       assignedAlliance = false;
     }
 
-    // Update auto state
+    // Update based on robot state
     if (DriverStation.isDisabled()) {
-      autoFinished = false;
+      this.requestState(States.DISABLED);
+      if (lastEnabledAuto && Timer.getFPGATimestamp() - lastEnabledTime < AUTO_FADE_MAX_TIME) {
+        this.requestState(States.AUTO_FADE);
+      }
     } else {
       lastEnabledAuto = DriverStation.isAutonomous();
       lastEnabledTime = Timer.getFPGATimestamp();
+
+      if (DriverStation.isAutonomous()) {
+        this.requestState(States.AUTO);
+      }
     }
 
     // Update estop state
     if (DriverStation.isEStopped()) {
-      estopped = true;
+      this.requestState(States.ESTOPPED);
     }
-  }
 
-  public void setFallen(boolean fallen) {
-    this.fallen = fallen;
-  }
-
-  public void setEndgameAlert(boolean endgameAlert) {
-    this.endgameAlert = endgameAlert;
-  }
-
-  public void setAutoFinished(boolean autoFinished) {
-    this.autoFinished = autoFinished;
-    if (autoFinished) {
-      this.autoFinishedTime = Timer.getFPGATimestamp();
+    // update for demo mode
+    if (Constants.DEMO_MODE && DriverStation.isDisabled()) {
+      this.requestState(States.DISABLED_DEMO_MODE);
     }
-  }
-
-  public void setLowBatteryAlert(boolean lowBatteryAlert) {
-    this.lowBatteryAlert = lowBatteryAlert;
   }
 
   protected abstract void updateLEDs();
@@ -419,10 +450,10 @@ public abstract class LEDs extends SubsystemBase {
     }
   }
 
-  private enum Section {
-    STATIC,
-    SHOULDER,
+  public enum Section {
     FULL,
+    SHOULDER,
+    STATIC,
     STATIC_LOW,
     STATIC_MID,
     STATIC_HIGH;
