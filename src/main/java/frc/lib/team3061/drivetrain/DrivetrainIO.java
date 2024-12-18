@@ -1,11 +1,15 @@
 package frc.lib.team3061.drivetrain;
 
+import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import frc.lib.team3061.gyro.GyroIOInputsAutoLogged;
+import java.util.Optional;
 import org.littletonrobotics.junction.AutoLog;
 
 @java.lang.SuppressWarnings({"java:S1104"})
@@ -64,6 +68,8 @@ public interface DrivetrainIO {
     };
 
     double averageDriveCurrent = 0.0;
+
+    Pose2d customPose = new Pose2d();
 
     double[] odometryTimestamps = new double[] {};
   }
@@ -142,6 +148,15 @@ public interface DrivetrainIO {
    * @param pose the specified pose to which is set the odometry
    */
   public default void resetPose(Pose2d pose) {}
+
+  public default Optional<Pose2d> samplePoseAt(double timestamp) {
+    return Optional.empty();
+  }
+
+  public default void addVisionMeasurement(
+      Pose2d visionRobotPoseMeters,
+      double timestampSeconds,
+      Matrix<N3, N1> visionMeasurementStdDevs) {}
 
   /**
    * Supplies the drive motors with the specified voltage. Used for drivetrain characterization.

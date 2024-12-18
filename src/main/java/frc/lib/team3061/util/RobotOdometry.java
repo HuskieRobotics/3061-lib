@@ -4,10 +4,13 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import frc.lib.team3061.RobotConfig;
+import frc.lib.team3061.drivetrain.Drivetrain;
+import org.littletonrobotics.junction.Logger;
 
 @java.lang.SuppressWarnings({"java:S6548"})
 
@@ -18,6 +21,7 @@ import frc.lib.team3061.RobotConfig;
 public class RobotOdometry {
   private static final RobotOdometry robotOdometry = new RobotOdometry();
   private SwerveDrivePoseEstimator estimator = null;
+  private Drivetrain customOdometry = null;
   private SwerveModulePosition[] defaultPositions =
       new SwerveModulePosition[] {
         new SwerveModulePosition(),
@@ -25,6 +29,9 @@ public class RobotOdometry {
         new SwerveModulePosition(),
         new SwerveModulePosition()
       };
+
+  private static final boolean INCLUDE_VISION_POSE_ESTIMATES = false;
+  private static final boolean INCLUDE_VISION_POSE_ESTIMATES_IN_CUSTOM_ODOMETRY = false;
 
   private RobotOdometry() {
     estimator =
@@ -35,21 +42,24 @@ public class RobotOdometry {
             new Pose2d());
   }
 
-  /**
-   * Returns the estimated pose of the robot (e.g., x and y position of the robot on the field and
-   * the robot's rotation). The origin of the field to the lower left corner (i.e., the corner of
-   * the field to the driver's right). Zero degrees is away from the driver and increases in the CCW
-   * direction.
-   *
-   * @return the pose of the robot
-   */
   public Pose2d getEstimatedPose() {
+    // changed to not consider custom odometry at all
     return this.estimator.getEstimatedPosition();
+  }
+
+  // new method to get estimated position of the custom odometry (in order to compare with the
+  // default estimator)
+  public Pose2d getCustomEstimatedPose() {
+    return this.customOdometry != null ? this.customOdometry.getCustomEstimatedPose() : null;
   }
 
   public void resetPosition(
       Rotation2d gyroAngle, SwerveModulePosition[] modulePositions, Pose2d poseMeters) {
+
+    // resetting position on both estimators at the same time since we are considering both in
+    // parallel now
     this.estimator.resetPosition(gyroAngle, modulePositions, poseMeters);
+    if (this.customOdometry != null) this.customOdometry.resetCustomPose(poseMeters);
   }
 
   public Pose2d updateWithTime(
@@ -60,9 +70,32 @@ public class RobotOdometry {
   public void addVisionMeasurement(
       Pose2d visionRobotPoseMeters,
       double timestampSeconds,
+      double latencyAdjustmentSeconds,
       Matrix<N3, N1> visionMeasurementStdDevs) {
-    this.estimator.addVisionMeasurement(
-        visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
+
+    double adjustedTimestamp = timestampSeconds + latencyAdjustmentSeconds;
+    if (INCLUDE_VISION_POSE_ESTIMATES) {
+      this.estimator.addVisionMeasurement(
+          visionRobotPoseMeters, adjustedTimestamp, visionMeasurementStdDevs);
+
+      if (INCLUDE_VISION_POSE_ESTIMATES_IN_CUSTOM_ODOMETRY && this.customOdometry != null) {
+        this.customOdometry.addVisionMeasurement(
+            visionRobotPoseMeters, adjustedTimestamp, visionMeasurementStdDevs);
+      }
+    }
+
+    // log the difference between the vision pose estimate and the pose estimate corresponding to
+    // the same timestamp
+    var sample = this.customOdometry.samplePoseAt(adjustedTimestamp);
+    if (!sample.isEmpty()) {
+      Pose2d pastPose = sample.get();
+      Transform2d diff = pastPose.minus(visionRobotPoseMeters);
+      Logger.recordOutput("RobotOdometry/visionPoseDiff", diff);
+    }
+  }
+
+  public void setCustomOdometry(Drivetrain customOdometry) {
+    this.customOdometry = customOdometry;
   }
 
   public static RobotOdometry getInstance() {

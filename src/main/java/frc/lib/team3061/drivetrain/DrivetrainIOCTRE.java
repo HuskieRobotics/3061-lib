@@ -384,6 +384,8 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
 
     inputs.drivetrain.averageDriveCurrent = this.getAverageDriveCurrent(inputs);
 
+    inputs.drivetrain.customPose = this.getState().Pose;
+
     this.odometryLock.lock();
 
     inputs.drivetrain.odometryTimestamps =

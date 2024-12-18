@@ -7,7 +7,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "DistanceTest"
+            "pathName": "OvalTestSlow1"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "OvalTestSlow2"
           }
         }
       ]

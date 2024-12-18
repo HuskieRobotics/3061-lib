@@ -10,14 +10,19 @@ import static frc.robot.Constants.*;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.PathPlannerPath;
+import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
@@ -38,6 +43,7 @@ import frc.lib.team6328.util.FieldConstants;
 import frc.lib.team6328.util.TunableNumber;
 import frc.robot.Constants;
 import frc.robot.Field2d;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
@@ -109,7 +115,20 @@ public class Drivetrain extends SubsystemBase {
   private int teleportedCount = 0;
   private int constrainPoseToFieldCount = 0;
 
+  private Pose2d defaultPose = new Pose2d();
+  private Pose2d customPose = new Pose2d();
+  private Pose2d initialPose = new Pose2d();
+  private double[] initialDistance = {0.0, 0.0, 0.0, 0.0};
+
   private boolean isRotationOverrideEnabled = false;
+
+  private SwerveModulePosition[] modulePositions =
+      new SwerveModulePosition[] {
+        new SwerveModulePosition(),
+        new SwerveModulePosition(),
+        new SwerveModulePosition(),
+        new SwerveModulePosition()
+      };
 
   /**
    * Creates a new Drivetrain subsystem.
@@ -173,6 +192,7 @@ public class Drivetrain extends SubsystemBase {
     // PPHolonomicDriveController.overrideRotationFeedback(this::getRotationTargetOverride);
 
     this.odometry = RobotOdometry.getInstance();
+    RobotOdometry.getInstance().setCustomOdometry(this);
   }
 
   public ChassisSpeeds getRobotRelativeSpeeds() {
@@ -329,7 +349,11 @@ public class Drivetrain extends SubsystemBase {
     Pose3d pose = poseSupplier.get();
     if (pose != null) {
       noPoseAlert.set(false);
-      this.io.resetPose(pose.toPose2d());
+      RobotOdometry.getInstance()
+          .resetPosition(
+              Rotation2d.fromDegrees(this.inputs.gyro.yawDeg),
+              this.modulePositions,
+              pose.toPose2d());
       this.prevRobotPose = pose.toPose2d();
     } else {
       noPoseAlert.set(true);
@@ -516,6 +540,7 @@ public class Drivetrain extends SubsystemBase {
     }
 
     // update odometry
+    // FIXME: statically allocate the SwerveModulePosition objects
     for (int i = 0; i < inputs.drivetrain.odometryTimestamps.length; i++) {
       SwerveModulePosition[] modulePositions = new SwerveModulePosition[4];
       for (int moduleIndex = 0; moduleIndex < 4; moduleIndex++) {
@@ -531,36 +556,45 @@ public class Drivetrain extends SubsystemBase {
           modulePositions);
     }
 
-    Pose2d robotPose = this.odometry.getEstimatedPose();
-    Logger.recordOutput(SUBSYSTEM_NAME + "/Pose2d", robotPose);
-    Logger.recordOutput(SUBSYSTEM_NAME + "/Pose3d", new Pose3d(robotPose));
+    // custom pose vs default pose
+    this.defaultPose = RobotOdometry.getInstance().getEstimatedPose();
+    this.customPose = this.inputs.drivetrain.customPose;
+    Logger.recordOutput(SUBSYSTEM_NAME + "/DefaultPose", this.defaultPose);
+    Logger.recordOutput(SUBSYSTEM_NAME + "/CustomPose", this.customPose);
+
+    // FIXME: calculate transform using robot config (as new method as needed)
+    Logger.recordOutput(
+        SUBSYSTEM_NAME + "/DefaultPoseFR",
+        this.defaultPose.transformBy(new Transform2d(0.36, -0.36, new Rotation2d())));
 
     // check for teleportation
-    if (robotPose.minus(prevRobotPose).getTranslation().getNorm() > 0.4) {
+    if (this.defaultPose.minus(prevRobotPose).getTranslation().getNorm() > 0.4) {
       this.resetPose(prevRobotPose);
       this.teleportedCount++;
-      Logger.recordOutput(SUBSYSTEM_NAME + "/TeleportedPose", robotPose);
+      Logger.recordOutput(SUBSYSTEM_NAME + "/TeleportedPose", this.defaultPose);
       Logger.recordOutput(SUBSYSTEM_NAME + "/TeleportCount", this.teleportedCount);
     } else {
-      this.prevRobotPose = robotPose;
+      this.prevRobotPose = this.defaultPose;
     }
 
     // check for position outside the field due to slipping
-    if (robotPose.getX() < 0) {
-      this.resetPose(new Pose2d(0, robotPose.getY(), robotPose.getRotation()));
+    if (this.defaultPose.getX() < 0) {
+      this.resetPose(new Pose2d(0, this.defaultPose.getY(), this.defaultPose.getRotation()));
       this.constrainPoseToFieldCount++;
-    } else if (robotPose.getX() > FieldConstants.fieldLength) {
+    } else if (this.defaultPose.getX() > FieldConstants.fieldLength) {
       this.resetPose(
-          new Pose2d(FieldConstants.fieldLength, robotPose.getY(), robotPose.getRotation()));
+          new Pose2d(
+              FieldConstants.fieldLength, this.defaultPose.getY(), this.defaultPose.getRotation()));
       this.constrainPoseToFieldCount++;
     }
 
-    if (robotPose.getY() < 0) {
-      this.resetPose(new Pose2d(robotPose.getX(), 0, robotPose.getRotation()));
+    if (this.defaultPose.getY() < 0) {
+      this.resetPose(new Pose2d(this.defaultPose.getX(), 0, this.defaultPose.getRotation()));
       this.constrainPoseToFieldCount++;
-    } else if (robotPose.getY() > FieldConstants.fieldWidth) {
+    } else if (this.defaultPose.getY() > FieldConstants.fieldWidth) {
       this.resetPose(
-          new Pose2d(robotPose.getX(), FieldConstants.fieldWidth, robotPose.getRotation()));
+          new Pose2d(
+              this.defaultPose.getX(), FieldConstants.fieldWidth, this.defaultPose.getRotation()));
       this.constrainPoseToFieldCount++;
     }
     Logger.recordOutput(
@@ -856,6 +890,34 @@ public class Drivetrain extends SubsystemBase {
     return this.isMoveToPoseEnabled;
   }
 
+  public void captureInitialConditions() {
+    this.initialPose = this.customPose;
+    for (int i = 0; i < this.inputs.swerve.length; i++) {
+      this.initialDistance[i] = this.inputs.swerve[i].driveDistanceMeters;
+    }
+  }
+
+  public void captureFinalConditions(String autoName, boolean measureDistance) {
+    try {
+      List<Pose2d> pathPoses = PathPlannerPath.fromPathFile(autoName).getPathPoses();
+      Pose2d targetPose = pathPoses.get(pathPoses.size() - 1);
+      Logger.recordOutput(SUBSYSTEM_NAME + "/AutoPoseDiff", targetPose.minus(this.customPose));
+
+      if (measureDistance) {
+        double distance = 0.0;
+        for (int i = 0; i < this.inputs.swerve.length; i++) {
+          distance += Math.abs(this.inputs.swerve[i].driveDistanceMeters - this.initialDistance[i]);
+        }
+
+        distance /= this.inputs.swerve.length;
+        Logger.recordOutput(SUBSYSTEM_NAME + "/AutoDistanceDiff", distance);
+      }
+    } catch (Exception e) {
+      // FIXME: generate an alert about the missing path file;
+      System.out.println("Path file not found: Start Point");
+    }
+  }
+
   // method to convert swerve module number to location
   private String getSwerveLocation(int swerveModuleNumber) {
     switch (swerveModuleNumber) {
@@ -1126,6 +1188,25 @@ public class Drivetrain extends SubsystemBase {
         .exp(
             new Twist2d(
                 this.getVelocityX() * secondsInFuture, this.getVelocityY() * secondsInFuture, 0.0));
+  }
+
+  public Pose2d getCustomEstimatedPose() {
+    return this.customPose;
+  }
+
+  public void resetCustomPose(Pose2d poseMeters) {
+    this.io.resetPose(poseMeters);
+  }
+
+  public Optional<Pose2d> samplePoseAt(double timestamp) {
+    return this.io.samplePoseAt(timestamp);
+  }
+
+  public void addVisionMeasurement(
+      Pose2d visionRobotPoseMeters,
+      double timestampSeconds,
+      Matrix<N3, N1> visionMeasurementStdDevs) {
+    this.io.addVisionMeasurement(visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
   }
 
   private enum DriveMode {

@@ -50,6 +50,8 @@ public class Vision extends SubsystemBase {
   private boolean isVisionUpdating = false;
 
   private RobotOdometry odometry;
+  private final TunableNumber latencyAdjustmentSeconds =
+      new TunableNumber("Vision/LatencyAdjustmentSeconds", 0.0);
   private final TunableNumber poseDifferenceThreshold =
       new TunableNumber("Vision/VisionPoseThreshold", POSE_DIFFERENCE_THRESHOLD_METERS);
   private final TunableNumber stdDevSlopeDistance =
@@ -108,6 +110,12 @@ public class Vision extends SubsystemBase {
     for (int i = 0; i < this.detectedAprilTags.length; i++) {
       this.detectedAprilTags[i] = new Pose2d();
     }
+
+    Pose3d[] aprilTagsPoses = new Pose3d[this.layout.getTags().size()];
+    for (int i = 0; i < aprilTagsPoses.length; i++) {
+      aprilTagsPoses[i] = this.layout.getTags().get(i).pose;
+    }
+    Logger.recordOutput(SUBSYSTEM_NAME + "/AprilTagsPoses", aprilTagsPoses);
   }
 
   /**
@@ -124,6 +132,11 @@ public class Vision extends SubsystemBase {
       Logger.processInputs(SUBSYSTEM_NAME + "/" + i, ios[i]);
 
       processNewVisionData(i);
+
+      Logger.recordOutput(
+          SUBSYSTEM_NAME + "/" + i + "/CameraAxes",
+          new Pose3d(RobotOdometry.getInstance().getEstimatedPose())
+              .plus(RobotConfig.getInstance().getRobotToCameraTransforms()[i]));
     }
 
     // set the pose of all the tags to the current robot pose such that no vision target lines are
@@ -169,7 +182,8 @@ public class Vision extends SubsystemBase {
         double timeStamp =
             Math.min(ios[i].estimatedCameraPoseTimestamp, Logger.getRealTimestamp() / 1e6);
         Matrix<N3, N1> stdDev = getStandardDeviations(i, estimatedRobotPose2d, ios[i].ambiguity);
-        odometry.addVisionMeasurement(estimatedRobotPose2d, timeStamp, stdDev);
+        odometry.addVisionMeasurement(
+            estimatedRobotPose2d, timeStamp, latencyAdjustmentSeconds.get(), stdDev);
         isVisionUpdating = true;
         this.updatePoseCount[i]++;
         Logger.recordOutput(SUBSYSTEM_NAME + "/" + i + "/UpdatePoseCount", this.updatePoseCount[i]);
@@ -219,12 +233,23 @@ public class Vision extends SubsystemBase {
     Pose3d robotPoseFromMostRecentData = null;
     double mostRecentTimestamp = 0.0;
     for (int i = 0; i < visionIOs.length; i++) {
-      if (ios[i].estimatedCameraPoseTimestamp > mostRecentTimestamp
-          && ios[i].ambiguity < AMBIGUITY_THRESHOLD) {
-        robotPoseFromMostRecentData =
-            ios[i].estimatedCameraPose.plus(
-                RobotConfig.getInstance().getRobotToCameraTransforms()[i].inverse());
-        mostRecentTimestamp = ios[i].estimatedCameraPoseTimestamp;
+      // if multi pose then do the reprojection error, if not then do the ambiguity here
+      if (ios[i].poseFromMultiTag) {
+        if (ios[i].estimatedCameraPoseTimestamp > mostRecentTimestamp
+            && ios[i].reprojectionError < REPROJECTION_ERROR_THRESHOLD) {
+          robotPoseFromMostRecentData =
+              ios[i].estimatedCameraPose.plus(
+                  RobotConfig.getInstance().getRobotToCameraTransforms()[i].inverse());
+          mostRecentTimestamp = ios[i].estimatedCameraPoseTimestamp;
+        }
+      } else {
+        if (ios[i].estimatedCameraPoseTimestamp > mostRecentTimestamp
+            && ios[i].ambiguity < AMBIGUITY_THRESHOLD) {
+          robotPoseFromMostRecentData =
+              ios[i].estimatedCameraPose.plus(
+                  RobotConfig.getInstance().getRobotToCameraTransforms()[i].inverse());
+          mostRecentTimestamp = ios[i].estimatedCameraPoseTimestamp;
+        }
       }
     }
 
