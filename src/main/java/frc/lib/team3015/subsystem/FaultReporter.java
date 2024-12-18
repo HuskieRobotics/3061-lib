@@ -4,7 +4,7 @@ import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.revrobotics.CANSparkMax;
+import com.revrobotics.spark.SparkMax;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.motorcontrol.PWMMotorController;
@@ -208,7 +208,7 @@ public class FaultReporter {
     subsystemsFaults.put(subsystemName, subsystemFaults);
   }
 
-  public void registerHardware(String subsystemName, String label, CANSparkMax spark) {
+  public void registerHardware(String subsystemName, String label, SparkMax spark) {
     SubsystemFaults subsystemFaults =
         subsystemsFaults.getOrDefault(subsystemName, new SubsystemFaults());
     subsystemFaults.hardware.add(new SelfCheckingSparkMax(label, spark));

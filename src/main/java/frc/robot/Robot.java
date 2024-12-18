@@ -5,6 +5,7 @@
 package frc.robot;
 
 import com.pathplanner.lib.commands.FollowPathCommand;
+import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.hal.AllianceStationID;
@@ -174,6 +175,9 @@ public class Robot extends LoggedRobot {
 
     // Invoke the factory method to create the RobotContainer singleton.
     robotContainer = RobotContainer.getInstance();
+
+    // DO THIS AFTER CONFIGURATION OF YOUR DESIRED PATHFINDER
+    PathfindingCommand.warmupCommand().schedule();
   }
 
   /**

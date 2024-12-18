@@ -8,7 +8,6 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import frc.lib.team3061.RobotConfig;
-import frc.lib.team3061.drivetrain.DrivetrainIOCTRE;
 
 @java.lang.SuppressWarnings({"java:S6548"})
 
@@ -19,7 +18,6 @@ import frc.lib.team3061.drivetrain.DrivetrainIOCTRE;
 public class RobotOdometry {
   private static final RobotOdometry robotOdometry = new RobotOdometry();
   private SwerveDrivePoseEstimator estimator = null;
-  private DrivetrainIOCTRE customOdometry = null;
   private SwerveModulePosition[] defaultPositions =
       new SwerveModulePosition[] {
         new SwerveModulePosition(),
@@ -37,50 +35,34 @@ public class RobotOdometry {
             new Pose2d());
   }
 
-  public Pose2d getEstimatedPosition() {
-    if (this.customOdometry == null) {
-      return this.estimator.getEstimatedPosition();
-    } else {
-      return this.customOdometry.getEstimatedPosition();
-    }
+  /**
+   * Returns the estimated pose of the robot (e.g., x and y position of the robot on the field and
+   * the robot's rotation). The origin of the field to the lower left corner (i.e., the corner of
+   * the field to the driver's right). Zero degrees is away from the driver and increases in the CCW
+   * direction.
+   *
+   * @return the pose of the robot
+   */
+  public Pose2d getEstimatedPose() {
+    return this.estimator.getEstimatedPosition();
   }
 
   public void resetPosition(
       Rotation2d gyroAngle, SwerveModulePosition[] modulePositions, Pose2d poseMeters) {
-    if (this.customOdometry == null) {
-      this.estimator.resetPosition(gyroAngle, modulePositions, poseMeters);
-
-    } else {
-      this.customOdometry.resetPosition(gyroAngle, modulePositions, poseMeters);
-    }
+    this.estimator.resetPosition(gyroAngle, modulePositions, poseMeters);
   }
 
   public Pose2d updateWithTime(
       double currentTimeSeconds, Rotation2d gyroAngle, SwerveModulePosition[] modulePositions) {
-    if (this.customOdometry == null) {
-      return this.estimator.updateWithTime(currentTimeSeconds, gyroAngle, modulePositions);
-
-    } else {
-      return this.customOdometry.updateWithTime(currentTimeSeconds, gyroAngle, modulePositions);
-    }
+    return this.estimator.updateWithTime(currentTimeSeconds, gyroAngle, modulePositions);
   }
 
   public void addVisionMeasurement(
       Pose2d visionRobotPoseMeters,
       double timestampSeconds,
       Matrix<N3, N1> visionMeasurementStdDevs) {
-    if (this.customOdometry == null) {
-      this.estimator.addVisionMeasurement(
-          visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
-
-    } else {
-      this.customOdometry.addVisionMeasurement(
-          visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
-    }
-  }
-
-  public void setCustomOdometry(DrivetrainIOCTRE customOdometry) {
-    this.customOdometry = customOdometry;
+    this.estimator.addVisionMeasurement(
+        visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
   }
 
   public static RobotOdometry getInstance() {

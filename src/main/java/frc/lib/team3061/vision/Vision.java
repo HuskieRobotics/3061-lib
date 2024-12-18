@@ -129,7 +129,7 @@ public class Vision extends SubsystemBase {
     // set the pose of all the tags to the current robot pose such that no vision target lines are
     // displayed in AdvantageScope
     for (int tagIndex = 0; tagIndex < this.detectedAprilTags.length; tagIndex++) {
-      this.detectedAprilTags[tagIndex] = odometry.getEstimatedPosition();
+      this.detectedAprilTags[tagIndex] = odometry.getEstimatedPose();
     }
 
     for (int visionIndex = 0; visionIndex < visionIOs.length; visionIndex++) {
@@ -161,7 +161,7 @@ public class Vision extends SubsystemBase {
           && ios[i].ambiguity < AMBIGUITY_THRESHOLD
           && estimatedRobotPose2d
                   .getTranslation()
-                  .getDistance(odometry.getEstimatedPosition().getTranslation())
+                  .getDistance(odometry.getEstimatedPose().getTranslation())
               < MAX_POSE_DIFFERENCE_METERS) {
         // when updating the pose estimator, specify standard deviations based on the distance
         // from the robot to the AprilTag (the greater the distance, the less confident we are
@@ -256,7 +256,7 @@ public class Vision extends SubsystemBase {
   public boolean posesHaveConverged() {
     for (int i = 0; i < visionIOs.length; i++) {
       Pose3d robotPose = ios[i].estimatedCameraPose;
-      if (odometry.getEstimatedPosition().minus(robotPose.toPose2d()).getTranslation().getNorm()
+      if (odometry.getEstimatedPose().minus(robotPose.toPose2d()).getTranslation().getNorm()
           < poseDifferenceThreshold.get()) {
         Logger.recordOutput(SUBSYSTEM_NAME + "/posesInLine", true);
         return true;

@@ -4,7 +4,8 @@
 
 package frc.lib.team3061.gyro;
 
-import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.BaseStatusSignal;
+import edu.wpi.first.math.geometry.Rotation2d;
 import java.util.ArrayList;
 import java.util.List;
 import org.littletonrobotics.junction.AutoLog;
@@ -37,6 +38,8 @@ public interface GyroIO {
     public double pitchDegPerSec = 0.0;
     public double rollDeg = 0.0;
     public double rollDegPerSec = 0.0;
+
+    public Rotation2d[] odometryYawPositions = new Rotation2d[] {};
   }
 
   /**
@@ -67,7 +70,7 @@ public interface GyroIO {
    *
    * @return the status signals for the gyro
    */
-  public default List<StatusSignal<Double>> getOdometryStatusSignals() {
+  public default List<BaseStatusSignal> getOdometryStatusSignals() {
     return new ArrayList<>();
   }
 }

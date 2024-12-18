@@ -1,7 +1,9 @@
 package frc.robot.subsystems.subsystem;
 
+import static edu.wpi.first.units.Units.*;
 import static frc.robot.subsystems.subsystem.SubsystemConstants.*;
 
+import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -49,16 +51,20 @@ public class SubsystemIOTalonFX implements SubsystemIO {
   public void updateInputs(SubsystemIOInputs inputs) {
     inputs.positionDeg =
         Conversions.falconRotationsToMechanismDegrees(
-            motor.getRotorPosition().getValue(), GEAR_RATIO);
+            BaseStatusSignal.getLatencyCompensatedValue(
+                    motor.getRotorPosition(), motor.getRotorVelocity())
+                .in(Rotations),
+            GEAR_RATIO);
     inputs.velocityRPM =
-        Conversions.falconRPSToMechanismRPM(motor.getRotorVelocity().getValue(), GEAR_RATIO);
+        Conversions.falconRPSToMechanismRPM(
+            motor.getRotorVelocity().getValue().in(RotationsPerSecond), GEAR_RATIO);
     inputs.closedLoopError = motor.getClosedLoopError().getValue();
     inputs.setpoint = motor.getClosedLoopReference().getValue();
     inputs.power = motor.getDutyCycle().getValue();
     inputs.controlMode = motor.getControlMode().toString();
-    inputs.statorCurrentAmps = motor.getStatorCurrent().getValue();
-    inputs.tempCelsius = motor.getDeviceTemp().getValue();
-    inputs.supplyCurrentAmps = motor.getSupplyCurrent().getValue();
+    inputs.statorCurrentAmps = motor.getStatorCurrent().getValue().in(Amps);
+    inputs.tempCelsius = motor.getDeviceTemp().getValue().in(Celsius);
+    inputs.supplyCurrentAmps = motor.getSupplyCurrent().getValue().in(Amps);
 
     // update configuration if tunables have changed
     if (kP.hasChanged() || kI.hasChanged() || kD.hasChanged() || kPeakOutput.hasChanged()) {
@@ -114,10 +120,12 @@ public class SubsystemIOTalonFX implements SubsystemIO {
     TalonFXConfiguration config = new TalonFXConfiguration();
 
     CurrentLimitsConfigs currentLimits = new CurrentLimitsConfigs();
-    currentLimits.SupplyCurrentLimit = CONTINUOUS_CURRENT_LIMIT;
-    currentLimits.SupplyCurrentThreshold = PEAK_CURRENT_LIMIT;
-    currentLimits.SupplyTimeThreshold = PEAK_CURRENT_DURATION;
+    currentLimits.SupplyCurrentLimit = PEAK_CURRENT_LIMIT;
+    currentLimits.SupplyCurrentLowerLimit = CONTINUOUS_CURRENT_LIMIT;
+    currentLimits.SupplyCurrentLowerTime = PEAK_CURRENT_DURATION;
     currentLimits.SupplyCurrentLimitEnable = true;
+    currentLimits.StatorCurrentLimit = PEAK_CURRENT_LIMIT;
+    currentLimits.StatorCurrentLimitEnable = true;
     config.CurrentLimits = currentLimits;
 
     config.MotorOutput.Inverted =

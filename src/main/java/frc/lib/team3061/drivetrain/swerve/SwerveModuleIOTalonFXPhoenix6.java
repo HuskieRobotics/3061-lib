@@ -1,5 +1,6 @@
 package frc.lib.team3061.drivetrain.swerve;
 
+import static edu.wpi.first.units.Units.*;
 import static frc.lib.team3061.drivetrain.swerve.SwerveConstants.*;
 
 import com.ctre.phoenix6.BaseStatusSignal;
@@ -15,7 +16,6 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -23,9 +23,12 @@ import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.ctre.phoenix6.sim.CANcoderSimState;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.LinearSystemSim;
 import frc.lib.team3015.subsystem.FaultReporter;
@@ -76,12 +79,12 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
   private VoltageOut angleVoltageRequest;
   private PositionVoltage anglePositionRequest;
 
-  private StatusSignal<Double> anglePositionStatusSignal;
-  private StatusSignal<Double> angleVelocityStatusSignal;
+  private StatusSignal<Angle> anglePositionStatusSignal;
+  private StatusSignal<AngularVelocity> angleVelocityStatusSignal;
   private StatusSignal<Double> anglePositionErrorStatusSignal;
   private StatusSignal<Double> anglePositionReferenceStatusSignal;
-  private StatusSignal<Double> drivePositionStatusSignal;
-  private StatusSignal<Double> driveVelocityStatusSignal;
+  private StatusSignal<Angle> drivePositionStatusSignal;
+  private StatusSignal<AngularVelocity> driveVelocityStatusSignal;
   private StatusSignal<Double> driveVelocityErrorStatusSignal;
   private StatusSignal<Double> driveVelocityReferenceStatusSignal;
 
@@ -96,7 +99,7 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
   private TalonFXSimState driveMotorSimState;
   private CANcoderSimState angleEncoderSimState;
   private LinearSystemSim<N1, N1, N1> driveSim;
-  private LinearSystemSim<N2, N1, N1> turnSim;
+  private LinearSystemSim<N2, N1, N2> turnSim;
   private double lastSimAnglePositionRot = 0.0;
 
   /**
@@ -135,7 +138,7 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     angleEncoder = new CANcoder(canCoderID, canBusName);
 
     CANcoderConfiguration config = new CANcoderConfiguration();
-    config.MagnetSensor.AbsoluteSensorRange = AbsoluteSensorRangeValue.Unsigned_0To1;
+    config.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 1.0;
     config.MagnetSensor.MagnetOffset = angleOffsetRot;
     config.MagnetSensor.SensorDirection =
         canCoderInverted
@@ -162,9 +165,9 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     TalonFXConfiguration config = new TalonFXConfiguration();
 
     CurrentLimitsConfigs currentLimits = new CurrentLimitsConfigs();
-    currentLimits.SupplyCurrentLimit = ANGLE_CONTINUOUS_CURRENT_LIMIT;
-    currentLimits.SupplyCurrentThreshold = ANGLE_PEAK_CURRENT_LIMIT;
-    currentLimits.SupplyTimeThreshold = ANGLE_PEAK_CURRENT_DURATION;
+    currentLimits.SupplyCurrentLimit = ANGLE_PEAK_CURRENT_LIMIT;
+    currentLimits.SupplyCurrentLowerLimit = ANGLE_CONTINUOUS_CURRENT_LIMIT;
+    currentLimits.SupplyCurrentLowerTime = ANGLE_PEAK_CURRENT_DURATION;
     currentLimits.SupplyCurrentLimitEnable = ANGLE_ENABLE_CURRENT_LIMIT;
     config.CurrentLimits = currentLimits;
 
@@ -219,9 +222,9 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     TalonFXConfiguration config = new TalonFXConfiguration();
 
     CurrentLimitsConfigs currentLimits = new CurrentLimitsConfigs();
-    currentLimits.SupplyCurrentLimit = DRIVE_CONTINUOUS_CURRENT_LIMIT;
-    currentLimits.SupplyCurrentThreshold = DRIVE_PEAK_CURRENT_LIMIT;
-    currentLimits.SupplyTimeThreshold = DRIVE_PEAK_CURRENT_DURATION;
+    currentLimits.SupplyCurrentLimit = DRIVE_PEAK_CURRENT_LIMIT;
+    currentLimits.SupplyCurrentLowerLimit = DRIVE_CONTINUOUS_CURRENT_LIMIT;
+    currentLimits.SupplyCurrentLowerTime = DRIVE_PEAK_CURRENT_DURATION;
     currentLimits.SupplyCurrentLimitEnable = DRIVE_ENABLE_CURRENT_LIMIT;
     config.CurrentLimits = currentLimits;
 
@@ -295,31 +298,37 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     inputs.driveDistanceMeters =
         Conversions.falconRotationsToMechanismMeters(
             BaseStatusSignal.getLatencyCompensatedValue(
-                drivePositionStatusSignal, driveVelocityStatusSignal),
+                    drivePositionStatusSignal, driveVelocityStatusSignal)
+                .in(Rotations),
             wheelCircumference,
             driveGearRatio);
     inputs.driveVelocityMetersPerSec =
         Conversions.falconRPSToMechanismMPS(
-            driveVelocityStatusSignal.getValue(), wheelCircumference, driveGearRatio);
+            driveVelocityStatusSignal.getValue().in(RotationsPerSecond),
+            wheelCircumference,
+            driveGearRatio);
     inputs.driveVelocityReferenceMetersPerSec =
         Conversions.falconRPSToMechanismMPS(
             driveVelocityReferenceStatusSignal.getValue(), wheelCircumference, driveGearRatio);
     inputs.driveVelocityErrorMetersPerSec =
         Conversions.falconRPSToMechanismMPS(
             driveVelocityErrorStatusSignal.getValue(), wheelCircumference, driveGearRatio);
-    inputs.driveAppliedVolts = this.driveMotor.getMotorVoltage().getValue();
-    inputs.driveStatorCurrentAmps = this.driveMotor.getStatorCurrent().getValue();
-    inputs.driveSupplyCurrentAmps = this.driveMotor.getSupplyCurrent().getValue();
-    inputs.driveTempCelsius = this.driveMotor.getDeviceTemp().getValue();
+    inputs.driveAppliedVolts = this.driveMotor.getMotorVoltage().getValue().in(Volts);
+    inputs.driveStatorCurrentAmps = this.driveMotor.getStatorCurrent().getValue().in(Amps);
+    inputs.driveSupplyCurrentAmps = this.driveMotor.getSupplyCurrent().getValue().in(Amps);
+    inputs.driveTempCelsius = this.driveMotor.getDeviceTemp().getValue().in(Celsius);
 
-    inputs.steerAbsolutePositionDeg = this.angleEncoder.getAbsolutePosition().getValue() * 360.0;
+    inputs.steerAbsolutePositionDeg =
+        this.angleEncoder.getAbsolutePosition().getValue().in(Degrees);
     // since we are using the FusedCANcoder feature, the position and velocity signal for the angle
     // motor accounts for the gear ratio; so, pass a gear ratio of 1 to just convert from rotations
     // to degrees.
+    // FIXME: if the gear ratio is 1, we can just use the Units methods to convert the values
     inputs.steerPositionDeg =
         Conversions.falconRotationsToMechanismDegrees(
             BaseStatusSignal.getLatencyCompensatedValue(
-                anglePositionStatusSignal, angleVelocityStatusSignal),
+                    anglePositionStatusSignal, angleVelocityStatusSignal)
+                .in(Rotations),
             1);
     inputs.steerPositionReferenceDeg =
         Conversions.falconRotationsToMechanismDegrees(
@@ -327,12 +336,17 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
     inputs.steerPositionErrorDeg =
         Conversions.falconRotationsToMechanismDegrees(anglePositionErrorStatusSignal.getValue(), 1);
     inputs.steerVelocityRevPerMin =
-        Conversions.falconRPSToMechanismRPM(angleVelocityStatusSignal.getValue(), 1);
+        Conversions.falconRPSToMechanismRPM(
+            angleVelocityStatusSignal.getValue().in(RotationsPerSecond), 1);
 
-    inputs.steerAppliedVolts = this.angleMotor.getMotorVoltage().getValue();
-    inputs.steerStatorCurrentAmps = this.angleMotor.getStatorCurrent().getValue();
-    inputs.steerSupplyCurrentAmps = this.angleMotor.getSupplyCurrent().getValue();
-    inputs.steerTempCelsius = this.angleMotor.getDeviceTemp().getValue();
+    inputs.steerAppliedVolts = this.angleMotor.getMotorVoltage().getValue().in(Volts);
+    inputs.steerStatorCurrentAmps = this.angleMotor.getStatorCurrent().getValue().in(Amps);
+    inputs.steerSupplyCurrentAmps = this.angleMotor.getSupplyCurrent().getValue().in(Amps);
+    inputs.steerTempCelsius = this.angleMotor.getDeviceTemp().getValue().in(Celsius);
+
+    inputs.odometryDrivePositionsMeters = new double[] {inputs.driveDistanceMeters};
+    inputs.odometryTurnPositions =
+        new Rotation2d[] {Rotation2d.fromDegrees(inputs.steerPositionDeg)};
 
     // update tunables
     if (driveKp.hasChanged()
@@ -403,8 +417,8 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
   }
 
   @Override
-  public List<StatusSignal<Double>> getOdometryStatusSignals() {
-    ArrayList<StatusSignal<Double>> signals = new ArrayList<>();
+  public List<BaseStatusSignal> getOdometryStatusSignals() {
+    ArrayList<BaseStatusSignal> signals = new ArrayList<>();
     signals.add(drivePositionStatusSignal);
     signals.add(driveVelocityStatusSignal);
     signals.add(anglePositionStatusSignal);

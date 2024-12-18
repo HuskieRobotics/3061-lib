@@ -3,6 +3,7 @@ package frc.lib.team3015.subsystem.selfcheck;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.TalonFX;
+import edu.wpi.first.units.measure.Voltage;
 import frc.lib.team3015.subsystem.SubsystemFault;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +11,7 @@ import java.util.List;
 public class SelfCheckingPhoenixMotor implements SelfChecking {
   private final String label;
   private final TalonFX motor;
-  private StatusSignal<Double> statusSignal;
+  private StatusSignal<Voltage> statusSignal;
 
   public SelfCheckingPhoenixMotor(String label, TalonFX motor) {
     this.label = label;

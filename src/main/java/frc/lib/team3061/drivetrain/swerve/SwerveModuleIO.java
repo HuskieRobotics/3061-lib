@@ -1,6 +1,6 @@
 package frc.lib.team3061.drivetrain.swerve;
 
-import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.BaseStatusSignal;
 import frc.lib.team3061.drivetrain.DrivetrainIO.SwerveIOInputs;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +35,7 @@ public interface SwerveModuleIO {
    *
    * @return the status signals for the swerve module
    */
-  public default List<StatusSignal<Double>> getOdometryStatusSignals() {
+  public default List<BaseStatusSignal> getOdometryStatusSignals() {
     return new ArrayList<>();
   }
 }

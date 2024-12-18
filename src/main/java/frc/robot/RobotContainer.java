@@ -393,9 +393,15 @@ public class RobotContainer {
 
     Command startPoint =
         Commands.runOnce(
-            () ->
+            () -> {
+              try {
                 drivetrain.resetPose(
-                    PathPlannerPath.fromPathFile("StartPoint").getPreviewStartingHolonomicPose()),
+                    PathPlannerPath.fromPathFile("Start Point").getStartingDifferentialPose());
+              } catch (Exception e) {
+                // FIXME: generate an alert about the missing path file;
+                System.out.println("Path file not found: Start Point");
+              }
+            },
             drivetrain);
     autoChooser.addOption("Start Point", startPoint);
 

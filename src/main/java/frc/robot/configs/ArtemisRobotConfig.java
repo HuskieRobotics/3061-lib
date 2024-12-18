@@ -1,11 +1,16 @@
 package frc.robot.configs;
 
+import static edu.wpi.first.units.Units.KilogramSquareMeters;
+import static edu.wpi.first.units.Units.Kilograms;
+
 import com.ctre.phoenix6.configs.MountPoseConfigs;
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Mass;
+import edu.wpi.first.units.measure.MomentOfInertia;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
 
@@ -359,6 +364,21 @@ public class ArtemisRobotConfig extends RobotConfig {
   @Override
   public double getAutoTurnKD() {
     return AUTO_TURN_D_CONTROLLER;
+  }
+
+  @Override
+  public Mass getMass() {
+    return Kilograms.of(51.862);
+  }
+
+  @Override
+  public MomentOfInertia getMomentOfInertia() {
+    return KilogramSquareMeters.of(6.0);
+  }
+
+  @Override
+  public double getWheelCOF() {
+    return 1.2;
   }
 
   @Override
