@@ -20,7 +20,7 @@ import org.littletonrobotics.junction.Logger;
 public class RobotOdometry {
   private static final RobotOdometry robotOdometry = new RobotOdometry();
   private SwerveDrivePoseEstimator estimator = null;
-  private CustomOdometry customOdometry = null;
+  private CustomPoseEstimator customEstimator = null;
   private SwerveModulePosition[] defaultPositions =
       new SwerveModulePosition[] {
         new SwerveModulePosition(),
@@ -30,7 +30,7 @@ public class RobotOdometry {
       };
 
   private static final boolean INCLUDE_VISION_POSE_ESTIMATES = false;
-  private static final boolean INCLUDE_VISION_POSE_ESTIMATES_IN_CUSTOM_ODOMETRY = false;
+  private static final boolean INCLUDE_VISION_POSE_ESTIMATES_IN_CUSTOM_ESTIMATOR = false;
 
   private RobotOdometry() {
     estimator =
@@ -42,23 +42,19 @@ public class RobotOdometry {
   }
 
   public Pose2d getEstimatedPose() {
-    // changed to not consider custom odometry at all
     return this.estimator.getEstimatedPosition();
   }
 
-  // new method to get estimated position of the custom odometry (in order to compare with the
-  // default estimator)
   public Pose2d getCustomEstimatedPose() {
-    return this.customOdometry != null ? this.customOdometry.getCustomEstimatedPose() : null;
+    return this.customEstimator != null
+        ? this.customEstimator.getCustomEstimatedPose()
+        : new Pose2d();
   }
 
-  public void resetPosition(
+  public void resetPose(
       Rotation2d gyroAngle, SwerveModulePosition[] modulePositions, Pose2d poseMeters) {
-
-    // resetting position on both estimators at the same time since we are considering both in
-    // parallel now
     this.estimator.resetPosition(gyroAngle, modulePositions, poseMeters);
-    if (this.customOdometry != null) this.customOdometry.resetCustomPose(poseMeters);
+    if (this.customEstimator != null) this.customEstimator.resetCustomPose(poseMeters);
   }
 
   public Pose2d updateWithTime(
@@ -77,24 +73,26 @@ public class RobotOdometry {
       this.estimator.addVisionMeasurement(
           visionRobotPoseMeters, adjustedTimestamp, visionMeasurementStdDevs);
 
-      if (INCLUDE_VISION_POSE_ESTIMATES_IN_CUSTOM_ODOMETRY && this.customOdometry != null) {
-        this.customOdometry.addVisionMeasurement(
+      if (INCLUDE_VISION_POSE_ESTIMATES_IN_CUSTOM_ESTIMATOR && this.customEstimator != null) {
+        this.customEstimator.addVisionMeasurement(
             visionRobotPoseMeters, adjustedTimestamp, visionMeasurementStdDevs);
       }
     }
 
     // log the difference between the vision pose estimate and the pose estimate corresponding to
     // the same timestamp
-    var sample = this.customOdometry.samplePoseAt(adjustedTimestamp);
-    if (!sample.isEmpty()) {
-      Pose2d pastPose = sample.get();
-      Transform2d diff = pastPose.minus(visionRobotPoseMeters);
-      Logger.recordOutput("RobotOdometry/visionPoseDiff", diff);
+    if (this.customEstimator != null) {
+      var sample = this.customEstimator.samplePoseAt(adjustedTimestamp);
+      if (!sample.isEmpty()) {
+        Pose2d pastPose = sample.get();
+        Transform2d diff = pastPose.minus(visionRobotPoseMeters);
+        Logger.recordOutput("RobotOdometry/visionPoseDiff", diff);
+      }
     }
   }
 
-  public void setCustomOdometry(CustomOdometry customOdometry) {
-    this.customOdometry = customOdometry;
+  public void setCustomEstimator(CustomPoseEstimator customOdometry) {
+    this.customEstimator = customOdometry;
   }
 
   public static RobotOdometry getInstance() {

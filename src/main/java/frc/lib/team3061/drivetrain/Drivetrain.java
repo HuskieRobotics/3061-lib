@@ -36,7 +36,7 @@ import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.DrivetrainIO.SwerveIOInputs;
 import frc.lib.team3061.leds.LEDs;
 import frc.lib.team3061.leds.LEDs.States;
-import frc.lib.team3061.util.CustomOdometry;
+import frc.lib.team3061.util.CustomPoseEstimator;
 import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team6328.util.Alert;
 import frc.lib.team6328.util.Alert.AlertType;
@@ -54,7 +54,7 @@ import org.littletonrobotics.junction.Logger;
  * each with two motors and an encoder. It also consists of a Pigeon which is used to measure the
  * robot's rotation.
  */
-public class Drivetrain extends SubsystemBase implements CustomOdometry {
+public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
 
   private final DrivetrainIO io;
   private final DrivetrainIO.DrivetrainIOInputsCollection inputs =
@@ -118,7 +118,6 @@ public class Drivetrain extends SubsystemBase implements CustomOdometry {
 
   private Pose2d defaultPose = new Pose2d();
   private Pose2d customPose = new Pose2d();
-  private Pose2d initialPose = new Pose2d();
   private double[] initialDistance = {0.0, 0.0, 0.0, 0.0};
 
   private boolean isRotationOverrideEnabled = false;
@@ -193,7 +192,7 @@ public class Drivetrain extends SubsystemBase implements CustomOdometry {
     // PPHolonomicDriveController.overrideRotationFeedback(this::getRotationTargetOverride);
 
     this.odometry = RobotOdometry.getInstance();
-    RobotOdometry.getInstance().setCustomOdometry(this);
+    RobotOdometry.getInstance().setCustomEstimator(this);
   }
 
   public ChassisSpeeds getRobotRelativeSpeeds() {
@@ -313,18 +312,7 @@ public class Drivetrain extends SubsystemBase implements CustomOdometry {
    * @param pose the specified pose to which is set the odometry
    */
   public void resetPose(Pose2d pose) {
-
-    SwerveModulePosition[] modulePositions = new SwerveModulePosition[4];
-    for (int i = 0; i < modulePositions.length; i++) {
-      modulePositions[i] =
-          new SwerveModulePosition(
-              inputs.swerve[i].driveDistanceMeters,
-              Rotation2d.fromDegrees(inputs.swerve[i].steerPositionDeg));
-    }
-
-    this.io.resetPose(pose);
-    this.odometry.resetPosition(Rotation2d.fromDegrees(inputs.gyro.yawDeg), modulePositions, pose);
-
+    this.odometry.resetPose(Rotation2d.fromDegrees(inputs.gyro.yawDeg), this.modulePositions, pose);
     this.prevRobotPose = pose;
   }
 
@@ -335,8 +323,7 @@ public class Drivetrain extends SubsystemBase implements CustomOdometry {
    */
   public void resetPoseRotationToGyro() {
     Pose2d newPose = new Pose2d(this.getPose().getTranslation(), this.getRotation());
-    this.io.resetPose(newPose);
-    this.prevRobotPose = newPose;
+    this.resetPose(newPose);
   }
 
   /**
@@ -350,12 +337,7 @@ public class Drivetrain extends SubsystemBase implements CustomOdometry {
     Pose3d pose = poseSupplier.get();
     if (pose != null) {
       noPoseAlert.set(false);
-      RobotOdometry.getInstance()
-          .resetPosition(
-              Rotation2d.fromDegrees(this.inputs.gyro.yawDeg),
-              this.modulePositions,
-              pose.toPose2d());
-      this.prevRobotPose = pose.toPose2d();
+      this.resetPose(pose.toPose2d());
     } else {
       noPoseAlert.set(true);
     }
@@ -541,14 +523,12 @@ public class Drivetrain extends SubsystemBase implements CustomOdometry {
     }
 
     // update odometry
-    // FIXME: statically allocate the SwerveModulePosition objects
     for (int i = 0; i < inputs.drivetrain.odometryTimestamps.length; i++) {
-      SwerveModulePosition[] modulePositions = new SwerveModulePosition[4];
-      for (int moduleIndex = 0; moduleIndex < 4; moduleIndex++) {
-        modulePositions[moduleIndex] =
-            new SwerveModulePosition(
-                inputs.swerve[moduleIndex].odometryDrivePositionsMeters[i],
-                inputs.swerve[moduleIndex].odometryTurnPositions[i]);
+      for (int moduleIndex = 0; moduleIndex < this.modulePositions.length; moduleIndex++) {
+        this.modulePositions[moduleIndex].distanceMeters =
+            inputs.swerve[moduleIndex].odometryDrivePositionsMeters[i];
+        this.modulePositions[moduleIndex].angle =
+            inputs.swerve[moduleIndex].odometryTurnPositions[i];
       }
 
       this.odometry.updateWithTime(
@@ -892,7 +872,6 @@ public class Drivetrain extends SubsystemBase implements CustomOdometry {
   }
 
   public void captureInitialConditions() {
-    this.initialPose = this.customPose;
     for (int i = 0; i < this.inputs.swerve.length; i++) {
       this.initialDistance[i] = this.inputs.swerve[i].driveDistanceMeters;
     }
