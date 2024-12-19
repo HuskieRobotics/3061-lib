@@ -36,6 +36,7 @@ import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.DrivetrainIO.SwerveIOInputs;
 import frc.lib.team3061.leds.LEDs;
 import frc.lib.team3061.leds.LEDs.States;
+import frc.lib.team3061.util.CustomOdometry;
 import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team6328.util.Alert;
 import frc.lib.team6328.util.Alert.AlertType;
@@ -53,7 +54,7 @@ import org.littletonrobotics.junction.Logger;
  * each with two motors and an encoder. It also consists of a Pigeon which is used to measure the
  * robot's rotation.
  */
-public class Drivetrain extends SubsystemBase {
+public class Drivetrain extends SubsystemBase implements CustomOdometry {
 
   private final DrivetrainIO io;
   private final DrivetrainIO.DrivetrainIOInputsCollection inputs =

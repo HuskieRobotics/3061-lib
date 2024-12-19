@@ -9,7 +9,6 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import frc.lib.team3061.RobotConfig;
-import frc.lib.team3061.drivetrain.Drivetrain;
 import org.littletonrobotics.junction.Logger;
 
 @java.lang.SuppressWarnings({"java:S6548"})
@@ -21,7 +20,7 @@ import org.littletonrobotics.junction.Logger;
 public class RobotOdometry {
   private static final RobotOdometry robotOdometry = new RobotOdometry();
   private SwerveDrivePoseEstimator estimator = null;
-  private Drivetrain customOdometry = null;
+  private CustomOdometry customOdometry = null;
   private SwerveModulePosition[] defaultPositions =
       new SwerveModulePosition[] {
         new SwerveModulePosition(),
@@ -94,7 +93,7 @@ public class RobotOdometry {
     }
   }
 
-  public void setCustomOdometry(Drivetrain customOdometry) {
+  public void setCustomOdometry(CustomOdometry customOdometry) {
     this.customOdometry = customOdometry;
   }
 
