@@ -4,7 +4,6 @@
 
 package frc.robot;
 
-import com.pathplanner.lib.commands.FollowPathCommand;
 import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.PathPlannerLogging;
@@ -26,7 +25,6 @@ import java.util.function.BiConsumer;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.inputs.LoggedPowerDistribution;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
@@ -55,23 +53,7 @@ public class Robot extends LoggedRobot {
 
   /** Create a new Robot. */
   public Robot() {
-    super(Constants.LOOP_PERIOD_SECS);
-  }
-  /**
-   * This method is executed when the code first starts running on the robot and should be used for
-   * any initialization code.
-   */
-  @Override
-  public void robotInit() {
-    // DO THIS FIRST
-    Pathfinding.setPathfinder(new LocalADStarAK());
-
-    final String GIT_DIRTY = "GitDirty";
-
-    // from AdvantageKit Robot Configuration docs
-    // (https://github.com/Mechanical-Advantage/AdvantageKit/blob/main/docs/START-LOGGING.md#robot-configuration)
-
-    // Set a metadata value
+    // Record metadata
     Logger.recordMetadata("Robot", Constants.getRobot().toString());
     Logger.recordMetadata("TuningMode", Boolean.toString(Constants.TUNING_MODE));
     Logger.recordMetadata("RuntimeType", getRuntimeType().toString());
@@ -82,50 +64,49 @@ public class Robot extends LoggedRobot {
     Logger.recordMetadata("GitBranch", BuildConstants.GIT_BRANCH);
     switch (BuildConstants.DIRTY) {
       case 0:
-        Logger.recordMetadata(GIT_DIRTY, "All changes committed");
+        Logger.recordMetadata("GitDirty", "All changes committed");
         break;
       case 1:
-        Logger.recordMetadata(GIT_DIRTY, "Uncommitted changes");
+        Logger.recordMetadata("GitDirty", "Uncomitted changes");
         break;
       default:
-        Logger.recordMetadata(GIT_DIRTY, "Unknown");
+        Logger.recordMetadata("GitDirty", "Unknown");
         break;
     }
 
+    // Set up data receivers & replay source
     switch (Constants.getMode()) {
       case REAL:
-        Logger.addDataReceiver(new WPILOGWriter("/media/sda1"));
-
-        // Provide log data over the network, viewable in Advantage Scope.
+        // Running on a real robot, log to a USB stick ("/U/logs")
+        Logger.addDataReceiver(new WPILOGWriter());
         Logger.addDataReceiver(new NT4Publisher());
-
-        LoggedPowerDistribution.getInstance();
-
         break;
 
       case SIM:
+        // Running a physics simulator, log to NT
         Logger.addDataReceiver(new NT4Publisher());
         break;
 
       case REPLAY:
-        // Prompt the user for a file path on the command line (if not open in AdvantageScope)
-        String path = LogFileUtil.findReplayLog();
-
-        // Read log file for replay
-        Logger.setReplaySource(new WPILOGReader(path));
-
-        // Save replay results to a new log with the "_sim" suffix
-        Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(path, "_sim")));
+        // Replaying a log, set up replay source
+        setUseTiming(false); // Run as fast as possible
+        String logPath = LogFileUtil.findReplayLog();
+        Logger.setReplaySource(new WPILOGReader(logPath));
+        Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_sim")));
         break;
     }
 
-    // Run as fast as possible during replay
-    setUseTiming(Constants.getMode() != Constants.Mode.REPLAY);
-
-    // Start logging! No more data receivers, replay sources, or metadata values may be added.
+    // Start AdvantageKit logger
     Logger.start();
-
-    System.out.println("RobotInit");
+  }
+  /**
+   * This method is executed when the code first starts running on the robot and should be used for
+   * any initialization code.
+   */
+  @Override
+  public void robotInit() {
+    // DO THIS FIRST
+    Pathfinding.setPathfinder(new LocalADStarAK());
 
     // Log active commands
     Map<String, Integer> commandCounts = new HashMap<>();
@@ -163,12 +144,6 @@ public class Robot extends LoggedRobot {
     PathPlannerLogging.setLogActivePathCallback(
         poses -> Logger.recordOutput("PathFollowing/activePath", poses.toArray(new Pose2d[0])));
 
-    // Due to the nature of how Java works, the first run of a path following command could have a
-    // significantly higher delay compared with subsequent runs, as all the classes involved will
-    // need to be loaded. To help alleviate this issue, you can run a warmup command in the
-    // background when code starts.
-    FollowPathCommand.warmupCommand().schedule();
-
     // Start timers
     disabledTimer.reset();
     disabledTimer.start();
@@ -176,6 +151,10 @@ public class Robot extends LoggedRobot {
     // Invoke the factory method to create the RobotContainer singleton.
     robotContainer = RobotContainer.getInstance();
 
+    // Due to the nature of how Java works, the first run of a path following command could have a
+    // significantly higher delay compared with subsequent runs, as all the classes involved will
+    // need to be loaded. To help alleviate this issue, you can run a warmup command in the
+    // background when code starts.
     // DO THIS AFTER CONFIGURATION OF YOUR DESIRED PATHFINDER
     PathfindingCommand.warmupCommand().schedule();
   }

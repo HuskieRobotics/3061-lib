@@ -1,5 +1,3 @@
-src/main/java/frc/robot/BuildConstants.java
-
 # This gitignore has been specially created by the WPILib team.
 # If you remove items from this file, intellisense might break.
 
@@ -184,3 +182,6 @@ ctre_sim/
 # clangd
 /.cache
 compile_commands.json
+
+# Version file
+src/main/java/frc/robot/BuildConstants.java
