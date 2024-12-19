@@ -19,6 +19,7 @@ public interface VisionIO {
     double latencySecs = 0.0;
     boolean[] tagsSeen = new boolean[] {};
     double ambiguity = 0.0;
+    double reprojectionError = 0.0;
     boolean poseFromMultiTag = false;
   }
 

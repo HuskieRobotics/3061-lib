@@ -8,17 +8,21 @@ import static frc.lib.team3061.drivetrain.DrivetrainConstants.*;
 import static frc.robot.Constants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
-import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
-import com.pathplanner.lib.util.PIDConstants;
-import com.pathplanner.lib.util.ReplanningConfig;
+import com.pathplanner.lib.path.PathPlannerPath;
+import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
@@ -32,12 +36,15 @@ import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.DrivetrainIO.SwerveIOInputs;
 import frc.lib.team3061.leds.LEDs;
 import frc.lib.team3061.leds.LEDs.States;
+import frc.lib.team3061.util.CustomPoseEstimator;
+import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team6328.util.Alert;
 import frc.lib.team6328.util.Alert.AlertType;
 import frc.lib.team6328.util.FieldConstants;
 import frc.lib.team6328.util.TunableNumber;
 import frc.robot.Constants;
 import frc.robot.Field2d;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
@@ -47,7 +54,7 @@ import org.littletonrobotics.junction.Logger;
  * each with two motors and an encoder. It also consists of a Pigeon which is used to measure the
  * robot's rotation.
  */
-public class Drivetrain extends SubsystemBase {
+public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
 
   private final DrivetrainIO io;
   private final DrivetrainIO.DrivetrainIOInputsCollection inputs =
@@ -104,11 +111,24 @@ public class Drivetrain extends SubsystemBase {
 
   private DriverStation.Alliance alliance = Field2d.getInstance().getAlliance();
 
+  private final RobotOdometry odometry;
   private Pose2d prevRobotPose = new Pose2d();
   private int teleportedCount = 0;
   private int constrainPoseToFieldCount = 0;
 
+  private Pose2d defaultPose = new Pose2d();
+  private Pose2d customPose = new Pose2d();
+  private double[] initialDistance = {0.0, 0.0, 0.0, 0.0};
+
   private boolean isRotationOverrideEnabled = false;
+
+  private SwerveModulePosition[] modulePositions =
+      new SwerveModulePosition[] {
+        new SwerveModulePosition(),
+        new SwerveModulePosition(),
+        new SwerveModulePosition(),
+        new SwerveModulePosition()
+      };
 
   /**
    * Creates a new Drivetrain subsystem.
@@ -143,37 +163,36 @@ public class Drivetrain extends SubsystemBase {
     FaultReporter faultReporter = FaultReporter.getInstance();
     faultReporter.registerSystemCheck(SUBSYSTEM_NAME, getSystemCheckCommand());
 
-    AutoBuilder.configureHolonomic(
+    AutoBuilder.configure(
         this::getPose, // Robot pose supplier
         this::resetPose, // Method to reset odometry (will be called if your auto has a starting
         // pose)
         this::getRobotRelativeSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-        this::driveRobotRelative, // Method that will drive the robot given ROBOT RELATIVE
+        (speeds, feedforwards) ->
+            driveRobotRelative(speeds), // Method that will drive the robot given ROBOT RELATIVE
         // ChassisSpeeds
-        new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in
+        new PPHolonomicDriveController( // HolonomicPathFollowerConfig, this should likely live in
             // your Constants class
-            new PIDConstants(
+            new com.pathplanner.lib.config.PIDConstants(
                 RobotConfig.getInstance().getAutoDriveKP(),
                 RobotConfig.getInstance().getAutoDriveKI(),
                 RobotConfig.getInstance().getAutoDriveKD()), // Translation PID constants
             new PIDConstants(
                 RobotConfig.getInstance().getAutoTurnKP(),
                 RobotConfig.getInstance().getAutoTurnKI(),
-                RobotConfig.getInstance().getAutoTurnKD()), // Rotation PID constants
-            RobotConfig.getInstance().getAutoMaxSpeed(), // Max module speed, in m/s
-            new Translation2d(
-                    RobotConfig.getInstance().getWheelbase(),
-                    RobotConfig.getInstance().getTrackwidth())
-                .getNorm(), // Drive base radius in meters. Distance from robot center to furthest
-            // module.
-            new ReplanningConfig() // Default path replanning config. See the API for the options
-            // here
-            ),
+                RobotConfig.getInstance().getAutoTurnKD())), // Rotation PID constants
+        RobotConfig.getInstance().getPathPlannerRobotConfig(),
         this::shouldFlipAutoPath,
         this // Reference to this subsystem to set requirements
         );
 
-    PPHolonomicDriveController.setRotationTargetOverride(this::getRotationTargetOverride);
+    // FIXME: the new overrideRotationFeedback method is a bit different. It needs to be enabled and
+    // disabled (via clearRotationFeedbackOverride). It also requires that we use a custom PID
+    // controller instead of just specifying an angle
+    // PPHolonomicDriveController.overrideRotationFeedback(this::getRotationTargetOverride);
+
+    this.odometry = RobotOdometry.getInstance();
+    RobotOdometry.getInstance().setCustomEstimator(this);
   }
 
   public ChassisSpeeds getRobotRelativeSpeeds() {
@@ -231,7 +250,7 @@ public class Drivetrain extends SubsystemBase {
    * @return the rotation of the robot
    */
   public Rotation2d getRotation() {
-    return this.inputs.drivetrain.rotation;
+    return this.odometry.getEstimatedPose().getRotation();
   }
 
   /**
@@ -281,19 +300,19 @@ public class Drivetrain extends SubsystemBase {
    * @return the pose of the robot
    */
   public Pose2d getPose() {
-    return this.inputs.drivetrain.robotPose;
+    return this.odometry.getEstimatedPose();
   }
 
   /**
-   * Sets the odometry of the robot to the specified PathPlanner state. This method should only be
-   * invoked when the rotation of the robot is known (e.g., at the start of an autonomous path). The
-   * origin of the field to the lower left corner (i.e., the corner of the field to the driver's
-   * right). Zero degrees is away from the driver and increases in the CCW direction.
+   * Sets the odometry of the robot to the specified pose. This method should only be invoked when
+   * the rotation of the robot is known (e.g., at the start of an autonomous path). The origin of
+   * the field to the lower left corner (i.e., the corner of the field to the driver's right). Zero
+   * degrees is away from the driver and increases in the CCW direction.
    *
-   * @param state the specified PathPlanner state to which is set the odometry
+   * @param pose the specified pose to which is set the odometry
    */
   public void resetPose(Pose2d pose) {
-    this.io.resetPose(pose);
+    this.odometry.resetPose(Rotation2d.fromDegrees(inputs.gyro.yawDeg), this.modulePositions, pose);
     this.prevRobotPose = pose;
   }
 
@@ -304,8 +323,7 @@ public class Drivetrain extends SubsystemBase {
    */
   public void resetPoseRotationToGyro() {
     Pose2d newPose = new Pose2d(this.getPose().getTranslation(), this.getRotation());
-    this.io.resetPose(newPose);
-    this.prevRobotPose = newPose;
+    this.resetPose(newPose);
   }
 
   /**
@@ -319,8 +337,7 @@ public class Drivetrain extends SubsystemBase {
     Pose3d pose = poseSupplier.get();
     if (pose != null) {
       noPoseAlert.set(false);
-      this.io.resetPose(pose.toPose2d());
-      this.prevRobotPose = pose.toPose2d();
+      this.resetPose(pose.toPose2d());
     } else {
       noPoseAlert.set(true);
     }
@@ -505,46 +522,60 @@ public class Drivetrain extends SubsystemBase {
       LEDs.getInstance().requestState(States.FALLEN);
     }
 
+    // update odometry
+    for (int i = 0; i < inputs.drivetrain.odometryTimestamps.length; i++) {
+      for (int moduleIndex = 0; moduleIndex < this.modulePositions.length; moduleIndex++) {
+        this.modulePositions[moduleIndex].distanceMeters =
+            inputs.swerve[moduleIndex].odometryDrivePositionsMeters[i];
+        this.modulePositions[moduleIndex].angle =
+            inputs.swerve[moduleIndex].odometryTurnPositions[i];
+      }
+
+      this.odometry.updateWithTime(
+          inputs.drivetrain.odometryTimestamps[i],
+          inputs.gyro.odometryYawPositions[i],
+          modulePositions);
+    }
+
+    // custom pose vs default pose
+    this.defaultPose = RobotOdometry.getInstance().getEstimatedPose();
+    this.customPose = this.inputs.drivetrain.customPose;
+    Logger.recordOutput(SUBSYSTEM_NAME + "/DefaultPose", this.defaultPose);
+    Logger.recordOutput(SUBSYSTEM_NAME + "/CustomPose", this.customPose);
+
+    // FIXME: calculate transform using robot config (as new method as needed)
+    Logger.recordOutput(
+        SUBSYSTEM_NAME + "/DefaultPoseFR",
+        this.defaultPose.transformBy(new Transform2d(0.36, -0.36, new Rotation2d())));
+
     // check for teleportation
-    if (this.inputs.drivetrain.robotPose.minus(prevRobotPose).getTranslation().getNorm() > 0.4) {
+    if (this.defaultPose.minus(prevRobotPose).getTranslation().getNorm() > 0.4) {
       this.resetPose(prevRobotPose);
       this.teleportedCount++;
-      Logger.recordOutput(SUBSYSTEM_NAME + "/TeleportedPose", this.inputs.drivetrain.robotPose);
+      Logger.recordOutput(SUBSYSTEM_NAME + "/TeleportedPose", this.defaultPose);
       Logger.recordOutput(SUBSYSTEM_NAME + "/TeleportCount", this.teleportedCount);
     } else {
-      this.prevRobotPose = this.inputs.drivetrain.robotPose;
+      this.prevRobotPose = this.defaultPose;
     }
 
     // check for position outside the field due to slipping
-    if (this.inputs.drivetrain.robotPose.getX() < 0) {
-      this.resetPose(
-          new Pose2d(
-              0,
-              this.inputs.drivetrain.robotPose.getY(),
-              this.inputs.drivetrain.robotPose.getRotation()));
+    if (this.defaultPose.getX() < 0) {
+      this.resetPose(new Pose2d(0, this.defaultPose.getY(), this.defaultPose.getRotation()));
       this.constrainPoseToFieldCount++;
-    } else if (this.inputs.drivetrain.robotPose.getX() > FieldConstants.fieldLength) {
+    } else if (this.defaultPose.getX() > FieldConstants.fieldLength) {
       this.resetPose(
           new Pose2d(
-              FieldConstants.fieldLength,
-              this.inputs.drivetrain.robotPose.getY(),
-              this.inputs.drivetrain.robotPose.getRotation()));
+              FieldConstants.fieldLength, this.defaultPose.getY(), this.defaultPose.getRotation()));
       this.constrainPoseToFieldCount++;
     }
 
-    if (this.inputs.drivetrain.robotPose.getY() < 0) {
-      this.resetPose(
-          new Pose2d(
-              this.inputs.drivetrain.robotPose.getX(),
-              0,
-              this.inputs.drivetrain.robotPose.getRotation()));
+    if (this.defaultPose.getY() < 0) {
+      this.resetPose(new Pose2d(this.defaultPose.getX(), 0, this.defaultPose.getRotation()));
       this.constrainPoseToFieldCount++;
-    } else if (this.inputs.drivetrain.robotPose.getY() > FieldConstants.fieldWidth) {
+    } else if (this.defaultPose.getY() > FieldConstants.fieldWidth) {
       this.resetPose(
           new Pose2d(
-              this.inputs.drivetrain.robotPose.getX(),
-              FieldConstants.fieldWidth,
-              this.inputs.drivetrain.robotPose.getRotation()));
+              this.defaultPose.getX(), FieldConstants.fieldWidth, this.defaultPose.getRotation()));
       this.constrainPoseToFieldCount++;
     }
     Logger.recordOutput(
@@ -840,6 +871,33 @@ public class Drivetrain extends SubsystemBase {
     return this.isMoveToPoseEnabled;
   }
 
+  public void captureInitialConditions() {
+    for (int i = 0; i < this.inputs.swerve.length; i++) {
+      this.initialDistance[i] = this.inputs.swerve[i].driveDistanceMeters;
+    }
+  }
+
+  public void captureFinalConditions(String autoName, boolean measureDistance) {
+    try {
+      List<Pose2d> pathPoses = PathPlannerPath.fromPathFile(autoName).getPathPoses();
+      Pose2d targetPose = pathPoses.get(pathPoses.size() - 1);
+      Logger.recordOutput(SUBSYSTEM_NAME + "/AutoPoseDiff", targetPose.minus(this.customPose));
+
+      if (measureDistance) {
+        double distance = 0.0;
+        for (int i = 0; i < this.inputs.swerve.length; i++) {
+          distance += Math.abs(this.inputs.swerve[i].driveDistanceMeters - this.initialDistance[i]);
+        }
+
+        distance /= this.inputs.swerve.length;
+        Logger.recordOutput(SUBSYSTEM_NAME + "/AutoDistanceDiff", distance);
+      }
+    } catch (Exception e) {
+      // FIXME: generate an alert about the missing path file;
+      System.out.println("Path file not found: Start Point");
+    }
+  }
+
   // method to convert swerve module number to location
   private String getSwerveLocation(int swerveModuleNumber) {
     switch (swerveModuleNumber) {
@@ -1110,6 +1168,25 @@ public class Drivetrain extends SubsystemBase {
         .exp(
             new Twist2d(
                 this.getVelocityX() * secondsInFuture, this.getVelocityY() * secondsInFuture, 0.0));
+  }
+
+  public Pose2d getCustomEstimatedPose() {
+    return this.customPose;
+  }
+
+  public void resetCustomPose(Pose2d poseMeters) {
+    this.io.resetPose(poseMeters);
+  }
+
+  public Optional<Pose2d> samplePoseAt(double timestamp) {
+    return this.io.samplePoseAt(timestamp);
+  }
+
+  public void addVisionMeasurement(
+      Pose2d visionRobotPoseMeters,
+      double timestampSeconds,
+      Matrix<N3, N1> visionMeasurementStdDevs) {
+    this.io.addVisionMeasurement(visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
   }
 
   private enum DriveMode {

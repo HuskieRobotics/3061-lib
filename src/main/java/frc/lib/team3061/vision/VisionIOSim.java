@@ -13,6 +13,7 @@ import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.SimCameraProperties;
 import org.photonvision.simulation.VisionSystemSim;
+import org.photonvision.targeting.PhotonPipelineResult;
 
 /**
  * PhotonVision-compatible simulated implementation of the VisionIO interface. Only a single
@@ -47,7 +48,7 @@ public class VisionIOSim implements VisionIO {
       AprilTagFieldLayout layout, Supplier<Pose2d> poseSupplier, Transform3d robotToCamera) {
     this.photonEstimator =
         new PhotonPoseEstimator(
-            layout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, camera, robotToCamera.inverse());
+            layout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, robotToCamera.inverse());
     this.poseSupplier = poseSupplier;
 
     this.visionSim = new VisionSystemSim(CAMERA_NAME);
@@ -77,35 +78,38 @@ public class VisionIOSim implements VisionIO {
   public void updateInputs(VisionIOInputs inputs) {
     this.visionSim.update(poseSupplier.get());
 
-    Optional<EstimatedRobotPose> visionEstimate = this.photonEstimator.update();
-
     this.cyclesWithNoResults += 1;
 
-    visionEstimate.ifPresent(
-        estimate -> {
-          inputs.estimatedCameraPose = estimate.estimatedPose;
-          inputs.estimatedCameraPoseTimestamp = estimate.timestampSeconds;
-          for (int i = 0; i < this.tagsSeen.length; i++) {
-            this.tagsSeen[i] = false;
-          }
-          for (int i = 0; i < estimate.targetsUsed.size(); i++) {
-            this.tagsSeen[estimate.targetsUsed.get(i).getFiducialId()] = true;
-          }
-          inputs.tagsSeen = this.tagsSeen;
-          inputs.poseFromMultiTag = estimate.strategy == PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR;
+    for (PhotonPipelineResult result : camera.getAllUnreadResults()) {
+      Optional<EstimatedRobotPose> visionEstimate = this.photonEstimator.update(result);
 
-          inputs.ambiguity = 0;
-          for (int i = 0; i < estimate.targetsUsed.size(); i++) {
-            inputs.ambiguity += estimate.targetsUsed.get(i).getPoseAmbiguity();
-          }
-          inputs.ambiguity /= estimate.targetsUsed.size();
+      visionEstimate.ifPresent(
+          estimate -> {
+            inputs.estimatedCameraPose = estimate.estimatedPose;
+            inputs.estimatedCameraPoseTimestamp = estimate.timestampSeconds;
+            for (int i = 0; i < this.tagsSeen.length; i++) {
+              this.tagsSeen[i] = false;
+            }
+            for (int i = 0; i < estimate.targetsUsed.size(); i++) {
+              this.tagsSeen[estimate.targetsUsed.get(i).getFiducialId()] = true;
+            }
+            inputs.tagsSeen = this.tagsSeen;
+            inputs.poseFromMultiTag =
+                estimate.strategy == PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR;
 
-          if (inputs.poseFromMultiTag) {
-            inputs.ambiguity = 0.2;
-          }
+            inputs.ambiguity = 0;
+            for (int i = 0; i < estimate.targetsUsed.size(); i++) {
+              inputs.ambiguity += estimate.targetsUsed.get(i).getPoseAmbiguity();
+            }
+            inputs.ambiguity /= estimate.targetsUsed.size();
 
-          this.cyclesWithNoResults = 0;
-        });
+            if (inputs.poseFromMultiTag) {
+              inputs.ambiguity = 0.2;
+            }
+
+            this.cyclesWithNoResults = 0;
+          });
+    }
 
     // if no tags have been seen for the specified number of cycles, clear the array
     if (this.cyclesWithNoResults == EXPIRATION_COUNT) {

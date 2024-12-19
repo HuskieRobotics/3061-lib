@@ -1,11 +1,16 @@
 package frc.robot.configs;
 
+import static edu.wpi.first.units.Units.KilogramSquareMeters;
+import static edu.wpi.first.units.Units.Kilograms;
+
 import com.ctre.phoenix6.configs.MountPoseConfigs;
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Mass;
+import edu.wpi.first.units.measure.MomentOfInertia;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
 
@@ -38,7 +43,8 @@ public class ArtemisRobotConfig extends RobotConfig {
 
   private static final double TRACKWIDTH_METERS = 0.57785; // 22.75
   private static final double WHEELBASE_METERS = 0.57785; // 22.75
-  private static final double WHEEL_DIAMETER_METERS = 0.1027125;
+  private static final double WHEEL_DIAMETER_METERS = 0.0954405;
+
   private static final double ROBOT_WIDTH_WITH_BUMPERS =
       0.88265; // meters //34.75 in , measure the actual bumpers
   private static final double ROBOT_LENGTH_WITH_BUMPERS = 0.88265; // meters // 34.75 in same above
@@ -359,6 +365,21 @@ public class ArtemisRobotConfig extends RobotConfig {
   @Override
   public double getAutoTurnKD() {
     return AUTO_TURN_D_CONTROLLER;
+  }
+
+  @Override
+  public Mass getMass() {
+    return Kilograms.of(51.862);
+  }
+
+  @Override
+  public MomentOfInertia getMomentOfInertia() {
+    return KilogramSquareMeters.of(6.0);
+  }
+
+  @Override
+  public double getWheelCOF() {
+    return 1.2;
   }
 
   @Override

@@ -1,10 +1,18 @@
 package frc.lib.team3061;
 
+import static edu.wpi.first.units.Units.*;
+
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
+import com.pathplanner.lib.config.ModuleConfig;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.units.measure.Mass;
+import edu.wpi.first.units.measure.MomentOfInertia;
 import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
+import java.io.IOException;
+import org.json.simple.parser.ParseException;
 
 @java.lang.SuppressWarnings({"java:S3010", "java:S3400"})
 public abstract class RobotConfig {
@@ -246,15 +254,20 @@ public abstract class RobotConfig {
    * @return the swerve drive kinematics object for the robot
    */
   public SwerveDriveKinematics getSwerveDriveKinematics() {
-    return new SwerveDriveKinematics(
-        // Front left
-        new Translation2d(getWheelbase() / 2.0, getTrackwidth() / 2.0),
-        // Front right
-        new Translation2d(getWheelbase() / 2.0, -getTrackwidth() / 2.0),
-        // Back left
-        new Translation2d(-getWheelbase() / 2.0, getTrackwidth() / 2.0),
-        // Back right
-        new Translation2d(-getWheelbase() / 2.0, -getTrackwidth() / 2.0));
+    return new SwerveDriveKinematics(getSwerveModulePositions());
+  }
+
+  public Translation2d[] getSwerveModulePositions() {
+    return new Translation2d[] {
+      // Front left
+      new Translation2d(getWheelbase() / 2.0, getTrackwidth() / 2.0),
+      // Front right
+      new Translation2d(getWheelbase() / 2.0, -getTrackwidth() / 2.0),
+      // Back left
+      new Translation2d(-getWheelbase() / 2.0, getTrackwidth() / 2.0),
+      // Back right
+      new Translation2d(-getWheelbase() / 2.0, -getTrackwidth() / 2.0)
+    };
   }
 
   /**
@@ -426,6 +439,54 @@ public abstract class RobotConfig {
    */
   public double getAutoTurnKD() {
     return 0.0;
+  }
+
+  /**
+   * Returns the robot's configuration as specified in the PathPlanner GUI.
+   *
+   * @return
+   * @throws IOException
+   * @throws ParseException
+   */
+  public com.pathplanner.lib.config.RobotConfig getPathPlannerRobotConfig() {
+    return new com.pathplanner.lib.config.RobotConfig(
+        getMass(),
+        getMomentOfInertia(),
+        new ModuleConfig(
+            Meters.of(getWheelDiameterMeters() / 2.0),
+            MetersPerSecond.of(getRobotMaxVelocity()),
+            getWheelCOF(),
+            DCMotor.getKrakenX60(1).withReduction(getSwerveConstants().getDriveGearRatio()),
+            Amps.of(SwerveConstants.DRIVE_PEAK_CURRENT_LIMIT),
+            1),
+        getSwerveModulePositions());
+  }
+
+  /**
+   * Returns the mass of the robot. Defaults to 50 kg.
+   *
+   * @return the mass of the robot
+   */
+  public Mass getMass() {
+    return Kilograms.of(50.0);
+  }
+
+  /**
+   * Returns the moment of inertia of the robot. Defaults to 6.0 kg*m^2.
+   *
+   * @return the moment of inertia of the robot
+   */
+  public MomentOfInertia getMomentOfInertia() {
+    return KilogramSquareMeters.of(6.0);
+  }
+
+  /**
+   * Returns the coefficient of friction for the robot's wheels. Defaults to 1.2.
+   *
+   * @return the coefficient of friction for the robot's wheels
+   */
+  public double getWheelCOF() {
+    return 1.2;
   }
 
   /**

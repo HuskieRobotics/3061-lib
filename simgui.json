@@ -18,6 +18,7 @@
     "types": {
       "/FMSInfo": "FMSInfo",
       "/Shuffleboard/MAIN/SendableChooser[0]": "String Chooser",
+      "/SmartDashboard/Alerts": "Alerts",
       "/SmartDashboard/Auto Routine": "String Chooser",
       "/SmartDashboard/SystemStatus/Drivetrain/SystemCheck": "Command",
       "/SmartDashboard/SystemStatus/Subsystem/SystemCheck": "Command",

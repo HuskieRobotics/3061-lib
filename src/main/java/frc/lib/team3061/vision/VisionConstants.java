@@ -12,12 +12,15 @@ public final class VisionConstants {
   }
 
   public static final Path APRILTAG_FIELD_LAYOUT_PATH =
-      new File(Filesystem.getDeployDirectory(), "2024-crescendo.json").toPath();
+      new File(Filesystem.getDeployDirectory(), "2024-preseason-vision.json").toPath();
 
   public static final String SUBSYSTEM_NAME = "Vision";
 
   // the pose ambiguity must be less than this value for the target to be considered valid
   public static final double AMBIGUITY_THRESHOLD = 0.5;
+
+  // arbitrary for now, wait until testing on robot
+  public static final double REPROJECTION_ERROR_THRESHOLD = 100.0;
 
   // this factor is applied to the pose ambiguity when calculating the standard deviation to pass to
   // the pose estimator

@@ -1,12 +1,16 @@
 package frc.lib.team3061.drivetrain;
 
+import com.ctre.phoenix6.Utils;
+import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import frc.lib.team3061.gyro.GyroIOInputsAutoLogged;
+import java.util.Optional;
 import org.littletonrobotics.junction.AutoLog;
 
 @java.lang.SuppressWarnings({"java:S1104"})
@@ -35,6 +39,9 @@ public interface DrivetrainIO {
     public double steerStatorCurrentAmps = 0.0;
     public double steerSupplyCurrentAmps = 0.0;
     public double steerTempCelsius = 0.0;
+
+    public double[] odometryDrivePositionsMeters = new double[] {};
+    public Rotation2d[] odometryTurnPositions = new Rotation2d[] {};
   }
 
   /** Contains all of the input data received from hardware. */
@@ -61,12 +68,11 @@ public interface DrivetrainIO {
       new SwerveModuleState()
     };
 
-    Pose2d robotPoseWithoutGyro = new Pose2d();
-    Pose2d robotPose = new Pose2d();
-    Pose3d robotPose3D = new Pose3d();
-
     double averageDriveCurrent = 0.0;
-    Rotation2d rotation = new Rotation2d();
+
+    Pose2d customPose = new Pose2d();
+
+    double[] odometryTimestamps = new double[] {};
   }
 
   public static class DrivetrainIOInputsCollection {
@@ -135,16 +141,6 @@ public interface DrivetrainIO {
   public default void setCenterOfRotation(Translation2d centerOfRotation) {}
 
   /**
-   * Sets the odometry of the robot to the specified pose. This method should only be invoked when
-   * the rotation of the robot is known (e.g., at the start of an autonomous path). The origin of
-   * the field to the lower left corner (i.e., the corner of the field to the driver's right). Zero
-   * degrees is away from the driver and increases in the CCW direction.
-   *
-   * @param pose the specified pose to which is set the odometry
-   */
-  public default void resetPose(Pose2d pose) {}
-
-  /**
    * Supplies the drive motors with the specified voltage. Used for drivetrain characterization.
    *
    * @param volts the commanded voltage
@@ -175,4 +171,47 @@ public interface DrivetrainIO {
   public default void setSteerMotorCurrent(double amps) {}
 
   public default void setBrakeMode(boolean enable) {}
+
+  /**
+   * Sets the custom odometry of the robot to the specified pose. This method should only be invoked
+   * when the rotation of the robot is known (e.g., at the start of an autonomous path). The origin
+   * of the field to the lower left corner (i.e., the corner of the field to the driver's right).
+   * Zero degrees is away from the driver and increases in the CCW direction.
+   *
+   * @param pose the specified pose to which is set the odometry
+   */
+  public default void resetPose(Pose2d pose) {}
+
+  /**
+   * Return the custom pose at a given timestamp, if the buffer is not empty.
+   *
+   * @param timestampSeconds The pose's timestamp. Note that you must use a timestamp with an epoch
+   *     since system startup (i.e., the epoch of this timestamp is the same epoch as {@link
+   *     Utils#getCurrentTimeSeconds}). This means that you should use {@link
+   *     Utils#getCurrentTimeSeconds} as your time source in this case. An FPGA timestamp can be
+   *     converted to the correct timebase using {@link Utils#fpgaToCurrentTime}.
+   * @return The pose at the given timestamp (or Optional.empty() if the buffer is empty).
+   */
+  public default Optional<Pose2d> samplePoseAt(double timestamp) {
+    return Optional.empty();
+  }
+
+  /**
+   * Adds a vision measurement to the Kalman Filter for the custom pose estimator. This will correct
+   * the odometry pose estimate while still accounting for measurement noise.
+   *
+   * @param visionRobotPoseMeters The pose of the robot as measured by the vision camera.
+   * @param timestampSeconds The timestamp of the vision measurement in seconds. Note that you must
+   *     use a timestamp with an epoch since system startup (i.e., the epoch of this timestamp is
+   *     the same epoch as {@link Utils#getCurrentTimeSeconds}). This means that you should use
+   *     {@link Utils#getCurrentTimeSeconds} as your time source or sync the epochs. An FPGA
+   *     timestamp can be converted to the correct timebase using {@link Utils#fpgaToCurrentTime}.
+   * @param visionMeasurementStdDevs Standard deviations of the vision pose measurement (x position
+   *     in meters, y position in meters, and heading in radians). Increase these numbers to trust
+   *     the vision pose measurement less.
+   */
+  public default void addVisionMeasurement(
+      Pose2d visionRobotPoseMeters,
+      double timestampSeconds,
+      Matrix<N3, N1> visionMeasurementStdDevs) {}
 }

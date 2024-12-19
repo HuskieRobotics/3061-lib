@@ -25,7 +25,7 @@ public class WheelDiameterCharacterization extends Command {
           RobotConfig.getInstance().getTrackwidth() / 2.0,
           RobotConfig.getInstance().getWheelbase() / 2.0);
   private static final DoubleSupplier gyroYawRadsSupplier =
-      () -> RobotOdometry.getInstance().getEstimatedPosition().getRotation().getRadians();
+      () -> RobotOdometry.getInstance().getEstimatedPose().getRotation().getRadians();
 
   private final Drivetrain drivetrain;
   private final SlewRateLimiter omegaLimiter = new SlewRateLimiter(1.0);

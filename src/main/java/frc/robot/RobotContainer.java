@@ -369,22 +369,6 @@ public class RobotContainer {
     // add commands to the auto chooser
     autoChooser.addDefaultOption("Do Nothing", new InstantCommand());
 
-    /************ Test Path ************
-     *
-     * demonstration of PathPlanner auto with event markers
-     *
-     */
-    Command autoTest = new PathPlannerAuto("TestAuto");
-    autoChooser.addOption("Test Auto", autoTest);
-
-    /************ Choreo Test Path ************
-     *
-     * demonstration of PathPlanner hosted Choreo path
-     *
-     */
-    Command choreoAutoTest = new PathPlannerAuto("ChoreoTest");
-    autoChooser.addOption("Choreo Auto", choreoAutoTest);
-
     /************ Start Point ************
      *
      * useful for initializing the pose of the robot to a known location
@@ -393,9 +377,15 @@ public class RobotContainer {
 
     Command startPoint =
         Commands.runOnce(
-            () ->
+            () -> {
+              try {
                 drivetrain.resetPose(
-                    PathPlannerPath.fromPathFile("StartPoint").getPreviewStartingHolonomicPose()),
+                    PathPlannerPath.fromPathFile("Start Point").getStartingDifferentialPose());
+              } catch (Exception e) {
+                // FIXME: generate an alert about the missing path file;
+                System.out.println("Path file not found: Start Point");
+              }
+            },
             drivetrain);
     autoChooser.addOption("Start Point", startPoint);
 
@@ -404,8 +394,15 @@ public class RobotContainer {
      * used for empirically determining the wheel diameter
      *
      */
-    Command distanceTestPathCommand = new PathPlannerAuto("DistanceTest");
-    autoChooser.addOption("Distance Path", distanceTestPathCommand);
+    autoChooser.addOption("Distance Test Slow", createTuningAutoPath("DistanceTestSlow", true));
+    autoChooser.addOption("Distance Test Med", createTuningAutoPath("DistanceTestMed", true));
+    autoChooser.addOption("Distance Test Fast", createTuningAutoPath("DistanceTestFast", true));
+
+    autoChooser.addOption("Rotation Test Slow", createTuningAutoPath("RotationTestSlow", false));
+    autoChooser.addOption("Rotation Test Fast", createTuningAutoPath("RotationTestFast", false));
+
+    autoChooser.addOption("Oval Test Slow", createTuningAutoPath("OvalTestSlow", false));
+    autoChooser.addOption("Oval Test Fast", createTuningAutoPath("OvalTestFast", false));
 
     /************ Auto Tuning ************
      *
@@ -493,6 +490,13 @@ public class RobotContainer {
             .withName("Drive Wheel Diameter Characterization"));
 
     Shuffleboard.getTab("MAIN").add(autoChooser.getSendableChooser());
+  }
+
+  private Command createTuningAutoPath(String autoName, boolean measureDistance) {
+    return Commands.sequence(
+        Commands.runOnce(drivetrain::captureInitialConditions),
+        new PathPlannerAuto(autoName),
+        Commands.runOnce(() -> drivetrain.captureFinalConditions(autoName, measureDistance)));
   }
 
   private void configureDrivetrainCommands() {
