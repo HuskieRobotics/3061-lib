@@ -289,7 +289,10 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
    * @param expectedYaw the rotation of the robot (in degrees)
    */
   public void setGyroOffset(double expectedYaw) {
-    this.io.setGyroOffset(expectedYaw);
+    this.resetPose(
+        new Pose2d(
+            RobotOdometry.getInstance().getEstimatedPose().getTranslation(),
+            Rotation2d.fromDegrees(expectedYaw)));
   }
 
   /**

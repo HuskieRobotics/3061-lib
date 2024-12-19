@@ -5,6 +5,7 @@ import static edu.wpi.first.units.Units.*;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
@@ -21,7 +22,6 @@ import com.ctre.phoenix6.swerve.SwerveModuleConstants.ClosedLoopOutputType;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants.SteerFeedbackType;
 import com.ctre.phoenix6.swerve.SwerveModuleConstantsFactory;
 import com.ctre.phoenix6.swerve.SwerveRequest;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -30,6 +30,9 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj.Notifier;
+import edu.wpi.first.wpilibj.RobotController;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.swerve.Conversions;
 import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
@@ -135,8 +138,14 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
 
   private static final double COUPLE_RATIO =
       RobotConfig.getInstance().getAzimuthSteerCouplingRatio();
-  private static final double STEER_INERTIA = 0.00001;
-  private static final double DRIVE_INERTIA = 0.001;
+  private static final double STEER_INERTIA =
+      0.00001; // FIXME: test value of 0.01, which is what CTRE Swerve Generator uses
+  private static final double DRIVE_INERTIA =
+      0.001; // FIXME: test value of 0.01, which is what CTRE Swerve Generator uses
+
+  // Simulated voltage necessary to overcome friction
+  private static final Voltage STEER_FRICTION_VOLTAGE = Volts.of(0.25);
+  private static final Voltage DRIVE_FRICTION_VOLTAGE = Volts.of(0.25);
 
   private static final SwerveDrivetrainConstants drivetrainConstants =
       new SwerveDrivetrainConstants()
@@ -154,9 +163,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
                           .withSupplyCurrentLowerLimit(
                               SwerveConstants.DRIVE_CONTINUOUS_CURRENT_LIMIT)
                           .withSupplyCurrentLowerTime(SwerveConstants.DRIVE_PEAK_CURRENT_DURATION)
-                          .withSupplyCurrentLimitEnable(SwerveConstants.DRIVE_ENABLE_CURRENT_LIMIT)
-                          .withStatorCurrentLimit(SwerveConstants.DRIVE_PEAK_CURRENT_LIMIT)
-                          .withStatorCurrentLimitEnable(
+                          .withSupplyCurrentLimitEnable(
                               SwerveConstants.DRIVE_ENABLE_CURRENT_LIMIT)))
           .withSteerMotorInitialConfigs(
               new TalonFXConfiguration()
@@ -183,6 +190,8 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
           .withSpeedAt12Volts(MetersPerSecond.of(RobotConfig.getInstance().getRobotMaxVelocity()))
           .withSteerInertia(STEER_INERTIA)
           .withDriveInertia(DRIVE_INERTIA)
+          .withSteerFrictionVoltage(STEER_FRICTION_VOLTAGE)
+          .withDriveFrictionVoltage(DRIVE_FRICTION_VOLTAGE)
           .withFeedbackSource(SteerFeedbackType.FusedCANcoder)
           .withCouplingGearRatio(
               COUPLE_RATIO); // Every 1 rotation of the azimuth results in couple ratio drive turns
@@ -267,6 +276,10 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   Queue<Double> gyroYawQueue;
   Queue<Double> timestampQueue;
 
+  // simulation
+  private static final double SIM_LOOP_PERIOD = 0.005; // 5 ms
+  private double lastSimTime;
+
   /**
    * Creates a new Drivetrain subsystem.
    *
@@ -334,6 +347,10 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     this.timestampQueue = new ArrayBlockingQueue<>(20);
 
     this.registerTelemetry(this::updateTelemetry);
+
+    if (Constants.getMode() == Constants.Mode.SIM) {
+      startSimThread();
+    }
   }
 
   private void updateTelemetry(SwerveDriveState state) {
@@ -349,7 +366,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     }
 
     // FIXME: update when CTRE adds gyro yaw to SwerveDriveState; for now, use the pose
-    this.gyroYawQueue.offer(state.Pose.getRotation().getDegrees());
+    this.gyroYawQueue.offer(state.RawHeading.getDegrees());
 
     this.timestampQueue.offer(fpgaTimestamp);
 
@@ -408,10 +425,6 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     }
 
     this.odometryLock.unlock();
-
-    if (Constants.getMode() == Constants.Mode.SIM) {
-      updateSimState(Constants.LOOP_PERIOD_SECS, 12.0);
-    }
 
     // update tunables
     if (driveKp.hasChanged()
@@ -678,14 +691,6 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   }
 
   @Override
-  public void setGyroOffset(double expectedYaw) {
-    this.resetPose(
-        new Pose2d(
-            RobotOdometry.getInstance().getEstimatedPose().getTranslation(),
-            Rotation2d.fromDegrees(expectedYaw)));
-  }
-
-  @Override
   public void setCenterOfRotation(Translation2d centerOfRotation) {
     this.centerOfRotation = centerOfRotation;
   }
@@ -751,5 +756,22 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     } else {
       return ClosedLoopOutputType.Voltage;
     }
+  }
+
+  private void startSimThread() {
+    lastSimTime = Utils.getCurrentTimeSeconds();
+
+    /* Run simulation at a faster rate so PID gains behave more reasonably */
+    Notifier simNotifier =
+        new Notifier(
+            () -> {
+              final double currentTime = Utils.getCurrentTimeSeconds();
+              double deltaTime = currentTime - lastSimTime;
+              lastSimTime = currentTime;
+
+              /* use the measured time delta, get battery voltage from WPILib */
+              updateSimState(deltaTime, RobotController.getBatteryVoltage());
+            });
+    simNotifier.startPeriodic(SIM_LOOP_PERIOD);
   }
 }

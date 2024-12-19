@@ -333,7 +333,6 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
     setSwerveModuleStates(this.swerveReferenceStates, isOpenLoop, false);
   }
 
-  @Override
   public void setGyroOffset(double expectedYaw) {
     this.gyroIO.setYaw(expectedYaw);
     this.estimatedPoseWithoutGyro =
