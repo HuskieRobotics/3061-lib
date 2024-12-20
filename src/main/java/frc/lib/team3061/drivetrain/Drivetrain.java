@@ -554,7 +554,8 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
         this.defaultPose.transformBy(new Transform2d(0.36, -0.36, new Rotation2d())));
 
     // check for teleportation
-    if (this.defaultPose.minus(prevRobotPose).getTranslation().getNorm() > 0.4) {
+    if (ENABLE_TELEPORT_DETECTION
+        && this.defaultPose.minus(prevRobotPose).getTranslation().getNorm() > 0.4) {
       this.resetPose(prevRobotPose);
       this.teleportedCount++;
       Logger.recordOutput(SUBSYSTEM_NAME + "/TeleportedPose", this.defaultPose);
