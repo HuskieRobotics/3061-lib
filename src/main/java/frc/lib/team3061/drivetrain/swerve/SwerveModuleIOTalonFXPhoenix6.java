@@ -36,7 +36,7 @@ import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.DrivetrainIO.SwerveIOInputs;
 import frc.lib.team6328.util.Alert;
 import frc.lib.team6328.util.Alert.AlertType;
-import frc.lib.team6328.util.TunableNumber;
+import frc.lib.team6328.util.LoggedTunableNumber;
 import frc.robot.Constants;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,18 +47,18 @@ import java.util.List;
  */
 public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
 
-  private final TunableNumber driveKp =
-      new TunableNumber("Drivetrain/DriveKp", RobotConfig.getInstance().getSwerveDriveKP());
-  private final TunableNumber driveKi =
-      new TunableNumber("Drivetrain/DriveKi", RobotConfig.getInstance().getSwerveDriveKI());
-  private final TunableNumber driveKd =
-      new TunableNumber("Drivetrain/DriveKd", RobotConfig.getInstance().getSwerveDriveKD());
-  private final TunableNumber turnKp =
-      new TunableNumber("Drivetrain/TurnKp", RobotConfig.getInstance().getSwerveAngleKP());
-  private final TunableNumber turnKi =
-      new TunableNumber("Drivetrain/TurnKi", RobotConfig.getInstance().getSwerveAngleKI());
-  private final TunableNumber turnKd =
-      new TunableNumber("Drivetrain/TurnKd", RobotConfig.getInstance().getSwerveAngleKD());
+  private final LoggedTunableNumber driveKp =
+      new LoggedTunableNumber("Drivetrain/DriveKp", RobotConfig.getInstance().getSwerveDriveKP());
+  private final LoggedTunableNumber driveKi =
+      new LoggedTunableNumber("Drivetrain/DriveKi", RobotConfig.getInstance().getSwerveDriveKI());
+  private final LoggedTunableNumber driveKd =
+      new LoggedTunableNumber("Drivetrain/DriveKd", RobotConfig.getInstance().getSwerveDriveKD());
+  private final LoggedTunableNumber turnKp =
+      new LoggedTunableNumber("Drivetrain/TurnKp", RobotConfig.getInstance().getSwerveAngleKP());
+  private final LoggedTunableNumber turnKi =
+      new LoggedTunableNumber("Drivetrain/TurnKi", RobotConfig.getInstance().getSwerveAngleKI());
+  private final LoggedTunableNumber turnKd =
+      new LoggedTunableNumber("Drivetrain/TurnKd", RobotConfig.getInstance().getSwerveAngleKD());
 
   private final double wheelCircumference;
   private final double driveGearRatio;
@@ -349,26 +349,33 @@ public class SwerveModuleIOTalonFXPhoenix6 implements SwerveModuleIO {
         new Rotation2d[] {Rotation2d.fromDegrees(inputs.steerPositionDeg)};
 
     // update tunables
-    if (driveKp.hasChanged()
-        || driveKi.hasChanged()
-        || driveKd.hasChanged()
-        || turnKp.hasChanged()
-        || turnKi.hasChanged()
-        || turnKd.hasChanged()) {
-      Slot0Configs driveSlot0 = new Slot0Configs();
-      this.driveMotor.getConfigurator().refresh(driveSlot0);
-      driveSlot0.kP = driveKp.get();
-      driveSlot0.kI = driveKi.get();
-      driveSlot0.kD = driveKd.get();
-      this.driveMotor.getConfigurator().apply(driveSlot0);
+    LoggedTunableNumber.ifChanged(
+        hashCode(),
+        pid -> {
+          Slot0Configs slot0 = new Slot0Configs();
+          this.driveMotor.getConfigurator().refresh(slot0);
+          slot0.kP = pid[0];
+          slot0.kI = pid[1];
+          slot0.kD = pid[2];
+          this.driveMotor.getConfigurator().apply(slot0);
+        },
+        driveKp,
+        driveKi,
+        driveKd);
 
-      Slot0Configs angleSlot0 = new Slot0Configs();
-      this.angleMotor.getConfigurator().refresh(angleSlot0);
-      angleSlot0.kP = turnKp.get();
-      angleSlot0.kI = turnKi.get();
-      angleSlot0.kD = turnKd.get();
-      this.angleMotor.getConfigurator().apply(angleSlot0);
-    }
+    LoggedTunableNumber.ifChanged(
+        hashCode(),
+        pid -> {
+          Slot0Configs slot0 = new Slot0Configs();
+          this.angleMotor.getConfigurator().refresh(slot0);
+          slot0.kP = pid[0];
+          slot0.kI = pid[1];
+          slot0.kD = pid[2];
+          this.angleMotor.getConfigurator().apply(slot0);
+        },
+        turnKp,
+        turnKi,
+        turnKd);
   }
 
   /** Run the drive motor at the specified percentage of full power (12 V). */

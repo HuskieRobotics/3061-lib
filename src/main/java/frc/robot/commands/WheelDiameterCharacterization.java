@@ -13,13 +13,13 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.Drivetrain;
 import frc.lib.team3061.util.RobotOdometry;
-import frc.lib.team6328.util.TunableNumber;
+import frc.lib.team6328.util.LoggedTunableNumber;
 import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 
 public class WheelDiameterCharacterization extends Command {
-  private static final TunableNumber characterizationSpeed =
-      new TunableNumber("WheelDiameterCharacterization/SpeedRadsPerSec", 0.5);
+  private static final LoggedTunableNumber characterizationSpeed =
+      new LoggedTunableNumber("WheelDiameterCharacterization/SpeedRadsPerSec", 0.5);
   private static final double DRIVE_RADIUS =
       Math.hypot(
           RobotConfig.getInstance().getTrackwidth() / 2.0,

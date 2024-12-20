@@ -17,7 +17,7 @@ import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team6328.util.Alert;
 import frc.lib.team6328.util.Alert.AlertType;
-import frc.lib.team6328.util.TunableNumber;
+import frc.lib.team6328.util.LoggedTunableNumber;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -50,18 +50,18 @@ public class Vision extends SubsystemBase {
   private boolean isVisionUpdating = false;
 
   private RobotOdometry odometry;
-  private final TunableNumber latencyAdjustmentSeconds =
-      new TunableNumber("Vision/LatencyAdjustmentSeconds", 0.0);
-  private final TunableNumber poseDifferenceThreshold =
-      new TunableNumber("Vision/VisionPoseThreshold", POSE_DIFFERENCE_THRESHOLD_METERS);
-  private final TunableNumber stdDevSlopeDistance =
-      new TunableNumber("Vision/StdDevSlopeDistance", 0.10);
-  private final TunableNumber stdDevPowerDistance =
-      new TunableNumber("Vision/stdDevPowerDistance", 2.0);
-  private final TunableNumber stdDevMultiTagFactor =
-      new TunableNumber("Vision/stdDevMultiTagFactor", 0.2);
-  private final TunableNumber stdDevFactorAmbiguity =
-      new TunableNumber("Vision/StdDevSlopeFactorAmbiguity", 1.0);
+  private final LoggedTunableNumber latencyAdjustmentSeconds =
+      new LoggedTunableNumber("Vision/LatencyAdjustmentSeconds", 0.0);
+  private final LoggedTunableNumber poseDifferenceThreshold =
+      new LoggedTunableNumber("Vision/VisionPoseThreshold", POSE_DIFFERENCE_THRESHOLD_METERS);
+  private final LoggedTunableNumber stdDevSlopeDistance =
+      new LoggedTunableNumber("Vision/StdDevSlopeDistance", 0.10);
+  private final LoggedTunableNumber stdDevPowerDistance =
+      new LoggedTunableNumber("Vision/stdDevPowerDistance", 2.0);
+  private final LoggedTunableNumber stdDevMultiTagFactor =
+      new LoggedTunableNumber("Vision/stdDevMultiTagFactor", 0.2);
+  private final LoggedTunableNumber stdDevFactorAmbiguity =
+      new LoggedTunableNumber("Vision/StdDevSlopeFactorAmbiguity", 1.0);
 
   /**
    * Create a new Vision subsystem. The number of VisionIO objects passed to the constructor must

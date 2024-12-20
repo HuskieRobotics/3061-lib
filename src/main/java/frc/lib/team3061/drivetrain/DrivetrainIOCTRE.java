@@ -38,7 +38,7 @@ import frc.lib.team3061.drivetrain.swerve.Conversions;
 import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
 import frc.lib.team3061.gyro.GyroIO.GyroIOInputs;
 import frc.lib.team3061.util.RobotOdometry;
-import frc.lib.team6328.util.TunableNumber;
+import frc.lib.team6328.util.LoggedTunableNumber;
 import frc.robot.Constants;
 import java.util.ArrayList;
 import java.util.List;
@@ -83,29 +83,29 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     StatusSignal<AngularAcceleration> driveAccelerationStatusSignal;
   }
 
-  private final TunableNumber driveKp =
-      new TunableNumber("Drivetrain/DriveKp", RobotConfig.getInstance().getSwerveDriveKP());
-  private final TunableNumber driveKi =
-      new TunableNumber("Drivetrain/DriveKi", RobotConfig.getInstance().getSwerveDriveKI());
-  private final TunableNumber driveKd =
-      new TunableNumber("Drivetrain/DriveKd", RobotConfig.getInstance().getSwerveDriveKD());
-  private final TunableNumber steerKp =
-      new TunableNumber("Drivetrain/TurnKp", RobotConfig.getInstance().getSwerveAngleKP());
-  private final TunableNumber steerKi =
-      new TunableNumber("Drivetrain/TurnKi", RobotConfig.getInstance().getSwerveAngleKI());
-  private final TunableNumber steerKd =
-      new TunableNumber("Drivetrain/TurnKd", RobotConfig.getInstance().getSwerveAngleKD());
+  private final LoggedTunableNumber driveKp =
+      new LoggedTunableNumber("Drivetrain/DriveKp", RobotConfig.getInstance().getSwerveDriveKP());
+  private final LoggedTunableNumber driveKi =
+      new LoggedTunableNumber("Drivetrain/DriveKi", RobotConfig.getInstance().getSwerveDriveKI());
+  private final LoggedTunableNumber driveKd =
+      new LoggedTunableNumber("Drivetrain/DriveKd", RobotConfig.getInstance().getSwerveDriveKD());
+  private final LoggedTunableNumber steerKp =
+      new LoggedTunableNumber("Drivetrain/TurnKp", RobotConfig.getInstance().getSwerveAngleKP());
+  private final LoggedTunableNumber steerKi =
+      new LoggedTunableNumber("Drivetrain/TurnKi", RobotConfig.getInstance().getSwerveAngleKI());
+  private final LoggedTunableNumber steerKd =
+      new LoggedTunableNumber("Drivetrain/TurnKd", RobotConfig.getInstance().getSwerveAngleKD());
 
-  protected static final TunableNumber driveFacingAngleThetaKp =
-      new TunableNumber(
+  protected static final LoggedTunableNumber driveFacingAngleThetaKp =
+      new LoggedTunableNumber(
           "Drivetrain/DriveFacingAngle/ThetaKp",
           RobotConfig.getInstance().getDriveFacingAngleThetaKP());
-  protected static final TunableNumber driveFacingAngleThetaKi =
-      new TunableNumber(
+  protected static final LoggedTunableNumber driveFacingAngleThetaKi =
+      new LoggedTunableNumber(
           "Drivetrain/DriveFacingAngle/ThetaKi",
           RobotConfig.getInstance().getDriveFacingAngleThetaKI());
-  protected static final TunableNumber driveFacingAngleThetaKd =
-      new TunableNumber(
+  protected static final LoggedTunableNumber driveFacingAngleThetaKd =
+      new LoggedTunableNumber(
           "Drivetrain/DriveFacingAngle/ThetaKd",
           RobotConfig.getInstance().getDriveFacingAngleThetaKD());
 
@@ -427,37 +427,44 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     this.odometryLock.unlock();
 
     // update tunables
-    if (driveKp.hasChanged()
-        || driveKi.hasChanged()
-        || driveKd.hasChanged()
-        || steerKp.hasChanged()
-        || steerKi.hasChanged()
-        || steerKd.hasChanged()) {
-      for (SwerveModule swerveModule : this.getModules()) {
-        Slot0Configs driveSlot0 = new Slot0Configs();
-        swerveModule.getDriveMotor().getConfigurator().refresh(driveSlot0);
-        driveSlot0.kP = driveKp.get();
-        driveSlot0.kI = driveKi.get();
-        driveSlot0.kD = driveKd.get();
-        swerveModule.getDriveMotor().getConfigurator().apply(driveSlot0);
+    LoggedTunableNumber.ifChanged(
+        hashCode(),
+        pid -> {
+          for (SwerveModule swerveModule : this.getModules()) {
+            Slot0Configs slot0 = new Slot0Configs();
+            swerveModule.getDriveMotor().getConfigurator().refresh(slot0);
+            slot0.kP = pid[0];
+            slot0.kI = pid[1];
+            slot0.kD = pid[2];
+            swerveModule.getDriveMotor().getConfigurator().apply(slot0);
+          }
+        },
+        driveKp,
+        driveKi,
+        driveKd);
 
-        Slot0Configs steerSlot0 = new Slot0Configs();
-        swerveModule.getSteerMotor().getConfigurator().refresh(steerSlot0);
-        steerSlot0.kP = steerKp.get();
-        steerSlot0.kI = steerKi.get();
-        steerSlot0.kD = steerKd.get();
-        swerveModule.getSteerMotor().getConfigurator().apply(steerSlot0);
-      }
-    }
+    LoggedTunableNumber.ifChanged(
+        hashCode(),
+        pid -> {
+          for (SwerveModule swerveModule : this.getModules()) {
+            Slot0Configs slot0 = new Slot0Configs();
+            swerveModule.getSteerMotor().getConfigurator().refresh(slot0);
+            slot0.kP = pid[0];
+            slot0.kI = pid[1];
+            slot0.kD = pid[2];
+            swerveModule.getSteerMotor().getConfigurator().apply(slot0);
+          }
+        },
+        steerKp,
+        steerKi,
+        steerKd);
 
-    if (driveFacingAngleThetaKp.hasChanged()
-        || driveFacingAngleThetaKi.hasChanged()
-        || driveFacingAngleThetaKd.hasChanged()) {
-      this.driveFacingAngleRequest.HeadingController.setPID(
-          driveFacingAngleThetaKp.get(),
-          driveFacingAngleThetaKi.get(),
-          driveFacingAngleThetaKd.get());
-    }
+    LoggedTunableNumber.ifChanged(
+        hashCode(),
+        pid -> this.driveFacingAngleRequest.HeadingController.setPID(pid[0], pid[1], pid[2]),
+        driveFacingAngleThetaKp,
+        driveFacingAngleThetaKi,
+        driveFacingAngleThetaKd);
   }
 
   private void updateGyroInputs(GyroIOInputs inputs) {

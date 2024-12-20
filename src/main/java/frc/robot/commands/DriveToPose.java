@@ -19,7 +19,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.Drivetrain;
-import frc.lib.team6328.util.TunableNumber;
+import frc.lib.team6328.util.LoggedTunableNumber;
 import frc.robot.Field2d;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
@@ -44,40 +44,47 @@ public class DriveToPose extends Command {
   private boolean running = false;
   private Timer timer;
 
-  private static final TunableNumber driveKp =
-      new TunableNumber("DriveToPose/DriveKp", RobotConfig.getInstance().getDriveToPoseDriveKP());
-  private static final TunableNumber driveKd =
-      new TunableNumber("DriveToPose/DriveKd", RobotConfig.getInstance().getDriveToPoseDriveKD());
-  private static final TunableNumber driveKi = new TunableNumber("DriveToPose/DriveKi", 0);
-  private static final TunableNumber thetaKp =
-      new TunableNumber("DriveToPose/ThetaKp", RobotConfig.getInstance().getDriveToPoseThetaKP());
-  private static final TunableNumber thetaKd =
-      new TunableNumber("DriveToPose/ThetaKd", RobotConfig.getInstance().getDriveToPoseThetaKD());
-  private static final TunableNumber thetaKi =
-      new TunableNumber("DriveToPose/ThetaKi", RobotConfig.getInstance().getDriveToPoseThetaKI());
-  private static final TunableNumber driveMaxVelocity =
-      new TunableNumber(
+  private static final LoggedTunableNumber driveKp =
+      new LoggedTunableNumber(
+          "DriveToPose/DriveKp", RobotConfig.getInstance().getDriveToPoseDriveKP());
+  private static final LoggedTunableNumber driveKd =
+      new LoggedTunableNumber(
+          "DriveToPose/DriveKd", RobotConfig.getInstance().getDriveToPoseDriveKD());
+  private static final LoggedTunableNumber driveKi =
+      new LoggedTunableNumber("DriveToPose/DriveKi", 0);
+  private static final LoggedTunableNumber thetaKp =
+      new LoggedTunableNumber(
+          "DriveToPose/ThetaKp", RobotConfig.getInstance().getDriveToPoseThetaKP());
+  private static final LoggedTunableNumber thetaKd =
+      new LoggedTunableNumber(
+          "DriveToPose/ThetaKd", RobotConfig.getInstance().getDriveToPoseThetaKD());
+  private static final LoggedTunableNumber thetaKi =
+      new LoggedTunableNumber(
+          "DriveToPose/ThetaKi", RobotConfig.getInstance().getDriveToPoseThetaKI());
+  private static final LoggedTunableNumber driveMaxVelocity =
+      new LoggedTunableNumber(
           "DriveToPose/DriveMaxVelocity",
           RobotConfig.getInstance().getDriveToPoseDriveMaxVelocity());
-  private static final TunableNumber driveMaxAcceleration =
-      new TunableNumber(
+  private static final LoggedTunableNumber driveMaxAcceleration =
+      new LoggedTunableNumber(
           "DriveToPose/DriveMaxAcceleration",
           RobotConfig.getInstance().getDriveToPoseDriveMaxAcceleration());
-  private static final TunableNumber thetaMaxVelocity =
-      new TunableNumber(
+  private static final LoggedTunableNumber thetaMaxVelocity =
+      new LoggedTunableNumber(
           "DriveToPose/ThetaMaxVelocity",
           RobotConfig.getInstance().getDriveToPoseTurnMaxVelocity());
-  private static final TunableNumber thetaMaxAcceleration =
-      new TunableNumber(
+  private static final LoggedTunableNumber thetaMaxAcceleration =
+      new LoggedTunableNumber(
           "DriveToPose/ThetaMaxAcceleration",
           RobotConfig.getInstance().getDriveToPoseTurnMaxAcceleration());
-  private static final TunableNumber driveTolerance =
-      new TunableNumber(
+  private static final LoggedTunableNumber driveTolerance =
+      new LoggedTunableNumber(
           "DriveToPose/DriveTolerance", RobotConfig.getInstance().getDriveToPoseDriveTolerance());
-  private static final TunableNumber thetaTolerance =
-      new TunableNumber(
+  private static final LoggedTunableNumber thetaTolerance =
+      new LoggedTunableNumber(
           "DriveToPose/ThetaTolerance", RobotConfig.getInstance().getDriveToPoseThetaTolerance());
-  private static final TunableNumber timeout = new TunableNumber("DriveToPose/timeout", 5.0);
+  private static final LoggedTunableNumber timeout =
+      new LoggedTunableNumber("DriveToPose/timeout", 5.0);
 
   private final ProfiledPIDController xController =
       new ProfiledPIDController(
@@ -156,37 +163,44 @@ public class DriveToPose extends Command {
     running = true;
 
     // Update from tunable numbers
-    if (driveKp.hasChanged()
-        || driveKd.hasChanged()
-        || driveKi.hasChanged()
-        || thetaKp.hasChanged()
-        || thetaKd.hasChanged()
-        || thetaKi.hasChanged()
-        || driveMaxVelocity.hasChanged()
-        || driveMaxAcceleration.hasChanged()
-        || thetaMaxVelocity.hasChanged()
-        || thetaMaxAcceleration.hasChanged()
-        || driveTolerance.hasChanged()
-        || thetaTolerance.hasChanged()) {
-      xController.setP(driveKp.get());
-      xController.setD(driveKd.get());
-      xController.setI(driveKi.get());
-      xController.setConstraints(
-          new TrapezoidProfile.Constraints(driveMaxVelocity.get(), driveMaxAcceleration.get()));
-      xController.setTolerance(driveTolerance.get());
-      yController.setP(driveKp.get());
-      yController.setD(driveKd.get());
-      yController.setI(driveKi.get());
-      yController.setConstraints(
-          new TrapezoidProfile.Constraints(driveMaxVelocity.get(), driveMaxAcceleration.get()));
-      yController.setTolerance(driveTolerance.get());
-      thetaController.setP(thetaKp.get());
-      thetaController.setD(thetaKd.get());
-      thetaController.setI(thetaKi.get());
-      thetaController.setConstraints(
-          new TrapezoidProfile.Constraints(thetaMaxVelocity.get(), thetaMaxAcceleration.get()));
-      thetaController.setTolerance(thetaTolerance.get());
-    }
+    LoggedTunableNumber.ifChanged(
+        hashCode(),
+        pid -> {
+          xController.setPID(pid[0], pid[1], pid[2]);
+          yController.setPID(pid[0], pid[1], pid[2]);
+        },
+        driveKp,
+        driveKi,
+        driveKd);
+    LoggedTunableNumber.ifChanged(
+        hashCode(),
+        max -> {
+          xController.setConstraints(new TrapezoidProfile.Constraints(max[0], max[1]));
+          yController.setConstraints(new TrapezoidProfile.Constraints(max[0], max[1]));
+        },
+        driveMaxVelocity,
+        driveMaxAcceleration);
+    LoggedTunableNumber.ifChanged(
+        hashCode(),
+        tolerance -> {
+          xController.setTolerance(tolerance[0]);
+          yController.setTolerance(tolerance[0]);
+        },
+        driveTolerance);
+
+    LoggedTunableNumber.ifChanged(
+        hashCode(),
+        pid -> thetaController.setPID(pid[0], pid[1], pid[2]),
+        thetaKp,
+        thetaKi,
+        thetaKd);
+    LoggedTunableNumber.ifChanged(
+        hashCode(),
+        max -> thetaController.setConstraints(new TrapezoidProfile.Constraints(max[0], max[1])),
+        thetaMaxVelocity,
+        thetaMaxAcceleration);
+    LoggedTunableNumber.ifChanged(
+        hashCode(), tolerance -> thetaController.setTolerance(tolerance[0]), thetaTolerance);
 
     Pose2d currentPose = drivetrain.getPose();
 
