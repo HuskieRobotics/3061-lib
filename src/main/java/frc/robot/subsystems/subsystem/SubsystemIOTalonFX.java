@@ -18,7 +18,7 @@ import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.swerve.Conversions;
 import frc.lib.team6328.util.Alert;
 import frc.lib.team6328.util.Alert.AlertType;
-import frc.lib.team6328.util.TunableNumber;
+import frc.lib.team6328.util.LoggedTunableNumber;
 
 /** TalonFX implementation of the generic SubsystemIO */
 public class SubsystemIOTalonFX implements SubsystemIO {
@@ -31,11 +31,11 @@ public class SubsystemIOTalonFX implements SubsystemIO {
   private Alert configAlert =
       new Alert("Failed to apply configuration for subsystem.", AlertType.ERROR);
 
-  private final TunableNumber kP = new TunableNumber("Subsystem/kP", POSITION_PID_P);
-  private final TunableNumber kI = new TunableNumber("Subsystem/kI", POSITION_PID_I);
-  private final TunableNumber kD = new TunableNumber("Subsystem/kD", POSITION_PID_D);
-  private final TunableNumber kPeakOutput =
-      new TunableNumber("Subsystem/kPeakOutput", POSITION_PID_PEAK_OUTPUT);
+  private final LoggedTunableNumber kP = new LoggedTunableNumber("Subsystem/kP", POSITION_PID_P);
+  private final LoggedTunableNumber kI = new LoggedTunableNumber("Subsystem/kI", POSITION_PID_I);
+  private final LoggedTunableNumber kD = new LoggedTunableNumber("Subsystem/kD", POSITION_PID_D);
+  private final LoggedTunableNumber kPeakOutput =
+      new LoggedTunableNumber("Subsystem/kPeakOutput", POSITION_PID_PEAK_OUTPUT);
 
   /** Create a TalonFX-specific generic SubsystemIO */
   public SubsystemIOTalonFX() {
@@ -67,16 +67,29 @@ public class SubsystemIOTalonFX implements SubsystemIO {
     inputs.supplyCurrentAmps = motor.getSupplyCurrent().getValue().in(Amps);
 
     // update configuration if tunables have changed
-    if (kP.hasChanged() || kI.hasChanged() || kD.hasChanged() || kPeakOutput.hasChanged()) {
-      TalonFXConfiguration config = new TalonFXConfiguration();
-      this.motor.getConfigurator().refresh(config);
-      config.Slot0.kP = kP.get();
-      config.Slot0.kI = kI.get();
-      config.Slot0.kD = kD.get();
-      config.Voltage.PeakForwardVoltage = kPeakOutput.get();
-      config.Voltage.PeakReverseVoltage = kPeakOutput.get();
-      this.motor.getConfigurator().apply(config);
-    }
+    LoggedTunableNumber.ifChanged(
+        hashCode(),
+        pid -> {
+          TalonFXConfiguration config = new TalonFXConfiguration();
+          this.motor.getConfigurator().refresh(config);
+          config.Slot0.kP = pid[0];
+          config.Slot0.kI = pid[1];
+          config.Slot0.kD = pid[2];
+          this.motor.getConfigurator().apply(config);
+        },
+        kP,
+        kI,
+        kD);
+    LoggedTunableNumber.ifChanged(
+        hashCode(),
+        peak -> {
+          TalonFXConfiguration config = new TalonFXConfiguration();
+          this.motor.getConfigurator().refresh(config);
+          config.Voltage.PeakForwardVoltage = peak[0];
+          config.Voltage.PeakReverseVoltage = peak[0];
+          this.motor.getConfigurator().apply(config);
+        },
+        kPeakOutput);
   }
 
   /**

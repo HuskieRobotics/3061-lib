@@ -18,7 +18,7 @@ import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.swerve.SwerveModuleIO;
 import frc.lib.team3061.gyro.GyroIO;
 import frc.lib.team3061.util.RobotOdometry;
-import frc.lib.team6328.util.TunableNumber;
+import frc.lib.team6328.util.LoggedTunableNumber;
 import frc.robot.Constants;
 import java.util.ArrayList;
 import java.util.List;
@@ -84,22 +84,22 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
 
   private final List<BaseStatusSignal> odometrySignals = new ArrayList<>();
 
-  protected static final TunableNumber thetaKp =
-      new TunableNumber(
+  protected static final LoggedTunableNumber thetaKp =
+      new LoggedTunableNumber(
           "Drivetrain/DriveFacingAngle/ThetaKp",
           RobotConfig.getInstance().getDriveFacingAngleThetaKP());
-  protected static final TunableNumber thetaKi =
-      new TunableNumber(
+  protected static final LoggedTunableNumber thetaKi =
+      new LoggedTunableNumber(
           "Drivetrain/DriveFacingAngle/ThetaKi",
           RobotConfig.getInstance().getDriveFacingAngleThetaKI());
-  protected static final TunableNumber thetaKd =
-      new TunableNumber(
+  protected static final LoggedTunableNumber thetaKd =
+      new LoggedTunableNumber(
           "Drivetrain/DriveFacingAngle/ThetaKd",
           RobotConfig.getInstance().getDriveFacingAngleThetaKD());
-  protected static final TunableNumber thetaMaxVelocity =
-      new TunableNumber("Drivetrain/DriveFacingAngle/ThetaMaxVelocity", 8);
-  protected static final TunableNumber thetaMaxAcceleration =
-      new TunableNumber("Drivetrain/DriveFacingAngle/ThetaMaxAcceleration", 100);
+  protected static final LoggedTunableNumber thetaMaxVelocity =
+      new LoggedTunableNumber("Drivetrain/DriveFacingAngle/ThetaMaxVelocity", 8);
+  protected static final LoggedTunableNumber thetaMaxAcceleration =
+      new LoggedTunableNumber("Drivetrain/DriveFacingAngle/ThetaMaxAcceleration", 100);
 
   protected final ProfiledPIDController thetaController =
       new ProfiledPIDController(
@@ -216,17 +216,14 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
 
     inputs.drivetrain.odometryTimestamps = new double[] {Logger.getRealTimestamp() / 1e6};
 
-    if (thetaKp.hasChanged()
-        || thetaKd.hasChanged()
-        || thetaKi.hasChanged()
-        || thetaMaxVelocity.hasChanged()
-        || thetaMaxAcceleration.hasChanged()) {
-      thetaController.setP(thetaKp.get());
-      thetaController.setI(thetaKi.get());
-      thetaController.setD(thetaKd.get());
-      thetaController.setConstraints(
-          new TrapezoidProfile.Constraints(thetaMaxVelocity.get(), thetaMaxAcceleration.get()));
-    }
+    LoggedTunableNumber.ifChanged(hashCode(), pid -> thetaController.setP(pid[0]), thetaKp);
+    LoggedTunableNumber.ifChanged(hashCode(), pid -> thetaController.setI(pid[0]), thetaKi);
+    LoggedTunableNumber.ifChanged(hashCode(), pid -> thetaController.setD(pid[0]), thetaKd);
+    LoggedTunableNumber.ifChanged(
+        hashCode(),
+        max -> thetaController.setConstraints(new TrapezoidProfile.Constraints(max[0], max[1])),
+        thetaMaxVelocity,
+        thetaMaxAcceleration);
   }
 
   @Override
@@ -333,7 +330,6 @@ public class DrivetrainIOGeneric implements DrivetrainIO {
     setSwerveModuleStates(this.swerveReferenceStates, isOpenLoop, false);
   }
 
-  @Override
   public void setGyroOffset(double expectedYaw) {
     this.gyroIO.setYaw(expectedYaw);
     this.estimatedPoseWithoutGyro =

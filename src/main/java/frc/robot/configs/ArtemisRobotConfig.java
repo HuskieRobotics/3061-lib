@@ -51,12 +51,13 @@ public class ArtemisRobotConfig extends RobotConfig {
 
   // FIXME: generate a new swerve drivetrain project from Tuner X and check the value of each of
   // these
-  private static final double COUPLE_RATIO = 0.0;
+  private static final double COUPLE_RATIO = 3.125; // FIXME: tune
 
   /* Angle Motor PID Values */
   private static final double ANGLE_KP = 100.0;
   private static final double ANGLE_KI = 0.0;
-  private static final double ANGLE_KD = 0.05;
+  private static final double ANGLE_KD =
+      0.05; // FIXME: check this as the CTRE swerve generator has a default value of 0.5
 
   private static final double ANGLE_KS = 0.24719;
   private static final double ANGLE_KV = 2.5845; // rps
@@ -72,7 +73,7 @@ public class ArtemisRobotConfig extends RobotConfig {
   private static final double DRIVE_KA = 0.0;
 
   private static final double MAX_VELOCITY_METERS_PER_SECOND =
-      4.5; // FIXME: confirm max velocity with real robot
+      5.5; // FIXME: confirm max velocity with real robot
   private static final double MAX_COAST_VELOCITY_METERS_PER_SECOND =
       0.05; // FIXME: Values taken from nova, need to be updated
   private static final double SLOW_MODE_MULTIPLIER =

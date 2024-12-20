@@ -8,7 +8,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.team3015.subsystem.FaultReporter;
-import frc.lib.team6328.util.TunableNumber;
+import frc.lib.team6328.util.LoggedTunableNumber;
 import org.littletonrobotics.junction.Logger;
 
 /**
@@ -20,9 +20,11 @@ public class Subsystem extends SubsystemBase {
 
   // these Tunables are convenient when testing as they provide direct control of the subsystem's
   // motor
-  private final TunableNumber motorPower = new TunableNumber("Subsystem/power", 0.0);
-  private final TunableNumber motorCurrent = new TunableNumber("Subsystem/current", 0.0);
-  private final TunableNumber motorPosition = new TunableNumber("Subsystem/position", 0.0);
+  private final LoggedTunableNumber motorPower = new LoggedTunableNumber("Subsystem/power", 0.0);
+  private final LoggedTunableNumber motorCurrent =
+      new LoggedTunableNumber("Subsystem/current", 0.0);
+  private final LoggedTunableNumber motorPosition =
+      new LoggedTunableNumber("Subsystem/position", 0.0);
 
   private final SubsystemIOInputsAutoLogged inputs = new SubsystemIOInputsAutoLogged();
   private SubsystemIO io;

@@ -50,7 +50,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Optional;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
-import org.littletonrobotics.junction.networktables.LoggedDashboardNumber;
+import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -70,10 +70,10 @@ public class RobotContainer {
   private final LoggedDashboardChooser<Command> autoChooser =
       new LoggedDashboardChooser<>("Auto Routine");
 
-  private final LoggedDashboardNumber endgameAlert1 =
-      new LoggedDashboardNumber("Endgame Alert #1", 20.0);
-  private final LoggedDashboardNumber endgameAlert2 =
-      new LoggedDashboardNumber("Endgame Alert #2", 10.0);
+  private final LoggedNetworkNumber endgameAlert1 =
+      new LoggedNetworkNumber("/Tuning/Endgame Alert #1", 20.0);
+  private final LoggedNetworkNumber endgameAlert2 =
+      new LoggedNetworkNumber("/Tuning/Endgame Alert #2", 10.0);
 
   // RobotContainer singleton
   private static RobotContainer robotContainer = new RobotContainer();

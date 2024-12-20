@@ -41,7 +41,7 @@ import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team6328.util.Alert;
 import frc.lib.team6328.util.Alert.AlertType;
 import frc.lib.team6328.util.FieldConstants;
-import frc.lib.team6328.util.TunableNumber;
+import frc.lib.team6328.util.LoggedTunableNumber;
 import frc.robot.Constants;
 import frc.robot.Field2d;
 import java.util.List;
@@ -60,21 +60,23 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
   private final DrivetrainIO.DrivetrainIOInputsCollection inputs =
       new DrivetrainIO.DrivetrainIOInputsCollection();
 
-  private final TunableNumber autoDriveKp =
-      new TunableNumber("AutoDrive/DriveKp", RobotConfig.getInstance().getAutoDriveKP());
-  private final TunableNumber autoDriveKi =
-      new TunableNumber("AutoDrive/DriveKi", RobotConfig.getInstance().getAutoDriveKI());
-  private final TunableNumber autoDriveKd =
-      new TunableNumber("AutoDrive/DriveKd", RobotConfig.getInstance().getAutoDriveKD());
-  private final TunableNumber autoTurnKp =
-      new TunableNumber("AutoDrive/TurnKp", RobotConfig.getInstance().getAutoTurnKP());
-  private final TunableNumber autoTurnKi =
-      new TunableNumber("AutoDrive/TurnKi", RobotConfig.getInstance().getAutoTurnKI());
-  private final TunableNumber autoTurnKd =
-      new TunableNumber("AutoDrive/TurnKd", RobotConfig.getInstance().getAutoTurnKD());
+  private final LoggedTunableNumber autoDriveKp =
+      new LoggedTunableNumber("AutoDrive/DriveKp", RobotConfig.getInstance().getAutoDriveKP());
+  private final LoggedTunableNumber autoDriveKi =
+      new LoggedTunableNumber("AutoDrive/DriveKi", RobotConfig.getInstance().getAutoDriveKI());
+  private final LoggedTunableNumber autoDriveKd =
+      new LoggedTunableNumber("AutoDrive/DriveKd", RobotConfig.getInstance().getAutoDriveKD());
+  private final LoggedTunableNumber autoTurnKp =
+      new LoggedTunableNumber("AutoDrive/TurnKp", RobotConfig.getInstance().getAutoTurnKP());
+  private final LoggedTunableNumber autoTurnKi =
+      new LoggedTunableNumber("AutoDrive/TurnKi", RobotConfig.getInstance().getAutoTurnKI());
+  private final LoggedTunableNumber autoTurnKd =
+      new LoggedTunableNumber("AutoDrive/TurnKd", RobotConfig.getInstance().getAutoTurnKD());
 
-  private final TunableNumber driveCurrent = new TunableNumber("Drivetrain/driveCurrent", 0.0);
-  private final TunableNumber steerCurrent = new TunableNumber("Drivetrain/steerCurrent", 0.0);
+  private final LoggedTunableNumber driveCurrent =
+      new LoggedTunableNumber("Drivetrain/driveCurrent", 0.0);
+  private final LoggedTunableNumber steerCurrent =
+      new LoggedTunableNumber("Drivetrain/steerCurrent", 0.0);
 
   private final PIDController autoXController =
       new PIDController(autoDriveKp.get(), autoDriveKi.get(), autoDriveKd.get());
@@ -289,7 +291,10 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
    * @param expectedYaw the rotation of the robot (in degrees)
    */
   public void setGyroOffset(double expectedYaw) {
-    this.io.setGyroOffset(expectedYaw);
+    this.resetPose(
+        new Pose2d(
+            RobotOdometry.getInstance().getEstimatedPose().getTranslation(),
+            Rotation2d.fromDegrees(expectedYaw)));
   }
 
   /**
@@ -587,13 +592,21 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
     Logger.recordOutput(SUBSYSTEM_NAME + "/DriveMode", this.driveMode);
 
     // update tunables
-    if (autoDriveKp.hasChanged() || autoDriveKi.hasChanged() || autoDriveKd.hasChanged()) {
-      autoXController.setPID(autoDriveKp.get(), autoDriveKi.get(), autoDriveKd.get());
-      autoYController.setPID(autoDriveKp.get(), autoDriveKi.get(), autoDriveKd.get());
-    }
-    if (autoTurnKp.hasChanged() || autoTurnKi.hasChanged() || autoTurnKd.hasChanged()) {
-      autoThetaController.setPID(autoTurnKp.get(), autoTurnKi.get(), autoTurnKd.get());
-    }
+    LoggedTunableNumber.ifChanged(
+        hashCode(),
+        pid -> {
+          autoXController.setPID(pid[0], pid[1], pid[2]);
+          autoYController.setPID(pid[0], pid[1], pid[2]);
+        },
+        autoDriveKp,
+        autoDriveKi,
+        autoDriveKd);
+    LoggedTunableNumber.ifChanged(
+        hashCode(),
+        pid -> autoThetaController.setPID(pid[0], pid[1], pid[2]),
+        autoTurnKp,
+        autoTurnKi,
+        autoTurnKd);
   }
 
   /**

@@ -124,15 +124,6 @@ public interface DrivetrainIO {
   public default void setChassisSpeeds(ChassisSpeeds speeds, boolean isOpenLoop) {}
 
   /**
-   * Sets the rotation of the robot to the specified value. This method should only be invoked when
-   * the rotation of the robot is known (e.g., at the start of an autonomous path). Zero degrees is
-   * facing away from the driver station; CCW is positive.
-   *
-   * @param expectedYaw the rotation of the robot (in degrees)
-   */
-  public default void setGyroOffset(double expectedYaw) {}
-
-  /**
    * Sets the robot's center of rotation. The origin is at the center of the robot. The positive x
    * direction is forward; the positive y direction, left.
    *

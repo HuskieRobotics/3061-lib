@@ -4,7 +4,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.Drivetrain;
-import frc.lib.team6328.util.TunableNumber;
+import frc.lib.team6328.util.LoggedTunableNumber;
 import frc.robot.Constants;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
@@ -41,13 +41,14 @@ public class TeleopSwerve extends Command {
   private final double maxAngularVelocityRadiansPerSecond =
       RobotConfig.getInstance().getRobotMaxAngularVelocity();
 
-  private final TunableNumber maxTurnAcceleration =
-      new TunableNumber(
+  private final LoggedTunableNumber maxTurnAcceleration =
+      new LoggedTunableNumber(
           "TeleopSwerve/maxTurnAcceleration",
           RobotConfig.getInstance().getRobotMaxTurnAcceleration());
-  private final TunableNumber joystickPower = new TunableNumber("TeleopSwerve/joystickPower", 2.0);
-  private final TunableNumber maxDriveAcceleration =
-      new TunableNumber(
+  private final LoggedTunableNumber joystickPower =
+      new LoggedTunableNumber("TeleopSwerve/joystickPower", 2.0);
+  private final LoggedTunableNumber maxDriveAcceleration =
+      new LoggedTunableNumber(
           "TeleopSwerve/maxDriveAcceleration",
           RobotConfig.getInstance().getRobotMaxDriveAcceleration());
 
