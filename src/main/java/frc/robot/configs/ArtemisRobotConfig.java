@@ -73,7 +73,7 @@ public class ArtemisRobotConfig extends RobotConfig {
   private static final double DRIVE_KA = 0.0;
 
   private static final double MAX_VELOCITY_METERS_PER_SECOND =
-      4.5; // FIXME: confirm max velocity with real robot
+      5.5; // FIXME: confirm max velocity with real robot
   private static final double MAX_COAST_VELOCITY_METERS_PER_SECOND =
       0.05; // FIXME: Values taken from nova, need to be updated
   private static final double SLOW_MODE_MULTIPLIER =
