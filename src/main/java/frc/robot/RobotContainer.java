@@ -21,13 +21,7 @@ import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.Drivetrain;
 import frc.lib.team3061.drivetrain.DrivetrainIO;
 import frc.lib.team3061.drivetrain.DrivetrainIOCTRE;
-import frc.lib.team3061.drivetrain.DrivetrainIOGeneric;
-import frc.lib.team3061.drivetrain.swerve.SwerveModuleIO;
-import frc.lib.team3061.drivetrain.swerve.SwerveModuleIOTalonFXPhoenix6;
-import frc.lib.team3061.gyro.GyroIOPigeon2Phoenix6;
 import frc.lib.team3061.leds.LEDs;
-import frc.lib.team3061.pneumatics.Pneumatics;
-import frc.lib.team3061.pneumatics.PneumaticsIORev;
 import frc.lib.team3061.vision.Vision;
 import frc.lib.team3061.vision.VisionConstants;
 import frc.lib.team3061.vision.VisionIO;
@@ -38,10 +32,8 @@ import frc.robot.commands.TeleopSwerve;
 import frc.robot.commands.WheelDiameterCharacterization;
 import frc.robot.configs.ArtemisRobotConfig;
 import frc.robot.configs.DefaultRobotConfig;
-import frc.robot.configs.GenericDrivetrainRobotConfig;
 import frc.robot.configs.NewPracticeRobotConfig;
 import frc.robot.configs.PracticeBoardConfig;
-import frc.robot.configs.PracticeRobotConfig;
 import frc.robot.operator_interface.OISelector;
 import frc.robot.operator_interface.OperatorInterface;
 import frc.robot.subsystems.subsystem.Subsystem;
@@ -100,20 +92,12 @@ public class RobotContainer {
             createPracticeBoardSubsystem();
             break;
           }
-        case ROBOT_PRACTICE:
-        case ROBOT_PRACTICE_NEW:
-        case ROBOT_COMPETITION:
+        case ROBOT_DEFAULT, ROBOT_PRACTICE, ROBOT_COMPETITION:
           {
             createCTRESubsystems();
             break;
           }
-        case ROBOT_DEFAULT:
         case ROBOT_SIMBOT:
-          {
-            createSubsystems();
-            break;
-          }
-        case ROBOT_SIMBOT_CTRE:
           {
             createCTRESimSubsystems();
             break;
@@ -153,18 +137,11 @@ public class RobotContainer {
       case ROBOT_DEFAULT:
         config = new DefaultRobotConfig();
         break;
-      case ROBOT_SIMBOT:
-        config = new GenericDrivetrainRobotConfig();
-        break;
       case ROBOT_PRACTICE:
-        config = new PracticeRobotConfig();
-        break;
-      case ROBOT_COMPETITION:
-      case ROBOT_SIMBOT_CTRE:
-        config = new ArtemisRobotConfig();
-        break;
-      case ROBOT_PRACTICE_NEW:
         config = new NewPracticeRobotConfig();
+        break;
+      case ROBOT_COMPETITION, ROBOT_SIMBOT:
+        config = new ArtemisRobotConfig();
         break;
       case ROBOT_PRACTICE_BOARD:
         config = new PracticeBoardConfig();
@@ -192,61 +169,6 @@ public class RobotContainer {
 
     // FIXME: create the hardware-specific subsystem class
     subsystem = new Subsystem(new SubsystemIO() {});
-  }
-
-  private void createSubsystems() {
-    int[] driveMotorCANIDs = config.getSwerveDriveMotorCANIDs();
-    int[] steerMotorCANDIDs = config.getSwerveSteerMotorCANIDs();
-    int[] steerEncoderCANDIDs = config.getSwerveSteerEncoderCANIDs();
-    double[] steerOffsets = config.getSwerveSteerOffsets();
-    SwerveModuleIO flModule =
-        new SwerveModuleIOTalonFXPhoenix6(
-            0, driveMotorCANIDs[0], steerMotorCANDIDs[0], steerEncoderCANDIDs[0], steerOffsets[0]);
-
-    SwerveModuleIO frModule =
-        new SwerveModuleIOTalonFXPhoenix6(
-            1, driveMotorCANIDs[1], steerMotorCANDIDs[1], steerEncoderCANDIDs[1], steerOffsets[1]);
-
-    SwerveModuleIO blModule =
-        new SwerveModuleIOTalonFXPhoenix6(
-            2, driveMotorCANIDs[2], steerMotorCANDIDs[2], steerEncoderCANDIDs[2], steerOffsets[2]);
-
-    SwerveModuleIO brModule =
-        new SwerveModuleIOTalonFXPhoenix6(
-            3, driveMotorCANIDs[3], steerMotorCANDIDs[3], steerEncoderCANDIDs[3], steerOffsets[3]);
-
-    drivetrain =
-        new Drivetrain(
-            new DrivetrainIOGeneric(
-                new GyroIOPigeon2Phoenix6(config.getGyroCANID()),
-                flModule,
-                frModule,
-                blModule,
-                brModule));
-
-    // FIXME: create the hardware-specific subsystem class
-    subsystem = new Subsystem(new SubsystemIO() {});
-
-    if (Constants.getRobot() == Constants.RobotType.ROBOT_DEFAULT) {
-      new Pneumatics(new PneumaticsIORev());
-    }
-
-    if (Constants.getRobot() == Constants.RobotType.ROBOT_SIMBOT) {
-      vision = new Vision(new VisionIO[] {new VisionIO() {}});
-    } else {
-      String[] cameraNames = config.getCameraNames();
-      VisionIO[] visionIOs = new VisionIO[cameraNames.length];
-      AprilTagFieldLayout layout;
-      try {
-        layout = new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
-      } catch (IOException e) {
-        layout = new AprilTagFieldLayout(new ArrayList<>(), 16.4592, 8.2296);
-      }
-      for (int i = 0; i < visionIOs.length; i++) {
-        visionIOs[i] = new VisionIOPhotonVision(cameraNames[i], layout);
-      }
-      vision = new Vision(visionIOs);
-    }
   }
 
   private void createCTRESimSubsystems() {
