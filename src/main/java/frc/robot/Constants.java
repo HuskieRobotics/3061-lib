@@ -29,7 +29,7 @@ public final class Constants {
   public static final boolean TUNING_MODE = true;
   public static final boolean DEMO_MODE = false;
 
-  private static final RobotType ROBOT = RobotType.ROBOT_SIMBOT_CTRE;
+  private static final RobotType ROBOT = RobotType.ROBOT_SIMBOT;
 
   private static final Alert invalidRobotAlert =
       new Alert("Invalid robot selected, using competition robot as default.", AlertType.ERROR);
@@ -38,18 +38,15 @@ public final class Constants {
   public enum RobotType {
     ROBOT_DEFAULT,
     ROBOT_SIMBOT,
-    ROBOT_SIMBOT_CTRE,
     ROBOT_PRACTICE,
     ROBOT_COMPETITION,
-    ROBOT_PRACTICE_BOARD,
-    ROBOT_PRACTICE_NEW
+    ROBOT_PRACTICE_BOARD
   }
 
   // FIXME: update for various robots
   public static RobotType getRobot() {
     if (RobotBase.isReal()) {
-      if (ROBOT == RobotType.ROBOT_SIMBOT
-          || ROBOT == RobotType.ROBOT_SIMBOT_CTRE) { // Invalid robot selected
+      if (ROBOT == RobotType.ROBOT_SIMBOT) { // Invalid robot selected
         invalidRobotAlert.set(true);
         return RobotType.ROBOT_COMPETITION;
       } else {
@@ -63,15 +60,10 @@ public final class Constants {
   // FIXME: update for various robots
   public static Mode getMode() {
     switch (getRobot()) {
-      case ROBOT_DEFAULT:
-      case ROBOT_PRACTICE:
-      case ROBOT_PRACTICE_NEW:
-      case ROBOT_PRACTICE_BOARD:
-      case ROBOT_COMPETITION:
+      case ROBOT_DEFAULT, ROBOT_PRACTICE, ROBOT_PRACTICE_BOARD, ROBOT_COMPETITION:
         return RobotBase.isReal() ? Mode.REAL : Mode.REPLAY;
 
       case ROBOT_SIMBOT:
-      case ROBOT_SIMBOT_CTRE:
         return Mode.SIM;
 
       default:
