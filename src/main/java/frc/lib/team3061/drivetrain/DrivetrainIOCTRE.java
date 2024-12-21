@@ -365,10 +365,9 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
       this.steerPositionQueues.get(i).offer(state.ModuleStates[i].angle.getDegrees());
     }
 
-    // FIXME: update when CTRE adds gyro yaw to SwerveDriveState; for now, use the pose
     this.gyroYawQueue.offer(state.RawHeading.getDegrees());
 
-    this.timestampQueue.offer(fpgaTimestamp);
+    this.timestampQueue.offer(state.Timestamp);
 
     this.odometryLock.unlock();
   }
