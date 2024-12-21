@@ -59,6 +59,7 @@ public class RobotOdometry {
 
   public Pose2d updateWithTime(
       double currentTimeSeconds, Rotation2d gyroAngle, SwerveModulePosition[] modulePositions) {
+    Logger.recordOutput("RobotOdometry/updateTime", currentTimeSeconds);
     return this.estimator.updateWithTime(currentTimeSeconds, gyroAngle, modulePositions);
   }
 
@@ -69,6 +70,8 @@ public class RobotOdometry {
       Matrix<N3, N1> visionMeasurementStdDevs) {
 
     double adjustedTimestamp = timestampSeconds + latencyAdjustmentSeconds;
+    Logger.recordOutput("RobotOdometry/visionTime", adjustedTimestamp);
+
     if (INCLUDE_VISION_POSE_ESTIMATES) {
       this.estimator.addVisionMeasurement(
           visionRobotPoseMeters, adjustedTimestamp, visionMeasurementStdDevs);
@@ -86,6 +89,7 @@ public class RobotOdometry {
       if (!sample.isEmpty()) {
         Pose2d pastPose = sample.get();
         Transform2d diff = pastPose.minus(visionRobotPoseMeters);
+        Logger.recordOutput("RobotOdometry/pastPose", pastPose);
         Logger.recordOutput("RobotOdometry/visionPoseDiff", diff);
       }
     }
