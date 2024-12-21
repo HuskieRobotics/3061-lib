@@ -30,6 +30,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Force;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
@@ -669,7 +670,8 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   }
 
   @Override
-  public void setChassisSpeeds(ChassisSpeeds speeds, boolean isOpenLoop) {
+  public void applyRobotSpeeds(
+      ChassisSpeeds speeds, Force[] forcesX, Force[] forcesY, boolean isOpenLoop) {
     this.targetChassisSpeeds.omegaRadiansPerSecond = speeds.omegaRadiansPerSecond;
     this.targetChassisSpeeds.vxMetersPerSecond = speeds.vxMetersPerSecond;
     this.targetChassisSpeeds.vyMetersPerSecond = speeds.vyMetersPerSecond;
@@ -680,6 +682,8 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
               .withDriveRequestType(SwerveModule.DriveRequestType.OpenLoopVoltage)
               .withSteerRequestType(SwerveModule.SteerRequestType.MotionMagicExpo)
               .withSpeeds(speeds)
+              .withWheelForceFeedforwardsX(forcesX)
+              .withWheelForceFeedforwardsY(forcesY)
               .withCenterOfRotation(this.centerOfRotation));
     } else {
       this.setControl(
@@ -687,6 +691,8 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
               .withDriveRequestType(SwerveModule.DriveRequestType.Velocity)
               .withSteerRequestType(SwerveModule.SteerRequestType.MotionMagicExpo)
               .withSpeeds(speeds)
+              .withWheelForceFeedforwardsX(forcesX)
+              .withWheelForceFeedforwardsY(forcesY)
               .withCenterOfRotation(this.centerOfRotation));
     }
   }

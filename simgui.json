@@ -16,6 +16,7 @@
   },
   "NTProvider": {
     "types": {
+      "/AdvantageKit/RealOutputs/Alerts": "Alerts",
       "/FMSInfo": "FMSInfo",
       "/Shuffleboard/MAIN/SendableChooser[0]": "String Chooser",
       "/SmartDashboard/Alerts": "Alerts",

@@ -9,6 +9,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.units.measure.Force;
 import frc.lib.team3061.gyro.GyroIOInputsAutoLogged;
 import java.util.Optional;
 import org.littletonrobotics.junction.AutoLog;
@@ -116,7 +117,8 @@ public interface DrivetrainIO {
   public default void driveRobotRelative(
       double xVelocity, double yVelocity, double rotationalVelocity, boolean isOpenLoop) {}
 
-  public default void setChassisSpeeds(ChassisSpeeds speeds, boolean isOpenLoop) {}
+  public default void applyRobotSpeeds(
+      ChassisSpeeds speeds, Force[] forcesX, Force[] forcesY, boolean isOpenLoop) {}
 
   /**
    * Sets the robot's center of rotation. The origin is at the center of the robot. The positive x

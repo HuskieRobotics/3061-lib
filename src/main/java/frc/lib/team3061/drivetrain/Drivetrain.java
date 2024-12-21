@@ -11,6 +11,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.util.DriveFeedforwards;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -173,7 +174,8 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
         // pose)
         this::getRobotRelativeSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
         (speeds, feedforwards) ->
-            driveRobotRelative(speeds), // Method that will drive the robot given ROBOT RELATIVE
+            applyRobotSpeeds(
+                speeds, feedforwards), // Method that will drive the robot given ROBOT RELATIVE
         // ChassisSpeeds
         new PPHolonomicDriveController( // HolonomicPathFollowerConfig, this should likely live in
             // your Constants class
@@ -203,12 +205,12 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
     return this.inputs.drivetrain.measuredChassisSpeeds;
   }
 
-  public void driveRobotRelative(ChassisSpeeds chassisSpeeds) {
-    this.drive(
-        chassisSpeeds.vxMetersPerSecond,
-        chassisSpeeds.vyMetersPerSecond,
-        chassisSpeeds.omegaRadiansPerSecond,
-        false,
+  public void applyRobotSpeeds(ChassisSpeeds chassisSpeeds, DriveFeedforwards feedforwards) {
+
+    this.io.applyRobotSpeeds(
+        chassisSpeeds,
+        feedforwards.robotRelativeForcesX(),
+        feedforwards.robotRelativeForcesY(),
         false);
   }
 
