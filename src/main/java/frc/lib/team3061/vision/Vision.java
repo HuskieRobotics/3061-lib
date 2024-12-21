@@ -2,6 +2,7 @@ package frc.lib.team3061.vision;
 
 import static frc.lib.team3061.vision.VisionConstants.*;
 
+import com.ctre.phoenix6.Utils;
 import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.Matrix;
@@ -183,7 +184,10 @@ public class Vision extends SubsystemBase {
             Math.min(ios[i].estimatedCameraPoseTimestamp, Logger.getRealTimestamp() / 1e6);
         Matrix<N3, N1> stdDev = getStandardDeviations(i, estimatedRobotPose2d, ios[i].ambiguity);
         odometry.addVisionMeasurement(
-            estimatedRobotPose2d, timeStamp, latencyAdjustmentSeconds.get(), stdDev);
+            estimatedRobotPose2d,
+            Utils.fpgaToCurrentTime(timeStamp),
+            latencyAdjustmentSeconds.get(),
+            stdDev);
         isVisionUpdating = true;
         this.updatePoseCount[i]++;
         Logger.recordOutput(SUBSYSTEM_NAME + "/" + i + "/UpdatePoseCount", this.updatePoseCount[i]);
