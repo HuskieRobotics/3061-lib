@@ -32,6 +32,9 @@
   "spotlessGradle.format.enable": true,
   "spotlessGradle.diagnostics.enable": false,
   "java.import.gradle.annotationProcessing.enabled": false,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.spotlessGradle": "explicit"
+  },
   "editor.defaultFormatter": "richardwillis.vscode-spotless-gradle",
   "[json]": {
     "editor.defaultFormatter": "richardwillis.vscode-spotless-gradle"
