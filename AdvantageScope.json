@@ -4,7 +4,7 @@
       "x": 214,
       "y": 38,
       "width": 1265,
-      "height": 944,
+      "height": 867,
       "state": {
         "sidebar": {
           "width": 300,
@@ -31,18 +31,24 @@
             "/PowerDistribution",
             "/RealOutputs/RobotOdometry/pastPose",
             "/RealOutputs/RobotOdometry/pastPose/translation",
-            "/Vision"
+            "/Vision",
+            "/RealOutputs/PathFollowing/currentPose",
+            "/RealOutputs/PathFollowing/currentPose/translation",
+            "/RealOutputs/PathFollowing/currentPose/rotation",
+            "/RealOutputs/PathFollowing/targetPose",
+            "/RealOutputs/PathFollowing/targetPose/translation",
+            "/RealOutputs/PathFollowing/targetPose/rotation"
           ]
         },
         "tabs": {
-          "selected": 7,
+          "selected": 14,
           "tabs": [
             {
               "type": 0,
               "title": "",
               "controller": null,
               "controllerUUID": "310mmnrbvfb1lv6k4swzfthvq3e5d83z",
-              "renderer": "#/",
+              "renderer": "#/tab-reference/statistics",
               "controlsHeight": 0
             },
             {
@@ -283,36 +289,6 @@
                       "color": "#2b66a2",
                       "size": "normal"
                     }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "/RealOutputs/RobotOdometry/currentTime",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#e48b32",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "/RealOutputs/RobotOdometry/convertTime",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#c0b487",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "/RealOutputs/RobotOdometry/systemTime",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#858584",
-                      "size": "normal"
-                    }
                   }
                 ],
                 "rightSources": [
@@ -333,16 +309,6 @@
                     "visible": true,
                     "options": {
                       "color": "#af2437",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "/RealOutputs/RobotOdometry/testTime",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#80588e",
                       "size": "normal"
                     }
                   }
@@ -390,35 +356,57 @@
               "controlsHeight": 200
             },
             {
-              "type": 6,
-              "title": "Statistics",
+              "type": 1,
+              "title": "Line Graph",
               "controller": {
-                "sources": [
+                "leftSources": [
                   {
-                    "type": "reference",
-                    "logKey": "/RealOutputs/Drivetrain/DefaultPose/rotation/value",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {}
-                  },
-                  {
-                    "type": "absoluteError",
-                    "logKey": "/RealOutputs/RobotOdometry/visionPoseDiff/rotation/value",
+                    "type": "stepped",
+                    "logKey": "/RealOutputs/RobotOdometry/visionPoseDiff/translation/y",
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#2b66a2"
+                      "color": "#2b66a2",
+                      "size": "normal"
                     }
                   },
                   {
-                    "type": "reference",
-                    "logKey": "/RealOutputs/Drivetrain/DefaultPose/translation/x",
+                    "type": "stepped",
+                    "logKey": "/RealOutputs/RobotOdometry/visionPoseDiff/translation/x",
                     "logType": "Number",
                     "visible": true,
-                    "options": {}
-                  },
+                    "options": {
+                      "color": "#e5b31b",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "rightSources": [],
+                "discreteSources": [],
+                "leftLockedRange": null,
+                "rightLockedRange": null,
+                "leftUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "rightUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "leftFilter": 0,
+                "rightFilter": 0
+              },
+              "controllerUUID": "32i9sb5mf5i4csf835grdr0q8ep6lazk",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
+              "type": 6,
+              "title": "vision latency tuning",
+              "controller": {
+                "sources": [
                   {
-                    "type": "absoluteError",
+                    "type": "independent",
                     "logKey": "/RealOutputs/RobotOdometry/visionPoseDiff/translation/x",
                     "logType": "Number",
                     "visible": true,
@@ -427,15 +415,80 @@
                     }
                   },
                   {
+                    "type": "independent",
+                    "logKey": "/RealOutputs/RobotOdometry/visionPoseDiff/translation/y",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#af2437"
+                    }
+                  },
+                  {
+                    "type": "independent",
+                    "logKey": "/RealOutputs/RobotOdometry/visionPoseDiff/rotation/value",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#2b66a2"
+                    }
+                  }
+                ],
+                "timeRange": "enabled",
+                "rangeMin": 0,
+                "rangeMax": 0.2,
+                "stepSize": 0.01
+              },
+              "controllerUUID": "ndxnauwlwc655k8fpxtdqroeynhtm6ts",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
+              "type": 6,
+              "title": "auto path tuning",
+              "controller": {
+                "sources": [
+                  {
                     "type": "reference",
-                    "logKey": "/RealOutputs/Drivetrain/DefaultPose/translation/y",
+                    "logKey": "/RealOutputs/PathFollowing/currentPose/translation/x",
                     "logType": "Number",
                     "visible": true,
                     "options": {}
                   },
                   {
                     "type": "absoluteError",
-                    "logKey": "/RealOutputs/RobotOdometry/visionPoseDiff/translation/y",
+                    "logKey": "/RealOutputs/PathFollowing/targetPose/translation/x",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#2b66a2"
+                    }
+                  },
+                  {
+                    "type": "reference",
+                    "logKey": "/RealOutputs/PathFollowing/currentPose/translation/y",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {}
+                  },
+                  {
+                    "type": "absoluteError",
+                    "logKey": "/RealOutputs/PathFollowing/targetPose/translation/y",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#e5b31b"
+                    }
+                  },
+                  {
+                    "type": "reference",
+                    "logKey": "/RealOutputs/PathFollowing/currentPose/rotation/value",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {}
+                  },
+                  {
+                    "type": "absoluteError",
+                    "logKey": "/RealOutputs/PathFollowing/targetPose/rotation/value",
                     "logType": "Number",
                     "visible": true,
                     "options": {
@@ -443,12 +496,12 @@
                     }
                   }
                 ],
-                "timeRange": "enabled",
+                "timeRange": "auto",
                 "rangeMin": 0,
-                "rangeMax": 10,
-                "stepSize": 1
+                "rangeMax": 0.2,
+                "stepSize": 0.01
               },
-              "controllerUUID": "ndxnauwlwc655k8fpxtdqroeynhtm6ts",
+              "controllerUUID": "gqtxvam6jkyp2633w6vijt6kgestxbyk",
               "renderer": null,
               "controlsHeight": 200
             },
@@ -872,8 +925,8 @@
                 ],
                 "timeRange": "enabled",
                 "rangeMin": 0,
-                "rangeMax": 10,
-                "stepSize": 1
+                "rangeMax": 20,
+                "stepSize": 0.1
               },
               "controllerUUID": "yqbbacv88i356600ip0ruy3qo9rntz3m",
               "renderer": null,
