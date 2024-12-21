@@ -9,6 +9,8 @@ import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.hal.AllianceStationID;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Threads;
@@ -17,8 +19,6 @@ import edu.wpi.first.wpilibj.simulation.DriverStationSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.lib.team3061.leds.LEDs;
-import frc.lib.team6328.util.Alert;
-import frc.lib.team6328.util.Alert.AlertType;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -45,11 +45,11 @@ public class Robot extends LoggedRobot {
   private final Timer disabledTimer = new Timer();
 
   private final Alert logReceiverQueueAlert =
-      new Alert("Logging queue exceeded capacity, data will NOT be logged.", AlertType.ERROR);
+      new Alert("Logging queue exceeded capacity, data will NOT be logged.", AlertType.kError);
   private final Alert lowBatteryAlert =
       new Alert(
           "Battery voltage is very low, consider turning off the robot or replacing the battery.",
-          AlertType.WARNING);
+          AlertType.kWarning);
 
   /** Create a new Robot. */
   public Robot() {

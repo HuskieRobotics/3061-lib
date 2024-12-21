@@ -11,13 +11,13 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.util.RobotOdometry;
-import frc.lib.team6328.util.Alert;
-import frc.lib.team6328.util.Alert.AlertType;
 import frc.lib.team6328.util.LoggedTunableNumber;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -45,7 +45,7 @@ public class Vision extends SubsystemBase {
   private Alert noAprilTagLayoutAlert =
       new Alert(
           "No AprilTag layout file found. Update APRILTAG_FIELD_LAYOUT_PATH in VisionConstants.java",
-          AlertType.WARNING);
+          AlertType.kWarning);
 
   private boolean isEnabled = true;
   private boolean isVisionUpdating = false;
