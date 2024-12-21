@@ -5,6 +5,7 @@ import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.revrobotics.spark.SparkMax;
+import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.motorcontrol.PWMMotorController;
@@ -13,7 +14,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.lib.team3015.subsystem.selfcheck.*;
-import frc.lib.team6328.util.Alert;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -141,7 +141,7 @@ public class FaultReporter {
       Alert alert =
           new Alert(
               subsystemName + ": " + fault.description,
-              fault.isWarning ? Alert.AlertType.WARNING : Alert.AlertType.ERROR);
+              fault.isWarning ? Alert.AlertType.kWarning : Alert.AlertType.kError);
       alert.set(true);
       subsystemAlerts.add(alert);
     }

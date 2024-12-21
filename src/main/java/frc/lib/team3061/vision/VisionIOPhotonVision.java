@@ -3,8 +3,8 @@ package frc.lib.team3061.vision;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.networktables.NetworkTablesJNI;
-import frc.lib.team6328.util.Alert;
-import frc.lib.team6328.util.Alert.AlertType;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import java.util.Optional;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
@@ -22,7 +22,7 @@ public class VisionIOPhotonVision implements VisionIO {
   private static final int EXPIRATION_COUNT = 5;
 
   private Alert noCameraConnectedAlert =
-      new Alert("specified camera not connected", AlertType.WARNING);
+      new Alert("specified camera not connected", AlertType.kWarning);
   private final PhotonCamera camera;
   private final PhotonPoseEstimator photonEstimator;
   private final boolean[] tagsSeen;

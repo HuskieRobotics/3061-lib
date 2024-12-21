@@ -13,11 +13,11 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.swerve.Conversions;
-import frc.lib.team6328.util.Alert;
-import frc.lib.team6328.util.Alert.AlertType;
 import frc.lib.team6328.util.LoggedTunableNumber;
 
 /** TalonFX implementation of the generic SubsystemIO */
@@ -29,7 +29,7 @@ public class SubsystemIOTalonFX implements SubsystemIO {
   private PositionVoltage positionRequest;
 
   private Alert configAlert =
-      new Alert("Failed to apply configuration for subsystem.", AlertType.ERROR);
+      new Alert("Failed to apply configuration for subsystem.", AlertType.kError);
 
   private final LoggedTunableNumber kP = new LoggedTunableNumber("Subsystem/kP", POSITION_PID_P);
   private final LoggedTunableNumber kI = new LoggedTunableNumber("Subsystem/kI", POSITION_PID_I);

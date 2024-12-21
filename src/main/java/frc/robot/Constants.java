@@ -8,9 +8,9 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.RobotBase;
-import frc.lib.team6328.util.Alert;
-import frc.lib.team6328.util.Alert.AlertType;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -32,7 +32,7 @@ public final class Constants {
   private static final RobotType ROBOT = RobotType.ROBOT_SIMBOT;
 
   private static final Alert invalidRobotAlert =
-      new Alert("Invalid robot selected, using competition robot as default.", AlertType.ERROR);
+      new Alert("Invalid robot selected, using competition robot as default.", AlertType.kError);
 
   // FIXME: update for various robots
   public enum RobotType {

@@ -23,6 +23,8 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
@@ -38,8 +40,6 @@ import frc.lib.team3061.leds.LEDs;
 import frc.lib.team3061.leds.LEDs.States;
 import frc.lib.team3061.util.CustomPoseEstimator;
 import frc.lib.team3061.util.RobotOdometry;
-import frc.lib.team6328.util.Alert;
-import frc.lib.team6328.util.Alert.AlertType;
 import frc.lib.team6328.util.FieldConstants;
 import frc.lib.team6328.util.LoggedTunableNumber;
 import frc.robot.Constants;
@@ -104,7 +104,9 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
   private double maxVelocity;
 
   private Alert noPoseAlert =
-      new Alert("Attempted to reset pose from vision, but no pose was found.", AlertType.WARNING);
+      new Alert("Attempted to reset pose from vision, but no pose was found.", AlertType.kWarning);
+  private Alert pathFileMissingAlert =
+      new Alert("Could not find the specified path file.", AlertType.kError);
   private static final String SYSTEM_CHECK_PREFIX = "[System Check] Swerve module ";
   private static final String IS_LITERAL = " is: ";
 
@@ -877,8 +879,8 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
         Logger.recordOutput(SUBSYSTEM_NAME + "/AutoDistanceDiff", distance);
       }
     } catch (Exception e) {
-      // FIXME: generate an alert about the missing path file;
-      System.out.println("Path file not found: Start Point");
+      pathFileMissingAlert.setText("Could not find the specified path file: " + autoName);
+      pathFileMissingAlert.set(true);
     }
   }
 

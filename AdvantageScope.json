@@ -21,17 +21,14 @@
             "/RealOutputs/Odometry",
             "/RealOutputs/PathFollowing",
             "/RealOutputs/Vision/0",
-            "/Drivetrain",
             "/RealOutputs/SystemStatus/Drivetrain",
             "/RealOutputs/SystemStatus",
             "/RealOutputs/Drivetrain/DefaultPose/rotation",
             "/RealOutputs/Drivetrain/DefaultPose/translation",
             "/Tuning",
             "/Vision/0",
-            "/PowerDistribution",
             "/RealOutputs/RobotOdometry/pastPose",
             "/RealOutputs/RobotOdometry/pastPose/translation",
-            "/Vision",
             "/RealOutputs/PathFollowing/currentPose",
             "/RealOutputs/PathFollowing/currentPose/translation",
             "/RealOutputs/PathFollowing/currentPose/rotation",
@@ -41,14 +38,14 @@
           ]
         },
         "tabs": {
-          "selected": 14,
+          "selected": 16,
           "tabs": [
             {
               "type": 0,
               "title": "",
               "controller": null,
               "controllerUUID": "310mmnrbvfb1lv6k4swzfthvq3e5d83z",
-              "renderer": "#/tab-reference/statistics",
+              "renderer": "#/",
               "controlsHeight": 0
             },
             {
@@ -263,7 +260,7 @@
                 "cameraIndex": -1,
                 "orbitFov": 50,
                 "cameraPosition": [
-                  -0.3955284141601516,
+                  -0.3955284141601456,
                   35.518052935300666,
                   -18.23292550365056
                 ],
@@ -929,6 +926,38 @@
                 "stepSize": 0.1
               },
               "controllerUUID": "yqbbacv88i356600ip0ruy3qo9rntz3m",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
+              "type": 1,
+              "title": "alerts",
+              "controller": {
+                "leftSources": [],
+                "rightSources": [],
+                "discreteSources": [
+                  {
+                    "type": "alerts",
+                    "logKey": "/RealOutputs/Alerts",
+                    "logType": "Alerts",
+                    "visible": true,
+                    "options": {}
+                  }
+                ],
+                "leftLockedRange": null,
+                "rightLockedRange": null,
+                "leftUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "rightUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "leftFilter": 0,
+                "rightFilter": 0
+              },
+              "controllerUUID": "941haqffhdjzmgvh6vgesnwzb3ujd5vg",
               "renderer": null,
               "controlsHeight": 200
             },
