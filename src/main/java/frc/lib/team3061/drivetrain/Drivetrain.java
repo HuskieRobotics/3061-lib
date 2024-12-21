@@ -198,10 +198,7 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
   }
 
   public ChassisSpeeds getRobotRelativeSpeeds() {
-    return new ChassisSpeeds(
-        this.inputs.drivetrain.measuredVXMetersPerSec,
-        this.inputs.drivetrain.measuredVYMetersPerSec,
-        this.inputs.drivetrain.measuredAngularVelocityRadPerSec);
+    return this.inputs.drivetrain.measuredChassisSpeeds;
   }
 
   public void driveRobotRelative(ChassisSpeeds chassisSpeeds) {
@@ -493,9 +490,9 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
     if (Constants.TUNING_MODE) {
       this.prevSpeeds =
           new ChassisSpeeds(
-              this.inputs.drivetrain.measuredVXMetersPerSec,
-              this.inputs.drivetrain.measuredVYMetersPerSec,
-              this.inputs.drivetrain.measuredAngularVelocityRadPerSec);
+              this.inputs.drivetrain.measuredChassisSpeeds.vxMetersPerSecond,
+              this.inputs.drivetrain.measuredChassisSpeeds.vyMetersPerSecond,
+              this.inputs.drivetrain.measuredChassisSpeeds.omegaRadiansPerSecond);
       for (int i = 0; i < this.inputs.swerve.length; i++) {
         this.prevSteerVelocitiesRevPerMin[i] = this.inputs.swerve[i].steerVelocityRevPerMin;
       }
@@ -709,33 +706,6 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
   }
 
   /**
-   * Returns the measured velocity of the drivetrain in the x direction (units of m/s)
-   *
-   * @return the measured velocity of the drivetrain in the x direction (units of m/s)
-   */
-  public double getVelocityX() {
-    return this.inputs.drivetrain.measuredVXMetersPerSec;
-  }
-
-  /**
-   * Returns the measured velocity of the drivetrain in the y direction (units of m/s)
-   *
-   * @return the measured velocity of the drivetrain in the y direction (units of m/s)
-   */
-  public double getVelocityY() {
-    return this.inputs.drivetrain.measuredVYMetersPerSec;
-  }
-
-  /**
-   * Returns the measured rotational velocity of the drivetrain (units of rad/s)
-   *
-   * @return the measured rotational velocity of the drivetrain (units of rad/s)
-   */
-  public double getVelocityT() {
-    return this.inputs.drivetrain.measuredAngularVelocityRadPerSec;
-  }
-
-  /**
    * Returns the average current of the swerve module drive motors in amps.
    *
    * @return the average current of the swerve module drive motors in amps
@@ -787,8 +757,8 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
    */
   public double getDriveCharacterizationVelocity() {
     return Math.sqrt(
-        Math.pow(this.inputs.drivetrain.measuredVXMetersPerSec, 2)
-            + Math.pow(this.inputs.drivetrain.measuredVYMetersPerSec, 2));
+        Math.pow(this.inputs.drivetrain.measuredChassisSpeeds.vxMetersPerSecond, 2)
+            + Math.pow(this.inputs.drivetrain.measuredChassisSpeeds.vyMetersPerSecond, 2));
   }
 
   /**
@@ -799,11 +769,11 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
   public double getDriveCharacterizationAcceleration() {
     return Math.sqrt(
             Math.pow(
-                    (this.inputs.drivetrain.measuredVXMetersPerSec
+                    (this.inputs.drivetrain.measuredChassisSpeeds.vxMetersPerSecond
                         - this.prevSpeeds.vxMetersPerSecond),
                     2)
                 + Math.pow(
-                    (this.inputs.drivetrain.measuredVYMetersPerSec
+                    (this.inputs.drivetrain.measuredChassisSpeeds.vyMetersPerSecond
                         - this.prevSpeeds.vyMetersPerSecond),
                     2))
         / LOOP_PERIOD_SECS;
@@ -1137,8 +1107,9 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
     } else if (!DriverStation.isEnabled()) {
       boolean stillMoving = false;
       double velocityLimit = RobotConfig.getInstance().getRobotMaxCoastVelocity();
-      if (Math.abs(this.inputs.drivetrain.measuredVXMetersPerSec) > velocityLimit
-          || Math.abs(this.inputs.drivetrain.measuredVYMetersPerSec) > velocityLimit) {
+      if (Math.abs(this.inputs.drivetrain.measuredChassisSpeeds.vxMetersPerSecond) > velocityLimit
+          || Math.abs(this.inputs.drivetrain.measuredChassisSpeeds.vyMetersPerSecond)
+              > velocityLimit) {
         stillMoving = true;
         brakeModeTimer.restart();
       }
@@ -1181,7 +1152,9 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
     return this.getPose()
         .exp(
             new Twist2d(
-                this.getVelocityX() * secondsInFuture, this.getVelocityY() * secondsInFuture, 0.0));
+                this.getRobotRelativeSpeeds().vxMetersPerSecond * secondsInFuture,
+                this.getRobotRelativeSpeeds().vyMetersPerSecond * secondsInFuture,
+                0.0));
   }
 
   public Pose2d getCustomEstimatedPose() {

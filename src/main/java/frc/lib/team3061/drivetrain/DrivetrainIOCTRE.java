@@ -386,17 +386,12 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     inputs.drivetrain.swerveMeasuredStates = this.getState().ModuleStates;
     inputs.drivetrain.swerveReferenceStates = this.getState().ModuleTargets;
 
-    inputs.drivetrain.targetVXMetersPerSec = this.targetChassisSpeeds.vxMetersPerSecond;
-    inputs.drivetrain.targetVYMetersPerSec = this.targetChassisSpeeds.vyMetersPerSecond;
-    inputs.drivetrain.targetAngularVelocityRadPerSec =
-        this.targetChassisSpeeds.omegaRadiansPerSecond;
-
-    ChassisSpeeds measuredChassisSpeeds =
-        getKinematics().toChassisSpeeds(this.getState().ModuleStates);
-    inputs.drivetrain.measuredVXMetersPerSec = measuredChassisSpeeds.vxMetersPerSecond;
-    inputs.drivetrain.measuredVYMetersPerSec = measuredChassisSpeeds.vyMetersPerSecond;
-    inputs.drivetrain.measuredAngularVelocityRadPerSec =
-        measuredChassisSpeeds.omegaRadiansPerSecond;
+    inputs.drivetrain.referenceChassisSpeeds =
+        new ChassisSpeeds(
+            this.targetChassisSpeeds.vxMetersPerSecond,
+            this.targetChassisSpeeds.vyMetersPerSecond,
+            this.targetChassisSpeeds.omegaRadiansPerSecond);
+    inputs.drivetrain.measuredChassisSpeeds = this.getState().Speeds;
 
     inputs.drivetrain.averageDriveCurrent = this.getAverageDriveCurrent(inputs);
 

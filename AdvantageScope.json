@@ -35,7 +35,7 @@
           ]
         },
         "tabs": {
-          "selected": 2,
+          "selected": 7,
           "tabs": [
             {
               "type": 0,
@@ -257,7 +257,7 @@
                 "cameraIndex": -1,
                 "orbitFov": 50,
                 "cameraPosition": [
-                  -0.3955284141601576,
+                  -0.3955284141601516,
                   35.518052935300666,
                   -18.23292550365056
                 ],
@@ -484,6 +484,24 @@
                     "visible": true,
                     "options": {
                       "units": "radians"
+                    }
+                  },
+                  {
+                    "type": "chassisSpeeds",
+                    "logKey": "/Drivetrain/MeasuredChassisSpeeds",
+                    "logType": "ChassisSpeeds",
+                    "visible": true,
+                    "options": {
+                      "color": "#ff0000"
+                    }
+                  },
+                  {
+                    "type": "chassisSpeeds",
+                    "logKey": "/Drivetrain/ReferenceChassisSpeeds",
+                    "logType": "ChassisSpeeds",
+                    "visible": true,
+                    "options": {
+                      "color": "#0000ff"
                     }
                   }
                 ],

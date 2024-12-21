@@ -47,13 +47,8 @@ public interface DrivetrainIO {
   /** Contains all of the input data received from hardware. */
   @AutoLog
   public static class DrivetrainIOInputs {
-    double targetVXMetersPerSec = 0.0;
-    double targetVYMetersPerSec = 0.0;
-    double targetAngularVelocityRadPerSec = 0.0;
-
-    double measuredVXMetersPerSec = 0.0;
-    double measuredVYMetersPerSec = 0.0;
-    double measuredAngularVelocityRadPerSec = 0.0;
+    ChassisSpeeds referenceChassisSpeeds = new ChassisSpeeds();
+    ChassisSpeeds measuredChassisSpeeds = new ChassisSpeeds();
 
     SwerveModuleState[] swerveReferenceStates = {
       new SwerveModuleState(),
