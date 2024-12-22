@@ -42,7 +42,11 @@
   "[java]": {
     "editor.defaultFormatter": "richardwillis.vscode-spotless-gradle"
   },
-  "cSpell.enabledFileTypes": {"*":true,"json":false,"gradle":false},
+  "cSpell.enabledFileTypes": {
+    "*": true,
+    "json": false,
+    "gradle": false
+  },
   "cSpell.words": [
     "algs",
     "APRILTAG",

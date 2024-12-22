@@ -4,8 +4,8 @@
 
 package frc.robot;
 
-import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.events.EventTrigger;
 import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -278,18 +278,10 @@ public class RobotContainer {
 
   /** Use this method to define your commands for autonomous mode. */
   private void configureAutoCommands() {
-    // Waypoints
-    NamedCommands.registerCommand("command1", Commands.print("passed marker 1"));
-    NamedCommands.registerCommand("command2", Commands.print("passed marker 2"));
-    NamedCommands.registerCommand(
-        "enableXStance", Commands.runOnce(drivetrain::enableXstance, drivetrain));
-    NamedCommands.registerCommand(
-        "disableXStance", Commands.runOnce(drivetrain::disableXstance, drivetrain));
-    NamedCommands.registerCommand("wait5Seconds", Commands.waitSeconds(5.0));
-    NamedCommands.registerCommand(
-        "EnableRotationOverride", Commands.runOnce(drivetrain::enableRotationOverride));
-    NamedCommands.registerCommand(
-        "DisableRotationOverride", Commands.runOnce(drivetrain::disableRotationOverride));
+    // Event Markers
+    new EventTrigger("Marker").onTrue(Commands.print("reached event marker"));
+    new EventTrigger("ZoneMarker").onTrue(Commands.print("entered zone"));
+    new EventTrigger("ZoneMarker").onFalse(Commands.print("left zone"));
 
     // build auto path commands
 
