@@ -42,6 +42,7 @@
   "[java]": {
     "editor.defaultFormatter": "richardwillis.vscode-spotless-gradle"
   },
+  "cSpell.enabledFileTypes": {"*":true,"json":false,"gradle":false},
   "cSpell.words": [
     "algs",
     "APRILTAG",
@@ -81,6 +82,8 @@
     "PIDF",
     "pseudoinverse",
     "rapidreact",
+    "reproj",
+    "reprojection",
     "REVPHJNI",
     "rezero",
     "roboRIO",
@@ -94,6 +97,7 @@
     "teleoperated",
     "TRACKWIDTH",
     "tunables",
+    "uncomitted",
     "Vandermonde",
     "VBAT",
     "wpilib",
