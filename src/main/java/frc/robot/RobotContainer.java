@@ -320,19 +320,16 @@ public class RobotContainer {
     autoChooser.addOption("Distance Test Med", createTuningAutoPath("DistanceTestMed", true));
     autoChooser.addOption("Distance Test Fast", createTuningAutoPath("DistanceTestFast", true));
 
-    autoChooser.addOption("Rotation Test Slow", createTuningAutoPath("RotationTestSlow", false));
-    autoChooser.addOption("Rotation Test Fast", createTuningAutoPath("RotationTestFast", false));
-
-    autoChooser.addOption("Oval Test Slow", createTuningAutoPath("OvalTestSlow", false));
-    autoChooser.addOption("Oval Test Fast", createTuningAutoPath("OvalTestFast", false));
-
     /************ Auto Tuning ************
      *
      * useful for tuning the autonomous PID controllers
      *
      */
-    Command tuningCommand = new PathPlannerAuto("Tuning");
-    autoChooser.addOption("Auto Tuning", tuningCommand);
+    autoChooser.addOption("Rotation Test Slow", createTuningAutoPath("RotationTestSlow", false));
+    autoChooser.addOption("Rotation Test Fast", createTuningAutoPath("RotationTestFast", false));
+
+    autoChooser.addOption("Oval Test Slow", createTuningAutoPath("OvalTestSlow", false));
+    autoChooser.addOption("Oval Test Fast", createTuningAutoPath("OvalTestFast", false));
 
     /************ Drive Velocity Tuning ************
      *
