@@ -92,15 +92,19 @@ public class FaultReporter {
   private void setupCallbacks() {
     CommandScheduler.getInstance()
         .schedule(
-            Commands.repeatingSequence(
-                    Commands.runOnce(this::checkForFaults), Commands.waitSeconds(0.25))
+            Commands.sequence(
+                    Commands.waitSeconds(30.0),
+                    Commands.repeatingSequence(
+                        Commands.runOnce(this::checkForFaults), Commands.waitSeconds(0.25)))
                 .ignoringDisable(true)
                 .withName("check for faults"));
 
     CommandScheduler.getInstance()
         .schedule(
-            Commands.repeatingSequence(
-                    Commands.runOnce(this::publishStatus), Commands.waitSeconds(1.0))
+            Commands.sequence(
+                    Commands.waitSeconds(30.0),
+                    Commands.repeatingSequence(
+                        Commands.runOnce(this::publishStatus), Commands.waitSeconds(1.0)))
                 .ignoringDisable(true)
                 .withName("publish faults"));
   }
