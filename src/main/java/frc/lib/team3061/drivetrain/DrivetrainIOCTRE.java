@@ -7,13 +7,11 @@ import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
-import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.DeviceEnableValue;
-import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.swerve.SwerveDrivetrain;
 import com.ctre.phoenix6.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.swerve.SwerveModule;
@@ -47,8 +45,8 @@ import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import org.littletonrobotics.junction.Logger;
 
+@java.lang.SuppressWarnings({"java:S1450"})
 public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
 
   static class CustomSlotGains extends Slot0Configs {
@@ -358,8 +356,6 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
 
     this.odometryLock.lock();
 
-    double fpgaTimestamp = Logger.getRealTimestamp() / 1.0e6;
-
     // update and log the swerve modules telemetry
     for (int i = 0; i < 4; i++) {
       this.drivePositionQueues.get(i).offer(state.ModulePositions[i].distanceMeters);
@@ -568,7 +564,10 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
 
   @Override
   public void holdXStance() {
-    this.targetChassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
+    this.targetChassisSpeeds.vxMetersPerSecond = 0.0;
+    this.targetChassisSpeeds.vyMetersPerSecond = 0.0;
+    this.targetChassisSpeeds.omegaRadiansPerSecond = 0.0;
+
     this.setControl(this.brakeRequest);
   }
 
@@ -576,14 +575,12 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   public void driveFieldRelative(
       double xVelocity, double yVelocity, double rotationalVelocity, boolean isOpenLoop) {
 
-    this.targetChassisSpeeds =
-        ChassisSpeeds.discretize(
-            ChassisSpeeds.fromFieldRelativeSpeeds(
-                xVelocity,
-                yVelocity,
-                rotationalVelocity,
-                RobotOdometry.getInstance().getEstimatedPose().getRotation()),
-            Constants.LOOP_PERIOD_SECS);
+    this.targetChassisSpeeds.vxMetersPerSecond = xVelocity;
+    this.targetChassisSpeeds.vyMetersPerSecond = yVelocity;
+    this.targetChassisSpeeds.omegaRadiansPerSecond = rotationalVelocity;
+    this.targetChassisSpeeds.toRobotRelativeSpeeds(
+        RobotOdometry.getInstance().getEstimatedPose().getRotation());
+    this.targetChassisSpeeds.discretize(Constants.LOOP_PERIOD_SECS);
 
     if (isOpenLoop) {
       this.setControl(
@@ -607,14 +604,13 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   @Override
   public void driveFieldRelativeFacingAngle(
       double xVelocity, double yVelocity, Rotation2d targetDirection, boolean isOpenLoop) {
-    this.targetChassisSpeeds =
-        ChassisSpeeds.discretize(
-            ChassisSpeeds.fromFieldRelativeSpeeds(
-                xVelocity,
-                yVelocity,
-                0.0,
-                RobotOdometry.getInstance().getEstimatedPose().getRotation()),
-            Constants.LOOP_PERIOD_SECS);
+
+    this.targetChassisSpeeds.vxMetersPerSecond = xVelocity;
+    this.targetChassisSpeeds.vyMetersPerSecond = yVelocity;
+    this.targetChassisSpeeds.omegaRadiansPerSecond = 0.0;
+    this.targetChassisSpeeds.toRobotRelativeSpeeds(
+        RobotOdometry.getInstance().getEstimatedPose().getRotation());
+    this.targetChassisSpeeds.discretize(Constants.LOOP_PERIOD_SECS);
 
     if (isOpenLoop) {
       this.setControl(
@@ -637,7 +633,9 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
 
   @Override
   public void pointWheelsAt(Rotation2d targetDirection) {
-    this.targetChassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
+    this.targetChassisSpeeds.vxMetersPerSecond = 0.0;
+    this.targetChassisSpeeds.vyMetersPerSecond = 0.0;
+    this.targetChassisSpeeds.omegaRadiansPerSecond = 0.0;
 
     this.setControl(this.pointRequest.withModuleDirection(targetDirection));
   }
@@ -645,10 +643,11 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   @Override
   public void driveRobotRelative(
       double xVelocity, double yVelocity, double rotationalVelocity, boolean isOpenLoop) {
-    this.targetChassisSpeeds =
-        ChassisSpeeds.discretize(
-            new ChassisSpeeds(xVelocity, yVelocity, rotationalVelocity),
-            Constants.LOOP_PERIOD_SECS);
+
+    this.targetChassisSpeeds.vxMetersPerSecond = xVelocity;
+    this.targetChassisSpeeds.vyMetersPerSecond = yVelocity;
+    this.targetChassisSpeeds.omegaRadiansPerSecond = rotationalVelocity;
+    this.targetChassisSpeeds.discretize(Constants.LOOP_PERIOD_SECS);
 
     if (isOpenLoop) {
       this.setControl(
@@ -672,9 +671,9 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   @Override
   public void applyRobotSpeeds(
       ChassisSpeeds speeds, Force[] forcesX, Force[] forcesY, boolean isOpenLoop) {
-    this.targetChassisSpeeds.omegaRadiansPerSecond = speeds.omegaRadiansPerSecond;
     this.targetChassisSpeeds.vxMetersPerSecond = speeds.vxMetersPerSecond;
     this.targetChassisSpeeds.vyMetersPerSecond = speeds.vyMetersPerSecond;
+    this.targetChassisSpeeds.omegaRadiansPerSecond = speeds.omegaRadiansPerSecond;
 
     if (isOpenLoop) {
       this.setControl(
@@ -722,18 +721,6 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     }
   }
 
-  @Override
-  public void setBrakeMode(boolean enable) {
-    // FIXME: replace with configNeutralMode method; however, ensure that this doesn't introduce a
-    // long loop time at the start of auto like it did in 2024
-    for (SwerveModule swerveModule : this.getModules()) {
-      MotorOutputConfigs config = new MotorOutputConfigs();
-      swerveModule.getDriveMotor().getConfigurator().refresh(config);
-      config.NeutralMode = enable ? NeutralModeValue.Brake : NeutralModeValue.Coast;
-      swerveModule.getDriveMotor().getConfigurator().apply(config);
-    }
-  }
-
   /**
    * Returns the average current of the swerve module drive motors in amps.
    *
@@ -765,6 +752,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     }
   }
 
+  @SuppressWarnings("resource")
   private void startSimThread() {
     lastSimTime = Utils.getCurrentTimeSeconds();
 
