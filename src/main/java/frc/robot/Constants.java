@@ -25,7 +25,7 @@ import edu.wpi.first.wpilibj.RobotBase;
  */
 public final class Constants {
 
-  // set to true in order to change all Tunable values via Shuffleboard
+  // set to true in order to change all Tunable values via AdvantageScope
   public static final boolean TUNING_MODE = true;
   public static final boolean DEMO_MODE = false;
 
