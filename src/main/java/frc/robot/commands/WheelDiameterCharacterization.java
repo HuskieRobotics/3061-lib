@@ -17,6 +17,7 @@ import frc.lib.team6328.util.LoggedTunableNumber;
 import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 
+@java.lang.SuppressWarnings({"java:S106"})
 public class WheelDiameterCharacterization extends Command {
   private static final LoggedTunableNumber characterizationSpeed =
       new LoggedTunableNumber("WheelDiameterCharacterization/SpeedRadsPerSec", 0.5);

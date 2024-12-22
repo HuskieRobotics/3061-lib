@@ -29,6 +29,8 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
+@java.lang.SuppressWarnings({"java:S1192", "java:S106"})
+
 /**
  * This class models the entire Robot. It extends from LoggedRobot instead of TimedRobot as required
  * to leverage AdvantageKit's logging features.

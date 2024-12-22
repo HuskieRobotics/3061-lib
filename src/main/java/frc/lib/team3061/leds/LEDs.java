@@ -65,7 +65,7 @@ public abstract class LEDs extends SubsystemBase {
                 Color.kGreen)),
     LOW_BATTERY((leds, section) -> leds.solid(section, new Color(255, 20, 0))),
     DISABLED_DEMO_MODE((leds, section) -> leds.updateToPridePattern()),
-    DISABLED((leds, section) -> leds.updateToDisabledPattern(section)),
+    DISABLED(LEDs::updateToDisabledPattern),
     AUTO((leds, section) -> leds.orangePulse(section, PULSE_DURATION)),
     ENDGAME_ALERT((leds, section) -> leds.strobe(section, Color.kYellow, STROBE_SLOW_DURATION)),
     DEFAULT((leds, section) -> leds.solid(section, Color.kBlack));
@@ -93,7 +93,6 @@ public abstract class LEDs extends SubsystemBase {
    * This is handled by specifying the length as half the actual length and mirroring the buffer
    * before updating the LEDs.
    */
-
   protected static final boolean MIRROR_LEDS = true;
   protected static final int ACTUAL_LENGTH = RobotConfig.getInstance().getLEDCount();
   protected static final int LENGTH = MIRROR_LEDS ? ACTUAL_LENGTH / 2 : ACTUAL_LENGTH;
@@ -104,12 +103,24 @@ public abstract class LEDs extends SubsystemBase {
   private static final double STROBE_SLOW_DURATION = 0.2;
   private static final double BREATH_DURATION = 1.0;
   private static final double PULSE_DURATION = 0.5;
+
+  @SuppressWarnings("unused")
   private static final double RAINBOW_CYCLE_LENGTH = 30.0;
+
+  @SuppressWarnings("unused")
   private static final double RAINBOW_DURATION = .25;
+
   private static final double WAVE_EXPONENT = 0.4;
+
+  @SuppressWarnings("unused")
   private static final double WAVE_FAST_CYCLE_LENGTH = 25.0;
+
+  @SuppressWarnings("unused")
   private static final double WAVE_FAST_DURATION = 0.25;
+
+  @SuppressWarnings("unused")
   private static final double WAVE_MEDIUM_DURATION = 0.75;
+
   private static final double WAVE_SLOW_CYCLE_LENGTH = 25.0;
   private static final double WAVE_SLOW_DURATION = 3.0;
   private static final double WAVE_ALLIANCE_CYCLE_LENGTH = 15.0;
@@ -276,6 +287,7 @@ public abstract class LEDs extends SubsystemBase {
     }
   }
 
+  @SuppressWarnings("unused")
   private void updateInternalState() {
     // check for alliance assignment when connected to FMS
     if (DriverStation.isFMSAttached()) {
@@ -335,6 +347,7 @@ public abstract class LEDs extends SubsystemBase {
     solid(section, on ? color : Color.kBlack);
   }
 
+  @SuppressWarnings("unused")
   private void breath(Section section, Color c1, Color c2) {
     breath(section, c1, c2, Timer.getFPGATimestamp());
   }
@@ -348,6 +361,7 @@ public abstract class LEDs extends SubsystemBase {
     solid(section, new Color(red, green, blue));
   }
 
+  @SuppressWarnings("unused")
   private void rainbow(Section section, double cycleLength, double duration) {
     double x = (1 - ((Timer.getFPGATimestamp() / duration) % 1.0)) * 180.0;
     double xDiffPerLed = 180.0 / cycleLength;
@@ -381,6 +395,7 @@ public abstract class LEDs extends SubsystemBase {
     }
   }
 
+  @SuppressWarnings("unused")
   private void fire(Section section, double duration) {
     double x = (1 - ((Timer.getFPGATimestamp() % duration) / duration)) * 2.0 * Math.PI;
     double[] heat = new double[section.end() - section.start()];
@@ -427,7 +442,6 @@ public abstract class LEDs extends SubsystemBase {
       int red = (int) (255 * ratio);
       int green = (int) (30 * ratio);
       int blue = 0;
-      // int blue = (int) (10 * ratio);
 
       // Simulate rising and falling effect
       int offset = (int) (2 * Math.sin(x + (i * 0.2)));

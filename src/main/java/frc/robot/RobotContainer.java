@@ -9,6 +9,8 @@ import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
@@ -66,6 +68,9 @@ public class RobotContainer {
       new LoggedNetworkNumber("/Tuning/Endgame Alert #1", 20.0);
   private final LoggedNetworkNumber endgameAlert2 =
       new LoggedNetworkNumber("/Tuning/Endgame Alert #2", 10.0);
+
+  private Alert pathFileMissingAlert =
+      new Alert("Could not find the specified path file.", AlertType.kError);
 
   // RobotContainer singleton
   private static RobotContainer robotContainer = new RobotContainer();
@@ -304,8 +309,8 @@ public class RobotContainer {
                 drivetrain.resetPose(
                     PathPlannerPath.fromPathFile("Start Point").getStartingDifferentialPose());
               } catch (Exception e) {
-                // FIXME: generate an alert about the missing path file;
-                System.out.println("Path file not found: Start Point");
+                pathFileMissingAlert.setText("Could not find the specified path file: Start Point");
+                pathFileMissingAlert.set(true);
               }
             },
             drivetrain);
@@ -545,9 +550,13 @@ public class RobotContainer {
     }
   }
 
-  public void periodic() {}
+  public void periodic() {
+    // add robot-wide periodic code here
+  }
 
-  public void autonomousInit() {}
+  public void autonomousInit() {
+    // add robot-wide code here that will be executed when autonomous starts
+  }
 
   public void teleopInit() {
     // check if the alliance color has changed based on the FMS data; if the robot power cycled

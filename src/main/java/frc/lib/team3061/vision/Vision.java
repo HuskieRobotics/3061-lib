@@ -13,6 +13,7 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -181,7 +182,7 @@ public class Vision extends SubsystemBase {
         // from the robot to the AprilTag (the greater the distance, the less confident we are
         // in the measurement)
         double timeStamp =
-            Math.min(ios[i].estimatedCameraPoseTimestamp, Logger.getRealTimestamp() / 1e6);
+            Math.min(ios[i].estimatedCameraPoseTimestamp, RobotController.getFPGATime() / 1e6);
         Matrix<N3, N1> stdDev = getStandardDeviations(i, estimatedRobotPose2d, ios[i].ambiguity);
         odometry.addVisionMeasurement(
             estimatedRobotPose2d,
@@ -203,7 +204,7 @@ public class Vision extends SubsystemBase {
       Logger.recordOutput(SUBSYSTEM_NAME + "/" + i + "/RobotPose2d", estimatedRobotPose2d);
       Logger.recordOutput(
           SUBSYSTEM_NAME + "/" + i + "/TimestampDifference",
-          Logger.getRealTimestamp() / 1e6 - ios[i].estimatedCameraPoseTimestamp);
+          RobotController.getFPGATime() / 1e6 - ios[i].estimatedCameraPoseTimestamp);
 
       this.cyclesWithNoResults[i] = 0;
     } else {
@@ -258,7 +259,7 @@ public class Vision extends SubsystemBase {
     }
 
     // if the most recent vision data is more than a half second old, don't return the robot pose
-    if (Math.abs(mostRecentTimestamp - Logger.getRealTimestamp() / 1e6) > 0.5) {
+    if (Math.abs(mostRecentTimestamp - RobotController.getFPGATime() / 1e6) > 0.5) {
       return null;
     } else {
       return robotPoseFromMostRecentData;
