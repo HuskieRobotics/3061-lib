@@ -158,8 +158,6 @@ public interface DrivetrainIO {
    */
   public default void setSteerMotorCurrent(double amps) {}
 
-  public default void setBrakeMode(boolean enable) {}
-
   /**
    * Sets the custom odometry of the robot to the specified pose. This method should only be invoked
    * when the rotation of the robot is known (e.g., at the start of an autonomous path). The origin

@@ -28,7 +28,6 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -91,11 +90,6 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
   private boolean isTranslationSlowMode = false;
   private boolean isRotationSlowMode = false;
 
-  private boolean brakeMode;
-  private Timer brakeModeTimer = new Timer();
-  private static final double BREAK_MODE_DELAY_SEC = 10.0;
-  private static final double LEDS_FALLEN_ANGLE_DEGREES = 60.0; // Threshold to detect falls
-
   private DriveMode driveMode = DriveMode.NORMAL;
 
   private boolean isTurbo;
@@ -121,7 +115,6 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
   private int teleportedCount = 0;
   private int constrainPoseToFieldCount = 0;
 
-  private Pose2d defaultPose = new Pose2d();
   private Pose2d customPose = new Pose2d();
   private double[] initialDistance = {0.0, 0.0, 0.0, 0.0};
 
@@ -173,9 +166,7 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
         this::resetPose, // Method to reset odometry (will be called if your auto has a starting
         // pose)
         this::getRobotRelativeSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-        (speeds, feedforwards) ->
-            applyRobotSpeeds(
-                speeds, feedforwards), // Method that will drive the robot given ROBOT RELATIVE
+        this::applyRobotSpeeds, // Method that will drive the robot given ROBOT RELATIVE
         // ChassisSpeeds
         new PPHolonomicDriveController( // HolonomicPathFollowerConfig, this should likely live in
             // your Constants class
@@ -489,6 +480,7 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
    * continually update the odometry of the robot, update and log the gyro and swerve module inputs,
    * update brake mode, and update the tunable values.
    */
+  @SuppressWarnings("unused")
   @Override
   public void periodic() {
     if (Constants.TUNING_MODE) {
@@ -544,52 +536,44 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
     }
 
     // custom pose vs default pose
-    this.defaultPose = RobotOdometry.getInstance().getEstimatedPose();
+    Pose2d pose = RobotOdometry.getInstance().getEstimatedPose();
     this.customPose = this.inputs.drivetrain.customPose;
-    Logger.recordOutput(SUBSYSTEM_NAME + "/DefaultPose", this.defaultPose);
+    Logger.recordOutput(SUBSYSTEM_NAME + "/Pose", pose);
     Logger.recordOutput(SUBSYSTEM_NAME + "/CustomPose", this.customPose);
 
     // FIXME: calculate transform using robot config (as new method as needed)
     Logger.recordOutput(
-        SUBSYSTEM_NAME + "/DefaultPoseFR",
-        this.defaultPose.transformBy(new Transform2d(0.36, -0.36, new Rotation2d())));
+        SUBSYSTEM_NAME + "/FRPose",
+        pose.transformBy(new Transform2d(0.36, -0.36, new Rotation2d())));
 
     // check for teleportation
-    if (ENABLE_TELEPORT_DETECTION
-        && this.defaultPose.minus(prevRobotPose).getTranslation().getNorm() > 0.4) {
+    if (ENABLE_TELEPORT_DETECTION && pose.minus(prevRobotPose).getTranslation().getNorm() > 0.4) {
       this.resetPose(prevRobotPose);
       this.teleportedCount++;
-      Logger.recordOutput(SUBSYSTEM_NAME + "/TeleportedPose", this.defaultPose);
+      Logger.recordOutput(SUBSYSTEM_NAME + "/TeleportedPose", pose);
       Logger.recordOutput(SUBSYSTEM_NAME + "/TeleportCount", this.teleportedCount);
     } else {
-      this.prevRobotPose = this.defaultPose;
+      this.prevRobotPose = pose;
     }
 
     // check for position outside the field due to slipping
-    if (this.defaultPose.getX() < 0) {
-      this.resetPose(new Pose2d(0, this.defaultPose.getY(), this.defaultPose.getRotation()));
+    if (pose.getX() < 0) {
+      this.resetPose(new Pose2d(0, pose.getY(), pose.getRotation()));
       this.constrainPoseToFieldCount++;
-    } else if (this.defaultPose.getX() > FieldConstants.fieldLength) {
-      this.resetPose(
-          new Pose2d(
-              FieldConstants.fieldLength, this.defaultPose.getY(), this.defaultPose.getRotation()));
+    } else if (pose.getX() > FieldConstants.fieldLength) {
+      this.resetPose(new Pose2d(FieldConstants.fieldLength, pose.getY(), pose.getRotation()));
       this.constrainPoseToFieldCount++;
     }
 
-    if (this.defaultPose.getY() < 0) {
-      this.resetPose(new Pose2d(this.defaultPose.getX(), 0, this.defaultPose.getRotation()));
+    if (pose.getY() < 0) {
+      this.resetPose(new Pose2d(pose.getX(), 0, pose.getRotation()));
       this.constrainPoseToFieldCount++;
-    } else if (this.defaultPose.getY() > FieldConstants.fieldWidth) {
-      this.resetPose(
-          new Pose2d(
-              this.defaultPose.getX(), FieldConstants.fieldWidth, this.defaultPose.getRotation()));
+    } else if (pose.getY() > FieldConstants.fieldWidth) {
+      this.resetPose(new Pose2d(pose.getX(), FieldConstants.fieldWidth, pose.getRotation()));
       this.constrainPoseToFieldCount++;
     }
     Logger.recordOutput(
         SUBSYSTEM_NAME + "/ConstrainPoseToFieldCount", this.constrainPoseToFieldCount);
-
-    // update the brake mode based on the robot's velocity and state (enabled/disabled)
-    // updateBrakeMode();
 
     Logger.recordOutput(SUBSYSTEM_NAME + "/DriveMode", this.driveMode);
 
@@ -1094,39 +1078,6 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
         .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
         .andThen(Commands.runOnce(() -> this.drive(0, 0, 0, true, false), this))
         .withName(SUBSYSTEM_NAME + "SystemCheck");
-  }
-
-  /**
-   * If the robot is enabled and brake mode is not enabled, enable it. If the robot is disabled, has
-   * stopped moving for the specified period of time, and brake mode is enabled, disable it.
-   */
-  private void updateBrakeMode() {
-    if (DriverStation.isEnabled()) {
-      if (!brakeMode) {
-        brakeMode = true;
-        setBrakeMode(true);
-      }
-      brakeModeTimer.restart();
-
-    } else if (!DriverStation.isEnabled()) {
-      boolean stillMoving = false;
-      double velocityLimit = RobotConfig.getInstance().getRobotMaxCoastVelocity();
-      if (Math.abs(this.inputs.drivetrain.measuredChassisSpeeds.vxMetersPerSecond) > velocityLimit
-          || Math.abs(this.inputs.drivetrain.measuredChassisSpeeds.vyMetersPerSecond)
-              > velocityLimit) {
-        stillMoving = true;
-        brakeModeTimer.restart();
-      }
-
-      if (brakeMode && !stillMoving && brakeModeTimer.hasElapsed(BREAK_MODE_DELAY_SEC)) {
-        brakeMode = false;
-        setBrakeMode(false);
-      }
-    }
-  }
-
-  private void setBrakeMode(boolean enable) {
-    this.io.setBrakeMode(enable);
   }
 
   public void enableRotationOverride() {
