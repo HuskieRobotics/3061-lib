@@ -42,7 +42,11 @@
   "[java]": {
     "editor.defaultFormatter": "richardwillis.vscode-spotless-gradle"
   },
-  "cSpell.enabledFileTypes": {"*":true,"json":false,"gradle":false},
+  "cSpell.enabledFileTypes": {
+    "*": true,
+    "json": false,
+    "gradle": false
+  },
   "cSpell.words": [
     "algs",
     "APRILTAG",
@@ -70,6 +74,7 @@
     "IOCTRE",
     "jama",
     "javac",
+    "Kalman",
     "leds",
     "Nivore",
     "odometry",
@@ -95,6 +100,7 @@
     "SIMBOT",
     "Teleop",
     "teleoperated",
+    "timebase",
     "TRACKWIDTH",
     "tunables",
     "uncomitted",

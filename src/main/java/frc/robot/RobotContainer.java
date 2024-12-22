@@ -36,6 +36,7 @@ import frc.robot.configs.ArtemisRobotConfig;
 import frc.robot.configs.DefaultRobotConfig;
 import frc.robot.configs.NewPracticeRobotConfig;
 import frc.robot.configs.PracticeBoardConfig;
+import frc.robot.configs.VisionTestPlatformConfig;
 import frc.robot.operator_interface.OISelector;
 import frc.robot.operator_interface.OperatorInterface;
 import frc.robot.subsystems.subsystem.Subsystem;
@@ -71,6 +72,9 @@ public class RobotContainer {
 
   private Alert pathFileMissingAlert =
       new Alert("Could not find the specified path file.", AlertType.kError);
+  private static final String LAYOUT_FILE_MISSING =
+      "Could not find the specified AprilTags layout file";
+  private Alert layoutFileMissingAlert = new Alert(LAYOUT_FILE_MISSING, AlertType.kError);
 
   // RobotContainer singleton
   private static RobotContainer robotContainer = new RobotContainer();
@@ -92,11 +96,6 @@ public class RobotContainer {
     if (Constants.getMode() != Mode.REPLAY) {
 
       switch (Constants.getRobot()) {
-        case ROBOT_PRACTICE_BOARD:
-          {
-            createPracticeBoardSubsystem();
-            break;
-          }
         case ROBOT_DEFAULT, ROBOT_PRACTICE, ROBOT_COMPETITION:
           {
             createCTRESubsystems();
@@ -105,6 +104,16 @@ public class RobotContainer {
         case ROBOT_SIMBOT:
           {
             createCTRESimSubsystems();
+            break;
+          }
+        case ROBOT_PRACTICE_BOARD:
+          {
+            createPracticeBoardSubsystems();
+            break;
+          }
+        case ROBOT_VISION_TEST_PLATFORM:
+          {
+            createVisionTestPlatformSubsystems();
             break;
           }
         default:
@@ -151,6 +160,9 @@ public class RobotContainer {
       case ROBOT_PRACTICE_BOARD:
         config = new PracticeBoardConfig();
         break;
+      case ROBOT_VISION_TEST_PLATFORM:
+        config = new VisionTestPlatformConfig();
+        break;
       default:
         break;
     }
@@ -166,6 +178,10 @@ public class RobotContainer {
       layout = new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
     } catch (IOException e) {
       layout = new AprilTagFieldLayout(new ArrayList<>(), 16.4592, 8.2296);
+
+      layoutFileMissingAlert.setText(
+          LAYOUT_FILE_MISSING + ": " + VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
+      layoutFileMissingAlert.set(true);
     }
     for (int i = 0; i < visionIOs.length; i++) {
       visionIOs[i] = new VisionIOPhotonVision(cameraNames[i], layout);
@@ -185,6 +201,10 @@ public class RobotContainer {
       layout = new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
     } catch (IOException e) {
       layout = new AprilTagFieldLayout(new ArrayList<>(), 16.4592, 8.2296);
+
+      layoutFileMissingAlert.setText(
+          LAYOUT_FILE_MISSING + ": " + VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
+      layoutFileMissingAlert.set(true);
     }
     vision =
         new Vision(
@@ -198,10 +218,32 @@ public class RobotContainer {
     // FIXME: create the hardware-specific subsystem class
   }
 
-  private void createPracticeBoardSubsystem() {
+  private void createPracticeBoardSubsystems() {
     // change the following to connect the subsystem being tested to actual hardware
     drivetrain = new Drivetrain(new DrivetrainIO() {});
     vision = new Vision(new VisionIO[] {new VisionIO() {}});
+  }
+
+  private void createVisionTestPlatformSubsystems() {
+    // change the following to connect the subsystem being tested to actual hardware
+    drivetrain = new Drivetrain(new DrivetrainIO() {});
+
+    String[] cameraNames = config.getCameraNames();
+    VisionIO[] visionIOs = new VisionIO[cameraNames.length];
+    AprilTagFieldLayout layout;
+    try {
+      layout = new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
+    } catch (IOException e) {
+      layout = new AprilTagFieldLayout(new ArrayList<>(), 16.4592, 8.2296);
+
+      layoutFileMissingAlert.setText(
+          LAYOUT_FILE_MISSING + ": " + VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
+      layoutFileMissingAlert.set(true);
+    }
+    for (int i = 0; i < visionIOs.length; i++) {
+      visionIOs[i] = new VisionIOPhotonVision(cameraNames[i], layout);
+    }
+    vision = new Vision(visionIOs);
   }
 
   /**
