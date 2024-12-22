@@ -12,7 +12,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -410,8 +409,6 @@ public class RobotContainer {
                     Commands.run(() -> drivetrain.drive(0.0, 0.0, 0.0, true, false), drivetrain)),
                 new WheelDiameterCharacterization(drivetrain))
             .withName("Drive Wheel Diameter Characterization"));
-
-    Shuffleboard.getTab("MAIN").add(autoChooser.getSendableChooser());
   }
 
   private Command createTuningAutoPath(String autoName, boolean measureDistance) {

@@ -28,8 +28,6 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -146,17 +144,6 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
     this.isMoveToPoseEnabled = true;
 
     this.maxVelocity = 0.5;
-
-    ShuffleboardTab tabMain = Shuffleboard.getTab("MAIN");
-    tabMain
-        .addNumber("Gyroscope Angle", () -> getRotation().getDegrees())
-        .withPosition(9, 0)
-        .withSize(1, 1);
-    tabMain.addBoolean("X-Stance On?", this::isXstance).withPosition(7, 0).withSize(1, 1);
-    tabMain
-        .addBoolean("Field-Relative Enabled?", () -> this.isFieldRelative)
-        .withPosition(8, 0)
-        .withSize(1, 1);
 
     FaultReporter faultReporter = FaultReporter.getInstance();
     faultReporter.registerSystemCheck(SUBSYSTEM_NAME, getSystemCheckCommand());
