@@ -183,11 +183,6 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
         this // Reference to this subsystem to set requirements
         );
 
-    // FIXME: the new overrideRotationFeedback method is a bit different. It needs to be enabled and
-    // disabled (via clearRotationFeedbackOverride). It also requires that we use a custom PID
-    // controller instead of just specifying an angle
-    // PPHolonomicDriveController.overrideRotationFeedback(this::getRotationTargetOverride);
-
     this.odometry = RobotOdometry.getInstance();
     RobotOdometry.getInstance().setCustomEstimator(this);
   }
