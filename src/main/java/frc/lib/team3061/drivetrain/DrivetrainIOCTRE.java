@@ -1,6 +1,7 @@
 package frc.lib.team3061.drivetrain;
 
 import static edu.wpi.first.units.Units.*;
+import static frc.lib.team3061.drivetrain.DrivetrainConstants.*;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
@@ -32,6 +33,7 @@ import edu.wpi.first.units.measure.Force;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
+import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.swerve.Conversions;
 import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
@@ -346,6 +348,33 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     this.timestampQueue = new ArrayBlockingQueue<>(20);
 
     this.registerTelemetry(this::updateTelemetry);
+
+    // register all drivetrain-related devices with FaultReporter
+    FaultReporter.getInstance().registerHardware(SUBSYSTEM_NAME, "Pigeon", this.getPigeon2());
+    FaultReporter.getInstance()
+        .registerHardware(SUBSYSTEM_NAME, "FL Drive", this.getModule(0).getDriveMotor());
+    FaultReporter.getInstance()
+        .registerHardware(SUBSYSTEM_NAME, "FL Steer", this.getModule(0).getSteerMotor());
+    FaultReporter.getInstance()
+        .registerHardware(SUBSYSTEM_NAME, "FL Encoder", this.getModule(0).getCANcoder());
+    FaultReporter.getInstance()
+        .registerHardware(SUBSYSTEM_NAME, "FR Drive", this.getModule(1).getDriveMotor());
+    FaultReporter.getInstance()
+        .registerHardware(SUBSYSTEM_NAME, "FR Steer", this.getModule(1).getSteerMotor());
+    FaultReporter.getInstance()
+        .registerHardware(SUBSYSTEM_NAME, "FR Encoder", this.getModule(1).getCANcoder());
+    FaultReporter.getInstance()
+        .registerHardware(SUBSYSTEM_NAME, "BL Drive", this.getModule(2).getDriveMotor());
+    FaultReporter.getInstance()
+        .registerHardware(SUBSYSTEM_NAME, "BL Steer", this.getModule(2).getSteerMotor());
+    FaultReporter.getInstance()
+        .registerHardware(SUBSYSTEM_NAME, "BL Encoder", this.getModule(2).getCANcoder());
+    FaultReporter.getInstance()
+        .registerHardware(SUBSYSTEM_NAME, "BR Drive", this.getModule(3).getDriveMotor());
+    FaultReporter.getInstance()
+        .registerHardware(SUBSYSTEM_NAME, "BR Steer", this.getModule(3).getSteerMotor());
+    FaultReporter.getInstance()
+        .registerHardware(SUBSYSTEM_NAME, "BR Encoder", this.getModule(3).getCANcoder());
 
     if (Constants.getMode() == Constants.Mode.SIM) {
       startSimThread();
