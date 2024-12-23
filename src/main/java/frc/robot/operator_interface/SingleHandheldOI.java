@@ -47,12 +47,12 @@ public class SingleHandheldOI implements OperatorInterface {
 
   @Override
   public Trigger getTranslationSlowModeButton() {
-    return new Trigger(controller::getLeftBumper);
+    return new Trigger(controller::getLeftBumperButton);
   }
 
   @Override
   public Trigger getRotationSlowModeButton() {
-    return new Trigger(controller::getRightBumper);
+    return new Trigger(controller::getRightBumperButton);
   }
 
   @Override
