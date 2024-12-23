@@ -184,9 +184,6 @@ public abstract class SwerveConstants {
 
   /* MK4i L2 */
 
-  /*
-  	Wheel diameter is best determined empirically. Refer to this document for more information: !!!
-  */
   private static final double MK4I_L2_DRIVE_GEAR_RATIO =
       1 / ((14.0 / 50.0) * (27.0 / 17.0) * (15.0 / 45.0));
   private static final boolean MK4I_L2_DRIVE_MOTOR_INVERTED = true;
@@ -196,9 +193,6 @@ public abstract class SwerveConstants {
 
   /* MK4 L2 */
 
-  /*
-  	Wheel diameter is best determined empirically. Refer to this document for more information: !!!
-  */
   private static final double MK4_L2_DRIVE_GEAR_RATIO =
       1 / ((14.0 / 50.0) * (27.0 / 17.0) * (15.0 / 45.0));
   private static final boolean MK4_L2_DRIVE_MOTOR_INVERTED = true;

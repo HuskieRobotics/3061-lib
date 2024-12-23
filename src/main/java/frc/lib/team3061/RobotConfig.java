@@ -240,11 +240,11 @@ public abstract class RobotConfig {
   public abstract double getWheelbase();
 
   /**
-   * Returns the diameter of the wheels on the robot in meters. Must be overridden.
+   * Returns the radius of the wheels on the robot in meters. Must be overridden.
    *
-   * @return the diameter of the wheels on the robot in meters
+   * @return the radius of the wheels on the robot in meters
    */
-  public abstract double getWheelDiameterMeters();
+  public abstract double getWheelRadiusMeters();
 
   /**
    * Returns the swerve drive kinematics object for the robot. The geometry and coordinate systems
@@ -453,7 +453,7 @@ public abstract class RobotConfig {
         getMass(),
         getMomentOfInertia(),
         new ModuleConfig(
-            Meters.of(getWheelDiameterMeters() / 2.0),
+            Meters.of(getWheelRadiusMeters()),
             MetersPerSecond.of(getRobotMaxVelocity()),
             getWheelCOF(),
             DCMotor.getKrakenX60(1).withReduction(getSwerveConstants().getDriveGearRatio()),

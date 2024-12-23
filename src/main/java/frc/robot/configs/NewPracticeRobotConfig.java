@@ -30,7 +30,7 @@ public class NewPracticeRobotConfig extends RobotConfig {
 
   private static final double TRACKWIDTH_METERS = 0.57785; // 22.75
   private static final double WHEELBASE_METERS = 0.57785; // 22.75
-  private static final double WHEEL_DIAMETER_METERS = 0.09659072671; // get using auto path
+  private static final double WHEEL_RADIUS_METERS = 0.09659072671 / 2.0; // get using auto path
   private static final double ROBOT_WIDTH_WITH_BUMPERS = 0.88026; // meters //34.656in
   private static final double ROBOT_LENGTH_WITH_BUMPERS = 0.88026; // meters // 34.656in
 
@@ -215,8 +215,8 @@ public class NewPracticeRobotConfig extends RobotConfig {
   }
 
   @Override
-  public double getWheelDiameterMeters() {
-    return WHEEL_DIAMETER_METERS;
+  public double getWheelRadiusMeters() {
+    return WHEEL_RADIUS_METERS;
   }
 
   @Override

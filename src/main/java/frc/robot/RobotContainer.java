@@ -30,8 +30,8 @@ import frc.lib.team3061.vision.VisionIO;
 import frc.lib.team3061.vision.VisionIOPhotonVision;
 import frc.lib.team3061.vision.VisionIOSim;
 import frc.robot.Constants.Mode;
+import frc.robot.commands.CharacterizationCommands;
 import frc.robot.commands.TeleopSwerve;
-import frc.robot.commands.WheelDiameterCharacterization;
 import frc.robot.configs.ArtemisRobotConfig;
 import frc.robot.configs.DefaultRobotConfig;
 import frc.robot.configs.NewPracticeRobotConfig;
@@ -310,7 +310,7 @@ public class RobotContainer {
 
     /************ Distance Test ************
      *
-     * used for empirically determining the wheel diameter
+     * used for empirically determining the wheel radius
      *
      */
     autoChooser.addOption("Distance Test Slow", createTuningAutoPath("DistanceTestSlow", true));
@@ -388,22 +388,15 @@ public class RobotContainer {
                     Commands.run(
                         () -> drivetrain.drive(0.1, -0.1, 0.0, true, false), drivetrain)))));
 
-    /************ Drive Wheel Diameter Characterization ************
+    /************ Drive Wheel Radius Characterization ************
      *
-     * useful for characterizing the drive wheel diameter
+     * useful for characterizing the drive wheel Radius
      *
      */
     autoChooser.addOption( // start by driving slowing in a circle to align wheels
-        "Drive Wheel Diameter Characterization",
-        Commands.sequence(
-                Commands.deadline(
-                    Commands.waitSeconds(0.5),
-                    Commands.run(() -> drivetrain.drive(0.0, 0.0, 0.1, true, false), drivetrain)),
-                Commands.deadline(
-                    Commands.waitSeconds(0.25),
-                    Commands.run(() -> drivetrain.drive(0.0, 0.0, 0.0, true, false), drivetrain)),
-                new WheelDiameterCharacterization(drivetrain))
-            .withName("Drive Wheel Diameter Characterization"));
+        "Drive Wheel Radius Characterization",
+        CharacterizationCommands.wheelRadiusCharacterization(drivetrain)
+            .withName("Drive Wheel Radius Characterization"));
 
     Shuffleboard.getTab("MAIN").add(autoChooser.getSendableChooser());
   }

@@ -39,10 +39,10 @@ public class DefaultRobotConfig extends RobotConfig {
   private static final double TRACKWIDTH_METERS = 0.523875; // 20.625
   private static final double WHEELBASE_METERS = 0.52705; // 20.75
   /*
-  	Wheel diameter is best determined empirically. Refer to this document for more information:
+  	Wheel radius is best determined empirically. Refer to this document for more information:
     https://docs.google.com/spreadsheets/d/1634BjWwzBszXMECL1l5OMsUfRWFhej5YlExvh_SI944/edit
   */
-  private static final double WHEEL_DIAMETER_METERS = 0.09845567409;
+  private static final double WHEEL_RADIUS_METERS = 0.09845567409 / 2.0;
   private static final double ROBOT_WIDTH_WITH_BUMPERS = 0.8382; // meters //33 in
   private static final double ROBOT_LENGTH_WITH_BUMPERS = 0.8382; // meters // 33 in
 
@@ -253,8 +253,8 @@ public class DefaultRobotConfig extends RobotConfig {
   }
 
   @Override
-  public double getWheelDiameterMeters() {
-    return WHEEL_DIAMETER_METERS;
+  public double getWheelRadiusMeters() {
+    return WHEEL_RADIUS_METERS;
   }
 
   @Override

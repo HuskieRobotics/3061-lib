@@ -182,7 +182,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
               RobotConfig.getInstance().getSwerveConstants().getDriveGearRatio())
           .withSteerMotorGearRatio(
               RobotConfig.getInstance().getSwerveConstants().getAngleGearRatio())
-          .withWheelRadius(Meters.of(RobotConfig.getInstance().getWheelDiameterMeters() / 2.0))
+          .withWheelRadius(Meters.of(RobotConfig.getInstance().getWheelRadiusMeters()))
           .withSlipCurrent(SwerveConstants.DRIVE_PEAK_CURRENT_LIMIT)
           .withSteerMotorGains(steerGains)
           .withDriveMotorGains(driveGains)
@@ -541,17 +541,17 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     inputs.driveVelocityReferenceMetersPerSec =
         Conversions.falconRPSToMechanismMPS(
             module.getDriveMotor().getClosedLoopReference().getValue(),
-            RobotConfig.getInstance().getWheelDiameterMeters() * Math.PI,
+            RobotConfig.getInstance().getWheelRadiusMeters() * Math.PI * 2,
             RobotConfig.getInstance().getSwerveConstants().getDriveGearRatio());
     inputs.driveVelocityErrorMetersPerSec =
         Conversions.falconRPSToMechanismMPS(
             module.getDriveMotor().getClosedLoopError().getValue(),
-            RobotConfig.getInstance().getWheelDiameterMeters() * Math.PI,
+            RobotConfig.getInstance().getWheelRadiusMeters() * Math.PI * 2,
             RobotConfig.getInstance().getSwerveConstants().getDriveGearRatio());
     inputs.driveAccelerationMetersPerSecPerSec =
         Conversions.falconRPSToMechanismMPS(
             signals.driveAccelerationStatusSignal.getValue().in(RotationsPerSecond.per(Second)),
-            RobotConfig.getInstance().getWheelDiameterMeters() * Math.PI,
+            RobotConfig.getInstance().getWheelRadiusMeters() * Math.PI * 2,
             RobotConfig.getInstance().getSwerveConstants().getDriveGearRatio());
     inputs.driveAppliedVolts = module.getDriveMotor().getMotorVoltage().getValue().in(Volts);
     inputs.driveStatorCurrentAmps = module.getDriveMotor().getStatorCurrent().getValue().in(Amps);
