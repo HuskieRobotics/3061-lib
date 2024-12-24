@@ -72,9 +72,6 @@ public class RobotContainer {
   private Alert pathFileMissingAlert =
       new Alert("Could not find the specified path file.", AlertType.kError);
 
-  // RobotContainer singleton
-  private static RobotContainer robotContainer = new RobotContainer();
-
   /**
    * Create the container for the robot. Contains subsystems, operator interface (OI) devices, and
    * commands.
