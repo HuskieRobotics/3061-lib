@@ -8,11 +8,13 @@ import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.DeviceEnableValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.swerve.SwerveDrivetrain;
 import com.ctre.phoenix6.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.swerve.SwerveModule;
@@ -45,6 +47,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -276,6 +280,11 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   List<Queue<Double>> steerPositionQueues = new ArrayList<>();
   Queue<Double> gyroYawQueue;
   Queue<Double> timestampQueue;
+
+  // brake mode
+  private final MotorOutputConfigs driveConfig = new MotorOutputConfigs();
+  private final MotorOutputConfigs steerConfig = new MotorOutputConfigs();
+  private static final Executor brakeModeExecutor = Executors.newFixedThreadPool(1);
 
   // simulation
   private static final double SIM_LOOP_PERIOD = 0.005; // 5 ms
@@ -748,6 +757,25 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     for (int i = 0; i < this.getModules().length; i++) {
       this.getModule(i).getSteerMotor().setControl(steerCurrentRequests[i].withOutput(amps));
     }
+  }
+
+  @Override
+  public void setBrakeMode(boolean enable) {
+    // Change the neutral mode configuration in a separate thread since changing the configuration
+    // of a CTRE device may take a significant amount of time (~200 ms).
+    brakeModeExecutor.execute(
+        () -> {
+          // FIXME: replace with configNeutralMode method if it makes the code cleaner
+          for (SwerveModule swerveModule : this.getModules()) {
+            swerveModule.getDriveMotor().getConfigurator().refresh(driveConfig);
+            driveConfig.NeutralMode = enable ? NeutralModeValue.Brake : NeutralModeValue.Coast;
+            swerveModule.getDriveMotor().getConfigurator().apply(driveConfig, 0.25);
+
+            swerveModule.getSteerMotor().getConfigurator().refresh(steerConfig);
+            steerConfig.NeutralMode = enable ? NeutralModeValue.Brake : NeutralModeValue.Coast;
+            swerveModule.getSteerMotor().getConfigurator().apply(steerConfig, 0.25);
+          }
+        });
   }
 
   /**
