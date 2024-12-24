@@ -10,7 +10,6 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.units.measure.Force;
-import frc.lib.team3061.gyro.GyroIOInputsAutoLogged;
 import java.util.Optional;
 import org.littletonrobotics.junction.AutoLog;
 
@@ -69,6 +68,7 @@ public interface DrivetrainIO {
     Pose2d customPose = new Pose2d();
 
     double[] odometryTimestamps = new double[] {};
+    Rotation2d[] odometryYawPositions = new Rotation2d[] {};
   }
 
   public static class DrivetrainIOInputsCollection {
@@ -78,8 +78,6 @@ public interface DrivetrainIO {
       new SwerveIOInputsAutoLogged(),
       new SwerveIOInputsAutoLogged()
     }; // FL, FR, BL, BR
-
-    GyroIOInputsAutoLogged gyro = new GyroIOInputsAutoLogged();
 
     DrivetrainIOInputsAutoLogged drivetrain = new DrivetrainIOInputsAutoLogged();
   }

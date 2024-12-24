@@ -37,8 +37,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.DrivetrainIO.SwerveIOInputs;
-import frc.lib.team3061.leds.LEDs;
-import frc.lib.team3061.leds.LEDs.States;
 import frc.lib.team3061.util.CustomPoseEstimator;
 import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team6328.util.FieldConstants;
@@ -60,6 +58,7 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
   private final DrivetrainIO io;
   private final DrivetrainIO.DrivetrainIOInputsCollection inputs =
       new DrivetrainIO.DrivetrainIOInputsCollection();
+  private double yawDeg;
 
   private final LoggedTunableNumber autoDriveKp =
       new LoggedTunableNumber("AutoDrive/DriveKp", RobotConfig.getInstance().getAutoDriveKP());
@@ -254,25 +253,7 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
    * @return the yaw of the drivetrain as reported by the gyro in degrees
    */
   public double getYaw() {
-    return this.inputs.gyro.yawDeg;
-  }
-
-  /**
-   * Returns the pitch of the drivetrain as reported by the gyro in degrees.
-   *
-   * @return the pitch of the drivetrain as reported by the gyro in degrees
-   */
-  public double getPitch() {
-    return this.inputs.gyro.pitchDeg;
-  }
-
-  /**
-   * Returns the roll of the drivetrain as reported by the gyro in degrees.
-   *
-   * @return the roll of the drivetrain as reported by the gyro in degrees
-   */
-  public double getRoll() {
-    return this.inputs.gyro.rollDeg;
+    return this.yawDeg;
   }
 
   /**
@@ -309,7 +290,7 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
    * @param pose the specified pose to which is set the odometry
    */
   public void resetPose(Pose2d pose) {
-    this.odometry.resetPose(Rotation2d.fromDegrees(inputs.gyro.yawDeg), this.modulePositions, pose);
+    this.odometry.resetPose(Rotation2d.fromDegrees(this.yawDeg), this.modulePositions, pose);
     this.prevRobotPose = pose;
   }
 
@@ -508,17 +489,10 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
 
     this.io.updateInputs(this.inputs);
     Logger.processInputs(SUBSYSTEM_NAME, this.inputs.drivetrain);
-    Logger.processInputs(SUBSYSTEM_NAME + "/Gyro", this.inputs.gyro);
     Logger.processInputs(SUBSYSTEM_NAME + "/FL", this.inputs.swerve[0]);
     Logger.processInputs(SUBSYSTEM_NAME + "/FR", this.inputs.swerve[1]);
     Logger.processInputs(SUBSYSTEM_NAME + "/BL", this.inputs.swerve[2]);
     Logger.processInputs(SUBSYSTEM_NAME + "/BR", this.inputs.swerve[3]);
-
-    // Check for fallen robot
-    if (Math.abs(this.inputs.gyro.pitchDeg) > LEDS_FALLEN_ANGLE_DEGREES
-        || Math.abs(this.inputs.gyro.rollDeg) > LEDS_FALLEN_ANGLE_DEGREES) {
-      LEDs.getInstance().requestState(States.FALLEN);
-    }
 
     // update odometry
     for (int i = 0; i < inputs.drivetrain.odometryTimestamps.length; i++) {
@@ -531,8 +505,11 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
 
       this.odometry.updateWithTime(
           inputs.drivetrain.odometryTimestamps[i],
-          inputs.gyro.odometryYawPositions[i],
+          inputs.drivetrain.odometryYawPositions[i],
           modulePositions);
+
+      // since the inputs contains a stream of yaw values, cache the latest
+      this.yawDeg = inputs.drivetrain.odometryYawPositions[i].getDegrees();
     }
 
     // custom pose vs default pose

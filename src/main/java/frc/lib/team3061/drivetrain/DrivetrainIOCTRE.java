@@ -4,7 +4,6 @@ import static edu.wpi.first.units.Units.*;
 import static frc.lib.team3061.drivetrain.DrivetrainConstants.*;
 
 import com.ctre.phoenix6.BaseStatusSignal;
-import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
@@ -39,7 +38,6 @@ import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.swerve.Conversions;
 import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
-import frc.lib.team3061.gyro.GyroIO.GyroIOInputs;
 import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team6328.util.LoggedTunableNumber;
 import frc.robot.Constants;
@@ -246,14 +244,6 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
           RobotConfig.getInstance().getSwerveConstants().isAngleMotorInverted(),
           false);
 
-  // gyro signals
-  private final StatusSignal<Angle> yawStatusSignal;
-  private final StatusSignal<Angle> pitchStatusSignal;
-  private final StatusSignal<Angle> rollStatusSignal;
-  private final StatusSignal<AngularVelocity> angularVelocityZStatusSignal;
-  private final StatusSignal<AngularVelocity> angularVelocityXStatusSignal;
-  private final StatusSignal<AngularVelocity> angularVelocityYStatusSignal;
-
   // swerve module signals
   SwerveModuleSignals[] swerveModulesSignals = new SwerveModuleSignals[4];
 
@@ -290,15 +280,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   private static final double SIM_LOOP_PERIOD = 0.005; // 5 ms
   private double lastSimTime;
 
-  /**
-   * Creates a new Drivetrain subsystem.
-   *
-   * @param gyroIO the abstracted interface for the gyro for the drivetrain
-   * @param flModule the front left swerve module
-   * @param frModule the front right swerve module
-   * @param blModule the back left swerve module
-   * @param brModule the back right swerve module
-   */
+  /** Creates a new Drivetrain subsystem. */
   public DrivetrainIOCTRE() {
     super(
         drivetrainConstants,
@@ -307,17 +289,6 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
         frontRight,
         backLeft,
         backRight);
-
-    this.yawStatusSignal = this.getPigeon2().getYaw().clone();
-    this.pitchStatusSignal = this.getPigeon2().getPitch().clone();
-    this.pitchStatusSignal.setUpdateFrequency(100);
-    this.rollStatusSignal = this.getPigeon2().getRoll().clone();
-    this.rollStatusSignal.setUpdateFrequency(100);
-    this.angularVelocityZStatusSignal = this.getPigeon2().getAngularVelocityZWorld().clone();
-    this.angularVelocityXStatusSignal = this.getPigeon2().getAngularVelocityXWorld().clone();
-    this.angularVelocityXStatusSignal.setUpdateFrequency(100);
-    this.angularVelocityYStatusSignal = this.getPigeon2().getAngularVelocityYWorld().clone();
-    this.angularVelocityYStatusSignal.setUpdateFrequency(100);
 
     for (int i = 0; i < swerveModulesSignals.length; i++) {
       swerveModulesSignals[i] =
@@ -409,10 +380,6 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
 
   @Override
   public void updateInputs(DrivetrainIOInputsCollection inputs) {
-
-    // update and log gyro inputs
-    this.updateGyroInputs(inputs.gyro);
-
     // update and log the swerve modules inputs
     for (int i = 0; i < swerveModulesSignals.length; i++) {
       this.updateSwerveModuleInputs(inputs.swerve[i], this.getModule(i), swerveModulesSignals[i]);
@@ -438,7 +405,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
         this.timestampQueue.stream().mapToDouble(Double::valueOf).toArray();
     this.timestampQueue.clear();
 
-    inputs.gyro.odometryYawPositions =
+    inputs.drivetrain.odometryYawPositions =
         this.gyroYawQueue.stream().map(Rotation2d::fromDegrees).toArray(Rotation2d[]::new);
     this.gyroYawQueue.clear();
 
@@ -494,33 +461,6 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
         driveFacingAngleThetaKp,
         driveFacingAngleThetaKi,
         driveFacingAngleThetaKd);
-  }
-
-  private void updateGyroInputs(GyroIOInputs inputs) {
-    BaseStatusSignal.refreshAll(
-        this.yawStatusSignal,
-        this.pitchStatusSignal,
-        this.rollStatusSignal,
-        this.angularVelocityZStatusSignal,
-        this.angularVelocityXStatusSignal,
-        this.angularVelocityYStatusSignal);
-
-    inputs.connected = (this.yawStatusSignal.getStatus() == StatusCode.OK);
-    inputs.yawDeg =
-        BaseStatusSignal.getLatencyCompensatedValue(
-                this.yawStatusSignal, this.angularVelocityZStatusSignal)
-            .in(Degrees);
-    inputs.pitchDeg =
-        BaseStatusSignal.getLatencyCompensatedValue(
-                this.pitchStatusSignal, this.angularVelocityYStatusSignal)
-            .in(Degrees);
-    inputs.rollDeg =
-        BaseStatusSignal.getLatencyCompensatedValue(
-                this.rollStatusSignal, this.angularVelocityXStatusSignal)
-            .in(Degrees);
-    inputs.rollDegPerSec = this.angularVelocityXStatusSignal.getValue().in(DegreesPerSecond);
-    inputs.pitchDegPerSec = this.angularVelocityYStatusSignal.getValue().in(DegreesPerSecond);
-    inputs.yawDegPerSec = this.angularVelocityZStatusSignal.getValue().in(DegreesPerSecond);
   }
 
   private void updateSwerveModuleInputs(
