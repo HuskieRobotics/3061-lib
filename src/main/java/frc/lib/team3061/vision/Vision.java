@@ -14,8 +14,6 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.util.RobotOdometry;
@@ -85,14 +83,6 @@ public class Vision extends SubsystemBase {
 
     // retrieve a reference to the pose estimator singleton
     this.odometry = RobotOdometry.getInstance();
-
-    // add an indicator to the main Shuffleboard tab to indicate whether vision is updating in order
-    // to alert the drive team if it is not.
-    ShuffleboardTab tabMain = Shuffleboard.getTab("MAIN");
-    tabMain
-        .addBoolean("isVisionUpdating", () -> isVisionUpdating)
-        .withPosition(7, 2)
-        .withSize(1, 2);
 
     // load and log all of the AprilTags in the field layout file
     try {

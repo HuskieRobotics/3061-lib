@@ -29,8 +29,6 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -58,7 +56,6 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
   private final DrivetrainIO io;
   private final DrivetrainIO.DrivetrainIOInputsCollection inputs =
       new DrivetrainIO.DrivetrainIOInputsCollection();
-  private double yawDeg;
 
   private final LoggedTunableNumber autoDriveKp =
       new LoggedTunableNumber("AutoDrive/DriveKp", RobotConfig.getInstance().getAutoDriveKP());
@@ -151,17 +148,6 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
 
     this.maxVelocity = 0.5;
 
-    ShuffleboardTab tabMain = Shuffleboard.getTab("MAIN");
-    tabMain
-        .addNumber("Gyroscope Angle", () -> getRotation().getDegrees())
-        .withPosition(9, 0)
-        .withSize(1, 1);
-    tabMain.addBoolean("X-Stance On?", this::isXstance).withPosition(7, 0).withSize(1, 1);
-    tabMain
-        .addBoolean("Field-Relative Enabled?", () -> this.isFieldRelative)
-        .withPosition(8, 0)
-        .withSize(1, 1);
-
     FaultReporter faultReporter = FaultReporter.getInstance();
     faultReporter.registerSystemCheck(SUBSYSTEM_NAME, getSystemCheckCommand());
 
@@ -253,7 +239,7 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
    * @return the yaw of the drivetrain as reported by the gyro in degrees
    */
   public double getYaw() {
-    return this.yawDeg;
+    return this.inputs.drivetrain.rawHeadingDeg;
   }
 
   /**
@@ -290,7 +276,8 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
    * @param pose the specified pose to which is set the odometry
    */
   public void resetPose(Pose2d pose) {
-    this.odometry.resetPose(Rotation2d.fromDegrees(this.yawDeg), this.modulePositions, pose);
+    this.odometry.resetPose(
+        Rotation2d.fromDegrees(this.inputs.drivetrain.rawHeadingDeg), this.modulePositions, pose);
     this.prevRobotPose = pose;
   }
 
@@ -471,7 +458,9 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
               this.inputs.drivetrain.measuredChassisSpeeds.vyMetersPerSecond,
               this.inputs.drivetrain.measuredChassisSpeeds.omegaRadiansPerSecond);
       for (int i = 0; i < this.inputs.swerve.length; i++) {
-        this.prevSteerVelocitiesRevPerMin[i] = this.inputs.swerve[i].steerVelocityRevPerMin;
+        // FIXME: this method may no longer be needed with the SysId support now in Phoenix 6;
+        // re-evaluate after learning more.
+        // this.prevSteerVelocitiesRevPerMin[i] = this.inputs.swerve[i].steerVelocityRevPerMin;
       }
     }
 
@@ -507,9 +496,6 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
           inputs.drivetrain.odometryTimestamps[i],
           inputs.drivetrain.odometryYawPositions[i],
           modulePositions);
-
-      // since the inputs contains a stream of yaw values, cache the latest
-      this.yawDeg = inputs.drivetrain.odometryYawPositions[i].getDegrees();
     }
 
     // custom pose vs default pose
@@ -764,7 +750,9 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
   public double getRotateCharacterizationVelocity() {
     double avgVelocity = 0.0;
     for (SwerveIOInputs swerveInputs : this.inputs.swerve) {
-      avgVelocity += swerveInputs.steerVelocityRevPerMin;
+      // FIXME: this method may no longer be needed with the SysId support now in Phoenix 6;
+      // re-evaluate after learning more.
+      // avgVelocity += swerveInputs.steerVelocityRevPerMin;
     }
     avgVelocity /= this.inputs.swerve.length;
     avgVelocity *= (2.0 * Math.PI) / 60.0;
@@ -779,9 +767,13 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
   public double getRotateCharacterizationAcceleration() {
     double avgAcceleration = 0.0;
     for (int i = 0; i < this.inputs.swerve.length; i++) {
-      avgAcceleration +=
-          Math.abs(
-              this.inputs.swerve[i].steerVelocityRevPerMin - this.prevSteerVelocitiesRevPerMin[i]);
+      // FIXME: this method may no longer be needed with the SysId support now in Phoenix 6;
+      // re-evaluate after learning more.
+
+      // avgAcceleration +=
+      //     Math.abs(
+      //         this.inputs.swerve[i].steerVelocityRevPerMin -
+      // this.prevSteerVelocitiesRevPerMin[i]);
     }
     avgAcceleration /= this.inputs.swerve.length;
     avgAcceleration *= (2.0 * Math.PI) / 60.0;
@@ -793,7 +785,8 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
     double[] positions = new double[inputs.swerve.length];
     for (int i = 0; i < inputs.swerve.length; i++) {
       positions[i] =
-          inputs.swerve[i].driveDistanceMeters / (RobotConfig.getInstance().getWheelRadiusMeters());
+          inputs.drivetrain.swerveModulePositions[i].distanceMeters
+              / (RobotConfig.getInstance().getWheelRadiusMeters());
     }
     return positions;
   }
@@ -819,7 +812,7 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
 
   public void captureInitialConditions() {
     for (int i = 0; i < this.inputs.swerve.length; i++) {
-      this.initialDistance[i] = this.inputs.swerve[i].driveDistanceMeters;
+      this.initialDistance[i] = inputs.drivetrain.swerveModulePositions[i].distanceMeters;
     }
   }
 
@@ -832,7 +825,10 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
       if (measureDistance) {
         double distance = 0.0;
         for (int i = 0; i < this.inputs.swerve.length; i++) {
-          distance += Math.abs(this.inputs.swerve[i].driveDistanceMeters - this.initialDistance[i]);
+          distance +=
+              Math.abs(
+                  inputs.drivetrain.swerveModulePositions[i].distanceMeters
+                      - this.initialDistance[i]);
         }
 
         distance /= this.inputs.swerve.length;
@@ -902,7 +898,9 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
     // Checks the velocity of the swerve module depending on if there is an offset
 
     if (!isOffset) {
-      if (Math.abs(inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec - velocityTarget)
+      if (Math.abs(
+              inputs.drivetrain.swerveMeasuredStates[swerveModuleNumber].speedMetersPerSecond
+                  - velocityTarget)
           > velocityTolerance) {
         FaultReporter.getInstance()
             .addFault(
@@ -912,10 +910,15 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
                     + " not moving as fast as expected. Should be: "
                     + velocityTarget
                     + IS_LITERAL
-                    + inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec);
+                    + inputs
+                        .drivetrain
+                        .swerveMeasuredStates[swerveModuleNumber]
+                        .speedMetersPerSecond);
       }
     } else { // if there is an offset, check the velocity in the opposite direction
-      if (Math.abs(inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec + velocityTarget)
+      if (Math.abs(
+              inputs.drivetrain.swerveMeasuredStates[swerveModuleNumber].speedMetersPerSecond
+                  + velocityTarget)
           > velocityTolerance) {
         FaultReporter.getInstance()
             .addFault(
@@ -925,7 +928,10 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
                     + " not moving as fast as expected. REVERSED Should be: "
                     + velocityTarget
                     + IS_LITERAL
-                    + inputs.swerve[swerveModuleNumber].driveVelocityMetersPerSec);
+                    + inputs
+                        .drivetrain
+                        .swerveMeasuredStates[swerveModuleNumber]
+                        .speedMetersPerSecond);
       }
     }
   }

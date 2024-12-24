@@ -6,6 +6,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
@@ -18,24 +19,13 @@ public interface DrivetrainIO {
   @AutoLog
   public static class SwerveIOInputs {
     public boolean driveEnabled = false;
-    public double driveDistanceMeters = 0.0;
-    public double driveVelocityMetersPerSec = 0.0;
-    public double driveVelocityReferenceMetersPerSec = 0.0;
-    public double driveVelocityErrorMetersPerSec = 0.0;
-    public double driveAccelerationMetersPerSecPerSec = 0.0;
-    public double driveAppliedVolts = 0.0;
     public double driveStatorCurrentAmps = 0.0;
     public double driveSupplyCurrentAmps = 0.0;
     public double driveTempCelsius = 0.0;
 
-    public boolean steerEnabled = false;
     public double steerAbsolutePositionDeg = 0.0;
-    public double steerPositionDeg = 0.0;
-    public double steerPositionReferenceDeg = 0.0;
-    public double steerPositionErrorDeg = 0.0;
-    public double steerVelocityRevPerMin = 0.0;
-    public double steerAccelerationMetersPerSecPerSec = 0.0;
-    public double steerAppliedVolts = 0.0;
+
+    public boolean steerEnabled = false;
     public double steerStatorCurrentAmps = 0.0;
     public double steerSupplyCurrentAmps = 0.0;
     public double steerTempCelsius = 0.0;
@@ -50,6 +40,12 @@ public interface DrivetrainIO {
     ChassisSpeeds referenceChassisSpeeds = new ChassisSpeeds();
     ChassisSpeeds measuredChassisSpeeds = new ChassisSpeeds();
 
+    SwerveModulePosition[] swerveModulePositions = {
+      new SwerveModulePosition(),
+      new SwerveModulePosition(),
+      new SwerveModulePosition(),
+      new SwerveModulePosition()
+    };
     SwerveModuleState[] swerveReferenceStates = {
       new SwerveModuleState(),
       new SwerveModuleState(),
@@ -64,6 +60,7 @@ public interface DrivetrainIO {
     };
 
     double averageDriveCurrent = 0.0;
+    double rawHeadingDeg = 0.0;
 
     Pose2d customPose = new Pose2d();
 
