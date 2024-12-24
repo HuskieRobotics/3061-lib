@@ -100,13 +100,7 @@ public class Robot extends LoggedRobot {
 
     // Start AdvantageKit logger
     Logger.start();
-  }
-  /**
-   * This method is executed when the code first starts running on the robot and should be used for
-   * any initialization code.
-   */
-  @Override
-  public void robotInit() {
+
     // DO THIS FIRST
     Pathfinding.setPathfinder(new LocalADStarAK());
 
@@ -150,8 +144,9 @@ public class Robot extends LoggedRobot {
     disabledTimer.reset();
     disabledTimer.start();
 
-    // Invoke the factory method to create the RobotContainer singleton.
-    robotContainer = RobotContainer.getInstance();
+    // Instantiate our RobotContainer. This will perform all our button bindings,
+    // and put our autonomous chooser on the dashboard.
+    robotContainer = new RobotContainer();
 
     // Due to the nature of how Java works, the first run of a path following command could have a
     // significantly higher delay compared with subsequent runs, as all the classes involved will

@@ -226,15 +226,6 @@ public class RobotContainer {
     configureButtonBindings();
   }
 
-  /**
-   * Factory method to create the singleton robot container object.
-   *
-   * @return the singleton robot container object
-   */
-  public static RobotContainer getInstance() {
-    return robotContainer;
-  }
-
   /** Use this method to define your button->command mappings. */
   private void configureButtonBindings() {
 
