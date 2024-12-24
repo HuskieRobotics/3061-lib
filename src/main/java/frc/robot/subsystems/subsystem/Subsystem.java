@@ -38,13 +38,6 @@ public class Subsystem extends SubsystemBase {
 
     this.io = io;
 
-    // Create a Shuffleboard tab for this subsystem if testing is enabled. Add additional indicators
-    // and controls as needed.
-    if (TESTING) {
-      ShuffleboardTab tab = Shuffleboard.getTab(SUBSYSTEM_NAME);
-      tab.add(SUBSYSTEM_NAME, this);
-    }
-
     FaultReporter.getInstance().registerSystemCheck(SUBSYSTEM_NAME, getSystemCheckCommand());
   }
 
