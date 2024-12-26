@@ -1113,16 +1113,17 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
     }
   }
 
-  public Pose2d getFutureRobotPose(double secondsInFuture) {
+  public Pose2d getFutureRobotPose(
+      double translationSecondsInFuture, double rotationSecondsInFuture) {
     // project the robot pose into the future based on the current translational velocity; don't
     // project the current rotational velocity as that will adversely affect the control loop
     // attempting to reach the rotational setpoint.
     return this.getPose()
         .exp(
             new Twist2d(
-                this.getRobotRelativeSpeeds().vxMetersPerSecond * secondsInFuture,
-                this.getRobotRelativeSpeeds().vyMetersPerSecond * secondsInFuture,
-                0.0));
+                this.getRobotRelativeSpeeds().vxMetersPerSecond * translationSecondsInFuture,
+                this.getRobotRelativeSpeeds().vyMetersPerSecond * translationSecondsInFuture,
+                this.getRobotRelativeSpeeds().omegaRadiansPerSecond * rotationSecondsInFuture));
   }
 
   public Pose2d getCustomEstimatedPose() {
