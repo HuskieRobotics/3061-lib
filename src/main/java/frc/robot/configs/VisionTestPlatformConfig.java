@@ -1,9 +1,15 @@
 package frc.robot.configs;
 
+import static edu.wpi.first.units.Units.*;
+
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.LinearAcceleration;
+import edu.wpi.first.units.measure.LinearVelocity;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
 
@@ -19,7 +25,7 @@ public class VisionTestPlatformConfig extends RobotConfig {
       new Transform3d(
           // FIXME: update based on CAD
           new Translation3d(
-              Units.inchesToMeters(0.0), Units.inchesToMeters(0.0), Units.inchesToMeters(36.0)),
+              Units.inchesToMeters(0.0), Units.inchesToMeters(0.0), Units.inchesToMeters(37.0)),
           new Rotation3d());
 
   @Override
@@ -48,18 +54,18 @@ public class VisionTestPlatformConfig extends RobotConfig {
   }
 
   @Override
-  public double getAutoMaxAcceleration() {
-    return 0.0;
+  public LinearAcceleration getAutoMaxAcceleration() {
+    return MetersPerSecondPerSecond.of(0.0);
   }
 
   @Override
-  public double getAutoMaxSpeed() {
-    return 0.0;
+  public LinearVelocity getAutoMaxSpeed() {
+    return MetersPerSecond.of(0.0);
   }
 
   @Override
-  public double getRobotMaxVelocity() {
-    return 0.0;
+  public LinearVelocity getRobotMaxVelocity() {
+    return MetersPerSecond.of(0.0);
   }
 
   @Override
@@ -83,8 +89,8 @@ public class VisionTestPlatformConfig extends RobotConfig {
   }
 
   @Override
-  public double[] getSwerveSteerOffsets() {
-    return new double[] {};
+  public Angle[] getSwerveSteerOffsets() {
+    return new Angle[] {};
   }
 
   @Override
@@ -93,17 +99,17 @@ public class VisionTestPlatformConfig extends RobotConfig {
   }
 
   @Override
-  public double getTrackwidth() {
-    return 0.0;
+  public Distance getTrackwidth() {
+    return Meters.of(0.0);
   }
 
   @Override
-  public double getWheelbase() {
-    return 0.0;
+  public Distance getWheelbase() {
+    return Meters.of(0.0);
   }
 
   @Override
-  public double getWheelDiameterMeters() {
-    return 0.0;
+  public Distance getWheelRadius() {
+    return Meters.of(0.0);
   }
 }
