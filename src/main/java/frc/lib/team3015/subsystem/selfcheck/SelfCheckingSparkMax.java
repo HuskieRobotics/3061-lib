@@ -26,4 +26,9 @@ public class SelfCheckingSparkMax implements SelfChecking {
 
     return faults;
   }
+
+  @Override
+  public void clearStickyFaults() {
+    spark.clearFaults();
+  }
 }

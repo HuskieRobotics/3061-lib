@@ -80,4 +80,9 @@ public class SelfCheckingPigeon2 implements SelfChecking {
 
     return faults;
   }
+
+  @Override
+  public void clearStickyFaults() {
+    pigeon.clearStickyFaults();
+  }
 }

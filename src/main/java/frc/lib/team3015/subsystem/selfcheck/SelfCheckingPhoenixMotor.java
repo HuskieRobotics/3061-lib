@@ -62,4 +62,9 @@ public class SelfCheckingPhoenixMotor implements SelfChecking {
 
     return faults;
   }
+
+  @Override
+  public void clearStickyFaults() {
+    motor.clearStickyFaults();
+  }
 }

@@ -48,6 +48,7 @@ public class FaultReporter {
   private FaultReporter() {
     this.checkErrors = RobotBase.isReal();
     setupCallbacks();
+    registerClearAllFaultsCommand();
   }
 
   public static FaultReporter getInstance() {
@@ -70,6 +71,22 @@ public class FaultReporter {
     subsystemsFaults.put(subsystemName, subsystemFaults);
 
     return wrappedSystemCheckCommand;
+  }
+
+  public void registerClearAllFaultsCommand() {
+    SmartDashboard.putData(
+        SYSTEM_STATUS + "ClearAllFaults",
+        Commands.runOnce(
+                () -> {
+                  for (Map.Entry<String, SubsystemFaults> entry : subsystemsFaults.entrySet()) {
+                    SubsystemFaults subsystemFaults = entry.getValue();
+                    for (SelfChecking device : subsystemFaults.hardware) {
+                      device.clearStickyFaults();
+                    }
+                  }
+                })
+            .ignoringDisable(true)
+            .withName("ClearAllFaults"));
   }
 
   private Command wrapSystemCheckCommand(String subsystemName, Command systemCheckCommand) {

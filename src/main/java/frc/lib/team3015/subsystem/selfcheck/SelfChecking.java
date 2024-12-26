@@ -5,4 +5,6 @@ import java.util.List;
 
 public interface SelfChecking {
   List<SubsystemFault> checkForFaults();
+
+  void clearStickyFaults();
 }
