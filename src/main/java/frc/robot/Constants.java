@@ -61,14 +61,10 @@ public final class Constants {
   // FIXME: update for various robots
   public static Mode getMode() {
     switch (getRobot()) {
-      case ROBOT_DEFAULT,
-          ROBOT_PRACTICE,
-          ROBOT_PRACTICE_BOARD,
-          ROBOT_COMPETITION,
-          ROBOT_VISION_TEST_PLATFORM:
+      case ROBOT_DEFAULT, ROBOT_PRACTICE, ROBOT_PRACTICE_BOARD, ROBOT_COMPETITION:
         return RobotBase.isReal() ? Mode.REAL : Mode.REPLAY;
 
-      case ROBOT_SIMBOT:
+      case ROBOT_SIMBOT, ROBOT_VISION_TEST_PLATFORM:
         return Mode.SIM;
 
       default:
