@@ -607,15 +607,13 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     // of a CTRE device may take a significant amount of time (~200 ms).
     brakeModeExecutor.execute(
         () -> {
-          // FIXME: replace with configNeutralMode method if it makes the code cleaner
           for (SwerveModule swerveModule : this.getModules()) {
-            swerveModule.getDriveMotor().getConfigurator().refresh(driveConfig);
-            driveConfig.NeutralMode = enable ? NeutralModeValue.Brake : NeutralModeValue.Coast;
-            swerveModule.getDriveMotor().getConfigurator().apply(driveConfig, 0.25);
-
-            swerveModule.getSteerMotor().getConfigurator().refresh(steerConfig);
-            steerConfig.NeutralMode = enable ? NeutralModeValue.Brake : NeutralModeValue.Coast;
-            swerveModule.getSteerMotor().getConfigurator().apply(steerConfig, 0.25);
+            swerveModule
+                .getDriveMotor()
+                .setNeutralMode(enable ? NeutralModeValue.Brake : NeutralModeValue.Coast, 0.25);
+            swerveModule
+                .getSteerMotor()
+                .setNeutralMode(enable ? NeutralModeValue.Brake : NeutralModeValue.Coast, 0.25);
           }
         });
   }

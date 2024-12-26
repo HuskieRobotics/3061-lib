@@ -4,7 +4,6 @@ import static edu.wpi.first.units.Units.*;
 import static frc.robot.subsystems.subsystem.SubsystemConstants.*;
 
 import com.ctre.phoenix6.BaseStatusSignal;
-import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionVoltage;
@@ -15,6 +14,7 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import frc.lib.team254.Phoenix6Util;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.swerve.Conversions;
@@ -151,18 +151,7 @@ public class SubsystemIOTalonFX implements SubsystemIO {
     config.Voltage.PeakForwardVoltage = kPeakOutput.get();
     config.Voltage.PeakReverseVoltage = kPeakOutput.get();
 
-    StatusCode status = StatusCode.StatusCodeNotInitialized;
-    for (int i = 0; i < 5; ++i) {
-      status = this.motor.getConfigurator().apply(config);
-      if (status.isOK()) {
-        configAlert.set(false);
-        break;
-      }
-    }
-    if (!status.isOK()) {
-      configAlert.set(true);
-      configAlert.setText(status.toString());
-    }
+    Phoenix6Util.applyAndCheckConfiguration(this.motor, config, configAlert);
 
     this.motor.setPosition(0);
 
