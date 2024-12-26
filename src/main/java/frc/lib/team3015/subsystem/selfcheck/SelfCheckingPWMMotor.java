@@ -24,4 +24,9 @@ public class SelfCheckingPWMMotor implements SelfChecking {
 
     return faults;
   }
+
+  @Override
+  public void clearStickyFaults() {
+    // PWM motor doesn't have any sticky faults to clear
+  }
 }

@@ -14,8 +14,6 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.util.RobotOdometry;
@@ -47,6 +45,7 @@ public class Vision extends SubsystemBase {
       new Alert(
           "No AprilTag layout file found. Update APRILTAG_FIELD_LAYOUT_PATH in VisionConstants.java",
           AlertType.kWarning);
+  private final Alert unofficialAprilTagLayoutAlert = new Alert("", AlertType.kInfo);
 
   private boolean isEnabled = true;
   private boolean isVisionUpdating = false;
@@ -86,14 +85,6 @@ public class Vision extends SubsystemBase {
     // retrieve a reference to the pose estimator singleton
     this.odometry = RobotOdometry.getInstance();
 
-    // add an indicator to the main Shuffleboard tab to indicate whether vision is updating in order
-    // to alert the drive team if it is not.
-    ShuffleboardTab tabMain = Shuffleboard.getTab("MAIN");
-    tabMain
-        .addBoolean("isVisionUpdating", () -> isVisionUpdating)
-        .withPosition(7, 2)
-        .withSize(1, 2);
-
     // load and log all of the AprilTags in the field layout file
     try {
       layout = new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
@@ -101,6 +92,15 @@ public class Vision extends SubsystemBase {
     } catch (IOException e) {
       layout = new AprilTagFieldLayout(new ArrayList<>(), 16.4592, 8.2296);
       noAprilTagLayoutAlert.set(true);
+    }
+
+    // AprilTag layout alert
+    if (APRILTAG_FIELD_LAYOUT_PATH != OFFICIAL_APRILTAG_FIELD_LAYOUT_PATH) {
+      unofficialAprilTagLayoutAlert.set(true);
+      unofficialAprilTagLayoutAlert.setText(
+          "Unofficial AprilTag layout in use ("
+              + VisionConstants.APRILTAG_FIELD_LAYOUT_PATH.toString()
+              + ").");
     }
 
     for (AprilTag tag : layout.getTags()) {

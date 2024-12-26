@@ -2,8 +2,6 @@ package frc.robot.subsystems.subsystem;
 
 import static frc.robot.subsystems.subsystem.SubsystemConstants.*;
 
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -37,13 +35,6 @@ public class Subsystem extends SubsystemBase {
   public Subsystem(SubsystemIO io) {
 
     this.io = io;
-
-    // Create a Shuffleboard tab for this subsystem if testing is enabled. Add additional indicators
-    // and controls as needed.
-    if (TESTING) {
-      ShuffleboardTab tab = Shuffleboard.getTab(SUBSYSTEM_NAME);
-      tab.add(SUBSYSTEM_NAME, this);
-    }
 
     FaultReporter.getInstance().registerSystemCheck(SUBSYSTEM_NAME, getSystemCheckCommand());
   }

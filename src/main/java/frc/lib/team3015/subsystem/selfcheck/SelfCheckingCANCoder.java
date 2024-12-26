@@ -47,4 +47,9 @@ public class SelfCheckingCANCoder implements SelfChecking {
 
     return faults;
   }
+
+  @Override
+  public void clearStickyFaults() {
+    canCoder.clearStickyFaults();
+  }
 }

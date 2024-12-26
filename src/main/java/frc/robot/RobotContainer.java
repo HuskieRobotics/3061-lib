@@ -4,8 +4,8 @@
 
 package frc.robot;
 
-import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.events.EventTrigger;
 import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -30,8 +30,8 @@ import frc.lib.team3061.vision.VisionIO;
 import frc.lib.team3061.vision.VisionIOPhotonVision;
 import frc.lib.team3061.vision.VisionIOSim;
 import frc.robot.Constants.Mode;
+import frc.robot.commands.CharacterizationCommands;
 import frc.robot.commands.TeleopSwerve;
-import frc.robot.commands.WheelDiameterCharacterization;
 import frc.robot.configs.ArtemisRobotConfig;
 import frc.robot.configs.DefaultRobotConfig;
 import frc.robot.configs.NewPracticeRobotConfig;
@@ -76,8 +76,7 @@ public class RobotContainer {
       "Could not find the specified AprilTags layout file";
   private Alert layoutFileMissingAlert = new Alert(LAYOUT_FILE_MISSING, AlertType.kError);
 
-  // RobotContainer singleton
-  private static RobotContainer robotContainer = new RobotContainer();
+  private Alert tuningAlert = new Alert("Tuning mode enabled", AlertType.kInfo);
 
   /**
    * Create the container for the robot. Contains subsystems, operator interface (OI) devices, and
@@ -140,6 +139,11 @@ public class RobotContainer {
     updateOI();
 
     configureAutoCommands();
+
+    // Alert when tuning
+    if (Constants.TUNING_MODE) {
+      this.tuningAlert.set(true);
+    }
   }
 
   /**
@@ -268,15 +272,6 @@ public class RobotContainer {
     configureButtonBindings();
   }
 
-  /**
-   * Factory method to create the singleton robot container object.
-   *
-   * @return the singleton robot container object
-   */
-  public static RobotContainer getInstance() {
-    return robotContainer;
-  }
-
   /** Use this method to define your button->command mappings. */
   private void configureButtonBindings() {
 
@@ -320,18 +315,10 @@ public class RobotContainer {
 
   /** Use this method to define your commands for autonomous mode. */
   private void configureAutoCommands() {
-    // Waypoints
-    NamedCommands.registerCommand("command1", Commands.print("passed marker 1"));
-    NamedCommands.registerCommand("command2", Commands.print("passed marker 2"));
-    NamedCommands.registerCommand(
-        "enableXStance", Commands.runOnce(drivetrain::enableXstance, drivetrain));
-    NamedCommands.registerCommand(
-        "disableXStance", Commands.runOnce(drivetrain::disableXstance, drivetrain));
-    NamedCommands.registerCommand("wait5Seconds", Commands.waitSeconds(5.0));
-    NamedCommands.registerCommand(
-        "EnableRotationOverride", Commands.runOnce(drivetrain::enableRotationOverride));
-    NamedCommands.registerCommand(
-        "DisableRotationOverride", Commands.runOnce(drivetrain::disableRotationOverride));
+    // Event Markers
+    new EventTrigger("Marker").onTrue(Commands.print("reached event marker"));
+    new EventTrigger("ZoneMarker").onTrue(Commands.print("entered zone"));
+    new EventTrigger("ZoneMarker").onFalse(Commands.print("left zone"));
 
     // build auto path commands
 
@@ -360,7 +347,7 @@ public class RobotContainer {
 
     /************ Distance Test ************
      *
-     * used for empirically determining the wheel diameter
+     * used for empirically determining the wheel radius
      *
      */
     autoChooser.addOption("Distance Test Slow", createTuningAutoPath("DistanceTestSlow", true));
@@ -438,22 +425,15 @@ public class RobotContainer {
                     Commands.run(
                         () -> drivetrain.drive(0.1, -0.1, 0.0, true, false), drivetrain)))));
 
-    /************ Drive Wheel Diameter Characterization ************
+    /************ Drive Wheel Radius Characterization ************
      *
-     * useful for characterizing the drive wheel diameter
+     * useful for characterizing the drive wheel Radius
      *
      */
     autoChooser.addOption( // start by driving slowing in a circle to align wheels
-        "Drive Wheel Diameter Characterization",
-        Commands.sequence(
-                Commands.deadline(
-                    Commands.waitSeconds(0.5),
-                    Commands.run(() -> drivetrain.drive(0.0, 0.0, 0.1, true, false), drivetrain)),
-                Commands.deadline(
-                    Commands.waitSeconds(0.25),
-                    Commands.run(() -> drivetrain.drive(0.0, 0.0, 0.0, true, false), drivetrain)),
-                new WheelDiameterCharacterization(drivetrain))
-            .withName("Drive Wheel Diameter Characterization"));
+        "Drive Wheel Radius Characterization",
+        CharacterizationCommands.wheelRadiusCharacterization(drivetrain)
+            .withName("Drive Wheel Radius Characterization"));
 
     Shuffleboard.getTab("MAIN").add(autoChooser.getSendableChooser());
   }

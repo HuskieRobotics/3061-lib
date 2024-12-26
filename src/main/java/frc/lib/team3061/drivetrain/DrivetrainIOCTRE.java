@@ -3,16 +3,14 @@ package frc.lib.team3061.drivetrain;
 import static edu.wpi.first.units.Units.*;
 import static frc.lib.team3061.drivetrain.DrivetrainConstants.*;
 
-import com.ctre.phoenix6.BaseStatusSignal;
-import com.ctre.phoenix6.StatusCode;
-import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
-import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.DeviceEnableValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.swerve.SwerveDrivetrain;
 import com.ctre.phoenix6.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.swerve.SwerveModule;
@@ -24,20 +22,13 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.AngularAcceleration;
-import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Force;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
-import frc.lib.team3061.drivetrain.swerve.Conversions;
 import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
-import frc.lib.team3061.gyro.GyroIO.GyroIOInputs;
 import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team6328.util.LoggedTunableNumber;
 import frc.robot.Constants;
@@ -45,6 +36,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -60,28 +53,6 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
       this.kV = kV;
       this.kS = kS;
     }
-  }
-
-  static class SwerveModuleSignals {
-    public SwerveModuleSignals(TalonFX driveMotor, TalonFX steerMotor) {
-      this.steerVelocityStatusSignal = steerMotor.getVelocity().clone();
-      this.steerAccelerationStatusSignal = steerMotor.getAcceleration().clone();
-      this.steerPositionErrorStatusSignal = steerMotor.getClosedLoopError().clone();
-      this.steerPositionReferenceStatusSignal = steerMotor.getClosedLoopReference().clone();
-      this.drivePositionStatusSignal = driveMotor.getPosition().clone();
-      this.driveVelocityErrorStatusSignal = driveMotor.getClosedLoopError().clone();
-      this.driveVelocityReferenceStatusSignal = driveMotor.getClosedLoopReference().clone();
-      this.driveAccelerationStatusSignal = driveMotor.getAcceleration().clone();
-    }
-
-    StatusSignal<AngularVelocity> steerVelocityStatusSignal;
-    StatusSignal<AngularAcceleration> steerAccelerationStatusSignal;
-    StatusSignal<Double> steerPositionErrorStatusSignal;
-    StatusSignal<Double> steerPositionReferenceStatusSignal;
-    StatusSignal<Angle> drivePositionStatusSignal;
-    StatusSignal<Double> driveVelocityErrorStatusSignal;
-    StatusSignal<Double> driveVelocityReferenceStatusSignal;
-    StatusSignal<AngularAcceleration> driveAccelerationStatusSignal;
   }
 
   private final LoggedTunableNumber driveKp =
@@ -182,13 +153,13 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
               RobotConfig.getInstance().getSwerveConstants().getDriveGearRatio())
           .withSteerMotorGearRatio(
               RobotConfig.getInstance().getSwerveConstants().getAngleGearRatio())
-          .withWheelRadius(Meters.of(RobotConfig.getInstance().getWheelDiameterMeters() / 2.0))
+          .withWheelRadius(RobotConfig.getInstance().getWheelRadius())
           .withSlipCurrent(SwerveConstants.DRIVE_PEAK_CURRENT_LIMIT)
           .withSteerMotorGains(steerGains)
           .withDriveMotorGains(driveGains)
           .withSteerMotorClosedLoopOutput(steerClosedLoopOutput)
           .withDriveMotorClosedLoopOutput(driveClosedLoopOutput)
-          .withSpeedAt12Volts(MetersPerSecond.of(RobotConfig.getInstance().getRobotMaxVelocity()))
+          .withSpeedAt12Volts(RobotConfig.getInstance().getRobotMaxVelocity())
           .withSteerInertia(STEER_INERTIA)
           .withDriveInertia(DRIVE_INERTIA)
           .withSteerFrictionVoltage(STEER_FRICTION_VOLTAGE)
@@ -202,9 +173,9 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
           RobotConfig.getInstance().getSwerveSteerMotorCANIDs()[0],
           RobotConfig.getInstance().getSwerveDriveMotorCANIDs()[0],
           RobotConfig.getInstance().getSwerveSteerEncoderCANIDs()[0],
-          Rotations.of(RobotConfig.getInstance().getSwerveSteerOffsets()[0]),
-          Meters.of(RobotConfig.getInstance().getWheelbase() / 2.0),
-          Meters.of(RobotConfig.getInstance().getTrackwidth() / 2.0),
+          RobotConfig.getInstance().getSwerveSteerOffsets()[0],
+          RobotConfig.getInstance().getWheelbase().div(2.0),
+          RobotConfig.getInstance().getTrackwidth().div(2.0),
           !RobotConfig.getInstance().getSwerveConstants().isDriveMotorInverted(),
           RobotConfig.getInstance().getSwerveConstants().isAngleMotorInverted(),
           false);
@@ -213,9 +184,9 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
           RobotConfig.getInstance().getSwerveSteerMotorCANIDs()[1],
           RobotConfig.getInstance().getSwerveDriveMotorCANIDs()[1],
           RobotConfig.getInstance().getSwerveSteerEncoderCANIDs()[1],
-          Rotations.of(RobotConfig.getInstance().getSwerveSteerOffsets()[1]),
-          Meters.of(RobotConfig.getInstance().getWheelbase() / 2.0),
-          Meters.of(-RobotConfig.getInstance().getTrackwidth() / 2.0),
+          RobotConfig.getInstance().getSwerveSteerOffsets()[1],
+          RobotConfig.getInstance().getWheelbase().div(2.0),
+          RobotConfig.getInstance().getTrackwidth().div(-2.0),
           RobotConfig.getInstance().getSwerveConstants().isDriveMotorInverted(),
           RobotConfig.getInstance().getSwerveConstants().isAngleMotorInverted(),
           false);
@@ -224,9 +195,9 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
           RobotConfig.getInstance().getSwerveSteerMotorCANIDs()[2],
           RobotConfig.getInstance().getSwerveDriveMotorCANIDs()[2],
           RobotConfig.getInstance().getSwerveSteerEncoderCANIDs()[2],
-          Rotations.of(RobotConfig.getInstance().getSwerveSteerOffsets()[2]),
-          Meters.of(-RobotConfig.getInstance().getWheelbase() / 2.0),
-          Meters.of(RobotConfig.getInstance().getTrackwidth() / 2.0),
+          RobotConfig.getInstance().getSwerveSteerOffsets()[2],
+          RobotConfig.getInstance().getWheelbase().div(-2.0),
+          RobotConfig.getInstance().getTrackwidth().div(2.0),
           !RobotConfig.getInstance().getSwerveConstants().isDriveMotorInverted(),
           RobotConfig.getInstance().getSwerveConstants().isAngleMotorInverted(),
           false);
@@ -235,23 +206,12 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
           RobotConfig.getInstance().getSwerveSteerMotorCANIDs()[3],
           RobotConfig.getInstance().getSwerveDriveMotorCANIDs()[3],
           RobotConfig.getInstance().getSwerveSteerEncoderCANIDs()[3],
-          Rotations.of(RobotConfig.getInstance().getSwerveSteerOffsets()[3]),
-          Meters.of(-RobotConfig.getInstance().getWheelbase() / 2.0),
-          Meters.of(-RobotConfig.getInstance().getTrackwidth() / 2.0),
+          RobotConfig.getInstance().getSwerveSteerOffsets()[3],
+          RobotConfig.getInstance().getWheelbase().div(-2.0),
+          RobotConfig.getInstance().getTrackwidth().div(-2.0),
           RobotConfig.getInstance().getSwerveConstants().isDriveMotorInverted(),
           RobotConfig.getInstance().getSwerveConstants().isAngleMotorInverted(),
           false);
-
-  // gyro signals
-  private final StatusSignal<Angle> yawStatusSignal;
-  private final StatusSignal<Angle> pitchStatusSignal;
-  private final StatusSignal<Angle> rollStatusSignal;
-  private final StatusSignal<AngularVelocity> angularVelocityZStatusSignal;
-  private final StatusSignal<AngularVelocity> angularVelocityXStatusSignal;
-  private final StatusSignal<AngularVelocity> angularVelocityYStatusSignal;
-
-  // swerve module signals
-  SwerveModuleSignals[] swerveModulesSignals = new SwerveModuleSignals[4];
 
   private Translation2d centerOfRotation;
   private ChassisSpeeds targetChassisSpeeds;
@@ -277,19 +237,16 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   Queue<Double> gyroYawQueue;
   Queue<Double> timestampQueue;
 
+  // brake mode
+  private final MotorOutputConfigs driveConfig = new MotorOutputConfigs();
+  private final MotorOutputConfigs steerConfig = new MotorOutputConfigs();
+  private static final Executor brakeModeExecutor = Executors.newFixedThreadPool(1);
+
   // simulation
   private static final double SIM_LOOP_PERIOD = 0.005; // 5 ms
   private double lastSimTime;
 
-  /**
-   * Creates a new Drivetrain subsystem.
-   *
-   * @param gyroIO the abstracted interface for the gyro for the drivetrain
-   * @param flModule the front left swerve module
-   * @param frModule the front right swerve module
-   * @param blModule the back left swerve module
-   * @param brModule the back right swerve module
-   */
+  /** Creates a new Drivetrain subsystem. */
   public DrivetrainIOCTRE() {
     super(
         drivetrainConstants,
@@ -298,23 +255,6 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
         frontRight,
         backLeft,
         backRight);
-
-    this.yawStatusSignal = this.getPigeon2().getYaw().clone();
-    this.pitchStatusSignal = this.getPigeon2().getPitch().clone();
-    this.pitchStatusSignal.setUpdateFrequency(100);
-    this.rollStatusSignal = this.getPigeon2().getRoll().clone();
-    this.rollStatusSignal.setUpdateFrequency(100);
-    this.angularVelocityZStatusSignal = this.getPigeon2().getAngularVelocityZWorld().clone();
-    this.angularVelocityXStatusSignal = this.getPigeon2().getAngularVelocityXWorld().clone();
-    this.angularVelocityXStatusSignal.setUpdateFrequency(100);
-    this.angularVelocityYStatusSignal = this.getPigeon2().getAngularVelocityYWorld().clone();
-    this.angularVelocityYStatusSignal.setUpdateFrequency(100);
-
-    for (int i = 0; i < swerveModulesSignals.length; i++) {
-      swerveModulesSignals[i] =
-          new SwerveModuleSignals(
-              this.getModule(i).getSteerMotor(), this.getModule(i).getDriveMotor());
-    }
 
     this.centerOfRotation = new Translation2d(); // default to (0,0)
 
@@ -400,15 +340,12 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
 
   @Override
   public void updateInputs(DrivetrainIOInputsCollection inputs) {
-
-    // update and log gyro inputs
-    this.updateGyroInputs(inputs.gyro);
-
     // update and log the swerve modules inputs
-    for (int i = 0; i < swerveModulesSignals.length; i++) {
-      this.updateSwerveModuleInputs(inputs.swerve[i], this.getModule(i), swerveModulesSignals[i]);
+    for (int i = 0; i < this.getModules().length; i++) {
+      this.updateSwerveModuleInputs(inputs.swerve[i], this.getModule(i));
     }
 
+    inputs.drivetrain.swerveModulePositions = this.getState().ModulePositions;
     inputs.drivetrain.swerveMeasuredStates = this.getState().ModuleStates;
     inputs.drivetrain.swerveReferenceStates = this.getState().ModuleTargets;
 
@@ -420,6 +357,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     inputs.drivetrain.measuredChassisSpeeds = this.getState().Speeds;
 
     inputs.drivetrain.averageDriveCurrent = this.getAverageDriveCurrent(inputs);
+    inputs.drivetrain.rawHeadingDeg = this.getState().RawHeading.getDegrees();
 
     inputs.drivetrain.customPose = this.getState().Pose;
 
@@ -429,11 +367,11 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
         this.timestampQueue.stream().mapToDouble(Double::valueOf).toArray();
     this.timestampQueue.clear();
 
-    inputs.gyro.odometryYawPositions =
+    inputs.drivetrain.odometryYawPositions =
         this.gyroYawQueue.stream().map(Rotation2d::fromDegrees).toArray(Rotation2d[]::new);
     this.gyroYawQueue.clear();
 
-    for (int i = 0; i < swerveModulesSignals.length; i++) {
+    for (int i = 0; i < this.getModules().length; i++) {
       inputs.swerve[i].odometryDrivePositionsMeters =
           this.drivePositionQueues.get(i).stream().mapToDouble(Double::valueOf).toArray();
       inputs.swerve[i].odometryTurnPositions =
@@ -487,73 +425,9 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
         driveFacingAngleThetaKd);
   }
 
-  private void updateGyroInputs(GyroIOInputs inputs) {
-    BaseStatusSignal.refreshAll(
-        this.yawStatusSignal,
-        this.pitchStatusSignal,
-        this.rollStatusSignal,
-        this.angularVelocityZStatusSignal,
-        this.angularVelocityXStatusSignal,
-        this.angularVelocityYStatusSignal);
-
-    inputs.connected = (this.yawStatusSignal.getStatus() == StatusCode.OK);
-    inputs.yawDeg =
-        BaseStatusSignal.getLatencyCompensatedValue(
-                this.yawStatusSignal, this.angularVelocityZStatusSignal)
-            .in(Degrees);
-    inputs.pitchDeg =
-        BaseStatusSignal.getLatencyCompensatedValue(
-                this.pitchStatusSignal, this.angularVelocityYStatusSignal)
-            .in(Degrees);
-    inputs.rollDeg =
-        BaseStatusSignal.getLatencyCompensatedValue(
-                this.rollStatusSignal, this.angularVelocityXStatusSignal)
-            .in(Degrees);
-    inputs.rollDegPerSec = this.angularVelocityXStatusSignal.getValue().in(DegreesPerSecond);
-    inputs.pitchDegPerSec = this.angularVelocityYStatusSignal.getValue().in(DegreesPerSecond);
-    inputs.yawDegPerSec = this.angularVelocityZStatusSignal.getValue().in(DegreesPerSecond);
-  }
-
-  private void updateSwerveModuleInputs(
-      SwerveIOInputs inputs, SwerveModule module, SwerveModuleSignals signals) {
-
-    BaseStatusSignal.refreshAll(
-        signals.steerVelocityStatusSignal,
-        signals.steerAccelerationStatusSignal,
-        signals.steerPositionErrorStatusSignal,
-        signals.steerPositionReferenceStatusSignal,
-        signals.drivePositionStatusSignal,
-        signals.driveVelocityErrorStatusSignal,
-        signals.driveVelocityReferenceStatusSignal,
-        signals.driveAccelerationStatusSignal);
-
-    SwerveModulePosition position = module.getPosition(false);
-    SwerveModuleState state = module.getCurrentState();
-
+  private void updateSwerveModuleInputs(SwerveIOInputs inputs, SwerveModule module) {
     inputs.driveEnabled =
         module.getDriveMotor().getDeviceEnable().getValue() == DeviceEnableValue.Enabled;
-    inputs.driveDistanceMeters = position.distanceMeters;
-    inputs.driveVelocityMetersPerSec = state.speedMetersPerSecond;
-
-    // Retrieve the closed loop reference status signals directly from the motor in this method
-    // instead of retrieving in advance because the status signal returned depends on the current
-    // control mode.
-    inputs.driveVelocityReferenceMetersPerSec =
-        Conversions.falconRPSToMechanismMPS(
-            module.getDriveMotor().getClosedLoopReference().getValue(),
-            RobotConfig.getInstance().getWheelDiameterMeters() * Math.PI,
-            RobotConfig.getInstance().getSwerveConstants().getDriveGearRatio());
-    inputs.driveVelocityErrorMetersPerSec =
-        Conversions.falconRPSToMechanismMPS(
-            module.getDriveMotor().getClosedLoopError().getValue(),
-            RobotConfig.getInstance().getWheelDiameterMeters() * Math.PI,
-            RobotConfig.getInstance().getSwerveConstants().getDriveGearRatio());
-    inputs.driveAccelerationMetersPerSecPerSec =
-        Conversions.falconRPSToMechanismMPS(
-            signals.driveAccelerationStatusSignal.getValue().in(RotationsPerSecond.per(Second)),
-            RobotConfig.getInstance().getWheelDiameterMeters() * Math.PI,
-            RobotConfig.getInstance().getSwerveConstants().getDriveGearRatio());
-    inputs.driveAppliedVolts = module.getDriveMotor().getMotorVoltage().getValue().in(Volts);
     inputs.driveStatorCurrentAmps = module.getDriveMotor().getStatorCurrent().getValue().in(Amps);
     inputs.driveSupplyCurrentAmps = module.getDriveMotor().getSupplyCurrent().getValue().in(Amps);
     inputs.driveTempCelsius = module.getDriveMotor().getDeviceTemp().getValue().in(Celsius);
@@ -563,29 +437,6 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
 
     inputs.steerEnabled =
         module.getSteerMotor().getDeviceEnable().getValue() == DeviceEnableValue.Enabled;
-    // since we are using the FusedCANcoder feature, the position and velocity signal for the angle
-    // motor accounts for the gear ratio; so, pass a gear ratio of 1 to just convert from rotations
-    // to degrees.
-    inputs.steerPositionDeg = position.angle.getDegrees();
-
-    // Retrieve the closed loop reference status signals directly from the motor in this method
-    // instead of retrieving in advance because the status signal returned depends on the current
-    // control mode.
-    inputs.steerPositionReferenceDeg =
-        Conversions.falconRotationsToMechanismDegrees(
-            module.getSteerMotor().getClosedLoopReference().getValue(), 1);
-    inputs.steerPositionErrorDeg =
-        Conversions.falconRotationsToMechanismDegrees(
-            module.getSteerMotor().getClosedLoopError().getValue(), 1);
-    // FIXME: if the gear ratio is 1, we can just use the Units methods to convert the values
-    inputs.steerVelocityRevPerMin =
-        Conversions.falconRPSToMechanismRPM(
-            signals.steerVelocityStatusSignal.getValue().in(RotationsPerSecond), 1);
-    inputs.steerAccelerationMetersPerSecPerSec =
-        Conversions.falconRPSToMechanismRPM(
-            signals.steerAccelerationStatusSignal.getValue().in(RotationsPerSecond.per(Second)), 1);
-
-    inputs.steerAppliedVolts = module.getSteerMotor().getMotorVoltage().getValue().in(Volts);
     inputs.steerStatorCurrentAmps = module.getSteerMotor().getStatorCurrent().getValue().in(Amps);
     inputs.steerSupplyCurrentAmps = module.getSteerMotor().getSupplyCurrent().getValue().in(Amps);
     inputs.steerTempCelsius = module.getSteerMotor().getDeviceTemp().getValue().in(Celsius);
@@ -748,6 +599,23 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     for (int i = 0; i < this.getModules().length; i++) {
       this.getModule(i).getSteerMotor().setControl(steerCurrentRequests[i].withOutput(amps));
     }
+  }
+
+  @Override
+  public void setBrakeMode(boolean enable) {
+    // Change the neutral mode configuration in a separate thread since changing the configuration
+    // of a CTRE device may take a significant amount of time (~200 ms).
+    brakeModeExecutor.execute(
+        () -> {
+          for (SwerveModule swerveModule : this.getModules()) {
+            swerveModule
+                .getDriveMotor()
+                .setNeutralMode(enable ? NeutralModeValue.Brake : NeutralModeValue.Coast, 0.25);
+            swerveModule
+                .getSteerMotor()
+                .setNeutralMode(enable ? NeutralModeValue.Brake : NeutralModeValue.Coast, 0.25);
+          }
+        });
   }
 
   /**

@@ -9,6 +9,7 @@
 
 package frc.robot.commands;
 
+import static edu.wpi.first.units.Units.*;
 import static frc.robot.Constants.*;
 
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -63,26 +64,32 @@ public class DriveToPose extends Command {
           "DriveToPose/ThetaKi", RobotConfig.getInstance().getDriveToPoseThetaKI());
   private static final LoggedTunableNumber driveMaxVelocity =
       new LoggedTunableNumber(
-          "DriveToPose/DriveMaxVelocity",
-          RobotConfig.getInstance().getDriveToPoseDriveMaxVelocity());
+          "DriveToPose/DriveMaxVelocityMetersPerSecond",
+          RobotConfig.getInstance().getDriveToPoseDriveMaxVelocity().in(MetersPerSecond));
   private static final LoggedTunableNumber driveMaxAcceleration =
       new LoggedTunableNumber(
-          "DriveToPose/DriveMaxAcceleration",
-          RobotConfig.getInstance().getDriveToPoseDriveMaxAcceleration());
+          "DriveToPose/DriveMaxAccelerationMetersPerSecondPerSecond",
+          RobotConfig.getInstance()
+              .getDriveToPoseDriveMaxAcceleration()
+              .in(MetersPerSecondPerSecond));
   private static final LoggedTunableNumber thetaMaxVelocity =
       new LoggedTunableNumber(
-          "DriveToPose/ThetaMaxVelocity",
-          RobotConfig.getInstance().getDriveToPoseTurnMaxVelocity());
+          "DriveToPose/ThetaMaxVelocityRadiansPerSecond",
+          RobotConfig.getInstance().getDriveToPoseTurnMaxVelocity().in(RadiansPerSecond));
   private static final LoggedTunableNumber thetaMaxAcceleration =
       new LoggedTunableNumber(
-          "DriveToPose/ThetaMaxAcceleration",
-          RobotConfig.getInstance().getDriveToPoseTurnMaxAcceleration());
+          "DriveToPose/ThetaMaxAccelerationRadiansPerSecondPerSecond",
+          RobotConfig.getInstance()
+              .getDriveToPoseTurnMaxAcceleration()
+              .in(RadiansPerSecondPerSecond));
   private static final LoggedTunableNumber driveTolerance =
       new LoggedTunableNumber(
-          "DriveToPose/DriveTolerance", RobotConfig.getInstance().getDriveToPoseDriveTolerance());
+          "DriveToPose/DriveToleranceMeters",
+          RobotConfig.getInstance().getDriveToPoseDriveTolerance().in(Meters));
   private static final LoggedTunableNumber thetaTolerance =
       new LoggedTunableNumber(
-          "DriveToPose/ThetaTolerance", RobotConfig.getInstance().getDriveToPoseThetaTolerance());
+          "DriveToPose/ThetaToleranceRadians",
+          RobotConfig.getInstance().getDriveToPoseThetaTolerance().in(Radians));
   private static final LoggedTunableNumber timeout =
       new LoggedTunableNumber("DriveToPose/timeout", 5.0);
 

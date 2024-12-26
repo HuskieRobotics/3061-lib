@@ -23,20 +23,17 @@ public class SelfCheckingPigeon2 implements SelfChecking {
   public List<SubsystemFault> checkForFaults() {
     List<SubsystemFault> faults = new ArrayList<>();
 
-    if (pigeon.getFault_Hardware().getValue() == Boolean.TRUE) {
-      faults.add(new SubsystemFault(String.format("[%s]: Hardware fault detected", label)));
-    }
     if (pigeon.getFault_BootDuringEnable().getValue() == Boolean.TRUE) {
       faults.add(new SubsystemFault(String.format("[%s]: Device booted while enabled", label)));
     }
     if (pigeon.getFault_BootIntoMotion().getValue() == Boolean.TRUE) {
       faults.add(new SubsystemFault(String.format("[%s]: Device booted while in motion", label)));
     }
-    if (pigeon.getFault_BootupGyroscope().getValue() == Boolean.TRUE) {
-      faults.add(new SubsystemFault(String.format("[%s]: Gyro fault detected", label)));
-    }
     if (pigeon.getFault_BootupAccelerometer().getValue() == Boolean.TRUE) {
       faults.add(new SubsystemFault(String.format("[%s]: Accelerometer fault detected", label)));
+    }
+    if (pigeon.getFault_BootupGyroscope().getValue() == Boolean.TRUE) {
+      faults.add(new SubsystemFault(String.format("[%s]: Gyro fault detected", label)));
     }
     if (pigeon.getFault_BootupMagnetometer().getValue() == Boolean.TRUE) {
       faults.add(new SubsystemFault(String.format("[%s]: Magnetometer fault detected", label)));
@@ -47,7 +44,7 @@ public class SelfCheckingPigeon2 implements SelfChecking {
               String.format("[%s]: Motion stack data acquisition slower than expected", label)));
     }
     if (pigeon.getFault_Hardware().getValue() == Boolean.TRUE) {
-      faults.add(new SubsystemFault(String.format("[%s]: Hardware failure", label)));
+      faults.add(new SubsystemFault(String.format("[%s]: Hardware fault detected", label)));
     }
     if (pigeon.getFault_LoopTimeSlow().getValue() == Boolean.TRUE) {
       faults.add(
@@ -79,5 +76,10 @@ public class SelfCheckingPigeon2 implements SelfChecking {
     }
 
     return faults;
+  }
+
+  @Override
+  public void clearStickyFaults() {
+    pigeon.clearStickyFaults();
   }
 }

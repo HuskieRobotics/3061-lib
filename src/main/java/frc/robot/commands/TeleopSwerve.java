@@ -1,5 +1,7 @@
 package frc.robot.commands;
 
+import static edu.wpi.first.units.Units.*;
+
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.lib.team3061.RobotConfig;
@@ -37,20 +39,21 @@ public class TeleopSwerve extends Command {
   private double lastXVelocity;
   private double lastYVelocity;
 
-  private final double maxVelocityMetersPerSecond = RobotConfig.getInstance().getRobotMaxVelocity();
+  private final double maxVelocityMetersPerSecond =
+      RobotConfig.getInstance().getRobotMaxVelocity().in(MetersPerSecond);
   private final double maxAngularVelocityRadiansPerSecond =
-      RobotConfig.getInstance().getRobotMaxAngularVelocity();
+      RobotConfig.getInstance().getRobotMaxAngularVelocity().in(RadiansPerSecond);
 
   private final LoggedTunableNumber maxTurnAcceleration =
       new LoggedTunableNumber(
           "TeleopSwerve/maxTurnAcceleration",
-          RobotConfig.getInstance().getRobotMaxTurnAcceleration());
+          RobotConfig.getInstance().getRobotMaxTurnAcceleration().in(RadiansPerSecondPerSecond));
   private final LoggedTunableNumber joystickPower =
       new LoggedTunableNumber("TeleopSwerve/joystickPower", 2.0);
   private final LoggedTunableNumber maxDriveAcceleration =
       new LoggedTunableNumber(
           "TeleopSwerve/maxDriveAcceleration",
-          RobotConfig.getInstance().getRobotMaxDriveAcceleration());
+          RobotConfig.getInstance().getRobotMaxDriveAcceleration().in(MetersPerSecondPerSecond));
 
   /**
    * Create a new TeleopSwerve command object.
