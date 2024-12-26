@@ -12,10 +12,11 @@ public final class VisionConstants {
   }
 
   public static final Path APRILTAG_FIELD_LAYOUT_PATH =
-      new File(Filesystem.getDeployDirectory(), "2024-preseason-vision.json").toPath();
+      new File(Filesystem.getDeployDirectory(), "home.json").toPath();
   // FIXME: update for the new season's file
   public static final Path OFFICIAL_APRILTAG_FIELD_LAYOUT_PATH =
       new File(Filesystem.getDeployDirectory(), "2024-crescendo.json").toPath();
+  public static final int MAX_NUMBER_TAGS = 30;
 
   public static final String SUBSYSTEM_NAME = "Vision";
 

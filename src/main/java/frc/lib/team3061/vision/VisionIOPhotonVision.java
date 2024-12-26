@@ -1,5 +1,7 @@
 package frc.lib.team3061.vision;
 
+import static frc.lib.team3061.vision.VisionConstants.MAX_NUMBER_TAGS;
+
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.networktables.NetworkTablesJNI;
@@ -40,7 +42,7 @@ public class VisionIOPhotonVision implements VisionIO {
             layout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, new Transform3d());
 
     // the index of the array corresponds to the tag ID; so, add one since there is no tag ID 0
-    this.tagsSeen = new boolean[layout.getTags().size() + 1];
+    this.tagsSeen = new boolean[MAX_NUMBER_TAGS + 1];
   }
 
   /**

@@ -34,11 +34,12 @@ public class Vision extends SubsystemBase {
   private static final int EXPIRATION_COUNT = 5;
 
   private VisionIO[] visionIOs;
-  private final VisionIOInputsAutoLogged[] ios;
+  private final VisionIOInputsAutoLogged[] inputs;
   private double[] lastTimestamps;
   private final Pose2d[] detectedAprilTags;
   private int[] cyclesWithNoResults;
   private int[] updatePoseCount;
+  private Alert[] disconnectedAlerts;
 
   private AprilTagFieldLayout layout;
   private Alert noAprilTagLayoutAlert =
@@ -77,9 +78,10 @@ public class Vision extends SubsystemBase {
     this.lastTimestamps = new double[visionIOs.length];
     this.cyclesWithNoResults = new int[visionIOs.length];
     this.updatePoseCount = new int[visionIOs.length];
-    this.ios = new VisionIOInputsAutoLogged[visionIOs.length];
+    this.inputs = new VisionIOInputsAutoLogged[visionIOs.length];
     for (int i = 0; i < visionIOs.length; i++) {
-      this.ios[i] = new VisionIOInputsAutoLogged();
+      this.inputs[i] = new VisionIOInputsAutoLogged();
+      this.disconnectedAlerts[i] = new Alert("camera" + i + " is disconnected", AlertType.kError);
     }
 
     // retrieve a reference to the pose estimator singleton
@@ -108,7 +110,7 @@ public class Vision extends SubsystemBase {
     }
 
     // index corresponds to tag ID; so, add 1 since there is no tag ID 0
-    this.detectedAprilTags = new Pose2d[this.layout.getTags().size() + 1];
+    this.detectedAprilTags = new Pose2d[MAX_NUMBER_TAGS + 1];
     for (int i = 0; i < this.detectedAprilTags.length; i++) {
       this.detectedAprilTags[i] = new Pose2d();
     }
@@ -130,8 +132,8 @@ public class Vision extends SubsystemBase {
     isVisionUpdating = false;
     for (int i = 0; i < visionIOs.length; i++) {
 
-      visionIOs[i].updateInputs(ios[i]);
-      Logger.processInputs(SUBSYSTEM_NAME + "/" + i, ios[i]);
+      visionIOs[i].updateInputs(inputs[i]);
+      Logger.processInputs(SUBSYSTEM_NAME + "/" + i, inputs[i]);
 
       processNewVisionData(i);
 
@@ -148,8 +150,8 @@ public class Vision extends SubsystemBase {
     }
 
     for (int visionIndex = 0; visionIndex < visionIOs.length; visionIndex++) {
-      for (int tagID = 1; tagID < ios[visionIndex].tagsSeen.length; tagID++) {
-        if (ios[visionIndex].tagsSeen[tagID]) {
+      for (int tagID = 1; tagID < inputs[visionIndex].tagsSeen.length; tagID++) {
+        if (inputs[visionIndex].tagsSeen[tagID]) {
           this.detectedAprilTags[tagID] =
               this.layout.getTagPose(tagID).orElse(new Pose3d()).toPose2d();
         }
@@ -158,14 +160,15 @@ public class Vision extends SubsystemBase {
     Logger.recordOutput(SUBSYSTEM_NAME + "/AprilTags", this.detectedAprilTags);
 
     Logger.recordOutput(SUBSYSTEM_NAME + "/IsEnabled", isEnabled);
+    Logger.recordOutput(SUBSYSTEM_NAME + "/IsUpdating", isVisionUpdating);
   }
 
   private void processNewVisionData(int i) {
     // only process the vision data if the timestamp is newer than the last one
-    if (this.lastTimestamps[i] < ios[i].estimatedCameraPoseTimestamp) {
-      this.lastTimestamps[i] = ios[i].estimatedCameraPoseTimestamp;
+    if (this.lastTimestamps[i] < inputs[i].estimatedCameraPoseTimestamp) {
+      this.lastTimestamps[i] = inputs[i].estimatedCameraPoseTimestamp;
       Pose3d estimatedRobotPose3d =
-          ios[i].estimatedCameraPose.plus(
+          inputs[i].estimatedCameraPose.plus(
               RobotConfig.getInstance().getRobotToCameraTransforms()[i].inverse());
       Pose2d estimatedRobotPose2d = estimatedRobotPose3d.toPose2d();
 
@@ -173,7 +176,7 @@ public class Vision extends SubsystemBase {
       // the past, the ambiguity is less than the threshold, and vision's estimated
       // pose is within the specified tolerance of the current pose
       if (isEnabled
-          && ios[i].ambiguity < AMBIGUITY_THRESHOLD
+          && inputs[i].ambiguity < AMBIGUITY_THRESHOLD
           && estimatedRobotPose2d
                   .getTranslation()
                   .getDistance(odometry.getEstimatedPose().getTranslation())
@@ -182,8 +185,8 @@ public class Vision extends SubsystemBase {
         // from the robot to the AprilTag (the greater the distance, the less confident we are
         // in the measurement)
         double timeStamp =
-            Math.min(ios[i].estimatedCameraPoseTimestamp, RobotController.getFPGATime() / 1e6);
-        Matrix<N3, N1> stdDev = getStandardDeviations(i, estimatedRobotPose2d, ios[i].ambiguity);
+            Math.min(inputs[i].estimatedCameraPoseTimestamp, RobotController.getFPGATime() / 1e6);
+        Matrix<N3, N1> stdDev = getStandardDeviations(i, estimatedRobotPose2d, inputs[i].ambiguity);
         odometry.addVisionMeasurement(
             estimatedRobotPose2d,
             Utils.fpgaToCurrentTime(timeStamp),
@@ -197,14 +200,15 @@ public class Vision extends SubsystemBase {
         Logger.recordOutput(SUBSYSTEM_NAME + "/" + i + "/StdDevT", stdDev.get(2, 0));
       }
 
-      Logger.recordOutput(SUBSYSTEM_NAME + "/" + i + "/CameraPose3d", ios[i].estimatedCameraPose);
       Logger.recordOutput(
-          SUBSYSTEM_NAME + "/" + i + "/CameraPose2d", ios[i].estimatedCameraPose.toPose2d());
+          SUBSYSTEM_NAME + "/" + i + "/CameraPose3d", inputs[i].estimatedCameraPose);
+      Logger.recordOutput(
+          SUBSYSTEM_NAME + "/" + i + "/CameraPose2d", inputs[i].estimatedCameraPose.toPose2d());
       Logger.recordOutput(SUBSYSTEM_NAME + "/" + i + "/RobotPose3d", estimatedRobotPose3d);
       Logger.recordOutput(SUBSYSTEM_NAME + "/" + i + "/RobotPose2d", estimatedRobotPose2d);
       Logger.recordOutput(
           SUBSYSTEM_NAME + "/" + i + "/TimestampDifference",
-          RobotController.getFPGATime() / 1e6 - ios[i].estimatedCameraPoseTimestamp);
+          RobotController.getFPGATime() / 1e6 - inputs[i].estimatedCameraPoseTimestamp);
 
       this.cyclesWithNoResults[i] = 0;
     } else {
@@ -239,21 +243,21 @@ public class Vision extends SubsystemBase {
     double mostRecentTimestamp = 0.0;
     for (int i = 0; i < visionIOs.length; i++) {
       // if multi pose then do the reprojection error, if not then do the ambiguity here
-      if (ios[i].poseFromMultiTag) {
-        if (ios[i].estimatedCameraPoseTimestamp > mostRecentTimestamp
-            && ios[i].reprojectionError < REPROJECTION_ERROR_THRESHOLD) {
+      if (inputs[i].poseFromMultiTag) {
+        if (inputs[i].estimatedCameraPoseTimestamp > mostRecentTimestamp
+            && inputs[i].reprojectionError < REPROJECTION_ERROR_THRESHOLD) {
           robotPoseFromMostRecentData =
-              ios[i].estimatedCameraPose.plus(
+              inputs[i].estimatedCameraPose.plus(
                   RobotConfig.getInstance().getRobotToCameraTransforms()[i].inverse());
-          mostRecentTimestamp = ios[i].estimatedCameraPoseTimestamp;
+          mostRecentTimestamp = inputs[i].estimatedCameraPoseTimestamp;
         }
       } else {
-        if (ios[i].estimatedCameraPoseTimestamp > mostRecentTimestamp
-            && ios[i].ambiguity < AMBIGUITY_THRESHOLD) {
+        if (inputs[i].estimatedCameraPoseTimestamp > mostRecentTimestamp
+            && inputs[i].ambiguity < AMBIGUITY_THRESHOLD) {
           robotPoseFromMostRecentData =
-              ios[i].estimatedCameraPose.plus(
+              inputs[i].estimatedCameraPose.plus(
                   RobotConfig.getInstance().getRobotToCameraTransforms()[i].inverse());
-          mostRecentTimestamp = ios[i].estimatedCameraPoseTimestamp;
+          mostRecentTimestamp = inputs[i].estimatedCameraPoseTimestamp;
         }
       }
     }
@@ -285,7 +289,7 @@ public class Vision extends SubsystemBase {
    */
   public boolean posesHaveConverged() {
     for (int i = 0; i < visionIOs.length; i++) {
-      Pose3d robotPose = ios[i].estimatedCameraPose;
+      Pose3d robotPose = inputs[i].estimatedCameraPose;
       if (odometry.getEstimatedPose().minus(robotPose.toPose2d()).getTranslation().getNorm()
           < poseDifferenceThreshold.get()) {
         Logger.recordOutput(SUBSYSTEM_NAME + "/posesInLine", true);
@@ -310,9 +314,9 @@ public class Vision extends SubsystemBase {
     Matrix<N3, N1> estStdDevs = VecBuilder.fill(1, 1, 10);
     int numTags = 0;
     double avgDist = 0;
-    for (int tagID = 0; tagID < ios[index].tagsSeen.length; tagID++) {
+    for (int tagID = 0; tagID < inputs[index].tagsSeen.length; tagID++) {
       Optional<Pose3d> tagPose = layout.getTagPose(tagID);
-      if (!ios[index].tagsSeen[tagID] || tagPose.isEmpty()) {
+      if (!inputs[index].tagsSeen[tagID] || tagPose.isEmpty()) {
         continue;
       }
       numTags++;
