@@ -5,6 +5,7 @@
 package frc.lib.team3061.gyro;
 
 import static edu.wpi.first.units.Units.*;
+import static frc.lib.team3061.drivetrain.DrivetrainConstants.SUBSYSTEM_NAME;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
@@ -13,6 +14,8 @@ import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.sim.Pigeon2SimState;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.RobotController;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
@@ -29,6 +32,9 @@ public class GyroIOPigeon2Phoenix6 implements GyroIO {
   private final StatusSignal<AngularVelocity> angularVelocityYStatusSignal;
   private final StatusSignal<AngularVelocity> angularVelocityZStatusSignal;
   private final Pigeon2SimState gyroSim;
+
+  private final Alert refreshAlert =
+      new Alert("Failed to refresh signals in " + SUBSYSTEM_NAME, AlertType.kError);
 
   public GyroIOPigeon2Phoenix6(int id) {
     gyro = new Pigeon2(id, RobotConfig.getInstance().getCANBusName());
@@ -56,18 +62,17 @@ public class GyroIOPigeon2Phoenix6 implements GyroIO {
 
   @Override
   public void updateInputs(GyroIOInputs inputs) {
-    // only invoke refresh if Phoenix is not licensed (if licensed, these signals have already been
-    // refreshed)
-    if (!RobotConfig.getInstance().getPhoenix6Licensed()) {
-      BaseStatusSignal.refreshAll(this.yawStatusSignal, this.angularVelocityZStatusSignal);
-    } else {
-      BaseStatusSignal.refreshAll(
-          this.yawStatusSignal,
-          this.angularVelocityZStatusSignal,
-          this.pitchStatusSignal,
-          this.rollStatusSignal,
-          this.angularVelocityXStatusSignal,
-          this.angularVelocityYStatusSignal);
+    StatusCode status =
+        BaseStatusSignal.refreshAll(
+            this.yawStatusSignal,
+            this.angularVelocityZStatusSignal,
+            this.pitchStatusSignal,
+            this.rollStatusSignal,
+            this.angularVelocityXStatusSignal,
+            this.angularVelocityYStatusSignal);
+    if (status != StatusCode.OK) {
+      refreshAlert.setText("Failed to refresh signals in " + SUBSYSTEM_NAME + "; code: " + status);
+      refreshAlert.set(true);
     }
 
     inputs.connected = (this.yawStatusSignal.getStatus() == StatusCode.OK);
