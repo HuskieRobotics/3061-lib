@@ -71,7 +71,7 @@ public class DualJoysticksOI implements OperatorInterface {
   }
 
   @Override
-  public Trigger getTurboButton() {
+  public Trigger getResetPoseToVisionButton() {
     return translateJoystickButtons[1];
   }
 }
