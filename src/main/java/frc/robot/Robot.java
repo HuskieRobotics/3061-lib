@@ -141,8 +141,7 @@ public class Robot extends LoggedRobot {
         poses -> Logger.recordOutput("PathFollowing/activePath", poses.toArray(new Pose2d[0])));
 
     // Start timers
-    disabledTimer.reset();
-    disabledTimer.start();
+    disabledTimer.restart();
 
     // Instantiate our RobotContainer. This will perform all our button bindings,
     // and put our autonomous chooser on the dashboard.
