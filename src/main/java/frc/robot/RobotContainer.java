@@ -71,6 +71,7 @@ public class RobotContainer {
 
   private Alert pathFileMissingAlert =
       new Alert("Could not find the specified path file.", AlertType.kError);
+  private Alert tuningAlert = new Alert("Tuning mode enabled", AlertType.kInfo);
 
   /**
    * Create the container for the robot. Contains subsystems, operator interface (OI) devices, and
@@ -128,6 +129,11 @@ public class RobotContainer {
     updateOI();
 
     configureAutoCommands();
+
+    // Alert when tuning
+    if (Constants.TUNING_MODE) {
+      this.tuningAlert.set(true);
+    }
   }
 
   /**
