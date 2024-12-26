@@ -45,6 +45,7 @@ public class Vision extends SubsystemBase {
       new Alert(
           "No AprilTag layout file found. Update APRILTAG_FIELD_LAYOUT_PATH in VisionConstants.java",
           AlertType.kWarning);
+  private final Alert unofficialAprilTagLayoutAlert = new Alert("", AlertType.kInfo);
 
   private boolean isEnabled = true;
   private boolean isVisionUpdating = false;
@@ -91,6 +92,15 @@ public class Vision extends SubsystemBase {
     } catch (IOException e) {
       layout = new AprilTagFieldLayout(new ArrayList<>(), 16.4592, 8.2296);
       noAprilTagLayoutAlert.set(true);
+    }
+
+    // AprilTag layout alert
+    if (APRILTAG_FIELD_LAYOUT_PATH != OFFICIAL_APRILTAG_FIELD_LAYOUT_PATH) {
+      unofficialAprilTagLayoutAlert.set(true);
+      unofficialAprilTagLayoutAlert.setText(
+          "Unofficial AprilTag layout in use ("
+              + VisionConstants.APRILTAG_FIELD_LAYOUT_PATH.toString()
+              + ").");
     }
 
     for (AprilTag tag : layout.getTags()) {
