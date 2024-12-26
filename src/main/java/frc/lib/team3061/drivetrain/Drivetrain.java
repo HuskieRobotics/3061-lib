@@ -4,6 +4,7 @@
 
 package frc.lib.team3061.drivetrain;
 
+import static edu.wpi.first.units.Units.*;
 import static frc.lib.team3061.drivetrain.DrivetrainConstants.*;
 import static frc.robot.Constants.*;
 
@@ -786,7 +787,7 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
     for (int i = 0; i < inputs.swerve.length; i++) {
       positions[i] =
           inputs.drivetrain.swerveModulePositions[i].distanceMeters
-              / (RobotConfig.getInstance().getWheelRadiusMeters());
+              / (RobotConfig.getInstance().getWheelRadius().in(Meters));
     }
     return positions;
   }
@@ -1074,7 +1075,8 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
 
     } else if (!DriverStation.isEnabled()) {
       boolean stillMoving = false;
-      double velocityLimit = RobotConfig.getInstance().getRobotMaxCoastVelocity();
+      double velocityLimit =
+          RobotConfig.getInstance().getRobotMaxCoastVelocity().in(MetersPerSecond);
       if (Math.abs(this.inputs.drivetrain.measuredChassisSpeeds.vxMetersPerSecond) > velocityLimit
           || Math.abs(this.inputs.drivetrain.measuredChassisSpeeds.vyMetersPerSecond)
               > velocityLimit) {

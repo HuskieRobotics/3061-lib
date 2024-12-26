@@ -13,6 +13,8 @@
 
 package frc.robot.commands;
 
+import static edu.wpi.first.units.Units.*;
+
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
@@ -29,8 +31,8 @@ public class CharacterizationCommands {
   private static final double WHEEL_RADIUS_RAMP_RATE = 0.05; // Rad/Sec^2
   private static final double DRIVE_RADIUS =
       Math.hypot(
-          RobotConfig.getInstance().getTrackwidth() / 2.0,
-          RobotConfig.getInstance().getWheelbase() / 2.0);
+          RobotConfig.getInstance().getTrackwidth().in(Meters) / 2.0,
+          RobotConfig.getInstance().getWheelbase().in(Meters) / 2.0);
 
   private CharacterizationCommands() {}
 

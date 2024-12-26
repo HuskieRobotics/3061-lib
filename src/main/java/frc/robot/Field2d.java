@@ -1,5 +1,7 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.*;
+
 import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
@@ -219,11 +221,11 @@ public class Field2d {
     if (alliance == Alliance.Blue) {
       return RobotOdometry.getInstance().getEstimatedPose().getX()
           > FieldConstants.StagingLocations.centerlineX
-              + RobotConfig.getInstance().getRobotLengthWithBumpers() / 2;
+              + RobotConfig.getInstance().getRobotLengthWithBumpers().in(Meters) / 2;
     } else {
       return RobotOdometry.getInstance().getEstimatedPose().getX()
           < FieldConstants.StagingLocations.centerlineX
-              - RobotConfig.getInstance().getRobotLengthWithBumpers() / 2;
+              - RobotConfig.getInstance().getRobotLengthWithBumpers().in(Meters) / 2;
     }
   }
 }
