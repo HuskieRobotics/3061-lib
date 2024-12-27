@@ -17,11 +17,8 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.RobotController;
-import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 import frc.robot.Constants;
-import java.util.ArrayList;
-import java.util.List;
 
 public class GyroIOPigeon2Phoenix6 implements GyroIO {
   private final Pigeon2 gyro;
@@ -50,8 +47,6 @@ public class GyroIOPigeon2Phoenix6 implements GyroIO {
     this.angularVelocityYStatusSignal.setUpdateFrequency(100);
     this.angularVelocityZStatusSignal = this.gyro.getAngularVelocityZWorld().clone();
     this.angularVelocityZStatusSignal.setUpdateFrequency(100);
-
-    FaultReporter.getInstance().registerHardware("Drivetrain", "gyro", gyro);
 
     if (Constants.getMode() == Constants.Mode.SIM) {
       this.gyroSim = this.gyro.getSimState();
@@ -95,25 +90,5 @@ public class GyroIOPigeon2Phoenix6 implements GyroIO {
     if (Constants.getMode() == Constants.Mode.SIM) {
       this.gyroSim.setSupplyVoltage(RobotController.getBatteryVoltage());
     }
-  }
-
-  @Override
-  public void setYaw(double yaw) {
-    this.gyro.setYaw(yaw, 0.1);
-  }
-
-  @Override
-  public void addYaw(double yaw) {
-    if (Constants.getMode() == Constants.Mode.SIM) {
-      this.gyroSim.addYaw(yaw);
-    }
-  }
-
-  @Override
-  public List<BaseStatusSignal> getOdometryStatusSignals() {
-    ArrayList<BaseStatusSignal> signals = new ArrayList<>();
-    signals.add(this.yawStatusSignal);
-    signals.add(this.angularVelocityZStatusSignal);
-    return signals;
   }
 }
