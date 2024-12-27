@@ -44,6 +44,11 @@ public class VisionTestPlatformConfig extends RobotConfig {
   }
 
   @Override
+  public double[] getCameraStdDevFactors() {
+    return new double[] {1.0};
+  }
+
+  @Override
   public double getOdometryUpdateFrequency() {
     return 250.0;
   }

@@ -20,15 +20,28 @@ public final class VisionConstants {
 
   public static final String SUBSYSTEM_NAME = "Vision";
 
+  public static final double BEST_POSE_TIME_THRESHOLD_SECS = 0.5;
+
+  public static final double TARGET_LOG_TIME_SECS = 0.1;
+
   // the pose ambiguity must be less than this value for the target to be considered valid
   public static final double AMBIGUITY_THRESHOLD = 0.5;
 
   // arbitrary for now, wait until testing on robot
   public static final double REPROJECTION_ERROR_THRESHOLD = 100.0;
 
+  public static final double MAX_Z_ERROR_METERS = 0.75; // FIXME: tune
+
+  public static final double FIELD_BORDER_MARGIN = 0.5;
+
   // this factor is applied to the pose ambiguity when calculating the standard deviation to pass to
   // the pose estimator
   public static final double AMBIGUITY_SCALE_FACTOR = 0.2;
+
+  public static final double REPROJECTION_SCALE_FACTOR = 0.3;
+
+  public static final double X_Y_STD_DEV_COEFFICIENT = 0.005;
+  public static final double THETA_STD_DEV_COEFFICIENT = 0.01;
 
   // the maximum distance between the robot's pose derived from the target and the current robot's
   // estimated pose for the target to be used to update the robot's pose (essentially, always use a

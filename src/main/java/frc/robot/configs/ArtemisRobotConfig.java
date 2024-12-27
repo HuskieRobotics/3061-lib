@@ -400,6 +400,11 @@ public class ArtemisRobotConfig extends RobotConfig {
   }
 
   @Override
+  public double[] getCameraStdDevFactors() {
+    return new double[] {1.0, 1.0, 1.0, 1.0};
+  }
+
+  @Override
   public double getDriveToPoseDriveKP() {
     return DRIVE_TO_POSE_DRIVE_KP;
   }

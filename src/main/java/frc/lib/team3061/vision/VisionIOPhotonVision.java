@@ -5,8 +5,8 @@ import static frc.lib.team3061.vision.VisionConstants.MAX_NUMBER_TAGS;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.networktables.NetworkTablesJNI;
-import edu.wpi.first.wpilibj.Alert;
-import edu.wpi.first.wpilibj.Alert.AlertType;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
@@ -23,10 +23,8 @@ import org.photonvision.targeting.PhotonPipelineResult;
 public class VisionIOPhotonVision implements VisionIO {
   private static final int EXPIRATION_COUNT = 5;
 
-  private Alert noCameraConnectedAlert =
-      new Alert("specified camera not connected", AlertType.kWarning);
-  private final PhotonCamera camera;
-  private final PhotonPoseEstimator photonEstimator;
+  protected final PhotonCamera camera;
+  protected PhotonPoseEstimator photonEstimator;
   private final boolean[] tagsSeen;
   private int cyclesWithNoResults = 0;
 
@@ -54,51 +52,47 @@ public class VisionIOPhotonVision implements VisionIO {
   public void updateInputs(VisionIOInputs inputs) {
     this.cyclesWithNoResults += 1;
 
+    inputs.connected = camera.isConnected();
+    List<VisionIO.PoseObservation> observations = new ArrayList<>();
+
     for (PhotonPipelineResult result : camera.getAllUnreadResults()) {
       Optional<EstimatedRobotPose> visionEstimate = this.photonEstimator.update(result);
 
       visionEstimate.ifPresent(
           estimate -> {
-            inputs.estimatedCameraPose = estimate.estimatedPose;
-            inputs.estimatedCameraPoseTimestamp = estimate.timestampSeconds;
-            inputs.latencySecs = NetworkTablesJNI.now() - result.getTimestampSeconds();
-            for (int i = 0; i < this.tagsSeen.length; i++) {
-              this.tagsSeen[i] = false;
-            }
+            long tagsSeenBitMap = 0;
+            double averageAmbiguity = 0.0;
+            double averageTagDistance = 0.0;
+
             for (int i = 0; i < estimate.targetsUsed.size(); i++) {
-              this.tagsSeen[estimate.targetsUsed.get(i).getFiducialId()] = true;
+              tagsSeenBitMap |= 1L << estimate.targetsUsed.get(i).getFiducialId();
+              averageAmbiguity += estimate.targetsUsed.get(i).getPoseAmbiguity();
+              averageTagDistance +=
+                  estimate.targetsUsed.get(i).getBestCameraToTarget().getTranslation().getNorm();
             }
-            inputs.tagsSeen = this.tagsSeen;
-            inputs.poseFromMultiTag =
-                estimate.strategy == PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR;
+            averageAmbiguity /= estimate.targetsUsed.size();
+            averageTagDistance /= estimate.targetsUsed.size();
 
-            inputs.ambiguity = 0;
-            for (int i = 0; i < estimate.targetsUsed.size(); i++) {
-              inputs.ambiguity += estimate.targetsUsed.get(i).getPoseAmbiguity();
-            }
-            inputs.ambiguity /= estimate.targetsUsed.size();
-
-            if (inputs.poseFromMultiTag) {
-              inputs.ambiguity = 0.2;
-
-              // unit of reprojection error is pixels
-              result.multitagResult.ifPresent(
-                  multiTagResult ->
-                      inputs.reprojectionError = multiTagResult.estimatedPose.bestReprojErr);
-            }
+            observations.add(
+                new PoseObservation(
+                    result.getTimestampSeconds(),
+                    estimate.estimatedPose,
+                    NetworkTablesJNI.now() - result.getTimestampSeconds(),
+                    averageAmbiguity,
+                    result.multitagResult.isPresent()
+                        ? result.multitagResult.get().estimatedPose.bestReprojErr
+                        : 0.0,
+                    tagsSeenBitMap,
+                    estimate.targetsUsed.size(),
+                    averageTagDistance,
+                    estimate.strategy == PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR
+                        ? PoseObservationType.MULTI_TAG
+                        : PoseObservationType.SINGLE_TAG));
 
             this.cyclesWithNoResults = 0;
           });
     }
 
-    // if no tags have been seen for the specified number of cycles, clear the array
-    if (this.cyclesWithNoResults == EXPIRATION_COUNT) {
-      for (int i = 0; i < this.tagsSeen.length; i++) {
-        this.tagsSeen[i] = false;
-      }
-      inputs.tagsSeen = this.tagsSeen;
-    }
-
-    noCameraConnectedAlert.set(!camera.isConnected());
+    inputs.poseObservations = observations.toArray(new PoseObservation[0]);
   }
 }
