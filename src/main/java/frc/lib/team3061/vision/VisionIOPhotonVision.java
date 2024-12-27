@@ -2,9 +2,9 @@ package frc.lib.team3061.vision;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.networktables.NetworkTablesJNI;
-import edu.wpi.first.wpilibj.Alert;
-import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj.Timer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
@@ -12,21 +12,9 @@ import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 import org.photonvision.targeting.PhotonPipelineResult;
 
-/**
- * PhotonVision-based implementation of the VisionIO interface.
- *
- * <p>Adapted from
- * https://github.com/PhotonVision/photonvision/blob/master/photonlib-java-examples/swervedriveposeestsim/src/main/java/frc/robot/Vision.java
- */
 public class VisionIOPhotonVision implements VisionIO {
-  private static final int EXPIRATION_COUNT = 5;
-
-  private Alert noCameraConnectedAlert =
-      new Alert("specified camera not connected", AlertType.kWarning);
-  private final PhotonCamera camera;
-  private final PhotonPoseEstimator photonEstimator;
-  private final boolean[] tagsSeen;
-  private int cyclesWithNoResults = 0;
+  protected final PhotonCamera camera;
+  protected PhotonPoseEstimator photonEstimator;
 
   /**
    * Creates a new VisionIOPhotonVision object.
@@ -35,12 +23,15 @@ public class VisionIOPhotonVision implements VisionIO {
    */
   public VisionIOPhotonVision(String cameraName, AprilTagFieldLayout layout) {
     this.camera = new PhotonCamera(cameraName);
+
+    // Don't pass the robot to camera transform as we will work with the estimated camera poses and
+    // later transform them to the robot's frame
     this.photonEstimator =
         new PhotonPoseEstimator(
             layout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, new Transform3d());
 
-    // the index of the array corresponds to the tag ID; so, add one since there is no tag ID 0
-    this.tagsSeen = new boolean[layout.getTags().size() + 1];
+    // flush any old results from previous results
+    this.camera.getAllUnreadResults();
   }
 
   /**
@@ -50,53 +41,45 @@ public class VisionIOPhotonVision implements VisionIO {
    */
   @Override
   public void updateInputs(VisionIOInputs inputs) {
-    this.cyclesWithNoResults += 1;
+    inputs.connected = camera.isConnected();
+    List<VisionIO.PoseObservation> observations = new ArrayList<>();
 
     for (PhotonPipelineResult result : camera.getAllUnreadResults()) {
       Optional<EstimatedRobotPose> visionEstimate = this.photonEstimator.update(result);
 
       visionEstimate.ifPresent(
           estimate -> {
-            inputs.estimatedCameraPose = estimate.estimatedPose;
-            inputs.estimatedCameraPoseTimestamp = estimate.timestampSeconds;
-            inputs.latencySecs = NetworkTablesJNI.now() - result.getTimestampSeconds();
-            for (int i = 0; i < this.tagsSeen.length; i++) {
-              this.tagsSeen[i] = false;
-            }
+            long tagsSeenBitMap = 0;
+            double averageAmbiguity = 0.0;
+            double averageTagDistance = 0.0;
+
             for (int i = 0; i < estimate.targetsUsed.size(); i++) {
-              this.tagsSeen[estimate.targetsUsed.get(i).getFiducialId()] = true;
+              tagsSeenBitMap |= 1L << estimate.targetsUsed.get(i).getFiducialId();
+              averageAmbiguity += estimate.targetsUsed.get(i).getPoseAmbiguity();
+              averageTagDistance +=
+                  estimate.targetsUsed.get(i).getBestCameraToTarget().getTranslation().getNorm();
             }
-            inputs.tagsSeen = this.tagsSeen;
-            inputs.poseFromMultiTag =
-                estimate.strategy == PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR;
+            averageAmbiguity /= estimate.targetsUsed.size();
+            averageTagDistance /= estimate.targetsUsed.size();
 
-            inputs.ambiguity = 0;
-            for (int i = 0; i < estimate.targetsUsed.size(); i++) {
-              inputs.ambiguity += estimate.targetsUsed.get(i).getPoseAmbiguity();
-            }
-            inputs.ambiguity /= estimate.targetsUsed.size();
-
-            if (inputs.poseFromMultiTag) {
-              inputs.ambiguity = 0.2;
-
-              // unit of reprojection error is pixels
-              result.multitagResult.ifPresent(
-                  multiTagResult ->
-                      inputs.reprojectionError = multiTagResult.estimatedPose.bestReprojErr);
-            }
-
-            this.cyclesWithNoResults = 0;
+            observations.add(
+                new PoseObservation(
+                    result.getTimestampSeconds(),
+                    estimate.estimatedPose,
+                    Timer.getFPGATimestamp() - result.getTimestampSeconds(),
+                    averageAmbiguity,
+                    result.multitagResult.isPresent()
+                        ? result.multitagResult.get().estimatedPose.bestReprojErr
+                        : 0.0,
+                    tagsSeenBitMap,
+                    estimate.targetsUsed.size(),
+                    averageTagDistance,
+                    estimate.strategy == PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR
+                        ? PoseObservationType.MULTI_TAG
+                        : PoseObservationType.SINGLE_TAG));
           });
     }
 
-    // if no tags have been seen for the specified number of cycles, clear the array
-    if (this.cyclesWithNoResults == EXPIRATION_COUNT) {
-      for (int i = 0; i < this.tagsSeen.length; i++) {
-        this.tagsSeen[i] = false;
-      }
-      inputs.tagsSeen = this.tagsSeen;
-    }
-
-    noCameraConnectedAlert.set(!camera.isConnected());
+    inputs.poseObservations = observations.toArray(new PoseObservation[0]);
   }
 }

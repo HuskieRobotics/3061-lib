@@ -1,13 +1,13 @@
 {
   "hubs": [
     {
-      "x": 214,
-      "y": 57,
-      "width": 1265,
-      "height": 867,
+      "x": 236,
+      "y": 25,
+      "width": 1775,
+      "height": 1127,
       "state": {
         "sidebar": {
-          "width": 300,
+          "width": 324,
           "expanded": [
             "/RealOutputs",
             "/RealOutputs/Drivetrain",
@@ -19,12 +19,9 @@
             "/NetworkInputs/Tuning/Vision",
             "/Tuning/Vision",
             "/RealOutputs/Odometry",
-            "/RealOutputs/PathFollowing",
-            "/RealOutputs/Vision/0",
             "/RealOutputs/SystemStatus/Drivetrain",
             "/RealOutputs/Drivetrain/DefaultPose/rotation",
             "/RealOutputs/Drivetrain/DefaultPose/translation",
-            "/Tuning",
             "/Vision/0",
             "/RealOutputs/RobotOdometry/pastPose",
             "/RealOutputs/RobotOdometry/pastPose/translation",
@@ -34,24 +31,36 @@
             "/RealOutputs/PathFollowing/targetPose",
             "/RealOutputs/PathFollowing/targetPose/translation",
             "/RealOutputs/PathFollowing/targetPose/rotation",
-            "/Drivetrain",
             "/Drivetrain/MeasuredChassisSpeeds",
             "/Drivetrain/ReferenceChassisSpeeds",
             "/Drivetrain/SwerveMeasuredStates",
             "/Drivetrain/SwerveMeasuredStates/0",
             "/Drivetrain/SwerveReferenceStates",
-            "/Drivetrain/SwerveReferenceStates/0"
+            "/Drivetrain/SwerveReferenceStates/0",
+            "/RealOutputs/Vision/0/RobotPose3d/translation",
+            "/RealOutputs/Vision/0/RobotPose3d",
+            "/RealOutputs/Vision/0/CameraPose3d",
+            "/RealOutputs/Vision/0/CameraPose3d/translation",
+            "/Vision",
+            "/Tuning",
+            "/RealOutputs/Vision/AprilTags/12",
+            "/RealOutputs/Vision/AprilTags/8",
+            "/RealOutputs/Vision/AprilTags/7",
+            "/RealOutputs/Vision/0",
+            "/Vision/0/PoseObservations",
+            "/Vision/0/PoseObservations/0",
+            "/RealOutputs/Vision/0/RobotPose2d"
           ]
         },
         "tabs": {
-          "selected": 5,
+          "selected": 2,
           "tabs": [
             {
               "type": 0,
               "title": "",
               "controller": null,
               "controllerUUID": "310mmnrbvfb1lv6k4swzfthvq3e5d83z",
-              "renderer": "#/",
+              "renderer": "#/tab-reference/3d-field",
               "controlsHeight": 0
             },
             {
@@ -67,22 +76,22 @@
                     "options": {}
                   },
                   {
+                    "type": "vision",
+                    "logKey": "/RealOutputs/Vision/AprilTags",
+                    "logType": "Pose3d[]",
+                    "visible": true,
+                    "options": {
+                      "color": "#00ff00",
+                      "size": "normal"
+                    }
+                  },
+                  {
                     "type": "ghost",
                     "logKey": "/RealOutputs/Drivetrain/Pose",
                     "logType": "Pose2d",
                     "visible": true,
                     "options": {
                       "color": "#00ff00"
-                    }
-                  },
-                  {
-                    "type": "vision",
-                    "logKey": "/RealOutputs/Vision/AprilTags",
-                    "logType": "Pose2d[]",
-                    "visible": true,
-                    "options": {
-                      "color": "#00ff00",
-                      "size": "normal"
                     }
                   },
                   {
@@ -115,20 +124,29 @@
                   },
                   {
                     "type": "ghost",
-                    "logKey": "/RealOutputs/Vision/0/RobotPose2d",
-                    "logType": "Pose2d",
-                    "visible": false,
-                    "options": {
-                      "color": "#ff8c00"
-                    }
-                  },
-                  {
-                    "type": "ghost",
                     "logKey": "/RealOutputs/RobotOdometry/pastPose",
                     "logType": "Pose2d",
                     "visible": false,
                     "options": {
                       "color": "#ff00ff"
+                    }
+                  },
+                  {
+                    "type": "ghost",
+                    "logKey": "/RealOutputs/Vision/RobotPosesAccepted",
+                    "logType": "Pose3d[]",
+                    "visible": true,
+                    "options": {
+                      "color": "#00ff00"
+                    }
+                  },
+                  {
+                    "type": "ghost",
+                    "logKey": "/RealOutputs/Vision/RobotPosesRejected",
+                    "logType": "Pose3d[]",
+                    "visible": true,
+                    "options": {
+                      "color": "#ff0000"
                     }
                   }
                 ],
@@ -159,7 +177,7 @@
                   {
                     "type": "vision",
                     "logKey": "/RealOutputs/Vision/AprilTags",
-                    "logType": "Pose2d[]",
+                    "logType": "Pose3d[]",
                     "visible": true,
                     "options": {
                       "color": "#00ff00",
@@ -184,31 +202,48 @@
                   },
                   {
                     "type": "ghost",
-                    "logKey": "/RealOutputs/Vision/0/RobotPose3d",
-                    "logType": "Pose3d",
+                    "logKey": "/RealOutputs/Vision/RobotPosesAccepted",
+                    "logType": "Pose3d[]",
                     "visible": true,
                     "options": {
                       "model": "3061 (Artemis)",
                       "color": "#00ff00"
                     }
+                  },
+                  {
+                    "type": "ghost",
+                    "logKey": "/RealOutputs/Vision/RobotPosesRejected",
+                    "logType": "Pose3d[]",
+                    "visible": true,
+                    "options": {
+                      "model": "3061 (Artemis)",
+                      "color": "#ff0000"
+                    }
+                  },
+                  {
+                    "type": "axes",
+                    "logKey": "/RealOutputs/Vision/0/CameraAxes",
+                    "logType": "Pose3d",
+                    "visible": true,
+                    "options": {}
                   }
                 ],
                 "game": "Evergreen",
                 "origin": "blue"
               },
-              "controllerUUID": "evx1fftrozhehzcwb3pbjh0pa9ucx1m9",
+              "controllerUUID": "a2ne20vy5gsiry2k68wixx7wpqhk1h7a",
               "renderer": {
                 "cameraIndex": -1,
                 "orbitFov": 50,
                 "cameraPosition": [
-                  -0.3955284141605109,
-                  35.518052935300666,
-                  -18.232925503756405
+                  0.35904632608452713,
+                  3.095022415398287,
+                  -6.6369207074994145
                 ],
                 "cameraTarget": [
-                  0.4636793215069811,
-                  -31.151342444290684,
-                  -4.693119975812605
+                  3.548328271261648,
+                  0.8448639919436073,
+                  -1.838462217564402
                 ]
               },
               "controlsHeight": 200
