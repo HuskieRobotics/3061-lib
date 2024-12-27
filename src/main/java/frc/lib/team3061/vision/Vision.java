@@ -3,7 +3,6 @@ package frc.lib.team3061.vision;
 import static frc.lib.team3061.vision.VisionConstants.*;
 
 import com.ctre.phoenix6.Utils;
-import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
@@ -40,7 +39,6 @@ public class Vision extends SubsystemBase {
   private VisionIO[] visionIOs;
   private final VisionIOInputsAutoLogged[] inputs;
   private double[] lastTimestamps;
-  private final Pose2d[] detectedAprilTags;
   private int[] cyclesWithNoResults;
   private int[] updatePoseCount;
   private Alert[] disconnectedAlerts;
@@ -61,23 +59,23 @@ public class Vision extends SubsystemBase {
   private double mostRecentBestPoseTimestamp = 0.0;
   private double mostRecentBestPoseStdDev = 0.0;
 
-  private final Map<Integer, Double> lastEstimateTimes = new HashMap<>();
   private final Map<Integer, Double> lastTagDetectionTimes = new HashMap<>();
+
+  private List<Pose3d> allRobotPoses = new ArrayList<>();
+  private List<Pose3d> allRobotPosesAccepted = new ArrayList<>();
+  private List<Pose3d> allRobotPosesRejected = new ArrayList<>();
 
   private final LoggedTunableNumber latencyAdjustmentSeconds =
       new LoggedTunableNumber("Vision/LatencyAdjustmentSeconds", 0.0);
-  private final LoggedTunableNumber poseDifferenceThreshold =
-      new LoggedTunableNumber("Vision/VisionPoseThreshold", POSE_DIFFERENCE_THRESHOLD_METERS);
-  private final LoggedTunableNumber stdDevSlopeDistance =
-      new LoggedTunableNumber("Vision/StdDevSlopeDistance", 0.10);
-  private final LoggedTunableNumber stdDevPowerDistance =
-      new LoggedTunableNumber("Vision/stdDevPowerDistance", 2.0);
-  private final LoggedTunableNumber stdDevMultiTagFactor =
-      new LoggedTunableNumber("Vision/stdDevMultiTagFactor", 0.2);
-  private final LoggedTunableNumber stdDevFactorAmbiguity =
-      new LoggedTunableNumber("Vision/StdDevSlopeFactorAmbiguity", 1.0);
-  private final LoggedTunableNumber stdDevFactorReprojection =
-      new LoggedTunableNumber("Vision/StdDevSlopeFactorReprojection", 1.0);
+  private final LoggedTunableNumber ambiguityScaleFactor =
+      new LoggedTunableNumber("Vision/AmbiguityScaleFactor", AMBIGUITY_SCALE_FACTOR);
+  private final LoggedTunableNumber reprojectionErrorScaleFactor =
+      new LoggedTunableNumber(
+          "Vision/ReprojectionErrorScaleFactor", REPROJECTION_ERROR_SCALE_FACTOR);
+  private final LoggedTunableNumber xyStdDevCoefficient =
+      new LoggedTunableNumber("Vision/XYStdDevCoefficient", X_Y_STD_DEV_COEFFICIENT);
+  private final LoggedTunableNumber thetaStdDevCoefficient =
+      new LoggedTunableNumber("Vision/ThetaStdDevCoefficient", THETA_STD_DEV_COEFFICIENT);
 
   /**
    * Create a new Vision subsystem. The number of VisionIO objects passed to the constructor must
@@ -97,11 +95,6 @@ public class Vision extends SubsystemBase {
     for (int i = 0; i < visionIOs.length; i++) {
       this.inputs[i] = new VisionIOInputsAutoLogged();
       this.disconnectedAlerts[i] = new Alert("camera" + i + " is disconnected", AlertType.kError);
-    }
-
-    // Create map of last frame times for instances
-    for (int i = 0; i < visionIOs.length; i++) {
-      lastEstimateTimes.put(i, 0.0);
     }
 
     // retrieve a reference to the pose estimator singleton
@@ -125,16 +118,6 @@ public class Vision extends SubsystemBase {
               + ").");
     }
 
-    for (AprilTag tag : layout.getTags()) {
-      Logger.recordOutput(SUBSYSTEM_NAME + "/AprilTags/" + tag.ID, tag.pose);
-    }
-
-    // index corresponds to tag ID; so, add 1 since there is no tag ID 0
-    this.detectedAprilTags = new Pose2d[MAX_NUMBER_TAGS + 1];
-    for (int i = 0; i < this.detectedAprilTags.length; i++) {
-      this.detectedAprilTags[i] = new Pose2d();
-    }
-
     Pose3d[] aprilTagsPoses = new Pose3d[this.layout.getTags().size()];
     for (int i = 0; i < aprilTagsPoses.length; i++) {
       aprilTagsPoses[i] = this.layout.getTags().get(i).pose;
@@ -156,12 +139,13 @@ public class Vision extends SubsystemBase {
       Logger.processInputs(SUBSYSTEM_NAME + "/" + cameraIndex, inputs[cameraIndex]);
     }
 
-    List<Pose3d> allRobotPoses = new LinkedList<>();
-    List<Pose3d> allRobotPosesAccepted = new LinkedList<>();
-    List<Pose3d> allRobotPosesRejected = new LinkedList<>();
+    this.allRobotPoses.clear();
+    this.allRobotPosesAccepted.clear();
+    this.allRobotPosesRejected.clear();
 
     for (int cameraIndex = 0; cameraIndex < visionIOs.length; cameraIndex++) {
       disconnectedAlerts[cameraIndex].set(!inputs[cameraIndex].connected);
+      this.cyclesWithNoResults[cameraIndex] += 1;
 
       // Initialize logging values
       List<Pose3d> tagPoses = new LinkedList<>();
@@ -170,17 +154,13 @@ public class Vision extends SubsystemBase {
       List<Pose3d> robotPosesAccepted = new LinkedList<>();
       List<Pose3d> robotPosesRejected = new LinkedList<>();
 
-      for (int observationIndex = 0;
-          observationIndex < inputs[cameraIndex].poseObservations.length;
-          observationIndex++) {
-        PoseObservation observation = inputs[cameraIndex].poseObservations[observationIndex];
-
-        // only process the vision data if the timestamp is newer than the last one
-        if (this.lastTimestamps[cameraIndex] < observation.timestamp()) {
-
-          lastEstimateTimes.put(cameraIndex, Timer.getFPGATimestamp());
-
-          // Get tag poses and update last detection times
+      for (PoseObservation observation : inputs[cameraIndex].poseObservations) {
+        // only process the vision data if the timestamp is newer than the last one and not in the
+        // future, which can happen when the robot code is restarted and PhotonVision is still
+        // running on other devices.
+        if (this.lastTimestamps[cameraIndex] < observation.timestamp()
+            && observation.timestamp() < Timer.getFPGATimestamp()) {
+          // get tag poses and update last detection times
           for (int tagID = 1; tagID < MAX_NUMBER_TAGS; tagID++) {
             if ((observation.tagsSeenBitMap() & (1L << tagID)) != 0) {
               lastTagDetectionTimes.put(tagID, Timer.getFPGATimestamp());
@@ -202,9 +182,10 @@ public class Vision extends SubsystemBase {
           Pose2d estimatedRobotPose2d = estimatedRobotPose3d.toPose2d();
           robotPoses.add(estimatedRobotPose3d);
 
-          // only update the pose estimator if the vision subsystem is enabled, the estimated pose
-          // is in the past, the ambiguity is less than the threshold, and vision's estimated
-          // pose is within the specified tolerance of the current pose
+          // only update the pose estimator if the vision subsystem is enabled and the vision's
+          // estimated pose is on (or very close to) the field
+          // for multi-tag strategies, ensure the reprojection error is less than the threshold; for
+          // single-tag, ensure the ambiguity is less than the threshold.
           boolean acceptPose =
               isEnabled
                   && (observation.type() == PoseObservationType.MULTI_TAG
@@ -215,9 +196,7 @@ public class Vision extends SubsystemBase {
 
           if (acceptPose) {
             robotPosesAccepted.add(estimatedRobotPose3d);
-            // when updating the pose estimator, specify standard deviations based on the distance
-            // from the robot to the AprilTag (the greater the distance, the less confident we are
-            // in the measurement)
+
             Matrix<N3, N1> stdDev = getStandardDeviations(cameraIndex, observation);
             odometry.addVisionMeasurement(
                 estimatedRobotPose2d,
@@ -225,6 +204,9 @@ public class Vision extends SubsystemBase {
                 latencyAdjustmentSeconds.get(),
                 stdDev);
 
+            // if the most-recent "best pose" is too old, capture a new one regardless of its
+            // standard deviation values; otherwise, only capture a new one if its standard
+            // deviation is lower than the current best pose
             if (mostRecentBestPoseTimestamp
                     < Timer.getFPGATimestamp() - BEST_POSE_TIME_THRESHOLD_SECS
                 || mostRecentBestPoseStdDev > stdDev.get(0, 0)) {
@@ -233,8 +215,9 @@ public class Vision extends SubsystemBase {
               mostRecentBestPoseStdDev = stdDev.get(0, 0);
             }
 
-            isVisionUpdating = true;
             this.updatePoseCount[cameraIndex]++;
+
+            // if there are multiple observations, only the last will be logged, which is fine
             Logger.recordOutput(
                 SUBSYSTEM_NAME + "/" + cameraIndex + "/UpdatePoseCount",
                 this.updatePoseCount[cameraIndex]);
@@ -242,24 +225,22 @@ public class Vision extends SubsystemBase {
             Logger.recordOutput(SUBSYSTEM_NAME + "/" + cameraIndex + "/StdDevY", stdDev.get(1, 0));
             Logger.recordOutput(SUBSYSTEM_NAME + "/" + cameraIndex + "/StdDevT", stdDev.get(2, 0));
           } else {
-
             robotPosesRejected.add(estimatedRobotPose3d);
           }
           this.cyclesWithNoResults[cameraIndex] = 0;
-
-        } else {
-          this.cyclesWithNoResults[cameraIndex] += 1;
+          isVisionUpdating = true;
         }
       }
 
-      // Log data from instance
+      // Log data for this camera
       Logger.recordOutput(
           SUBSYSTEM_NAME + "/" + cameraIndex + "/LatencySecs",
           Timer.getFPGATimestamp() - this.lastTimestamps[cameraIndex]);
-
+      Logger.recordOutput(
+          SUBSYSTEM_NAME + "/" + cameraIndex + "/CyclesWithNoResults",
+          this.cyclesWithNoResults[cameraIndex]);
       Logger.recordOutput(
           SUBSYSTEM_NAME + "/" + cameraIndex + "/TagPoses", tagPoses.toArray(Pose3d[]::new));
-
       Logger.recordOutput(
           SUBSYSTEM_NAME + "/" + cameraIndex + "/CameraPoses",
           robotPoses.toArray(new Pose3d[cameraPoses.size()]));
@@ -272,7 +253,6 @@ public class Vision extends SubsystemBase {
       Logger.recordOutput(
           SUBSYSTEM_NAME + "/" + cameraIndex + "/RobotPosesRejected",
           robotPosesRejected.toArray(new Pose3d[robotPosesRejected.size()]));
-
       Logger.recordOutput(
           SUBSYSTEM_NAME + "/" + cameraIndex + "/CameraAxes",
           new Pose3d(RobotOdometry.getInstance().getEstimatedPose())
@@ -296,7 +276,7 @@ public class Vision extends SubsystemBase {
     // Log tag poses
     List<Pose3d> allTagPoses = new ArrayList<>();
     for (Map.Entry<Integer, Double> detectionEntry : lastTagDetectionTimes.entrySet()) {
-      if (Timer.getFPGATimestamp() - detectionEntry.getValue() < TARGET_LOG_TIME_SECS) {
+      if (Timer.getFPGATimestamp() - detectionEntry.getValue() < TAG_LOG_TIME_SECS) {
         layout.getTagPose(detectionEntry.getKey()).ifPresent(allTagPoses::add);
       }
     }
@@ -304,14 +284,6 @@ public class Vision extends SubsystemBase {
 
     Logger.recordOutput(SUBSYSTEM_NAME + "/IsEnabled", isEnabled);
     Logger.recordOutput(SUBSYSTEM_NAME + "/IsUpdating", isVisionUpdating);
-  }
-
-  private boolean poseIsOnField(Pose3d pose) {
-    return pose.getX() > -FIELD_BORDER_MARGIN
-        && pose.getX() < layout.getFieldLength() + FIELD_BORDER_MARGIN
-        && pose.getY() > -FIELD_BORDER_MARGIN
-        && pose.getY() < layout.getFieldWidth() + FIELD_BORDER_MARGIN
-        && Math.abs(pose.getZ()) < MAX_Z_ERROR_METERS;
   }
 
   /**
@@ -347,6 +319,21 @@ public class Vision extends SubsystemBase {
   }
 
   /**
+   * Returns true if the specified pose is on the field (or within FIELD_BORDER_MARGIN_METERS in the
+   * x and y directions and MAX_Z_ERROR_METERS in the z direction).
+   *
+   * @param pose the pose to check
+   * @return true if the specified pose is on the field (or very close to it)
+   */
+  private boolean poseIsOnField(Pose3d pose) {
+    return pose.getX() > -FIELD_BORDER_MARGIN_METERS
+        && pose.getX() < layout.getFieldLength() + FIELD_BORDER_MARGIN_METERS
+        && pose.getY() > -FIELD_BORDER_MARGIN_METERS
+        && pose.getY() < layout.getFieldWidth() + FIELD_BORDER_MARGIN_METERS
+        && Math.abs(pose.getZ()) < MAX_Z_ERROR_METERS;
+  }
+
+  /**
    * The standard deviations of the estimated pose from {@link #getEstimatedGlobalPose()}, for use
    * with {@link edu.wpi.first.math.estimator.SwerveDrivePoseEstimator SwerveDrivePoseEstimator}.
    * This should only be used when there are targets visible.
@@ -355,28 +342,26 @@ public class Vision extends SubsystemBase {
    */
   private Matrix<N3, N1> getStandardDeviations(int index, PoseObservation observation) {
     double xyStdDev =
-        X_Y_STD_DEV_COEFFICIENT
+        xyStdDevCoefficient.get()
             * Math.pow(observation.averageTagDistance(), 2.0)
             / observation.numTags()
             * RobotConfig.getInstance().getCameraStdDevFactors()[index];
 
+    // for multi-tag strategies, scale the standard deviation by the reprojection error; for
+    // single-tag, scale by the ambiguity
     if (observation.type() == PoseObservationType.MULTI_TAG) {
-      xyStdDev *=
-          (stdDevFactorReprojection.get()
-              * observation.reprojectionError()
-              / REPROJECTION_SCALE_FACTOR);
+      xyStdDev *= (reprojectionErrorScaleFactor.get() * observation.reprojectionError());
     } else {
-      xyStdDev *=
-          (stdDevFactorAmbiguity.get() * observation.averageAmbiguity() / AMBIGUITY_SCALE_FACTOR);
+      xyStdDev *= (ambiguityScaleFactor.get() * observation.averageAmbiguity());
     }
 
+    // only trust the rotation component for multi-tag strategies; for single-tag, set the standard
+    // deviation to infinity
     double thetaStdDev =
         observation.type() == PoseObservationType.MULTI_TAG
-            ? THETA_STD_DEV_COEFFICIENT
+            ? thetaStdDevCoefficient.get()
                 * Math.pow(observation.averageTagDistance(), 2.0)
-                * (stdDevFactorReprojection.get()
-                    * observation.reprojectionError()
-                    / REPROJECTION_SCALE_FACTOR)
+                * (reprojectionErrorScaleFactor.get() * observation.reprojectionError())
                 / observation.numTags()
                 * RobotConfig.getInstance().getCameraStdDevFactors()[index]
             : Double.POSITIVE_INFINITY;

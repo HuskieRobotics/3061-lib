@@ -1,10 +1,8 @@
 package frc.lib.team3061.vision;
 
-import static frc.lib.team3061.vision.VisionConstants.MAX_NUMBER_TAGS;
-
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.networktables.NetworkTablesJNI;
+import edu.wpi.first.wpilibj.Timer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -14,19 +12,9 @@ import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 import org.photonvision.targeting.PhotonPipelineResult;
 
-/**
- * PhotonVision-based implementation of the VisionIO interface.
- *
- * <p>Adapted from
- * https://github.com/PhotonVision/photonvision/blob/master/photonlib-java-examples/swervedriveposeestsim/src/main/java/frc/robot/Vision.java
- */
 public class VisionIOPhotonVision implements VisionIO {
-  private static final int EXPIRATION_COUNT = 5;
-
   protected final PhotonCamera camera;
   protected PhotonPoseEstimator photonEstimator;
-  private final boolean[] tagsSeen;
-  private int cyclesWithNoResults = 0;
 
   /**
    * Creates a new VisionIOPhotonVision object.
@@ -35,12 +23,15 @@ public class VisionIOPhotonVision implements VisionIO {
    */
   public VisionIOPhotonVision(String cameraName, AprilTagFieldLayout layout) {
     this.camera = new PhotonCamera(cameraName);
+
+    // Don't pass the robot to camera transform as we will work with the estimated camera poses and
+    // later transform them to the robot's frame
     this.photonEstimator =
         new PhotonPoseEstimator(
             layout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, new Transform3d());
 
-    // the index of the array corresponds to the tag ID; so, add one since there is no tag ID 0
-    this.tagsSeen = new boolean[MAX_NUMBER_TAGS + 1];
+    // flush any old results from previous results
+    this.camera.getAllUnreadResults();
   }
 
   /**
@@ -50,8 +41,6 @@ public class VisionIOPhotonVision implements VisionIO {
    */
   @Override
   public void updateInputs(VisionIOInputs inputs) {
-    this.cyclesWithNoResults += 1;
-
     inputs.connected = camera.isConnected();
     List<VisionIO.PoseObservation> observations = new ArrayList<>();
 
@@ -77,7 +66,7 @@ public class VisionIOPhotonVision implements VisionIO {
                 new PoseObservation(
                     result.getTimestampSeconds(),
                     estimate.estimatedPose,
-                    NetworkTablesJNI.now() - result.getTimestampSeconds(),
+                    Timer.getFPGATimestamp() - result.getTimestampSeconds(),
                     averageAmbiguity,
                     result.multitagResult.isPresent()
                         ? result.multitagResult.get().estimatedPose.bestReprojErr
@@ -88,8 +77,6 @@ public class VisionIOPhotonVision implements VisionIO {
                     estimate.strategy == PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR
                         ? PoseObservationType.MULTI_TAG
                         : PoseObservationType.SINGLE_TAG));
-
-            this.cyclesWithNoResults = 0;
           });
     }
 

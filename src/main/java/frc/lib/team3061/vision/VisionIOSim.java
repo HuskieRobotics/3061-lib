@@ -1,5 +1,7 @@
 package frc.lib.team3061.vision;
 
+import static frc.lib.team3061.vision.VisionConstants.*;
+
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -17,9 +19,9 @@ import org.photonvision.simulation.VisionSystemSim;
  */
 public class VisionIOSim extends VisionIOPhotonVision {
   private static final String CAMERA_NAME = "simCamera";
-  private static final double DIAGONAL_FOV = 160; // FOV in degrees
-  private static final int IMG_WIDTH = 1280; // image width in px
-  private static final int IMG_HEIGHT = 960; // image heigh in px
+  private static final double DIAGONAL_FOV = 95.5; // FOV in degrees
+  private static final int IMG_WIDTH = 1600; // image width in px
+  private static final int IMG_HEIGHT = 1200; // image heigh in px
 
   private Supplier<Pose2d> poseSupplier;
   private VisionSystemSim visionSim;
@@ -42,15 +44,14 @@ public class VisionIOSim extends VisionIOPhotonVision {
     this.visionSim.addAprilTags(layout);
     SimCameraProperties cameraProp = new SimCameraProperties();
     cameraProp.setCalibration(IMG_WIDTH, IMG_HEIGHT, Rotation2d.fromDegrees(DIAGONAL_FOV));
-    // cameraProp.setCalibError(0.35, 0.10);
-    // cameraProp.setFPS(15);
-    // cameraProp.setAvgLatencyMs(50);
-    // cameraProp.setLatencyStdDevMs(15);
+    cameraProp.setCalibError(SIM_AVERAGE_ERROR_PIXELS, SIM_ERROR_STD_DEV_PIXELS);
+    cameraProp.setFPS(15);
+    cameraProp.setAvgLatencyMs(100);
+    cameraProp.setLatencyStdDevMs(30);
 
     this.cameraSim = new PhotonCameraSim(camera, cameraProp);
 
     visionSim.addCamera(cameraSim, robotToCamera);
-    cameraSim.enableDrawWireframe(false);
   }
 
   /**
