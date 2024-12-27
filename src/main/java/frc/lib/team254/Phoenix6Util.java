@@ -21,10 +21,12 @@ public class Phoenix6Util {
   private Phoenix6Util() {}
 
   /**
-   * checks the specified error code for issues
+   * Checks the specified status code and sets the specified alert to the specified message if the
+   * status code is not OK.
    *
-   * @param statusCode error code
-   * @param message message to print if error happens
+   * @param statusCode status code to check
+   * @param message message to set in the alert if the status code is not OK
+   * @param alert alert to set if the status code is not OK
    */
   public static void checkError(StatusCode statusCode, String message, Alert alert) {
     if (statusCode != StatusCode.OK) {
@@ -33,6 +35,15 @@ public class Phoenix6Util {
     }
   }
 
+  /**
+   * Invokes the specified CTRE function until it is successful or the number of tries is exceeded.
+   * Sets the specified alert if the function fails.
+   *
+   * @param function CTRE function to invoke
+   * @param alert alert to set if the function fails
+   * @param numTries number of times to try the function
+   * @return true if the function was successful, false otherwise
+   */
   public static boolean checkErrorAndRetry(
       Supplier<StatusCode> function, Alert alert, int numTries) {
     StatusCode code = function.get();
@@ -52,14 +63,16 @@ public class Phoenix6Util {
       alert.set(true);
       return false;
     }
+    alert.set(false);
     return true;
   }
 
   /**
-   * checks the specified error code and throws an exception if there are any issues
+   * Checks the specified status code and throws an exception with the specified message of it is
+   * not OK.
    *
-   * @param statusCode error code
-   * @param message message to print if error happens
+   * @param statusCode status code to check
+   * @param message message to include with the exception if the status code is not OK
    */
   public static void checkErrorWithThrow(StatusCode statusCode, String message) {
     if (statusCode != StatusCode.OK) {
@@ -67,10 +80,28 @@ public class Phoenix6Util {
     }
   }
 
+  /**
+   * Invokes the specified CTRE function until it is successful or five tries are exceeded.
+   *
+   * @param function CTRE function to invoke
+   * @param alert Alert to set if the function fails
+   * @return true if the function was successful, false otherwise
+   */
   public static boolean checkErrorAndRetry(Supplier<StatusCode> function, Alert alert) {
     return checkErrorAndRetry(function, alert, 5);
   }
 
+  /**
+   * Applies the specified configuration to the specified TalonFX and checks that the configuration
+   * was applied successfully. If not, retries the specified number of tries; eventually, setting
+   * the specified alert if the number of tries is exceeded.
+   *
+   * @param talon TalonFX to which to apply the configuration
+   * @param config TalonFX configuration to apply
+   * @param alert alert to set if the configuration is not applied successfully
+   * @param numTries number of times to try to apply the configuration
+   * @return true if the configuration was applied successfully, false otherwise
+   */
   public static boolean applyAndCheckConfiguration(
       TalonFX talon, TalonFXConfiguration config, Alert alert, int numTries) {
     for (int i = 0; i < numTries; i++) {
@@ -106,6 +137,15 @@ public class Phoenix6Util {
     return false;
   }
 
+  /**
+   * Reads the configuration from the specified TalonFX and verifies that it matches the specified
+   * configuration. If the configuration does not match, sets the specified alert.
+   *
+   * @param talon TalonFX from which to read the configuration
+   * @param config TalonFX configuration to verify
+   * @param alert alert to set if the configuration does not match
+   * @return true if the configuration was read and matched, false otherwise
+   */
   public static boolean readAndVerifyConfiguration(
       TalonFX talon, TalonFXConfiguration config, Alert alert) {
     TalonFXConfiguration readConfig = new TalonFXConfiguration();
@@ -125,6 +165,16 @@ public class Phoenix6Util {
     }
   }
 
+  /**
+   * Applies the specified configuration to the specified TalonFX and checks that the configuration
+   * was applied successfully. If not, retries five times; eventually, setting the specified alert
+   * if the number of tries is exceeded.
+   *
+   * @param talon TalonFX to which to apply the configuration
+   * @param config TalonFX configuration to apply
+   * @param alert alert to set if the configuration is not applied successfully
+   * @return true if the configuration was applied successfully, false otherwise
+   */
   public static boolean applyAndCheckConfiguration(
       TalonFX talon, TalonFXConfiguration config, Alert alert) {
     return applyAndCheckConfiguration(talon, config, alert, 5);

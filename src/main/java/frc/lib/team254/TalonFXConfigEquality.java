@@ -14,9 +14,15 @@ import edu.wpi.first.math.MathUtil;
 public class TalonFXConfigEquality {
 
   public static final boolean ENABLE_LOGGING_INEQUALITY = true;
-
   public static final double TALON_CONFIG_EPSILON = 0.05;
 
+  /**
+   * Returns true if the two specified TalonFX configurations are equal; otherwise, false.
+   *
+   * @param a first TalonFX configuration to compare
+   * @param b second TalonFX configuration to compare
+   * @return true if the two specified TalonFX configurations are equal; otherwise, false
+   */
   public static boolean isEqual(TalonFXConfiguration a, TalonFXConfiguration b) {
     return isEqual(a.Slot0, b.Slot0)
         && isEqual(a.Slot1, b.Slot1)
@@ -34,6 +40,13 @@ public class TalonFXConfigEquality {
         && isEqual(a.MotionMagic, b.MotionMagic);
   }
 
+  /**
+   * Returns true if the two specified slot 0 configurations are equal; otherwise, false.
+   *
+   * @param a first slot 0 configuration to compare
+   * @param b second slot 0 configuration to compare
+   * @return true if the two specified slot 0 configurations are equal; otherwise, false
+   */
   public static boolean isEqual(Slot0Configs a, Slot0Configs b) {
     boolean val =
         MathUtil.isNear(a.kP, b.kP, TALON_CONFIG_EPSILON)
@@ -47,6 +60,13 @@ public class TalonFXConfigEquality {
     return val;
   }
 
+  /**
+   * Returns true if the two specified slot 1 configurations are equal; otherwise, false.
+   *
+   * @param a first slot 1 configuration to compare
+   * @param b second slot 1 configuration to compare
+   * @return true if the two specified slot 1 configurations are equal; otherwise, false
+   */
   public static boolean isEqual(Slot1Configs a, Slot1Configs b) {
     boolean val =
         MathUtil.isNear(a.kP, b.kP, TALON_CONFIG_EPSILON)
@@ -60,6 +80,13 @@ public class TalonFXConfigEquality {
     return val;
   }
 
+  /**
+   * Returns true if the two specified slot 2 configurations are equal; otherwise, false.
+   *
+   * @param a first slot 2 configuration to compare
+   * @param b second slot 2 configuration to compare
+   * @return true if the two specified slot 2 configurations are equal; otherwise, false
+   */
   public static boolean isEqual(Slot2Configs a, Slot2Configs b) {
     boolean val =
         MathUtil.isNear(a.kP, b.kP, TALON_CONFIG_EPSILON)
@@ -73,6 +100,13 @@ public class TalonFXConfigEquality {
     return val;
   }
 
+  /**
+   * Returns true if the two specified motor output configurations are equal; otherwise, false.
+   *
+   * @param a first motor output configuration to compare
+   * @param b second motor output configuration to compare
+   * @return true if the two specified motor output configurations are equal; otherwise, false
+   */
   public static boolean isEqual(MotorOutputConfigs a, MotorOutputConfigs b) {
     boolean val =
         a.Inverted.value == b.Inverted.value
@@ -88,6 +122,13 @@ public class TalonFXConfigEquality {
     return val;
   }
 
+  /**
+   * Returns true if the two specified current limits configurations are equal; otherwise, false.
+   *
+   * @param a first current limits configuration to compare
+   * @param b second current limits configuration to compare
+   * @return true if the two specified current limits configurations are equal; otherwise, false
+   */
   public static boolean isEqual(CurrentLimitsConfigs a, CurrentLimitsConfigs b) {
     boolean val =
         MathUtil.isNear(a.StatorCurrentLimit, b.StatorCurrentLimit, TALON_CONFIG_EPSILON)
@@ -100,6 +141,13 @@ public class TalonFXConfigEquality {
     return val;
   }
 
+  /**
+   * Returns true if the two specified voltage configurations are equal; otherwise, false.
+   *
+   * @param a first voltage configuration to compare
+   * @param b second voltage configuration to compare
+   * @return true if the two specified voltage configurations are equal; otherwise, false
+   */
   public static boolean isEqual(VoltageConfigs a, VoltageConfigs b) {
     boolean val =
         MathUtil.isNear(
@@ -112,6 +160,13 @@ public class TalonFXConfigEquality {
     return val;
   }
 
+  /**
+   * Returns true if the two specified torque current configurations are equal; otherwise, false.
+   *
+   * @param a first torque current configuration to compare
+   * @param b second torque current configuration to compare
+   * @return true if the two specified torque current configurations are equal; otherwise, false
+   */
   public static boolean isEqual(TorqueCurrentConfigs a, TorqueCurrentConfigs b) {
     boolean val =
         MathUtil.isNear(
@@ -126,6 +181,13 @@ public class TalonFXConfigEquality {
     return val;
   }
 
+  /**
+   * Returns true if the two specified feedback configurations are equal; otherwise, false.
+   *
+   * @param a first feedback configuration to compare
+   * @param b second feedback configuration to compare
+   * @return true if the two specified feedback configurations are equal; otherwise, false
+   */
   public static boolean isEqual(FeedbackConfigs a, FeedbackConfigs b) {
     boolean val =
         MathUtil.isNear(a.FeedbackRotorOffset, b.FeedbackRotorOffset, TALON_CONFIG_EPSILON)
@@ -155,6 +217,13 @@ public class TalonFXConfigEquality {
     return val;
   }
 
+  /**
+   * Returns true if the two specified open loop ramps configurations are equal; otherwise, false.
+   *
+   * @param a first open loop ramps configuration to compare
+   * @param b second open loop ramps configuration to compare
+   * @return true if the two specified open loop ramps configurations are equal; otherwise, false
+   */
   public static boolean isEqual(OpenLoopRampsConfigs a, OpenLoopRampsConfigs b) {
     boolean val =
         MathUtil.isNear(
@@ -169,6 +238,13 @@ public class TalonFXConfigEquality {
     return val;
   }
 
+  /**
+   * Returns true if the two specified closed loop ramps configurations are equal; otherwise, false.
+   *
+   * @param a first closed loop ramps configuration to compare
+   * @param b second closed loop ramps configuration to compare
+   * @return true if the two specified closed loop ramps configurations are equal; otherwise, false
+   */
   public static boolean isEqual(ClosedLoopRampsConfigs a, ClosedLoopRampsConfigs b) {
     boolean val =
         MathUtil.isNear(
@@ -185,6 +261,15 @@ public class TalonFXConfigEquality {
     return val;
   }
 
+  /**
+   * Returns true if the two specified hardware limit switch configurations are equal; otherwise,
+   * false.
+   *
+   * @param a first hardware limit switch configuration to compare
+   * @param b second hardware limit switch configuration to compare
+   * @return true if the two specified hardware limit switch configurations are equal; otherwise,
+   *     false
+   */
   public static boolean isEqual(HardwareLimitSwitchConfigs a, HardwareLimitSwitchConfigs b) {
     boolean val =
         a.ForwardLimitAutosetPositionEnable == b.ForwardLimitAutosetPositionEnable
@@ -211,6 +296,13 @@ public class TalonFXConfigEquality {
     return val;
   }
 
+  /**
+   * Returns true if the two specified audio configurations are equal; otherwise, false.
+   *
+   * @param a first audio configuration to compare
+   * @param b second audio configuration to compare
+   * @return true if the two specified audio configurations are equal; otherwise, false
+   */
   public static boolean isEqual(AudioConfigs a, AudioConfigs b) {
     boolean val = a.BeepOnBoot == b.BeepOnBoot;
     if (ENABLE_LOGGING_INEQUALITY && !val) {
@@ -219,6 +311,13 @@ public class TalonFXConfigEquality {
     return val;
   }
 
+  /**
+   * Returns true if the two specified software limit switch configurations are equal; otherwise,
+   *
+   * @param a first software limit switch configuration to compare
+   * @param b second software limit switch configuration to compare
+   * @return true if the two specified software limit switch configurations are equal; otherwise,
+   */
   public static boolean isEqual(SoftwareLimitSwitchConfigs a, SoftwareLimitSwitchConfigs b) {
     boolean val =
         MathUtil.isNear(
@@ -233,6 +332,13 @@ public class TalonFXConfigEquality {
     return val;
   }
 
+  /**
+   * Returns true if the two specified motion magic configurations are equal; otherwise, false.
+   *
+   * @param a first motion magic configuration to compare
+   * @param b second motion magic configuration to compare
+   * @return true if the two specified motion magic configurations are equal; otherwise, false
+   */
   public static boolean isEqual(MotionMagicConfigs a, MotionMagicConfigs b) {
     boolean val =
         MathUtil.isNear(a.MotionMagicAcceleration, b.MotionMagicAcceleration, TALON_CONFIG_EPSILON)

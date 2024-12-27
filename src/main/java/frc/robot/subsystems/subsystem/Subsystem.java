@@ -210,6 +210,7 @@ public class Subsystem extends SubsystemBase {
 
   private Command getSystemCheckCommand() {
     return Commands.sequence(
+            Commands.runOnce(() -> FaultReporter.getInstance().clearFaults(SUBSYSTEM_NAME)),
             Commands.run(() -> io.setMotorPower(0.3)).withTimeout(1.0),
             Commands.runOnce(
                 () -> {
