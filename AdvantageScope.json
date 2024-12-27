@@ -31,17 +31,13 @@
             "/RealOutputs/PathFollowing/targetPose",
             "/RealOutputs/PathFollowing/targetPose/translation",
             "/RealOutputs/PathFollowing/targetPose/rotation",
-            "/Drivetrain/MeasuredChassisSpeeds",
             "/Drivetrain/ReferenceChassisSpeeds",
-            "/Drivetrain/SwerveMeasuredStates",
             "/Drivetrain/SwerveMeasuredStates/0",
-            "/Drivetrain/SwerveReferenceStates",
             "/Drivetrain/SwerveReferenceStates/0",
             "/RealOutputs/Vision/0/RobotPose3d/translation",
             "/RealOutputs/Vision/0/RobotPose3d",
             "/RealOutputs/Vision/0/CameraPose3d",
             "/RealOutputs/Vision/0/CameraPose3d/translation",
-            "/Vision",
             "/Tuning",
             "/RealOutputs/Vision/AprilTags/12",
             "/RealOutputs/Vision/AprilTags/8",
@@ -49,7 +45,18 @@
             "/RealOutputs/Vision/0",
             "/Vision/0/PoseObservations",
             "/Vision/0/PoseObservations/0",
-            "/RealOutputs/Vision/0/RobotPose2d"
+            "/RealOutputs/Vision/0/RobotPose2d",
+            "/RealOutputs/Vision/Summary",
+            "/RealOutputs/Vision/Summary/TagPoses",
+            "/RealOutputs/Vision/Summary/RobotPoses",
+            "/RealOutputs/Vision/Summary/RobotPosesAccepted",
+            "/RealOutputs/Vision/Summary/RobotPosesRejected",
+            "/Vision/Camera1",
+            "/Vision/Camera0",
+            "/Vision/Camera0/PoseObservations",
+            "/Vision/Camera0/PoseObservations/0",
+            "/Drivetrain",
+            "/Drivetrain/MeasuredChassisSpeeds"
           ]
         },
         "tabs": {
@@ -60,7 +67,7 @@
               "title": "",
               "controller": null,
               "controllerUUID": "310mmnrbvfb1lv6k4swzfthvq3e5d83z",
-              "renderer": "#/tab-reference/3d-field",
+              "renderer": "#/",
               "controlsHeight": 0
             },
             {
@@ -91,7 +98,7 @@
                     "logType": "Pose2d",
                     "visible": true,
                     "options": {
-                      "color": "#00ff00"
+                      "color": "#0000ff"
                     }
                   },
                   {

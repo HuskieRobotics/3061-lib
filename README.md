@@ -1,11 +1,11 @@
 # 3061-lib </br>
 
-Huskie Robotics, FRC Team 3061's, starter project and library focused on a swerve-based drivetrain. Supports SDS MK4/MK4i swerve modules using 2 Falcon 500 / Kraken motors and a CTRE CANCoder, a CTRE Pigeon Gyro, and REV Robotics power distribution hub and pneumatics hub. However, due to the hardware abstraction layer, this code can be adapted to other motor controllers, encoders, and gyros as well as different swerve module designs.
+Huskie Robotics, FRC Team 3061's, starter project and library focused on a swerve-based drivetrain. Supports Swerve Drive Specialties (SDS) MK4/MK4i/MK4n swerve modules using devices from Cross the Road Electronics (CTRE): 2 Falcon 500 / Kraken motors and a CTRE CANCoder, a CTRE Pigeon Gyro along with REV Robotics power distribution hub and pneumatics hub. While, due to the hardware abstraction layer, this code can be adapted to other motor controllers, encoders, and gyros as well as different swerve module designs, only CTRE devices and SDS swerve modules are supported "out of the box."
 
 **Is 3061-lib a Good Fit for Your Team?**
 ----
-* If you just want to get your new serve drive up and running, there are less complicated options. For example, if you are using all Cross The Road Electronics hardware, you should use their [Swerve Project Generator](https://pro.docs.ctr-electronics.com/en/latest/docs/tuner/tuner-swerve/index.html).
-* While 3061-lib has the potential to support Rev motors and sensors, that requires some work on your part. You may find AdvantageKit's [Swerve Drive Projects](https://github.com/Mechanical-Advantage/AdvantageKit/blob/main/docs/INSTALLATION.md#new-projects) more helpful.
+* If you just want to get your new serve drive up and running, there are less complicated options. For example, if you are using all CTRE hardware, you should use their [Swerve Project Generator](https://pro.docs.ctr-electronics.com/en/latest/docs/tuner/tuner-swerve/index.html).
+* While 3061-lib has the potential to support Rev motors and sensors, that requires some work on your part. You may find AdvantageKit's [Swerve Drive Projects](https://docs.advantagekit.org/getting-started/template-projects/spark-swerve-template) more helpful.
 * If your team is interested in incorporating the following features, 3061-lib may be a good fit for your team.
 
 **External Dependencies**
@@ -19,23 +19,23 @@ Huskie Robotics, FRC Team 3061's, starter project and library focused on a swerv
 
 **Features**
 ----
-* multiple robots with different configurations, including a simulated robot with basic simulation of swerve modules
-* logging and replay via [AdvantageKit](https://github.com/Mechanical-Advantage/AdvantageKit/blob/main/README.md)
-* vision subsystem supporting multiple Photonvision-based cameras to update pose estimation
-* move-to-pose command that generates on-the-fly paths using a field model defined by a set of regions and transition points between regions
+* Multiple robots with different configurations. This is useful for supporting multiple physical robots with the same code base (e.g., a practice bot and a competition bot). It is also useful when testing an independent mechanism (use the PracticeBoard configuration) or when testing and tuning vision (use the VisionTestPlatform configuration).
+* Logging and replay via [AdvantageKit](https://github.com/Mechanical-Advantage/AdvantageKit/blob/main/README.md). While 3061-lib leverages CTRE's SwerveDrivetrain class, which sits below the AdvantageKit hardware abstraction layer, it has an additional pose estimator that receives updates from the SwerveDrivetrain class while residing above the hardware abstraction layer. This enables replay and tuning of poses. Import the AdvantageScope.json layout file saved at the root of this project in AdvantageScope for a layout that demonstrates visualization of much that is logged.
+* Vision subsystem supporting multiple Photonvision-based cameras to update pose estimation.
+* Move-to-pose command that generates on-the-fly paths using a field model defined by a set of regions and transition points between regions.
 * CAN FD (CANivore) to reduce CAN bus utilization
-* monitoring and reporting of hardware faults
-* integrated system tests
-* commands
+* Monitoring and reporting of hardware faults
+* Integrated system tests
+* SysId routines, which can be selected with the SysID Chooser and executed with the specified button combinations (refer to FullOperatorConsoleOI.java).
+* Commands
     * drive-to-pose (closed-loop straight-line motion to pose)
     * rotate-to-angle (closed-loop rotational setpoint with optional driver-controlled translational motion)
-* swerve-specific features
+* Swerve-specific features
     * robot-relative and field-relative driving modes
     * slow mode for fine-tuned motion
-    * acceleration limiting when not in "turbo" mode
     * current limiting configuration for motors
     * x-stance
-    * switch drive motors to coast mode when robot is disabled and has stopped moving for a period of time to facilitate manual pushing
+    * switch steer and drive motors to coast mode when robot is disabled and has stopped moving for a period of time to facilitate manual alignment
 
 **Configuration**
 ----
@@ -50,12 +50,6 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
 
 * If you are using all CTRE hardware, use the Swerve Project Generator in Tuner X. Copy the values from the generated TunerConstants.java file into your RobotConfig subclass, DrivetrainIOCTRE.java, and SwerveConstants.java as appropriate.
 * If you are not using all CTRE hardware, do the following.
-    * Checking motor and encoder directions:
-        * The drive motor, angle motor, and angle encoder constants in SwerveModuleConstants should be configured appropriately for the MK4 and MK4i swerve modules. However, it doesn't hurt to verify.
-        * If you want to verify the following, the ```Subsystem``` example subsystem can be used with ```TESTING``` set to true to directly control the associated motor. Set ```MOTOR_CAN_ID``` in ```SubsystemConstants``` to the appropriate CAN ID and ensure that CAN ID is not specified for any swerve motor in ```DefaultRobotConfig```. Use Shuffleboard to set the motor power.
-        * When the drive motor is supplied a positive input, it should turn the swerve module wheel such that the robot moves forward; if not, negate.
-        * When the angle motor is supplied a positive input, it should rotate the swerve module wheel such that the wheel rotates in the CCW direction; if not, negate.
-        * When the angle motor rotates the swerve module wheel in a CCW direction, the CANcoder should increase its reading; if not, set to negate.
     * Setting Steer Offsets (e.g., ```FRONT_LEFT_MODULE_STEER_OFFSET_ROT```) in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
         * For finding the offsets, use a piece of 2x1 extrusion that is straight against the forks of the front and back modules (on the left and right side) to ensure that the modules are straight
         * Point the bevel gears of all the wheels in the same direction (either facing left or right), and preferably you should have the wheels facing in the direction where a positive input to the drive motor drives forward; if for some reason you set the offsets with the wheels backwards, you can change the appropriate ```DRIVE_MOTOR_INVERTED``` in ```SwerveModuleConstants``` to fix
@@ -64,20 +58,20 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
     1. elevate the robot on a cart positioned in front of the operator console so the driver's perspective is the same as the robot's (i.e., the front of the robot facing away from the driver); we label the front, back, left, and right of the robot on the robot since which is which may be ambiguous until more of the robot is assembled
     2. position all four wheels such that they are pointing forward (bevel gears all facing the same direction as when the steer offsets were determined)
     3. push the drive joystick forward
-    4. verify that the joystick is specifying a positive x velocity (graph AdvantageKit/RealOutput/TeleopSwerve/xVelocity in AdvantageScope); if not, update the corresponding method in the OperatorInterface subclass
+    4. verify that the joystick is specifying a positive x velocity (graph /RealOutput/TeleopSwerve/xVelocity in AdvantageScope); if not, update the corresponding method in the OperatorInterface subclass
     5. verify that each wheel is rotating to move the robot forward (+x direction)
-    6. verify that the drive TalonFX distance is consistent (graph AdvantageKit/Mod0/DriveDistanceMeters and verify that it is increasing; check all 4 modules)
-    7. perform steps 3-6 but pull the drive joystick backwards (xVelocity should be negative and DriveDistanceMeters should decrease)
-    8. perform steps 3-6 but push the drive joystick to the left (yVelocity should be positive; DriveDistanceMeters should increase if the wheel is pointed to the left and decrease if pointed to the right; add AdvantageKit/RealOutputs/SwerveModuleStates to the Swerve tab in AdvantageScope to visualize)
-    9. perform steps 3-6 but push the drive joystick to the right (yVelocity should be negative; DriveDistanceMeters should increase if the wheel is pointed to the right and decrease if pointed to the left; use the Swerve tab in AdvantageScope to visualize)
+    6. verify that the drive TalonFX distance is consistent (graph FL/OdometryDrivePositionMeters and verify that it is increasing; check all 4 modules)
+    7. perform steps 3-6 but pull the drive joystick backwards (xVelocity should be negative and OdometryDrivePositionMeters should decrease)
+    8. perform steps 3-6 but push the drive joystick to the left (yVelocity should be positive; OdometryDrivePositionMeters should increase if the wheel is pointed to the left and decrease if pointed to the right; add Drivetrain/SwerveModuleStates to the Swerve tab in AdvantageScope to visualize)
+    9. perform steps 3-6 but push the drive joystick to the right (yVelocity should be negative; OdometryDrivePositionMeters should increase if the wheel is pointed to the right and decrease if pointed to the left; use the Swerve tab in AdvantageScope to visualize)
     10. push the rotate joystick in the direction to rotate CCW (when looking down on the robot)
-    11. verify that the joystick is specifying a positive rotational velocity (graph AdvantageKit/RealOutput/TeleopSwerve/rotationalVelocity in AdvantageScope); if not, update the corresponding method in the OperatorInterface subclass
+    11. verify that the joystick is specifying a positive rotational velocity (graph /RealOutput/TeleopSwerve/rotationalVelocity in AdvantageScope); if not, update the corresponding method in the OperatorInterface subclass
     12. verify that each wheel is rotating to rotate the robot in a CCW direction
     13. perform steps 10-12 but push the rotate joystick in the direction to rotate CW
-    14. graph AdvantageKit/Drive/Gyro/PositionDeg
+    14. graph /Drivetrain/RawHeadingDeg
     15. rotate the cart in a CCW direction and verify that the gyro is increasing
     16. rotate the cart in a CW direction and verify that the gyro is decreasing
-    17. use Phoenix Tuner X to flash the LEDs on the Falcon 500s and CANcoders to ensure that the CAN IDs are properly assigned to the front-left, front-right, back-left, and back-right positions (all of the above may behave as expected even if the modules aren't assigned to the appropriate corners)
+    17. use Phoenix Tuner X to flash the LEDs on the TalonFX devices and CANcoders to ensure that the CAN IDs are properly assigned to the front-left, front-right, back-left, and back-right positions (all of the above may behave as expected even if the modules aren't assigned to the appropriate corners)
 * If you are using voltage control outputs:
     * Angle characterization values (```ANGLE_KS```, ```ANGLE_KV```, ```ANGLE_KA```) in in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
         * set ```TUNING_MODE``` in Constants.java to true (characterization analysis doesn't normally run)
