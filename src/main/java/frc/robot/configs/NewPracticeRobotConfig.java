@@ -4,6 +4,7 @@ import static edu.wpi.first.units.Units.*;
 
 import com.ctre.phoenix6.configs.MountPoseConfigs;
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -43,6 +44,7 @@ public class NewPracticeRobotConfig extends RobotConfig {
   private static final Distance TRACKWIDTH = Meters.of(0.57785); // 22.75
   private static final Distance WHEELBASE = Meters.of(0.57785); // 22.75
   private static final Distance WHEEL_RADIUS = Meters.of(0.0954405 / 2.0);
+  private static final Translation2d FRONT_RIGHT_CORNER_POSITION = new Translation2d(0.36, -0.36);
 
   private static final Distance ROBOT_WIDTH_WITH_BUMPERS = Meters.of(0.88026); // 34.656 in
   private static final Distance ROBOT_LENGTH_WITH_BUMPERS = Meters.of(0.88026); // 34.656 in
@@ -237,6 +239,11 @@ public class NewPracticeRobotConfig extends RobotConfig {
   @Override
   public Distance getWheelRadius() {
     return WHEEL_RADIUS;
+  }
+
+  @Override
+  public Translation2d getFrontRightCornerPosition() {
+    return FRONT_RIGHT_CORNER_POSITION;
   }
 
   @Override

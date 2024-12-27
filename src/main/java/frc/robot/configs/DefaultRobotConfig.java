@@ -4,6 +4,7 @@ import static edu.wpi.first.units.Units.*;
 
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularAcceleration;
@@ -49,6 +50,7 @@ public class DefaultRobotConfig extends RobotConfig {
   private static final Distance TRACKWIDTH = Meters.of(0.523875);
   private static final Distance WHEELBASE = Meters.of(0.52705);
   private static final Distance WHEEL_RADIUS = Meters.of(0.09845567409 / 2.0);
+  private static final Translation2d FRONT_RIGHT_CORNER_POSITION = new Translation2d(0.36, -0.36);
   private static final Distance ROBOT_WIDTH_WITH_BUMPERS = Meters.of(0.8382);
   private static final Distance ROBOT_LENGTH_WITH_BUMPERS = Meters.of(0.8382);
 
@@ -266,6 +268,11 @@ public class DefaultRobotConfig extends RobotConfig {
   @Override
   public Distance getWheelRadius() {
     return WHEEL_RADIUS;
+  }
+
+  @Override
+  public Translation2d getFrontRightCornerPosition() {
+    return FRONT_RIGHT_CORNER_POSITION;
   }
 
   @Override

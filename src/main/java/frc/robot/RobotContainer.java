@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.Drivetrain;
 import frc.lib.team3061.drivetrain.DrivetrainIO;
@@ -523,11 +524,10 @@ public class RobotContainer {
         .onFalse(
             Commands.runOnce(drivetrain::disableXstance, drivetrain).withName("disable x-stance"));
 
-    // turbo
-    oi.getTurboButton()
-        .onTrue(Commands.runOnce(drivetrain::enableTurbo, drivetrain).withName("enable turbo"));
-    oi.getTurboButton()
-        .onFalse(Commands.runOnce(drivetrain::disableTurbo, drivetrain).withName("disable turbo"));
+    oi.getSysIdDynamicForward().whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
+    oi.getSysIdDynamicReverse().whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
+    oi.getSysIdQuasistaticForward().whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
+    oi.getSysIdQuasistaticReverse().whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
   }
 
   private void configureSubsystemCommands() {
@@ -543,9 +543,7 @@ public class RobotContainer {
                 .withName("enable vision"));
     oi.getVisionIsEnabledSwitch()
         .onFalse(
-            Commands.parallel(
-                    Commands.runOnce(() -> vision.enable(false), vision),
-                    Commands.runOnce(drivetrain::resetPoseRotationToGyro))
+            Commands.runOnce(() -> vision.enable(false), vision)
                 .ignoringDisable(true)
                 .withName("disable vision"));
   }

@@ -6,8 +6,8 @@ package frc.lib.team3061.drivetrain;
 
 import static edu.wpi.first.units.Units.*;
 import static frc.lib.team3061.drivetrain.DrivetrainConstants.*;
-import static frc.robot.Constants.*;
 
+import com.ctre.phoenix6.SignalLogger;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
@@ -33,9 +33,10 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
-import frc.lib.team3061.drivetrain.DrivetrainIO.SwerveIOInputs;
+import frc.lib.team3061.drivetrain.DrivetrainConstants.SysIDCharacterizationMode;
 import frc.lib.team3061.util.CustomPoseEstimator;
 import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team6328.util.FieldConstants;
@@ -46,11 +47,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
- * This subsystem models the robot's drivetrain mechanism. It consists of a four MK4 swerve modules,
- * each with two motors and an encoder. It also consists of a Pigeon which is used to measure the
- * robot's rotation.
+ * This subsystem models the robot's drivetrain mechanism. It consists of a four swerve modules in
+ * the MK4 family, each with two TalonFX motors and a CANcoder. It also consists of a Pigeon which
+ * is used to measure the robot's rotation. While other hardware configurations are possible, and
+ * 3061-lib supports hardware abstraction via the standard AdvantageKit architecture, 3061-lib only
+ * supports CTRE devices at this time.
  */
 public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
 
@@ -58,6 +62,10 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
   private final DrivetrainIO.DrivetrainIOInputsCollection inputs =
       new DrivetrainIO.DrivetrainIOInputsCollection();
 
+  /*
+   * If TUNING is set to true in Constants.java, the following tunables will be available in
+   * AdvantageScope. This enables efficient tuning of PID coefficients without restarting the code.
+   */
   private final LoggedTunableNumber autoDriveKp =
       new LoggedTunableNumber("AutoDrive/DriveKp", RobotConfig.getInstance().getAutoDriveKP());
   private final LoggedTunableNumber autoDriveKi =
@@ -71,11 +79,6 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
   private final LoggedTunableNumber autoTurnKd =
       new LoggedTunableNumber("AutoDrive/TurnKd", RobotConfig.getInstance().getAutoTurnKD());
 
-  private final LoggedTunableNumber driveCurrent =
-      new LoggedTunableNumber("Drivetrain/driveCurrent", 0.0);
-  private final LoggedTunableNumber steerCurrent =
-      new LoggedTunableNumber("Drivetrain/steerCurrent", 0.0);
-
   private final PIDController autoXController =
       new PIDController(autoDriveKp.get(), autoDriveKi.get(), autoDriveKd.get());
   private final PIDController autoYController =
@@ -83,22 +86,18 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
   private final PIDController autoThetaController =
       new PIDController(autoTurnKp.get(), autoTurnKi.get(), autoTurnKd.get());
 
-  private boolean isFieldRelative;
-
+  private boolean isFieldRelative = true;
   private boolean isTranslationSlowMode = false;
   private boolean isRotationSlowMode = false;
 
-  private boolean brakeMode;
+  // set to true upon construction to trigger disabling break mode shortly after the code starts
+  private boolean brakeMode = true;
   private Timer brakeModeTimer = new Timer();
   private static final double BREAK_MODE_DELAY_SEC = 10.0;
 
   private DriveMode driveMode = DriveMode.NORMAL;
 
-  private boolean isTurbo;
-
-  private boolean isMoveToPoseEnabled;
-
-  private double maxVelocity;
+  private boolean isMoveToPoseEnabled = true;
 
   private Alert noPoseAlert =
       new Alert("Attempted to reset pose from vision, but no pose was found.", AlertType.kWarning);
@@ -106,9 +105,6 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
       new Alert("Could not find the specified path file.", AlertType.kError);
   private static final String SYSTEM_CHECK_PREFIX = "[System Check] Swerve module ";
   private static final String IS_LITERAL = " is: ";
-
-  private ChassisSpeeds prevSpeeds = new ChassisSpeeds();
-  private double[] prevSteerVelocitiesRevPerMin = new double[4];
 
   private DriverStation.Alliance alliance = Field2d.getInstance().getAlliance();
 
@@ -118,6 +114,7 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
   private int constrainPoseToFieldCount = 0;
 
   private Pose2d customPose = new Pose2d();
+
   private double[] initialDistance = {0.0, 0.0, 0.0, 0.0};
 
   private boolean isRotationOverrideEnabled = false;
@@ -130,6 +127,64 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
         new SwerveModulePosition()
       };
 
+  private final LoggedDashboardChooser<SysIDCharacterizationMode> sysIdChooser =
+      new LoggedDashboardChooser<>("SysID Chooser");
+
+  /* SysId routine for characterizing translation. This is used to find PID gains for the drive motors. */
+  private final SysIdRoutine sysIdRoutineTranslation =
+      new SysIdRoutine(
+          new SysIdRoutine.Config(
+              null, // Use default ramp rate (1 V/s)
+              Volts.of(4), // Reduce dynamic step voltage to 4 V to prevent brownout
+              null, // Use default timeout (10 s)
+              // Log state with SignalLogger class
+              state -> SignalLogger.writeString("SysIdTranslation_State", state.toString())),
+          new SysIdRoutine.Mechanism(
+              output ->
+                  applySysIdCharacterization(
+                      SysIDCharacterizationMode.TRANSLATION, output.in(Volts)),
+              null,
+              this));
+
+  /* SysId routine for characterizing steer. This is used to find PID gains for the steer motors. */
+  private final SysIdRoutine sysIdRoutineSteer =
+      new SysIdRoutine(
+          new SysIdRoutine.Config(
+              null, // Use default ramp rate (1 V/s)
+              Volts.of(7), // Use dynamic voltage of 7 V
+              null, // Use default timeout (10 s)
+              // Log state with SignalLogger class
+              state -> SignalLogger.writeString("SysIdSteer_State", state.toString())),
+          new SysIdRoutine.Mechanism(
+              volts -> applySysIdCharacterization(SysIDCharacterizationMode.STEER, volts.in(Volts)),
+              null,
+              this));
+
+  /*
+   * SysId routine for characterizing rotation.
+   * This is used to find PID gains for the FieldCentricFacingAngle HeadingController.
+   * See the documentation of SwerveRequest.SysIdSwerveRotation for info on importing the log to SysId.
+   */
+  private final SysIdRoutine sysIdRoutineRotation =
+      new SysIdRoutine(
+          new SysIdRoutine.Config(
+              /* This is in radians per second², but SysId only supports "volts per second" */
+              Volts.of(Math.PI / 6).per(Second),
+              /* This is in radians per second, but SysId only supports "volts" */
+              Volts.of(Math.PI),
+              null, // Use default timeout (10 s)
+              // Log state with SignalLogger class
+              state -> SignalLogger.writeString("SysIdRotation_State", state.toString())),
+          new SysIdRoutine.Mechanism(
+              output -> {
+                /* output is actually radians per second, but SysId only supports "volts" */
+                applySysIdCharacterization(SysIDCharacterizationMode.ROTATION, output.in(Volts));
+                /* also log the requested output for SysId */
+                SignalLogger.writeDouble("Rotational_Rate", output.in(Volts));
+              },
+              null,
+              this));
+
   /**
    * Creates a new Drivetrain subsystem.
    *
@@ -139,15 +194,6 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
     this.io = io;
 
     this.autoThetaController.enableContinuousInput(-Math.PI, Math.PI);
-
-    this.isFieldRelative = true;
-
-    // based on testing we can drive in turbo mode all the time
-    this.isTurbo = true;
-
-    this.isMoveToPoseEnabled = true;
-
-    this.maxVelocity = 0.5;
 
     FaultReporter faultReporter = FaultReporter.getInstance();
     faultReporter.registerSystemCheck(SUBSYSTEM_NAME, getSystemCheckCommand());
@@ -175,41 +221,35 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
         );
 
     this.odometry = RobotOdometry.getInstance();
-    RobotOdometry.getInstance().setCustomEstimator(this);
+    this.odometry.setCustomEstimator(this);
+
+    sysIdChooser.addOption("Translation", SysIDCharacterizationMode.TRANSLATION);
+    sysIdChooser.addOption("Steer", SysIDCharacterizationMode.STEER);
+    sysIdChooser.addOption("Rotation", SysIDCharacterizationMode.ROTATION);
   }
 
+  /**
+   * Returns the robot-relative speeds of the robot.
+   *
+   * @return the robot-relative speeds of the robot
+   */
   public ChassisSpeeds getRobotRelativeSpeeds() {
     return this.inputs.drivetrain.measuredChassisSpeeds;
   }
 
+  /**
+   * Applies the specified robot-relative speeds to the drivetrain along with the specified feed
+   * forward forces.
+   *
+   * @param chassisSpeeds the robot-relative speeds of the robot
+   * @param feedforwards the feed forward forces to apply
+   */
   public void applyRobotSpeeds(ChassisSpeeds chassisSpeeds, DriveFeedforwards feedforwards) {
-
     this.io.applyRobotSpeeds(
         chassisSpeeds,
         feedforwards.robotRelativeForcesX(),
         feedforwards.robotRelativeForcesY(),
         false);
-  }
-
-  /** Enables "turbo" mode (i.e., acceleration is not limited by software) */
-  public void enableTurbo() {
-    this.isTurbo = true;
-  }
-
-  /** Disables "turbo" mode (i.e., acceleration is limited by software) */
-  public void disableTurbo() {
-    this.isTurbo = false;
-  }
-
-  /**
-   * Returns true if the robot is in "turbo" mode (i.e., acceleration is not limited by software);
-   * false otherwise
-   *
-   * @return true if the robot is in "turbo" mode (i.e., acceleration is not limited by software);
-   *     false otherwise
-   */
-  public boolean getTurbo() {
-    return this.isTurbo;
   }
 
   /**
@@ -225,7 +265,7 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
 
   /**
    * Returns the rotation of the robot. Zero degrees is facing away from the driver station; CCW is
-   * positive. If the gyro is not connected, the rotation from the estimated pose is returned.
+   * positive.
    *
    * @return the rotation of the robot
    */
@@ -234,10 +274,10 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
   }
 
   /**
-   * Returns the yaw of the drivetrain as reported by the gyro in degrees. Usually, the getRotation
-   * method should be invoked instead.
+   * Returns the raw heading of the drivetrain as reported by the gyro in degrees. Usually, the
+   * getRotation method should be invoked instead.
    *
-   * @return the yaw of the drivetrain as reported by the gyro in degrees
+   * @return the raw heading of the drivetrain as reported by the gyro in degrees
    */
   public double getYaw() {
     return this.inputs.drivetrain.rawHeadingDeg;
@@ -245,22 +285,24 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
 
   /**
    * Sets the rotation of the robot to the specified value. This method should only be invoked when
-   * the rotation of the robot is known (e.g., at the start of an autonomous path). Zero degrees is
-   * facing away from the driver station; CCW is positive.
+   * the rotation of the robot is known (e.g., at the start of an autonomous path). Usually, the
+   * resetPose method is used instead. Zero degrees is facing away from the driver station; CCW is
+   * positive.
    *
    * @param expectedYaw the rotation of the robot (in degrees)
    */
   public void setGyroOffset(double expectedYaw) {
     this.resetPose(
         new Pose2d(
-            RobotOdometry.getInstance().getEstimatedPose().getTranslation(),
+            this.odometry.getEstimatedPose().getTranslation(),
             Rotation2d.fromDegrees(expectedYaw)));
   }
 
   /**
    * Returns the pose of the robot (e.g., x and y position of the robot on the field and the robot's
-   * rotation). The origin of the field to the lower left corner (i.e., the corner of the field to
-   * the driver's right). Zero degrees is away from the driver and increases in the CCW direction.
+   * rotation). The origin of the field is always the blue origin (i.e., the positive x-axis points
+   * away from the blue alliance wall). Zero degrees is aligned to the positive x axis and increases
+   * in the CCW direction.
    *
    * @return the pose of the robot
    */
@@ -271,8 +313,9 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
   /**
    * Sets the odometry of the robot to the specified pose. This method should only be invoked when
    * the rotation of the robot is known (e.g., at the start of an autonomous path). The origin of
-   * the field to the lower left corner (i.e., the corner of the field to the driver's right). Zero
-   * degrees is away from the driver and increases in the CCW direction.
+   * the field is always the blue origin (i.e., the positive x-axis points away from the blue
+   * alliance wall). Zero degrees is aligned to the positive x axis and increases in the CCW
+   * direction.
    *
    * @param pose the specified pose to which is set the odometry
    */
@@ -283,19 +326,9 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
   }
 
   /**
-   * Sets the robot's odometry's rotation based on the gyro. This method is intended to be invoked
-   * when the vision subsystem is first disabled and may have negatively impacted the pose
-   * estimator.
-   */
-  public void resetPoseRotationToGyro() {
-    Pose2d newPose = new Pose2d(this.getPose().getTranslation(), this.getRotation());
-    this.resetPose(newPose);
-  }
-
-  /**
    * Sets the odometry of the robot based on the supplied pose (e.g., from the vision subsystem).
-   * When testing, the robot can be positioned in front of an AprilTag and this method can be
-   * invoked to reset the robot's pose based on tag.
+   * The robot can be positioned in front of an AprilTag and this method can be invoked to reset the
+   * robot's pose based on tag.
    *
    * @param poseSupplier the supplier of the pose to which set the robot's odometry
    */
@@ -312,22 +345,18 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
   /**
    * Controls the drivetrain to move the robot with the desired velocities in the x, y, and
    * rotational directions. The velocities may be specified from either the robot's frame of
-   * reference of the field's frame of reference. In the robot's frame of reference, the positive x
+   * reference or the field's frame of reference. In the robot's frame of reference, the positive x
    * direction is forward; the positive y direction, left; position rotation, CCW. In the field
-   * frame of reference, the positive x direction is away from the driver and the positive y
-   * direction is to the driver's left. This method accounts for the fact that the origin of the
-   * field is always the corner to the right of the blue alliance driver station. A positive
-   * rotational velocity always rotates the robot in the CCW direction.
+   * frame of reference, the positive x direction is away from the blue alliance wall and the
+   * positive y direction is to a blue alliance driver's left. This method accounts for the fact
+   * that the origin of the field is always the corner to the right of the blue alliance driver
+   * station. A positive rotational velocity always rotates the robot in the CCW direction.
    *
    * <p>If the translation or rotation slow mode features are enabled, the corresponding velocities
    * will be scaled to enable finer control.
    *
    * <p>If the drive mode is X, the robot will ignore the specified velocities and turn the swerve
    * modules into the x-stance orientation.
-   *
-   * <p>If the drive mode is SWERVE_DRIVE_CHARACTERIZATION or SWERVE_ROTATE_CHARACTERIZATION, the
-   * robot will ignore the specified velocities and run the appropriate characterization routine.
-   * Refer to the FeedForwardCharacterization command class for more information.
    *
    * @param xVelocity the desired velocity in the x direction (m/s)
    * @param yVelocity the desired velocity in the y direction (m/s)
@@ -355,8 +384,8 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
 
       if (Constants.DEMO_MODE) {
         double velocity = Math.sqrt(Math.pow(xVelocity, 2) + Math.pow(yVelocity, 2));
-        if (velocity > this.maxVelocity) {
-          double scale = this.maxVelocity / velocity;
+        if (velocity > DEMO_MODE_MAX_VELOCITY) {
+          double scale = DEMO_MODE_MAX_VELOCITY / velocity;
           xVelocity *= scale;
           yVelocity *= scale;
         }
@@ -390,17 +419,17 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
    * Controls the drivetrain to move the robot with the desired velocities in the x and y
    * directions, while keeping the robot aligned to the specified target rotation. The velocities
    * must be specified from the field's frame of reference as field relative mode is assumed. In the
-   * field frame of reference, the origin of the field to the lower left corner (i.e., the corner of
-   * the field to the driver's right). Zero degrees is away from the driver and increases in the CCW
-   * direction.
+   * field frame of reference, the origin of the field is always the blue origin (i.e., the positive
+   * x-axis points away from the blue alliance wall). Zero degrees is aligned to the positive x axis
+   * and increases in the CCW direction.
    *
    * <p>If the translation slow mode feature is enabled, the corresponding velocities will be scaled
    * to enable finer control.
    *
    * @param xVelocity the desired velocity in the x direction (m/s)
    * @param yVelocity the desired velocity in the y direction (m/s)
-   * @param targetDirection the desired direction of the robot's orientation. Zero degrees is away
-   *     from the driver and increases in the CCW direction.
+   * @param targetDirection the desired direction of the robot's orientation. Zero degrees is
+   *     aligned to the positive x axis and increases in the CCW direction.
    * @param isOpenLoop true for open-loop control; false for closed-loop control
    */
   public void driveFacingAngle(
@@ -418,8 +447,8 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
 
     if (Constants.DEMO_MODE) {
       double velocity = Math.sqrt(Math.pow(xVelocity, 2) + Math.pow(yVelocity, 2));
-      if (velocity > this.maxVelocity) {
-        double scale = this.maxVelocity / velocity;
+      if (velocity > DEMO_MODE_MAX_VELOCITY) {
+        double scale = DEMO_MODE_MAX_VELOCITY / velocity;
         xVelocity *= scale;
         yVelocity *= scale;
       }
@@ -436,7 +465,7 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
   }
 
   /**
-   * Stops the motion of the robot. Since the motors are in break mode, the robot will stop soon
+   * Stops the motion of the robot. Since the motors are in brake mode, the robot will stop soon
    * after this method is invoked.
    */
   public void stop() {
@@ -444,39 +473,13 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
   }
 
   /**
-   * This method is invoked each iteration of the scheduler. Typically, when using a command-based
-   * model, subsystems don't override the periodic method. However, the drivetrain needs to
-   * continually update the odometry of the robot, update and log the gyro and swerve module inputs,
-   * update brake mode, and update the tunable values.
+   * This method is invoked each iteration of the scheduler. The primarily responsibility is to
+   * update the drivetrain inputs from the hardware-specific layer. In addition, the odometry of the
+   * robot, brake mode, and controllers are updated.
    */
   @SuppressWarnings("unused")
   @Override
   public void periodic() {
-    if (Constants.TUNING_MODE) {
-      this.prevSpeeds =
-          new ChassisSpeeds(
-              this.inputs.drivetrain.measuredChassisSpeeds.vxMetersPerSecond,
-              this.inputs.drivetrain.measuredChassisSpeeds.vyMetersPerSecond,
-              this.inputs.drivetrain.measuredChassisSpeeds.omegaRadiansPerSecond);
-      for (int i = 0; i < this.inputs.swerve.length; i++) {
-        // FIXME: this method may no longer be needed with the SysId support now in Phoenix 6;
-        // re-evaluate after learning more.
-        // this.prevSteerVelocitiesRevPerMin[i] = this.inputs.swerve[i].steerVelocityRevPerMin;
-      }
-    }
-
-    // when testing, set the drive motor current or the steer motor current based on the Tunables
-    // (if non-zero)
-    if (TESTING) {
-      if (driveCurrent.get() != 0) {
-        this.io.setDriveMotorCurrent(driveCurrent.get());
-      }
-
-      if (steerCurrent.get() != 0) {
-        this.io.setSteerMotorCurrent(steerCurrent.get());
-      }
-    }
-
     this.io.updateInputs(this.inputs);
     Logger.processInputs(SUBSYSTEM_NAME, this.inputs.drivetrain);
     Logger.processInputs(SUBSYSTEM_NAME + "/FL", this.inputs.swerve[0]);
@@ -500,18 +503,21 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
     }
 
     // custom pose vs default pose
-    Pose2d pose = RobotOdometry.getInstance().getEstimatedPose();
+    Pose2d pose = this.odometry.getEstimatedPose();
     this.customPose = this.inputs.drivetrain.customPose;
     Logger.recordOutput(SUBSYSTEM_NAME + "/Pose", pose);
     Logger.recordOutput(SUBSYSTEM_NAME + "/CustomPose", this.customPose);
 
-    // FIXME: calculate transform using robot config (as new method as needed)
     Logger.recordOutput(
         SUBSYSTEM_NAME + "/FRPose",
-        pose.transformBy(new Transform2d(0.36, -0.36, new Rotation2d())));
+        pose.transformBy(
+            new Transform2d(
+                RobotConfig.getInstance().getFrontRightCornerPosition(), new Rotation2d())));
 
     // check for teleportation
-    if (ENABLE_TELEPORT_DETECTION && pose.minus(prevRobotPose).getTranslation().getNorm() > 0.4) {
+    if (ENABLE_TELEPORT_DETECTION
+        && pose.minus(prevRobotPose).getTranslation().getNorm()
+            > TELEPORT_DETECTION_THRESHOLD_METERS) {
       this.resetPose(prevRobotPose);
       this.teleportedCount++;
       Logger.recordOutput(SUBSYSTEM_NAME + "/TeleportedPose", pose);
@@ -528,7 +534,6 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
       this.resetPose(new Pose2d(FieldConstants.fieldLength, pose.getY(), pose.getRotation()));
       this.constrainPoseToFieldCount++;
     }
-
     if (pose.getY() < 0) {
       this.resetPose(new Pose2d(pose.getX(), 0, pose.getRotation()));
       this.constrainPoseToFieldCount++;
@@ -626,6 +631,8 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
    * be driven until x-stance is disabled.
    */
   public void enableXstance() {
+    // FIXME: remove the concept of drive mode and have a method that is called continuously to hold
+    // X-Stance
     this.driveMode = DriveMode.X;
     this.io.holdXStance();
   }
@@ -670,118 +677,10 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
   }
 
   /**
-   * Returns the PID controller used to control the robot's x position during autonomous.
+   * Get the position of all drive wheels in radians.
    *
-   * @return the PID controller used to control the robot's x position during autonomous
+   * @return the position of all drive wheels in radians
    */
-  public PIDController getAutoXController() {
-    return this.autoXController;
-  }
-
-  /**
-   * Returns the PID controller used to control the robot's y position during autonomous.
-   *
-   * @return the PID controller used to control the robot's y position during autonomous
-   */
-  public PIDController getAutoYController() {
-    return this.autoYController;
-  }
-
-  /**
-   * Returns the PID controller used to control the robot's rotation during autonomous.
-   *
-   * @return the PID controller used to control the robot's rotation during autonomous
-   */
-  public PIDController getAutoThetaController() {
-    return this.autoThetaController;
-  }
-
-  /**
-   * Runs forwards at the commanded voltage.
-   *
-   * @param volts the commanded voltage
-   */
-  public void runDriveCharacterizationVolts(double volts) {
-    this.io.setDriveMotorVoltage(volts);
-  }
-
-  /**
-   * Returns the average drive velocity in meters/sec.
-   *
-   * @return the average drive velocity in meters/sec
-   */
-  public double getDriveCharacterizationVelocity() {
-    return Math.sqrt(
-        Math.pow(this.inputs.drivetrain.measuredChassisSpeeds.vxMetersPerSecond, 2)
-            + Math.pow(this.inputs.drivetrain.measuredChassisSpeeds.vyMetersPerSecond, 2));
-  }
-
-  /**
-   * Returns the average drive velocity in meters/sec.
-   *
-   * @return the average drive velocity in meters/sec
-   */
-  public double getDriveCharacterizationAcceleration() {
-    return Math.sqrt(
-            Math.pow(
-                    (this.inputs.drivetrain.measuredChassisSpeeds.vxMetersPerSecond
-                        - this.prevSpeeds.vxMetersPerSecond),
-                    2)
-                + Math.pow(
-                    (this.inputs.drivetrain.measuredChassisSpeeds.vyMetersPerSecond
-                        - this.prevSpeeds.vyMetersPerSecond),
-                    2))
-        / LOOP_PERIOD_SECS;
-  }
-
-  /**
-   * Rotates swerve modules at the commanded voltage.
-   *
-   * @param volts the commanded voltage
-   */
-  public void runRotateCharacterizationVolts(double volts) {
-    this.io.setSteerMotorVoltage(volts);
-  }
-
-  /**
-   * Returns the average rotational velocity in radians/sec.
-   *
-   * @return the average rotational velocity in radians/sec
-   */
-  public double getRotateCharacterizationVelocity() {
-    double avgVelocity = 0.0;
-    for (SwerveIOInputs swerveInputs : this.inputs.swerve) {
-      // FIXME: this method may no longer be needed with the SysId support now in Phoenix 6;
-      // re-evaluate after learning more.
-      // avgVelocity += swerveInputs.steerVelocityRevPerMin;
-    }
-    avgVelocity /= this.inputs.swerve.length;
-    avgVelocity *= (2.0 * Math.PI) / 60.0;
-    return avgVelocity;
-  }
-
-  /**
-   * Returns the average rotational acceleration in radians/sec^2.
-   *
-   * @return the average rotational acceleration in radians/sec^2
-   */
-  public double getRotateCharacterizationAcceleration() {
-    double avgAcceleration = 0.0;
-    for (int i = 0; i < this.inputs.swerve.length; i++) {
-      // FIXME: this method may no longer be needed with the SysId support now in Phoenix 6;
-      // re-evaluate after learning more.
-
-      // avgAcceleration +=
-      //     Math.abs(
-      //         this.inputs.swerve[i].steerVelocityRevPerMin -
-      // this.prevSteerVelocitiesRevPerMin[i]);
-    }
-    avgAcceleration /= this.inputs.swerve.length;
-    avgAcceleration *= (2.0 * Math.PI) / 60.0;
-    return avgAcceleration / LOOP_PERIOD_SECS;
-  }
-
-  /** Get the position of all drive wheels in radians. */
   public double[] getWheelRadiusCharacterizationPosition() {
     double[] positions = new double[inputs.swerve.length];
     for (int i = 0; i < inputs.swerve.length; i++) {
@@ -811,12 +710,26 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
     return this.isMoveToPoseEnabled;
   }
 
+  /**
+   * Captures the initial positions of the drive wheels. This method is intended to be invoked at
+   * the start of an autonomous path to measure the distance traveled by the robot.
+   */
   public void captureInitialConditions() {
     for (int i = 0; i < this.inputs.swerve.length; i++) {
       this.initialDistance[i] = inputs.drivetrain.swerveModulePositions[i].distanceMeters;
     }
   }
 
+  /**
+   * Captures the final positions of the drive wheels and the final pose of the robot. This method
+   * is intended to be invoked at the end of an autonomous path to measure the distance traveled by
+   * the robot and the final pose of the robot. It logs the difference between the pose and the
+   * final target pose of the specified autonomous path. If also logs the distance traveled by the
+   * robot during the autonomous path.
+   *
+   * @param autoName the name of the autonomous path
+   * @param measureDistance true to measure the distance traveled by the robot; false otherwise
+   */
   public void captureFinalConditions(String autoName, boolean measureDistance) {
     try {
       List<Pose2d> pathPoses = PathPlannerPath.fromPathFile(autoName).getPathPoses();
@@ -841,6 +754,167 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
     }
   }
 
+  /**
+   * This method should be invoked once the alliance color is known. Refer to the RobotContainer's
+   * checkAllianceColor method for best practices on when to check the alliance's color. The
+   * alliance color is needed when running auto paths as those paths are always defined for
+   * blue-alliance robots and need to be flipped for red-alliance robots.
+   *
+   * @param newAlliance the new alliance color
+   */
+  public void updateAlliance(DriverStation.Alliance newAlliance) {
+    this.alliance = newAlliance;
+  }
+
+  /**
+   * Returns true if the auto path, which is always defined for a blue alliance robot, should be
+   * flipped to the red alliance side of the field.
+   *
+   * @return true if the auto path should be flipped to the red alliance side of the field
+   */
+  public boolean shouldFlipAutoPath() {
+    return this.alliance == Alliance.Red;
+  }
+
+  /**
+   * If the robot is enabled and brake mode is not enabled, enable it. If the robot is disabled, has
+   * stopped moving for the specified period of time, and brake mode is enabled; disable it.
+   */
+  private void updateBrakeMode() {
+    if (DriverStation.isEnabled()) {
+      if (!brakeMode) {
+        brakeMode = true;
+        setBrakeMode(true);
+      }
+      brakeModeTimer.restart();
+
+    } else if (!DriverStation.isEnabled()) {
+      boolean stillMoving = false;
+      double velocityLimit =
+          RobotConfig.getInstance().getRobotMaxCoastVelocity().in(MetersPerSecond);
+      if (Math.abs(this.inputs.drivetrain.measuredChassisSpeeds.vxMetersPerSecond) > velocityLimit
+          || Math.abs(this.inputs.drivetrain.measuredChassisSpeeds.vyMetersPerSecond)
+              > velocityLimit) {
+        stillMoving = true;
+        brakeModeTimer.restart();
+      }
+
+      if (brakeMode && !stillMoving && brakeModeTimer.hasElapsed(BREAK_MODE_DELAY_SEC)) {
+        brakeMode = false;
+        setBrakeMode(false);
+      }
+    }
+  }
+
+  private void setBrakeMode(boolean enable) {
+    this.io.setBrakeMode(enable);
+  }
+
+  public void enableRotationOverride() {
+    this.isRotationOverrideEnabled = true;
+  }
+
+  public void disableRotationOverride() {
+    this.isRotationOverrideEnabled = false;
+  }
+
+  public Optional<Rotation2d> getRotationTargetOverride() {
+    // Some condition that should decide if we want to override rotation
+    if (this.isRotationOverrideEnabled) {
+      Rotation2d targetRotation = new Rotation2d();
+      Logger.recordOutput(SUBSYSTEM_NAME + "/rotationOverride", targetRotation);
+      return Optional.of(targetRotation);
+    } else {
+      // return an empty optional when we don't want to override the path's rotation
+      return Optional.empty();
+    }
+  }
+
+  public Pose2d getFutureRobotPose(
+      double translationSecondsInFuture, double rotationSecondsInFuture) {
+    // project the robot pose into the future based on the current translational velocity; don't
+    // project the current rotational velocity as that will adversely affect the control loop
+    // attempting to reach the rotational setpoint.
+    return this.getPose()
+        .exp(
+            new Twist2d(
+                this.getRobotRelativeSpeeds().vxMetersPerSecond * translationSecondsInFuture,
+                this.getRobotRelativeSpeeds().vyMetersPerSecond * translationSecondsInFuture,
+                this.getRobotRelativeSpeeds().omegaRadiansPerSecond * rotationSecondsInFuture));
+  }
+
+  public Pose2d getCustomEstimatedPose() {
+    return this.customPose;
+  }
+
+  public void resetCustomPose(Pose2d poseMeters) {
+    this.io.resetPose(poseMeters);
+  }
+
+  public Optional<Pose2d> samplePoseAt(double timestamp) {
+    return this.io.samplePoseAt(timestamp);
+  }
+
+  public void addVisionMeasurement(
+      Pose2d visionRobotPoseMeters,
+      double timestampSeconds,
+      Matrix<N3, N1> visionMeasurementStdDevs) {
+    this.io.addVisionMeasurement(visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
+  }
+
+  /**
+   * Runs the SysId Quasistatic test in the given direction for the routine selected in the
+   * characterization chooser.
+   *
+   * @param direction Direction of the SysId Quasistatic test
+   * @return Command to run
+   */
+  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
+    return Commands.either(
+        sysIdRoutineTranslation.quasistatic(direction),
+        Commands.either(
+            sysIdRoutineSteer.quasistatic(direction),
+            sysIdRoutineRotation.quasistatic(direction),
+            () -> sysIdChooser.get() == SysIDCharacterizationMode.STEER),
+        () -> sysIdChooser.get() == SysIDCharacterizationMode.TRANSLATION);
+  }
+
+  /**
+   * Runs the SysId Dynamic test in the given direction for the routine selected in the
+   * characterization chooser.
+   *
+   * @param direction Direction of the SysId Dynamic test
+   * @return Command to run
+   */
+  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+    return Commands.either(
+        sysIdRoutineTranslation.dynamic(direction),
+        Commands.either(
+            sysIdRoutineSteer.dynamic(direction),
+            sysIdRoutineRotation.dynamic(direction),
+            () -> sysIdChooser.get() == SysIDCharacterizationMode.STEER),
+        () -> sysIdChooser.get() == SysIDCharacterizationMode.TRANSLATION);
+  }
+
+  private void applySysIdCharacterization(SysIDCharacterizationMode mode, double value) {
+    this.io.applySysIdCharacterization(mode, value);
+  }
+
+  public Command getSystemCheckCommand() {
+    return Commands.sequence(
+            Commands.runOnce(this::disableFieldRelative, this),
+            Commands.runOnce(() -> FaultReporter.getInstance().clearFaults(SUBSYSTEM_NAME)),
+            getSwerveCheckCommand(SwerveCheckTypes.LEFT),
+            getSwerveCheckCommand(SwerveCheckTypes.RIGHT),
+            getSwerveCheckCommand(SwerveCheckTypes.FORWARD),
+            getSwerveCheckCommand(SwerveCheckTypes.BACKWARD),
+            getSwerveCheckCommand(SwerveCheckTypes.CLOCKWISE),
+            getSwerveCheckCommand(SwerveCheckTypes.COUNTERCLOCKWISE))
+        .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
+        .andThen(Commands.runOnce(() -> this.drive(0, 0, 0, true, false), this))
+        .withName(SUBSYSTEM_NAME + "SystemCheck");
+  }
+
   // method to convert swerve module number to location
   private String getSwerveLocation(int swerveModuleNumber) {
     switch (swerveModuleNumber) {
@@ -857,11 +931,16 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
     }
   }
 
-  /*
-   * Checks the swerve module to see if its velocity and rotation are moving as expected
+  /**
+   * Checks the swerve module to see if its velocity and rotation are within the specified tolerance
+   * of the specified values.
+   *
    * @param swerveModuleNumber the swerve module number to check
+   * @param angleTarget the target angle of the swerve module
+   * @param angleTolerance the tolerance of the angle
+   * @param velocityTarget the target velocity of the swerve module
+   * @param velocityTolerance the tolerance of the velocity
    */
-
   private void checkSwerveModule(
       int swerveModuleNumber,
       double angleTarget,
@@ -1022,129 +1101,6 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
                           }
                         })))
         .withTimeout(2);
-  }
-
-  /**
-   * This method should be invoked once the alliance color is known. Refer to the RobotContainer's
-   * checkAllianceColor method for best practices on when to check the alliance's color. The
-   * alliance color is needed when running auto paths as those paths are always defined for
-   * blue-alliance robots and need to be flipped for red-alliance robots.
-   *
-   * @param newAlliance the new alliance color
-   */
-  public void updateAlliance(DriverStation.Alliance newAlliance) {
-    this.alliance = newAlliance;
-  }
-
-  /**
-   * Returns true if the auto path, which is always defined for a blue alliance robot, should be
-   * flipped to the red alliance side of the field.
-   *
-   * @return true if the auto path should be flipped to the red alliance side of the field
-   */
-  public boolean shouldFlipAutoPath() {
-    return this.alliance == Alliance.Red;
-  }
-
-  public Command getSystemCheckCommand() {
-    return Commands.sequence(
-            Commands.runOnce(this::disableFieldRelative, this),
-            Commands.runOnce(() -> FaultReporter.getInstance().clearFaults(SUBSYSTEM_NAME)),
-            getSwerveCheckCommand(SwerveCheckTypes.LEFT),
-            getSwerveCheckCommand(SwerveCheckTypes.RIGHT),
-            getSwerveCheckCommand(SwerveCheckTypes.FORWARD),
-            getSwerveCheckCommand(SwerveCheckTypes.BACKWARD),
-            getSwerveCheckCommand(SwerveCheckTypes.CLOCKWISE),
-            getSwerveCheckCommand(SwerveCheckTypes.COUNTERCLOCKWISE))
-        .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
-        .andThen(Commands.runOnce(() -> this.drive(0, 0, 0, true, false), this))
-        .withName(SUBSYSTEM_NAME + "SystemCheck");
-  }
-
-  /**
-   * If the robot is enabled and brake mode is not enabled, enable it. If the robot is disabled, has
-   * stopped moving for the specified period of time, and brake mode is enabled, disable it.
-   */
-  private void updateBrakeMode() {
-    if (DriverStation.isEnabled()) {
-      if (!brakeMode) {
-        brakeMode = true;
-        setBrakeMode(true);
-      }
-      brakeModeTimer.restart();
-
-    } else if (!DriverStation.isEnabled()) {
-      boolean stillMoving = false;
-      double velocityLimit =
-          RobotConfig.getInstance().getRobotMaxCoastVelocity().in(MetersPerSecond);
-      if (Math.abs(this.inputs.drivetrain.measuredChassisSpeeds.vxMetersPerSecond) > velocityLimit
-          || Math.abs(this.inputs.drivetrain.measuredChassisSpeeds.vyMetersPerSecond)
-              > velocityLimit) {
-        stillMoving = true;
-        brakeModeTimer.restart();
-      }
-
-      if (brakeMode && !stillMoving && brakeModeTimer.hasElapsed(BREAK_MODE_DELAY_SEC)) {
-        brakeMode = false;
-        setBrakeMode(false);
-      }
-    }
-  }
-
-  private void setBrakeMode(boolean enable) {
-    this.io.setBrakeMode(enable);
-  }
-
-  public void enableRotationOverride() {
-    this.isRotationOverrideEnabled = true;
-  }
-
-  public void disableRotationOverride() {
-    this.isRotationOverrideEnabled = false;
-  }
-
-  public Optional<Rotation2d> getRotationTargetOverride() {
-    // Some condition that should decide if we want to override rotation
-    if (this.isRotationOverrideEnabled) {
-      Rotation2d targetRotation = new Rotation2d();
-      Logger.recordOutput(SUBSYSTEM_NAME + "/rotationOverride", targetRotation);
-      return Optional.of(targetRotation);
-    } else {
-      // return an empty optional when we don't want to override the path's rotation
-      return Optional.empty();
-    }
-  }
-
-  public Pose2d getFutureRobotPose(
-      double translationSecondsInFuture, double rotationSecondsInFuture) {
-    // project the robot pose into the future based on the current translational velocity; don't
-    // project the current rotational velocity as that will adversely affect the control loop
-    // attempting to reach the rotational setpoint.
-    return this.getPose()
-        .exp(
-            new Twist2d(
-                this.getRobotRelativeSpeeds().vxMetersPerSecond * translationSecondsInFuture,
-                this.getRobotRelativeSpeeds().vyMetersPerSecond * translationSecondsInFuture,
-                this.getRobotRelativeSpeeds().omegaRadiansPerSecond * rotationSecondsInFuture));
-  }
-
-  public Pose2d getCustomEstimatedPose() {
-    return this.customPose;
-  }
-
-  public void resetCustomPose(Pose2d poseMeters) {
-    this.io.resetPose(poseMeters);
-  }
-
-  public Optional<Pose2d> samplePoseAt(double timestamp) {
-    return this.io.samplePoseAt(timestamp);
-  }
-
-  public void addVisionMeasurement(
-      Pose2d visionRobotPoseMeters,
-      double timestampSeconds,
-      Matrix<N3, N1> visionMeasurementStdDevs) {
-    this.io.addVisionMeasurement(visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
   }
 
   private enum DriveMode {

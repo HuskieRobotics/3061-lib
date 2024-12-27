@@ -59,7 +59,19 @@ public interface OperatorInterface {
     return new Trigger(() -> false);
   }
 
-  public default Trigger getTurboButton() {
+  public default Trigger getSysIdDynamicForward() {
+    return new Trigger(() -> false);
+  }
+
+  public default Trigger getSysIdDynamicReverse() {
+    return new Trigger(() -> false);
+  }
+
+  public default Trigger getSysIdQuasistaticForward() {
+    return new Trigger(() -> false);
+  }
+
+  public default Trigger getSysIdQuasistaticReverse() {
     return new Trigger(() -> false);
   }
 

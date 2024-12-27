@@ -95,6 +95,26 @@ public class FullOperatorConsoleOI implements OperatorInterface {
     return operatorController.start();
   }
 
+  @Override
+  public Trigger getSysIdDynamicForward() {
+    return operatorController.back().and(operatorController.y());
+  }
+
+  @Override
+  public Trigger getSysIdDynamicReverse() {
+    return operatorController.back().and(operatorController.x());
+  }
+
+  @Override
+  public Trigger getSysIdQuasistaticForward() {
+    return operatorController.start().and(operatorController.y());
+  }
+
+  @Override
+  public Trigger getSysIdQuasistaticReverse() {
+    return operatorController.start().and(operatorController.x());
+  }
+
   // Operator Panel
 
   @Override

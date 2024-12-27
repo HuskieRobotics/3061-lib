@@ -8,9 +8,16 @@ public class DrivetrainConstants {
     throw new IllegalStateException(CONSTRUCTOR_EXCEPTION);
   }
 
-  public static final boolean TESTING = false;
   public static final String SUBSYSTEM_NAME = "Drivetrain";
 
   public static final boolean ENABLE_TELEPORT_DETECTION = false;
-  public static final double LEDS_FALLEN_ANGLE_DEGREES = 60.0; // Threshold to detect falls
+  public static final double TELEPORT_DETECTION_THRESHOLD_METERS = 0.4;
+
+  public static final double DEMO_MODE_MAX_VELOCITY = 0.5;
+
+  public enum SysIDCharacterizationMode {
+    TRANSLATION,
+    STEER,
+    ROTATION
+  }
 }

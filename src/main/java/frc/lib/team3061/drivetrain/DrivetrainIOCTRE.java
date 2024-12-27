@@ -5,10 +5,8 @@ import static frc.lib.team3061.drivetrain.DrivetrainConstants.*;
 
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
-import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.signals.DeviceEnableValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.swerve.SwerveDrivetrain;
@@ -28,6 +26,7 @@ import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
+import frc.lib.team3061.drivetrain.DrivetrainConstants.SysIDCharacterizationMode;
 import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
 import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team6328.util.LoggedTunableNumber;
@@ -55,6 +54,10 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     }
   }
 
+  /*
+   * If TUNING is set to true in Constants.java, the following tunables will be available in
+   * AdvantageScope. This enables efficient tuning of PID coefficients without restarting the code.
+   */
   private final LoggedTunableNumber driveKp =
       new LoggedTunableNumber("Drivetrain/DriveKp", RobotConfig.getInstance().getSwerveDriveKP());
   private final LoggedTunableNumber driveKi =
@@ -100,20 +103,16 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
 
   // The closed-loop output type to use for the steer motors
   // This affects the PID/FF gains for the steer motors
-  // TorqueCurrentFOC is not currently supported in simulation.
   private static final ClosedLoopOutputType steerClosedLoopOutput = getSteerClosedLoopOutputType();
 
   // The closed-loop output type to use for the drive motors
   // This affects the PID/FF gains for the drive motors
-  // TorqueCurrentFOC is not currently supported in simulation.
   private static final ClosedLoopOutputType driveClosedLoopOutput = getDriveClosedLoopOutputType();
 
   private static final double COUPLE_RATIO =
       RobotConfig.getInstance().getAzimuthSteerCouplingRatio();
-  private static final double STEER_INERTIA =
-      0.00001; // FIXME: test value of 0.01, which is what CTRE Swerve Generator uses
-  private static final double DRIVE_INERTIA =
-      0.001; // FIXME: test value of 0.01, which is what CTRE Swerve Generator uses
+  private static final double STEER_INERTIA = 0.01;
+  private static final double DRIVE_INERTIA = 0.01;
 
   // Simulated voltage necessary to overcome friction
   private static final Voltage STEER_FRICTION_VOLTAGE = Volts.of(0.25);
@@ -216,7 +215,6 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   private Translation2d centerOfRotation;
   private ChassisSpeeds targetChassisSpeeds;
 
-  private SwerveRequest.Idle idleRequest = new SwerveRequest.Idle();
   private SwerveRequest.RobotCentric driveRobotCentricRequest = new SwerveRequest.RobotCentric();
   private SwerveRequest.FieldCentric driveFieldCentricRequest = new SwerveRequest.FieldCentric();
   private SwerveRequest.FieldCentricFacingAngle driveFacingAngleRequest =
@@ -226,9 +224,13 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   private SwerveRequest.ApplyRobotSpeeds applyRobotSpeedsRequest =
       new SwerveRequest.ApplyRobotSpeeds();
 
-  // only used for TorqueCurrentFOC characterization
-  private TorqueCurrentFOC[] driveCurrentRequests = new TorqueCurrentFOC[4];
-  private TorqueCurrentFOC[] steerCurrentRequests = new TorqueCurrentFOC[4];
+  /* Swerve requests to apply during SysId characterization */
+  private final SwerveRequest.SysIdSwerveTranslation translationCharacterization =
+      new SwerveRequest.SysIdSwerveTranslation();
+  private final SwerveRequest.SysIdSwerveSteerGains steerCharacterization =
+      new SwerveRequest.SysIdSwerveSteerGains();
+  private final SwerveRequest.SysIdSwerveRotation rotationCharacterization =
+      new SwerveRequest.SysIdSwerveRotation();
 
   // queues for odometry updates from CTRE's thread
   private final Lock odometryLock = new ReentrantLock();
@@ -238,8 +240,6 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   Queue<Double> timestampQueue;
 
   // brake mode
-  private final MotorOutputConfigs driveConfig = new MotorOutputConfigs();
-  private final MotorOutputConfigs steerConfig = new MotorOutputConfigs();
   private static final Executor brakeModeExecutor = Executors.newFixedThreadPool(1);
 
   // simulation
@@ -259,11 +259,6 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
     this.centerOfRotation = new Translation2d(); // default to (0,0)
 
     this.targetChassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
-
-    for (int i = 0; i < driveCurrentRequests.length; i++) {
-      this.driveCurrentRequests[i] = new TorqueCurrentFOC(0.0);
-      this.steerCurrentRequests[i] = new TorqueCurrentFOC(0.0);
-    }
 
     // configure PID for drive facing angle
     this.driveFacingAngleRequest.HeadingController.setPID(
@@ -322,11 +317,10 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   }
 
   private void updateTelemetry(SwerveDriveState state) {
-
     this.odometryLock.lock();
 
     // update and log the swerve modules telemetry
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < state.ModuleStates.length; i++) {
       this.drivePositionQueues.get(i).offer(state.ModulePositions[i].distanceMeters);
       this.steerPositionQueues.get(i).offer(state.ModuleStates[i].angle.getDegrees());
     }
@@ -577,28 +571,25 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   }
 
   @Override
+  public void applySysIdCharacterization(SysIDCharacterizationMode mode, double value) {
+    switch (mode) {
+      case TRANSLATION:
+        this.setControl(this.translationCharacterization.withVolts(value));
+        break;
+      case STEER:
+        this.setControl(this.steerCharacterization.withVolts(value));
+        break;
+      case ROTATION:
+        this.setControl(this.rotationCharacterization.withRotationalRate(value));
+        break;
+      default:
+        break;
+    }
+  }
+
+  @Override
   public void setCenterOfRotation(Translation2d centerOfRotation) {
     this.centerOfRotation = centerOfRotation;
-  }
-
-  @Override
-  public void setDriveMotorCurrent(double amps) {
-    // ensure that the SwerveDrivetrain class doesn't control either motor
-    this.setControl(idleRequest);
-
-    for (int i = 0; i < this.getModules().length; i++) {
-      this.getModule(i).getDriveMotor().setControl(driveCurrentRequests[i].withOutput(amps));
-    }
-  }
-
-  @Override
-  public void setSteerMotorCurrent(double amps) {
-    // ensure that the SwerveDrivetrain class doesn't control either motor
-    this.setControl(idleRequest);
-
-    for (int i = 0; i < this.getModules().length; i++) {
-      this.getModule(i).getSteerMotor().setControl(steerCurrentRequests[i].withOutput(amps));
-    }
   }
 
   @Override

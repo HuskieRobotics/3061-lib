@@ -263,6 +263,12 @@ public abstract class RobotConfig {
     return new SwerveDriveKinematics(getSwerveModulePositions());
   }
 
+  /**
+   * Returns the positions of the swerve modules on the robot. The positions are relative to the
+   * center of the robot. The order is front left, front right, back left, and back right.
+   *
+   * @return the positions of the swerve modules on the robot
+   */
   public Translation2d[] getSwerveModulePositions() {
     return new Translation2d[] {
       // Front left
@@ -274,6 +280,16 @@ public abstract class RobotConfig {
       // Back right
       new Translation2d(getWheelbase().div(-2.0), getTrackwidth().div(-2.0))
     };
+  }
+
+  /**
+   * Returns the position of the front left corner of the robot. Defaults to the center of the
+   * robot.
+   *
+   * @return the position of the front left corner of the robot
+   */
+  public Translation2d getFrontRightCornerPosition() {
+    return new Translation2d(0.0, 0.0);
   }
 
   /**

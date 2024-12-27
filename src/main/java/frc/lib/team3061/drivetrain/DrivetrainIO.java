@@ -11,6 +11,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.units.measure.Force;
+import frc.lib.team3061.drivetrain.DrivetrainConstants.SysIDCharacterizationMode;
 import java.util.Optional;
 import org.littletonrobotics.junction.AutoLog;
 
@@ -92,9 +93,9 @@ public interface DrivetrainIO {
   /**
    * Controls the drivetrain to move the robot with the desired velocities in the x, y, and
    * rotational directions. The velocities are specified from the field's frame of reference. In the
-   * field frame of reference, the origin of the field to the lower left corner (i.e., the corner of
-   * the field to the driver's right). Zero degrees is away from the driver and increases in the CCW
-   * direction.
+   * field frame of reference, The origin of the field is always the blue origin (i.e., the positive
+   * x-axis points away from the blue alliance wall). Zero degrees is aligned to the positive x axis
+   * and increases in the CCW direction.
    *
    * @param xVelocity the desired velocity in the x direction (m/s)
    * @param yVelocity the desired velocity in the y direction (m/s)
@@ -104,16 +105,69 @@ public interface DrivetrainIO {
   public default void driveFieldRelative(
       double xVelocity, double yVelocity, double rotationalVelocity, boolean isOpenLoop) {}
 
+  /**
+   * Controls the drivetrain to move the robot with the desired velocities in the x and y
+   * directions, while maintaining the specified rotation. The velocities are specified from the
+   * field's frame of reference. In the field frame of reference, The origin of the field is always
+   * the blue origin (i.e., the positive x-axis points away from the blue alliance wall). Zero
+   * degrees is aligned to the positive x axis and increases in the CCW direction.
+   *
+   * @param xVelocity the desired velocity in the x direction (m/s)
+   * @param yVelocity the desired velocity in the y direction (m/s)
+   * @param targetDirection the desired direction the robot should face
+   * @param isOpenLoop true for open-loop control; false for closed-loop control
+   */
   public default void driveFieldRelativeFacingAngle(
       double xVelocity, double yVelocity, Rotation2d targetDirection, boolean isOpenLoop) {}
 
+  /**
+   * Sets the swerve modules wheels to point in the specified direction. The direction is specified
+   * from the field's frame of reference. In the field frame of reference, The origin of the field
+   * is always the blue origin (i.e., the positive x-axis points away from the blue alliance wall).
+   * Zero degrees is aligned to the positive x axis and increases in the CCW direction.
+   *
+   * @param targetDirection the desired direction each swerve module wheel should face
+   */
   public default void pointWheelsAt(Rotation2d targetDirection) {}
 
+  /**
+   * Controls the drivetrain to move the robot with the desired velocities in the x, y, and
+   * rotational directions. The velocities are specified from the robot's frame of reference. In the
+   * robot frame of reference, The origin of the robot is always the center of the robot. The
+   * positive x direction is forward; the positive y direction, left. Zero degrees is aligned to the
+   * positive x axis and increases in the CCW direction.
+   *
+   * @param xVelocity the desired velocity in the x direction (m/s)
+   * @param yVelocity the desired velocity in the y direction (m/s)
+   * @param rotationalVelocity the desired rotational velocity (rad/s)
+   * @param isOpenLoop true for open-loop control; false for closed-loop control
+   */
   public default void driveRobotRelative(
       double xVelocity, double yVelocity, double rotationalVelocity, boolean isOpenLoop) {}
 
+  /**
+   * Controls the drivetrain to move the robot with the desired velocities in the x, y, and
+   * rotational directions. The velocities are specified from the robot's frame of reference. In the
+   * robot frame of reference, The origin of the robot is always the center of the robot. The
+   * positive x direction is forward; the positive y direction, left. Zero degrees is aligned to the
+   * positive x axis and increases in the CCW direction.
+   *
+   * @param speeds the desired chassis speeds
+   * @param forcesX the robot-centric wheel forces in the x direction
+   * @param forcesY the robot-centric wheel forces in the y direction
+   * @param isOpenLoop true for open-loop control; false for closed-loop control
+   */
   public default void applyRobotSpeeds(
       ChassisSpeeds speeds, Force[] forcesX, Force[] forcesY, boolean isOpenLoop) {}
+
+  /**
+   * Applies the specified characterization mode to the drivetrain with the specified value. This is
+   * used to characterize the robot for the purpose of system identification.
+   *
+   * @param mode the specified characterization mode
+   * @param value the value to apply to the characterization mode
+   */
+  public default void applySysIdCharacterization(SysIDCharacterizationMode mode, double value) {}
 
   /**
    * Sets the robot's center of rotation. The origin is at the center of the robot. The positive x
@@ -124,35 +178,10 @@ public interface DrivetrainIO {
   public default void setCenterOfRotation(Translation2d centerOfRotation) {}
 
   /**
-   * Supplies the drive motors with the specified voltage. Used for drivetrain characterization.
+   * Sets the brake mode of the drivetrain.
    *
-   * @param volts the commanded voltage
+   * @param enable true to enable brake mode; false to disable brake mode
    */
-  public default void setDriveMotorVoltage(double volts) {}
-
-  /**
-   * Supplies the steer motors with the specified voltage. Used for drivetrain characterization.
-   *
-   * @param volts the commanded voltage
-   */
-  public default void setSteerMotorVoltage(double volts) {}
-
-  /**
-   * Supplies the drive motors with the specified current. Used for drivetrain characterization with
-   * TorqueCurrentFOC.
-   *
-   * @param amps the commanded current
-   */
-  public default void setDriveMotorCurrent(double amps) {}
-
-  /**
-   * Supplies the steer motors with the specified current. Used for drivetrain characterization with
-   * TorqueCurrentFOC.
-   *
-   * @param amps the commanded current
-   */
-  public default void setSteerMotorCurrent(double amps) {}
-
   public default void setBrakeMode(boolean enable) {}
 
   /**

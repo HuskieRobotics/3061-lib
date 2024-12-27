@@ -45,33 +45,22 @@ public class DualJoysticksOI implements OperatorInterface {
   }
 
   @Override
-  public Trigger getFieldRelativeButton() {
+  public Trigger getSysIdDynamicForward() {
+    return translateJoystickButtons[1];
+  }
+
+  @Override
+  public Trigger getSysIdDynamicReverse() {
+    return translateJoystickButtons[2];
+  }
+
+  @Override
+  public Trigger getSysIdQuasistaticForward() {
     return translateJoystickButtons[3];
   }
 
   @Override
-  public Trigger getResetGyroButton() {
-    return rotateJoystickButtons[3];
-  }
-
-  @Override
-  public Trigger getLock180Button() {
-    return new Trigger(() -> false);
-  }
-
-  @Override
-  public Trigger getXStanceButton() {
-    return rotateJoystickButtons[4];
-  }
-
-  @Override
-  public Trigger getVisionIsEnabledSwitch() {
-    // vision is always enabled with dual joysticks as there is no switch to disable
-    return new Trigger(() -> true);
-  }
-
-  @Override
-  public Trigger getResetPoseToVisionButton() {
-    return translateJoystickButtons[1];
+  public Trigger getSysIdQuasistaticReverse() {
+    return translateJoystickButtons[4];
   }
 }
