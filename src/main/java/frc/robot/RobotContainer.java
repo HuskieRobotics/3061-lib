@@ -309,7 +309,6 @@ public class RobotContainer {
     oi.getInterruptAll()
         .onTrue(
             Commands.parallel(
-                Commands.runOnce(drivetrain::disableXstance),
                 Commands.runOnce(() -> subsystem.setMotorPower(0)),
                 new TeleopSwerve(drivetrain, oi::getTranslateX, oi::getTranslateY, oi::getRotate)));
   }
@@ -518,11 +517,7 @@ public class RobotContainer {
 
     // x-stance
     oi.getXStanceButton()
-        .onTrue(
-            Commands.runOnce(drivetrain::enableXstance, drivetrain).withName("enable x-stance"));
-    oi.getXStanceButton()
-        .onFalse(
-            Commands.runOnce(drivetrain::disableXstance, drivetrain).withName("disable x-stance"));
+        .whileTrue(Commands.run(drivetrain::holdXstance, drivetrain).withName("hold x-stance"));
 
     oi.getSysIdDynamicForward().whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
     oi.getSysIdDynamicReverse().whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
@@ -583,9 +578,5 @@ public class RobotContainer {
     // during a match, this would be the first opportunity to check the alliance color based on FMS
     // data.
     this.checkAllianceColor();
-
-    // ensure that x-stance is disabled at the start of teleop as there is a possibility if the
-    //  auto command is interrupted, we could still be in x-stance
-    drivetrain.disableXstance();
   }
 }

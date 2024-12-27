@@ -95,8 +95,6 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
   private Timer brakeModeTimer = new Timer();
   private static final double BREAK_MODE_DELAY_SEC = 10.0;
 
-  private DriveMode driveMode = DriveMode.NORMAL;
-
   private boolean isMoveToPoseEnabled = true;
 
   private Alert noPoseAlert =
@@ -371,47 +369,43 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
       boolean isOpenLoop,
       boolean isFieldRelative) {
 
-    if (driveMode == DriveMode.NORMAL) {
-      // get the slow-mode multiplier from the config
-      double slowModeMultiplier = RobotConfig.getInstance().getRobotSlowModeMultiplier();
+    // get the slow-mode multiplier from the config
+    double slowModeMultiplier = RobotConfig.getInstance().getRobotSlowModeMultiplier();
 
-      // if translation or rotation is in slow mode, multiply the x and y velocities by the
-      // slow-mode multiplier
-      if (isTranslationSlowMode) {
-        xVelocity *= slowModeMultiplier;
-        yVelocity *= slowModeMultiplier;
-      }
+    // if translation or rotation is in slow mode, multiply the x and y velocities by the
+    // slow-mode multiplier
+    if (isTranslationSlowMode) {
+      xVelocity *= slowModeMultiplier;
+      yVelocity *= slowModeMultiplier;
+    }
 
-      if (Constants.DEMO_MODE) {
-        double velocity = Math.sqrt(Math.pow(xVelocity, 2) + Math.pow(yVelocity, 2));
-        if (velocity > DEMO_MODE_MAX_VELOCITY) {
-          double scale = DEMO_MODE_MAX_VELOCITY / velocity;
-          xVelocity *= scale;
-          yVelocity *= scale;
-        }
+    if (Constants.DEMO_MODE) {
+      double velocity = Math.sqrt(Math.pow(xVelocity, 2) + Math.pow(yVelocity, 2));
+      if (velocity > DEMO_MODE_MAX_VELOCITY) {
+        double scale = DEMO_MODE_MAX_VELOCITY / velocity;
+        xVelocity *= scale;
+        yVelocity *= scale;
       }
+    }
 
-      // if rotation is in slow mode, multiply the rotational velocity by the slow-mode multiplier
-      if (isRotationSlowMode) {
-        rotationalVelocity *= slowModeMultiplier;
-      }
+    // if rotation is in slow mode, multiply the rotational velocity by the slow-mode multiplier
+    if (isRotationSlowMode) {
+      rotationalVelocity *= slowModeMultiplier;
+    }
 
-      if (isFieldRelative) {
-        // the origin of the field is always the corner to the right of the blue alliance driver
-        // station. As a result, "forward" from a field-relative perspective when on the red
-        // alliance, is in the negative x direction. Similarly, "left" from a field-relative
-        // perspective when on the red alliance is in the negative y direction.
-        int allianceMultiplier = this.alliance == Alliance.Blue ? 1 : -1;
-        this.io.driveFieldRelative(
-            allianceMultiplier * xVelocity,
-            allianceMultiplier * yVelocity,
-            rotationalVelocity,
-            isOpenLoop);
-      } else {
-        this.io.driveRobotRelative(xVelocity, yVelocity, rotationalVelocity, isOpenLoop);
-      }
+    if (isFieldRelative) {
+      // the origin of the field is always the corner to the right of the blue alliance driver
+      // station. As a result, "forward" from a field-relative perspective when on the red
+      // alliance, is in the negative x direction. Similarly, "left" from a field-relative
+      // perspective when on the red alliance is in the negative y direction.
+      int allianceMultiplier = this.alliance == Alliance.Blue ? 1 : -1;
+      this.io.driveFieldRelative(
+          allianceMultiplier * xVelocity,
+          allianceMultiplier * yVelocity,
+          rotationalVelocity,
+          isOpenLoop);
     } else {
-      this.io.holdXStance();
+      this.io.driveRobotRelative(xVelocity, yVelocity, rotationalVelocity, isOpenLoop);
     }
   }
 
@@ -470,6 +464,15 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
    */
   public void stop() {
     this.io.driveRobotRelative(0.0, 0.0, 0.0, false);
+  }
+
+  /**
+   * Puts the drivetrain into the x-stance orientation. In this orientation the wheels are aligned
+   * to make an 'X'. This prevents the robot from rolling on an inclined surface and makes it more
+   * difficult for other robots to push the robot, which is useful when shooting.
+   */
+  public void holdXstance() {
+    this.io.holdXStance();
   }
 
   /**
@@ -547,8 +550,6 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
     // update the brake mode based on the robot's velocity and state (enabled/disabled)
     updateBrakeMode();
 
-    Logger.recordOutput(SUBSYSTEM_NAME + "/DriveMode", this.driveMode);
-
     // update tunables
     LoggedTunableNumber.ifChanged(
         hashCode(),
@@ -622,33 +623,6 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
    */
   public void disableRotationSlowMode() {
     this.isRotationSlowMode = false;
-  }
-
-  /**
-   * Puts the drivetrain into the x-stance orientation. In this orientation the wheels are aligned
-   * to make an 'X'. This prevents the robot from rolling on an inclined surface and makes it more
-   * difficult for other robots to push the robot, which is useful when shooting. The robot cannot
-   * be driven until x-stance is disabled.
-   */
-  public void enableXstance() {
-    // FIXME: remove the concept of drive mode and have a method that is called continuously to hold
-    // X-Stance
-    this.driveMode = DriveMode.X;
-    this.io.holdXStance();
-  }
-
-  /** Disables x-stance, allowing the robot to be driven. */
-  public void disableXstance() {
-    this.driveMode = DriveMode.NORMAL;
-  }
-
-  /**
-   * Returns true if the robot is in the x-stance orientation.
-   *
-   * @return true if the robot is in the x-stance orientation
-   */
-  public boolean isXstance() {
-    return this.driveMode == DriveMode.X;
   }
 
   /**
@@ -1101,11 +1075,6 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
                           }
                         })))
         .withTimeout(2);
-  }
-
-  private enum DriveMode {
-    NORMAL,
-    X
   }
 
   private enum SwerveCheckTypes {
