@@ -4,6 +4,8 @@
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file at
 // the root directory of this project.
+//
+// Adapted for 3061-lib
 
 package frc.lib.team3061.leds;
 

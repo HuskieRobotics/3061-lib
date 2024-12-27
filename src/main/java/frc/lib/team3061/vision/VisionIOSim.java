@@ -16,6 +16,9 @@ import org.photonvision.simulation.VisionSystemSim;
  * VisionIOSim object may be instantiated. It uses the PhotonVision SimVisionSystem to simulates the
  * AprilTag targets that would be seen by a camera based on the robot's pose, which is determined
  * based on its odometry.
+ *
+ * <p>Due to a current bug in PhotonVision, the simulated camera assumes that the 2024 field layout
+ * is being used.
  */
 public class VisionIOSim extends VisionIOPhotonVision {
   private static final String CAMERA_NAME = "simCamera";
