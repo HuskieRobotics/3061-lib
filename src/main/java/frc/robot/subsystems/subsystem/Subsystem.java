@@ -18,6 +18,8 @@ public class Subsystem extends SubsystemBase {
 
   // these Tunables are convenient when testing as they provide direct control of the subsystem's
   // motor
+  private final LoggedTunableNumber testingMode =
+      new LoggedTunableNumber("Subsystem/TestingMode", 0);
   private final LoggedTunableNumber motorPower = new LoggedTunableNumber("Subsystem/power", 0.0);
   private final LoggedTunableNumber motorCurrent =
       new LoggedTunableNumber("Subsystem/current", 0.0);
@@ -26,6 +28,105 @@ public class Subsystem extends SubsystemBase {
 
   private final SubsystemIOInputsAutoLogged inputs = new SubsystemIOInputsAutoLogged();
   private SubsystemIO io;
+  private State state = State.A;
+  private State lastState = State.UNINITIALIZED;
+
+  /**
+   * Few subsystems require the complexity of a state machine. A simpler command-based approach is
+   * usually better. However, there are times when diagraming and implementing a formal state
+   * machine is a reasonable approach. This code is designed to facilitate mapping from a formal
+   * state machine diagram to code.
+   *
+   * <p>The state machine is defined as an enum with each state having its own execute, onEnter, and
+   * onExit methods. The execute method is called every iteration of the periodic method. The
+   * onEnter and onExit methods are called when the state is entered and exited, respectively.
+   * Transitions between states are defined in the execute methods. It is critical that the setState
+   * method is only invoked within a state's execute method. Otherwise, it is possible for a state
+   * transition to be missed.
+   *
+   * <p>This approach is modeled after this ChiefDelphi post:
+   * https://www.chiefdelphi.com/t/enums-and-subsytem-states/463974/6
+   */
+  private enum State {
+    UNINITIALIZED {
+      @Override
+      void execute(Subsystem subsystem) {
+        /* no-op */
+      }
+
+      @Override
+      void onEnter(Subsystem subsystem) {
+        /* no-op */
+      }
+
+      @Override
+      void onExit(Subsystem subsystem) {
+        /* no-op */
+      }
+    },
+    A {
+      @Override
+      void onEnter(Subsystem subsystem) {}
+
+      @Override
+      void execute(Subsystem subsystem) {
+        if (
+        /* some condition is */ true) {
+          subsystem.setState(State.B);
+        }
+      }
+
+      @Override
+      void onExit(Subsystem subsystem) {}
+    },
+    B {
+      @Override
+      void execute(Subsystem subsystem) {
+        if (
+        /* some condition is */ true) {
+          subsystem.setState(State.A);
+        } else if (
+        /* some other condition is */ true) {
+          subsystem.setState(State.C);
+        }
+      }
+
+      @Override
+      void onEnter(Subsystem subsystem) {
+        /* no-op */
+      }
+
+      @Override
+      void onExit(Subsystem subsystem) {
+        /* no-op */
+      }
+    },
+    C {
+      @Override
+      void execute(Subsystem subsystem) {
+        if (
+        /* some condition is */ true) {
+          subsystem.setState(State.A);
+        }
+      }
+
+      @Override
+      void onEnter(Subsystem subsystem) {
+        /* no-op */
+      }
+
+      @Override
+      void onExit(Subsystem subsystem) {
+        /* no-op */
+      }
+    };
+
+    abstract void execute(Subsystem subsystem);
+
+    abstract void onEnter(Subsystem subsystem);
+
+    abstract void onExit(Subsystem subsystem);
+  }
 
   /**
    * Create a new subsystem with its associated hardware interface object.
@@ -49,7 +150,7 @@ public class Subsystem extends SubsystemBase {
     Logger.processInputs("Subsystem", inputs);
 
     // when testing, set the motor power, current, or position based on the Tunables (if non-zero)
-    if (TESTING) {
+    if (testingMode.get() != 0) {
       if (motorPower.get() != 0) {
         this.setMotorPower(motorPower.get());
       }
@@ -61,7 +162,23 @@ public class Subsystem extends SubsystemBase {
       if (motorPosition.get() != 0) {
         this.setMotorPosition(motorPosition.get());
       }
+    } else {
+      runStateMachine();
     }
+  }
+
+  private void setState(State state) {
+    this.state = state;
+  }
+
+  private void runStateMachine() {
+    if (state != lastState) {
+      lastState.onExit(this);
+      lastState = state;
+      state.onEnter(this);
+    }
+
+    state.execute(this);
   }
 
   /**
