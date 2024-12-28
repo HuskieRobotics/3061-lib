@@ -94,11 +94,6 @@ public class TeleopSwerve extends Command {
     addRequirements(drivetrain);
   }
 
-  @Override
-  public void initialize() {
-    Logger.recordOutput("ActiveCommands/TeleopSwerve", true);
-  }
-
   /**
    * This method is invoked periodically while this command is scheduled. It calculates the
    * velocities based on the supplied values and enabled features and invokes the drivetrain
@@ -131,17 +126,6 @@ public class TeleopSwerve extends Command {
       drivetrain.drive(
           xVelocity, yVelocity, rotationalVelocity, true, drivetrain.getFieldRelative());
     }
-  }
-
-  /**
-   * This method will be invoked when this command finishes or is interrupted. The drivetrain is
-   * left in whatever state it was in when the command finished.
-   *
-   * @param interrupted true if the command was interrupted by another command being scheduled
-   */
-  @Override
-  public void end(boolean interrupted) {
-    Logger.recordOutput("ActiveCommands/TeleopSwerve", false);
   }
 
   /**
