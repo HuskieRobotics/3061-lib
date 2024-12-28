@@ -73,20 +73,32 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
     16. rotate the cart in a CW direction and verify that the gyro is decreasing
     17. use Phoenix Tuner X to flash the LEDs on the TalonFX devices and CANcoders to ensure that the CAN IDs are properly assigned to the front-left, front-right, back-left, and back-right positions (all of the above may behave as expected even if the modules aren't assigned to the appropriate corners)
 * If you are using voltage control outputs:
-    * Angle characterization values (```ANGLE_KS```, ```ANGLE_KV```, ```ANGLE_KA```) in in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
-        * set ```TUNING_MODE``` in Constants.java to true (characterization analysis doesn't normally run)
-        * in Shuffleboard, set the "Auto Routine" chooser to "Swerve Rotate Characterization"
-        * start the autonomous period
-        * the ```FeedForwardCharacterization``` command will run and output the KS, KV, and KA values
+    * Angle characterization values (```ANGLE_KS```, ```ANGLE_KV```, ```ANGLE_KA```) are in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
+        * in your dashboard of choice (e.g., Shuffleboard, Elastic), set the "SysID Chooser" chooser to "Steer"
+        * enable the robot
+        * run each of the four SysId routines:
+            * dynamic in the forward direction (hold the back and y buttons on the xBox controller)
+            * dynamic in the reverse direction (hold the back and x buttons on the xBox controller)
+            * quasistatic in the forward direction (hold the start and y buttons on the xBox controller)
+            * quasistatic in the reverse direction (hold the start and x buttons on the xBox controller)
+        * disable the robot
+        * [convert](https://v6.docs.ctr-electronics.com/en/latest/docs/tuner/tools/log-extractor.html) the CTRE hoot file to a WPILog file
+        * follow WPILib's [instructions](https://docs.wpilib.org/en/latest/docs/software/advanced-controls/system-identification/loading-data.html) for loading and analyzing data to determine the KS, KV, and KA values
         * copy the KS, KV, and KA values into the corresponding constants in your robot config file
     * Drive characterization values (```DRIVE_KS```, ```DRIVE_KV```, ```DRIVE_KA```) in in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
-        * set ```TUNING_MODE``` in Constants.java to true (characterization analysis doesn't normally run)
-        * in Shuffleboard, set the "Auto Routine" chooser to "Swerve Drive Characterization"
-        * ensure that there is about 40' of carpet in front of the robot before enabling the auto routine; if there is less, increase ```RAMP_RATE_VOLTS_PER_SECOND``` in ```FeedForwardCharacterization```
-        * start the autonomous period
-        * the ```FeedForwardCharacterization``` command will run and output the KS, KV, KA values (you do not need to lock the modules straight forward as the code will keep them oriented in the forward direction)
+        * in your dashboard of choice (e.g., Shuffleboard, Elastic), set the "SysID Chooser" chooser to "Translation"
+        * enable the robot
+        * run each of the four SysId routines:
+            * dynamic in the forward direction (hold the back and y buttons on the xBox controller)
+            * dynamic in the reverse direction (hold the back and x buttons on the xBox controller)
+            * quasistatic in the forward direction (hold the start and y buttons on the xBox controller)
+            * quasistatic in the reverse direction (hold the start and x buttons on the xBox controller)
+        * disable the robot
+        * [convert](https://v6.docs.ctr-electronics.com/en/latest/docs/tuner/tools/log-extractor.html) the CTRE hoot file to a WPILog file
+        * follow WPILib's [instructions](https://docs.wpilib.org/en/latest/docs/software/advanced-controls/system-identification/loading-data.html) for loading and analyzing data to determine the KS, KV, and KA values
         * copy the KS, KV, and KA values into the corresponding constants in your robot config file
-* If you are using TorqueCurrentFOC (Phoenix Pro) control outputs:
+* If you are using TorqueCurrentFOC control outputs:
+    * Under development.
     * Angle characterization values (```ANGLE_KS```, ```ANGLE_KV```, ```ANGLE_KA```) in in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
         * set the robot on the carpet
         * set ```ANGLE_KV``` to 0 since current corresponds to acceleration, not velocity
@@ -109,30 +121,31 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
         * verify kA by using VelocityTorqueCurrentFOC in Tuner X and commanding an acceleration (and a velocity if you want kS in circuit) (while you're far enough from free speed, the acceleration signal should closely match the requested acceleration)
 * Angle Motor PID Values (```ANGLE_KP```, ```ANGLE_KI```, ```ANGLE_KD```) in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
     * set ```TUNING_MODE``` in Constants.java to true
-    * open Shuffleboard, go to the SmartDashboard tab, and see controls for each of the PID values; values can be changed via these controls as you interactively tune the controller
+    * open AdvantageScope, import the AdvantageScopeTuning.json layout file, and enable tuning; each of the PID values are under "/Tuning"
+    * in your dashboard, set the "Auto Routine" chooser to "Swerve Rotation Tuning"
     * start with a P value of 100.0
+    * refer to the steer PID tuning tab in Advantage Scope
     * double until the module starts oscillating around the set point
     * scale back by searching for the value (for example, if it starts oscillating at a P of 100, then try (100 -> 50 -> 75 -> etc.)) until the module overshoots the setpoint but corrects with no oscillation
-    * graph the ```anglePositionErrorDeg``` in Advantage Scope for each swerve module to assist in tuning
     * repeat the process for D; the D value will basically help prevent the overshoot
     * ignore I
-    * copy the values from the Shuffleboard controls into SwerveModuleConstants.java
+    * copy the values from AdvantageScope into SwerveModuleConstants.java
     * set ```TUNING_MODE``` in Constants.java to false
 * Drive Motor PID Values (```DRIVE_KP```, ```DRIVE_KI```, ```DRIVE_KD```) in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
     * set ```TUNING_MODE``` in Constants.java to true
-    * open Shuffleboard, go to the SmartDashboard tab, and see controls for each of the PID values; values can be changed via these controls as you interactively tune the controller
-    * in Shuffleboard, set the "Auto Routine" chooser to "Drive Velocity Tuning"
+    * open AdvantageScope, import the AdvantageScopeTuning.json layout file, and enable tuning; each of the PID values are under "/Tuning"
+    * in your dashboard, set the "Auto Routine" chooser to "Drive Velocity Tuning"
+    * refer to the drive PID tuning tab in Advantage Scope
     * tune ```DRIVE_KP``` until it doesn't overshoot and doesn't oscillate around a target velocity
-        * start with a P value of 0.2 (DrivetrainIOCTRE) or 0.005 (DrivetrainIOGeneric)
-    * graph the ```driveVelocityErrorMetersPerSec``` in Advantage Scope for each swerve module to assist in tuning
-    * copy the values from the Shuffleboard controls into SwerveModuleConstants.java
+        * start with a P value of 10.0
+    * copy the values from AdvantageScope into SwerveModuleConstants.java
     * set ```TUNING_MODE``` in Constants.java to false
 * ```AUTO_DRIVE_P_CONTROLLER``` and ```AUTO_TURN_P_CONTROLLER``` constants in in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
     * set ```TUNING_MODE``` in Constants.java to true
-    * open Shuffleboard, go to the SmartDashboard tab, and see controls for each of the PID values; values can be changed via these controls as you interactively tune the controller
-    * tune until until auto paths are smoothly followed
-    * graph the ```PathFollowing/xPosError```, ```PathFollowing/yPosError```, and ```PathFollowing/rotationError``` in Advantage Scope for each swerve module to assist in tuning
-    * copy the values from the Shuffleboard controls into DrivetrainConstants.java
+    * open AdvantageScope, import the AdvantageScopeTuning.json layout file, and enable tuning; each of the PID values are under "/Tuning"
+    * tune until until auto paths (e.g., Oval Test Fast) are smoothly followed
+    * refer to the auto path tuning tab in Advantage Scope to minimize the errors
+    * copy the values from AdvantageScope into DrivetrainConstants.java
     * set ```TUNING_MODE``` in Constants.java to false
 
 **Joystick Mappings**
