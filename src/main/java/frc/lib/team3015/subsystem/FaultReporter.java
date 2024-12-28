@@ -24,10 +24,11 @@ import org.littletonrobotics.junction.Logger;
 
 /**
  * The FaultReporter class is a singleton that is used to check for and publish faults related to
- * registered subsystems and registered devices. It checks for and publishes faults for all
- * registered devices every 30 seconds. Subsystems can register their associated system check
- * command via the registerSystemCheck method. Hardware-specific classes can register their devices
- * via the registerHardware method. Everything is published to NetworkTables under "SystemStatus".
+ * registered subsystems and registered devices. It checks for faults every 0.25 seconds and
+ * publishes faults for all registered devices every second. Subsystems can register their
+ * associated system check command via the registerSystemCheck method. Hardware-specific classes can
+ * register their devices via the registerHardware method. Everything is published to NetworkTables
+ * under "SystemStatus".
  *
  * <p>For each registered subsystem, the following keys are published under
  * "SystemStatus/[subsystemName]": <br>
@@ -146,19 +147,15 @@ public class FaultReporter {
   private void setupCallbacks() {
     CommandScheduler.getInstance()
         .schedule(
-            Commands.sequence(
-                    Commands.waitSeconds(30.0),
-                    Commands.repeatingSequence(
-                        Commands.runOnce(this::checkForFaults), Commands.waitSeconds(0.25)))
+            Commands.repeatingSequence(
+                    Commands.runOnce(this::checkForFaults), Commands.waitSeconds(0.25))
                 .ignoringDisable(true)
                 .withName("check for faults"));
 
     CommandScheduler.getInstance()
         .schedule(
-            Commands.sequence(
-                    Commands.waitSeconds(30.0),
-                    Commands.repeatingSequence(
-                        Commands.runOnce(this::publishStatus), Commands.waitSeconds(1.0)))
+            Commands.repeatingSequence(
+                    Commands.runOnce(this::publishStatus), Commands.waitSeconds(1.0))
                 .ignoringDisable(true)
                 .withName("publish faults"));
   }
@@ -298,7 +295,7 @@ public class FaultReporter {
   /**
    * Registers a hardware device with the FaultReporter. This method should be invoked by the
    * hardware-specific subsystem class to register all hardware devices associated with the
-   * subsystem. The hardware device will be checked for faults every 30 seconds. Refer to the
+   * subsystem. The hardware device will be checked for faults every 0.25 seconds. Refer to the
    * configMotor method in the Subsystem class for an example.
    *
    * @param subsystemName the name of the subsystem that the hardware device is associated with
@@ -324,7 +321,7 @@ public class FaultReporter {
   /**
    * Registers a hardware device with the FaultReporter. This method should be invoked by the
    * hardware-specific subsystem class to register all hardware devices associated with the
-   * subsystem. The hardware device will be checked for faults every 30 seconds. Refer to the
+   * subsystem. The hardware device will be checked for faults every 0.25 seconds. Refer to the
    * configMotor method in the Subsystem class for an example.
    *
    * @param subsystemName the name of the subsystem that the hardware device is associated with
@@ -341,7 +338,7 @@ public class FaultReporter {
   /**
    * Registers a hardware device with the FaultReporter. This method should be invoked by the
    * hardware-specific subsystem class to register all hardware devices associated with the
-   * subsystem. The hardware device will be checked for faults every 30 seconds. Refer to the
+   * subsystem. The hardware device will be checked for faults every 0.25 seconds. Refer to the
    * configMotor method in the Subsystem class for an example.
    *
    * @param subsystemName the name of the subsystem that the hardware device is associated with
@@ -358,7 +355,7 @@ public class FaultReporter {
   /**
    * Registers a hardware device with the FaultReporter. This method should be invoked by the
    * hardware-specific subsystem class to register all hardware devices associated with the
-   * subsystem. The hardware device will be checked for faults every 30 seconds. Refer to the
+   * subsystem. The hardware device will be checked for faults every 0.25 seconds. Refer to the
    * configMotor method in the Subsystem class for an example.
    *
    * @param subsystemName the name of the subsystem that the hardware device is associated with
@@ -375,7 +372,7 @@ public class FaultReporter {
   /**
    * Registers a hardware device with the FaultReporter. This method should be invoked by the
    * hardware-specific subsystem class to register all hardware devices associated with the
-   * subsystem. The hardware device will be checked for faults every 30 seconds. Refer to the
+   * subsystem. The hardware device will be checked for faults every 0.25 seconds. Refer to the
    * configMotor method in the Subsystem class for an example.
    *
    * @param subsystemName the name of the subsystem that the hardware device is associated with
