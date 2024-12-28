@@ -4,21 +4,25 @@
 
 package frc.robot;
 
+import com.ctre.phoenix6.CANBus;
 import com.pathplanner.lib.commands.PathfindingCommand;
-import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.hal.AllianceStationID;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.net.WebServer;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Threads;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.simulation.DriverStationSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.leds.LEDs;
+import frc.robot.Constants.Mode;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -38,14 +42,24 @@ import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 public class Robot extends LoggedRobot {
   private static final double LOW_BATTERY_VOLTAGE = 10.0;
   private static final double LOW_BATTERY_DISABLED_TIME = 1.5;
+  private static final double CAN_ERROR_TIME_THRESHOLD = 0.5; // Seconds to disable alert
+  private static final double CANIVORE_ERROR_TIME_THRESHOLD = 0.5;
 
   private RobotContainer robotContainer;
   private Command autonomousCommand;
   private double autoStart;
   private boolean autoMessagePrinted;
+  private CANBus canivoreBus;
 
   private final Timer disabledTimer = new Timer();
+  private final Timer canInitialErrorTimer = new Timer();
+  private final Timer canErrorTimer = new Timer();
+  private final Timer canivoreErrorTimer = new Timer();
 
+  private final Alert canErrorAlert =
+      new Alert("CAN errors detected, robot may not be controllable.", AlertType.kError);
+  private final Alert canivoreErrorAlert =
+      new Alert("CANivore error detected, robot may not be controllable.", AlertType.kError);
   private final Alert logReceiverQueueAlert =
       new Alert("Logging queue exceeded capacity, data will NOT be logged.", AlertType.kError);
   private final Alert lowBatteryAlert =
@@ -80,13 +94,14 @@ public class Robot extends LoggedRobot {
     switch (Constants.getMode()) {
       case REAL:
         // Running on a real robot, log to a USB stick ("/U/logs")
-        Logger.addDataReceiver(new WPILOGWriter());
+        Logger.addDataReceiver(new WPILOGWriter("/media/sda1"));
         Logger.addDataReceiver(new NT4Publisher());
         break;
 
       case SIM:
         // Running a physics simulator, log to NT
         Logger.addDataReceiver(new NT4Publisher());
+        Logger.addDataReceiver(new WPILOGWriter());
         break;
 
       case REPLAY:
@@ -101,8 +116,11 @@ public class Robot extends LoggedRobot {
     // Start AdvantageKit logger
     Logger.start();
 
+    // start Elastic Dashboard server
+    WebServer.start(5800, Filesystem.getDeployDirectory().getPath());
+
     // DO THIS FIRST
-    Pathfinding.setPathfinder(new LocalADStarAK());
+    // Pathfinding.setPathfinder(new LocalADStarAK());
 
     // Log active commands
     Map<String, Integer> commandCounts = new HashMap<>();
@@ -141,11 +159,17 @@ public class Robot extends LoggedRobot {
         poses -> Logger.recordOutput("PathFollowing/activePath", poses.toArray(new Pose2d[0])));
 
     // Start timers
+    canInitialErrorTimer.restart();
+    canErrorTimer.restart();
+    canivoreErrorTimer.restart();
     disabledTimer.restart();
 
     // Instantiate our RobotContainer. This will perform all our button bindings,
     // and put our autonomous chooser on the dashboard.
     robotContainer = new RobotContainer();
+
+    // create the CANivore bus object
+    this.canivoreBus = new CANBus(RobotConfig.getInstance().getCANBusName());
 
     // Due to the nature of how Java works, the first run of a path following command could have a
     // significantly higher delay compared with subsequent runs, as all the classes involved will
@@ -175,6 +199,34 @@ public class Robot extends LoggedRobot {
     CommandScheduler.getInstance().run();
 
     logReceiverQueueAlert.set(Logger.getReceiverQueueFault());
+
+    // Check CAN status
+    var canStatus = RobotController.getCANStatus();
+    if (canStatus.transmitErrorCount > 0 || canStatus.receiveErrorCount > 0) {
+      canErrorTimer.restart();
+    }
+    canErrorAlert.set(
+        !canErrorTimer.hasElapsed(CAN_ERROR_TIME_THRESHOLD)
+            && canInitialErrorTimer.hasElapsed(CAN_ERROR_TIME_THRESHOLD));
+
+    // Log CANivore status
+    if (Constants.getMode() == Mode.REAL) {
+      var canivoreStatus = this.canivoreBus.getStatus();
+      Logger.recordOutput("CANivoreStatus/Status", canivoreStatus.Status.getName());
+      Logger.recordOutput("CANivoreStatus/Utilization", canivoreStatus.BusUtilization);
+      Logger.recordOutput("CANivoreStatus/OffCount", canivoreStatus.BusOffCount);
+      Logger.recordOutput("CANivoreStatus/TxFullCount", canivoreStatus.TxFullCount);
+      Logger.recordOutput("CANivoreStatus/ReceiveErrorCount", canivoreStatus.REC);
+      Logger.recordOutput("CANivoreStatus/TransmitErrorCount", canivoreStatus.TEC);
+      if (!canivoreStatus.Status.isOK()
+          || canStatus.transmitErrorCount > 0
+          || canStatus.receiveErrorCount > 0) {
+        canivoreErrorTimer.restart();
+      }
+      canivoreErrorAlert.set(
+          !canivoreErrorTimer.hasElapsed(CANIVORE_ERROR_TIME_THRESHOLD)
+              && canInitialErrorTimer.hasElapsed(CAN_ERROR_TIME_THRESHOLD));
+    }
 
     // Update low battery alert
     if (DriverStation.isEnabled()) {

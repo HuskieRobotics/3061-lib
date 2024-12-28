@@ -140,8 +140,6 @@ public class DriveToPose extends Command {
    */
   @Override
   public void initialize() {
-    Logger.recordOutput("ActiveCommands/DriveToPose", true);
-
     // Reset all controllers
     Pose2d currentPose = drivetrain.getPose();
     xController.reset(currentPose.getX());
@@ -258,6 +256,5 @@ public class DriveToPose extends Command {
   public void end(boolean interrupted) {
     drivetrain.stop();
     running = false;
-    Logger.recordOutput("ActiveCommands/DriveToPose", false);
   }
 }

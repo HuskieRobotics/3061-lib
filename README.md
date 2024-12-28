@@ -156,6 +156,18 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
 * Joystick 0's button 4 zeroes the gyro, useful when testing teleop, just rotate the robot forwards, and press the button to rezero.
 * Joystick 1's button 4 enables x-stance while pressed.
 
+**Additional References**
+----
+* [AdvantageScope Network Tables](https://docs.google.com/document/d/e/2PACX-1vRfNyTbYLsrKsvsglYrfjzFeAX9NwzxujVFkiw6YNhY4q8llXNcvPmTmMpet0ZBr3SQXdCxkkm_XV_E/pub): describes how we configure AdvantageScope and many of the useful values that are logged and where to view them in the provided AdvantageScope layout.
+* [Coding a Subsystem](https://docs.google.com/document/d/e/2PACX-1vSoKDfaqDuGCELO67Z_OU1Wi1htoCOmoF5-17C2HNv1dCKMAVaq9HAGa5_nQpZRHAQsEgaKbTEiwgO4/pub): a more detailed description of what is required to create a new subsytem.
+* [Command Scheduler](https://docs.google.com/document/d/e/2PACX-1vS5TPIvj47OJelcBR2K0lNPXy0A72G__a6bLnf2l0SGfUjM-TADPxHw7-s6GHQu5gSJ95nnCRfcgxQs/pub): flowchart of WPILib's Command Scheduler.
+* [Competition Best Practices](https://docs.google.com/document/d/e/2PACX-1vQLStnC43iz8e7evLbORy99PDJclmt1k7UA60Lp2NWchMA0MyDMwknH0NvJk3FGo0KaARN6tOJ5sEnj/pub): best practices for reliability and traceability at competitions by leveraging the Event Deploy VS Code extension.
+* [Current Limiting](https://docs.google.com/document/d/e/2PACX-1vRYSPdktpdxEqfEJ5qOyJI1QZgMc7kVsm6Ehq9maGxWGrJPlZ-flu7b20wwI2OQtpVEouoiGKB02wDO/pub): description, rationale, and best practices for specifying current limits.
+* [Operator Interface](https://docs.google.com/document/d/e/2PACX-1vSW9bMBWT1qbvids2dnbw3Nyx9KVRfCczwkKzmkih6P6htDaCBE4KAIzxbC2n-0mct3-kXr1Bc9JJqJ/pub): rationale and description for the Operator Interface design.
+* [Subsystem Testing and Tuning](https://docs.google.com/document/d/e/2PACX-1vT7eesqIg4E16QXMnDbtrsDJ6jEBApWDYRyNXWFtIHHf6upWCrLpBTFEyG6xL03H0mBDx3EbL_P5vCx/pub): how to perform initial tests on mechanisms, debug with log files, and tune constants.
+*
+
+
 **Credits**
 ----
 * MK4/MK4i code initially from Team 364's [BaseFalconSwerve](https://github.com/Team364/BaseFalconSwerve)

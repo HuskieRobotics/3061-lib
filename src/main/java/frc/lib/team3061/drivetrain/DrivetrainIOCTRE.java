@@ -449,12 +449,14 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   public void driveFieldRelative(
       double xVelocity, double yVelocity, double rotationalVelocity, boolean isOpenLoop) {
 
-    this.targetChassisSpeeds.vxMetersPerSecond = xVelocity;
-    this.targetChassisSpeeds.vyMetersPerSecond = yVelocity;
-    this.targetChassisSpeeds.omegaRadiansPerSecond = rotationalVelocity;
-    this.targetChassisSpeeds.toRobotRelativeSpeeds(
-        RobotOdometry.getInstance().getEstimatedPose().getRotation());
-    this.targetChassisSpeeds.discretize(Constants.LOOP_PERIOD_SECS);
+    this.targetChassisSpeeds =
+        ChassisSpeeds.discretize(
+            ChassisSpeeds.fromFieldRelativeSpeeds(
+                xVelocity,
+                yVelocity,
+                rotationalVelocity,
+                RobotOdometry.getInstance().getEstimatedPose().getRotation()),
+            Constants.LOOP_PERIOD_SECS);
 
     if (isOpenLoop) {
       this.setControl(
@@ -479,12 +481,14 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   public void driveFieldRelativeFacingAngle(
       double xVelocity, double yVelocity, Rotation2d targetDirection, boolean isOpenLoop) {
 
-    this.targetChassisSpeeds.vxMetersPerSecond = xVelocity;
-    this.targetChassisSpeeds.vyMetersPerSecond = yVelocity;
-    this.targetChassisSpeeds.omegaRadiansPerSecond = 0.0;
-    this.targetChassisSpeeds.toRobotRelativeSpeeds(
-        RobotOdometry.getInstance().getEstimatedPose().getRotation());
-    this.targetChassisSpeeds.discretize(Constants.LOOP_PERIOD_SECS);
+    this.targetChassisSpeeds =
+        ChassisSpeeds.discretize(
+            ChassisSpeeds.fromFieldRelativeSpeeds(
+                xVelocity,
+                yVelocity,
+                0.0,
+                RobotOdometry.getInstance().getEstimatedPose().getRotation()),
+            Constants.LOOP_PERIOD_SECS);
 
     if (isOpenLoop) {
       this.setControl(
@@ -518,10 +522,10 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   public void driveRobotRelative(
       double xVelocity, double yVelocity, double rotationalVelocity, boolean isOpenLoop) {
 
-    this.targetChassisSpeeds.vxMetersPerSecond = xVelocity;
-    this.targetChassisSpeeds.vyMetersPerSecond = yVelocity;
-    this.targetChassisSpeeds.omegaRadiansPerSecond = rotationalVelocity;
-    this.targetChassisSpeeds.discretize(Constants.LOOP_PERIOD_SECS);
+    this.targetChassisSpeeds =
+        ChassisSpeeds.discretize(
+            new ChassisSpeeds(xVelocity, yVelocity, rotationalVelocity),
+            Constants.LOOP_PERIOD_SECS);
 
     if (isOpenLoop) {
       this.setControl(

@@ -1,8 +1,8 @@
 package frc.lib.team3015.subsystem.selfcheck;
 
-import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.TalonFX;
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.Voltage;
 import frc.lib.team3015.subsystem.SubsystemFault;
 import java.util.ArrayList;
@@ -12,6 +12,7 @@ public class SelfCheckingPhoenixMotor implements SelfChecking {
   private final String label;
   private final TalonFX motor;
   private StatusSignal<Voltage> statusSignal;
+  private final Debouncer connectedDebounce = new Debouncer(0.5);
 
   public SelfCheckingPhoenixMotor(String label, TalonFX motor) {
     this.label = label;
@@ -92,7 +93,7 @@ public class SelfCheckingPhoenixMotor implements SelfChecking {
     }
 
     this.statusSignal.refresh();
-    if (this.statusSignal.getStatus() != StatusCode.OK) {
+    if (!connectedDebounce.calculate(this.statusSignal.getStatus().isOK())) {
       faults.add(new SubsystemFault(String.format("[%s]: device is unreachable", label)));
     }
 
