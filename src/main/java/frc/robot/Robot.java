@@ -5,7 +5,6 @@
 package frc.robot;
 
 import com.pathplanner.lib.commands.PathfindingCommand;
-import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.hal.AllianceStationID;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -87,6 +86,7 @@ public class Robot extends LoggedRobot {
       case SIM:
         // Running a physics simulator, log to NT
         Logger.addDataReceiver(new NT4Publisher());
+        Logger.addDataReceiver(new WPILOGWriter());
         break;
 
       case REPLAY:
@@ -102,7 +102,7 @@ public class Robot extends LoggedRobot {
     Logger.start();
 
     // DO THIS FIRST
-    Pathfinding.setPathfinder(new LocalADStarAK());
+    // Pathfinding.setPathfinder(new LocalADStarAK());
 
     // Log active commands
     Map<String, Integer> commandCounts = new HashMap<>();
