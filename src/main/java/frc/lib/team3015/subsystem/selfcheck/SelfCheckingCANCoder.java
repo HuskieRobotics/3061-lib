@@ -1,8 +1,8 @@
 package frc.lib.team3015.subsystem.selfcheck;
 
-import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.CANcoder;
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.Voltage;
 import frc.lib.team3015.subsystem.SubsystemFault;
 import java.util.ArrayList;
@@ -12,6 +12,7 @@ public class SelfCheckingCANCoder implements SelfChecking {
   private final String label;
   private final CANcoder canCoder;
   private StatusSignal<Voltage> statusSignal;
+  private final Debouncer connectedDebounce = new Debouncer(0.5);
 
   public SelfCheckingCANCoder(String label, CANcoder canCoder) {
     this.label = label;
@@ -41,7 +42,7 @@ public class SelfCheckingCANCoder implements SelfChecking {
     }
 
     this.statusSignal.refresh();
-    if (this.statusSignal.getStatus() != StatusCode.OK) {
+    if (!connectedDebounce.calculate(this.statusSignal.getStatus().isOK())) {
       faults.add(new SubsystemFault(String.format("[%s]: device is unreachable", label)));
     }
 

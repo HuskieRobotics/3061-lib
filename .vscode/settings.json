@@ -64,6 +64,7 @@
     "CTRETCF",
     "curr",
     "DEADBAND",
+    "debouncer",
     "Devs",
     "dtheta",
     "feedforward",
