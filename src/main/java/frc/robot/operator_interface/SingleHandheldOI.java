@@ -65,4 +65,24 @@ public class SingleHandheldOI implements OperatorInterface {
   public Trigger getLock180Button() {
     return controller.a();
   }
+
+  @Override
+  public Trigger getSysIdDynamicForward() {
+    return controller.back().and(controller.y());
+  }
+
+  @Override
+  public Trigger getSysIdDynamicReverse() {
+    return controller.back().and(controller.x());
+  }
+
+  @Override
+  public Trigger getSysIdQuasistaticForward() {
+    return controller.start().and(controller.y());
+  }
+
+  @Override
+  public Trigger getSysIdQuasistaticReverse() {
+    return controller.start().and(controller.x());
+  }
 }
