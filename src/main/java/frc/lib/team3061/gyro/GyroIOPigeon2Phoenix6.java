@@ -4,27 +4,34 @@
 
 package frc.lib.team3061.gyro;
 
+import static edu.wpi.first.units.Units.*;
+import static frc.lib.team3061.drivetrain.DrivetrainConstants.SUBSYSTEM_NAME;
+
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.sim.Pigeon2SimState;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.RobotController;
-import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 import frc.robot.Constants;
-import java.util.ArrayList;
-import java.util.List;
 
 public class GyroIOPigeon2Phoenix6 implements GyroIO {
   private final Pigeon2 gyro;
-  private final StatusSignal<Double> yawStatusSignal;
-  private final StatusSignal<Double> pitchStatusSignal;
-  private final StatusSignal<Double> rollStatusSignal;
-  private final StatusSignal<Double> angularVelocityXStatusSignal;
-  private final StatusSignal<Double> angularVelocityYStatusSignal;
-  private final StatusSignal<Double> angularVelocityZStatusSignal;
+  private final StatusSignal<Angle> yawStatusSignal;
+  private final StatusSignal<Angle> pitchStatusSignal;
+  private final StatusSignal<Angle> rollStatusSignal;
+  private final StatusSignal<AngularVelocity> angularVelocityXStatusSignal;
+  private final StatusSignal<AngularVelocity> angularVelocityYStatusSignal;
+  private final StatusSignal<AngularVelocity> angularVelocityZStatusSignal;
   private final Pigeon2SimState gyroSim;
+
+  private final Alert refreshAlert =
+      new Alert("Failed to refresh signals in " + SUBSYSTEM_NAME, AlertType.kError);
 
   public GyroIOPigeon2Phoenix6(int id) {
     gyro = new Pigeon2(id, RobotConfig.getInstance().getCANBusName());
@@ -41,8 +48,6 @@ public class GyroIOPigeon2Phoenix6 implements GyroIO {
     this.angularVelocityZStatusSignal = this.gyro.getAngularVelocityZWorld().clone();
     this.angularVelocityZStatusSignal.setUpdateFrequency(100);
 
-    FaultReporter.getInstance().registerHardware("Drivetrain", "gyro", gyro);
-
     if (Constants.getMode() == Constants.Mode.SIM) {
       this.gyroSim = this.gyro.getSimState();
     } else {
@@ -52,55 +57,38 @@ public class GyroIOPigeon2Phoenix6 implements GyroIO {
 
   @Override
   public void updateInputs(GyroIOInputs inputs) {
-    // only invoke refresh if Phoenix is not licensed (if licensed, these signals have already been
-    // refreshed)
-    if (!RobotConfig.getInstance().getPhoenix6Licensed()) {
-      BaseStatusSignal.refreshAll(this.yawStatusSignal, this.angularVelocityZStatusSignal);
-    } else {
-      BaseStatusSignal.refreshAll(
-          this.yawStatusSignal,
-          this.angularVelocityZStatusSignal,
-          this.pitchStatusSignal,
-          this.rollStatusSignal,
-          this.angularVelocityXStatusSignal,
-          this.angularVelocityYStatusSignal);
+    StatusCode status =
+        BaseStatusSignal.refreshAll(
+            this.yawStatusSignal,
+            this.angularVelocityZStatusSignal,
+            this.pitchStatusSignal,
+            this.rollStatusSignal,
+            this.angularVelocityXStatusSignal,
+            this.angularVelocityYStatusSignal);
+    if (status != StatusCode.OK) {
+      refreshAlert.setText("Failed to refresh signals in " + SUBSYSTEM_NAME + "; code: " + status);
+      refreshAlert.set(true);
     }
 
     inputs.connected = (this.yawStatusSignal.getStatus() == StatusCode.OK);
     inputs.yawDeg =
         BaseStatusSignal.getLatencyCompensatedValue(
-            this.yawStatusSignal, this.angularVelocityZStatusSignal);
+                this.yawStatusSignal, this.angularVelocityZStatusSignal)
+            .in(Degrees);
     inputs.pitchDeg =
         BaseStatusSignal.getLatencyCompensatedValue(
-            this.pitchStatusSignal, this.angularVelocityYStatusSignal);
+                this.pitchStatusSignal, this.angularVelocityYStatusSignal)
+            .in(Degrees);
     inputs.rollDeg =
         BaseStatusSignal.getLatencyCompensatedValue(
-            this.rollStatusSignal, this.angularVelocityXStatusSignal);
-    inputs.rollDegPerSec = this.angularVelocityXStatusSignal.getValue();
-    inputs.pitchDegPerSec = this.angularVelocityYStatusSignal.getValue();
-    inputs.yawDegPerSec = this.angularVelocityZStatusSignal.getValue();
+                this.rollStatusSignal, this.angularVelocityXStatusSignal)
+            .in(Degrees);
+    inputs.rollDegPerSec = this.angularVelocityXStatusSignal.getValue().in(DegreesPerSecond);
+    inputs.pitchDegPerSec = this.angularVelocityYStatusSignal.getValue().in(DegreesPerSecond);
+    inputs.yawDegPerSec = this.angularVelocityZStatusSignal.getValue().in(DegreesPerSecond);
+
     if (Constants.getMode() == Constants.Mode.SIM) {
       this.gyroSim.setSupplyVoltage(RobotController.getBatteryVoltage());
     }
-  }
-
-  @Override
-  public void setYaw(double yaw) {
-    this.gyro.setYaw(yaw, 0.1);
-  }
-
-  @Override
-  public void addYaw(double yaw) {
-    if (Constants.getMode() == Constants.Mode.SIM) {
-      this.gyroSim.addYaw(yaw);
-    }
-  }
-
-  @Override
-  public List<StatusSignal<Double>> getOdometryStatusSignals() {
-    ArrayList<StatusSignal<Double>> signals = new ArrayList<>();
-    signals.add(this.yawStatusSignal);
-    signals.add(this.angularVelocityZStatusSignal);
-    return signals;
   }
 }

@@ -8,10 +8,10 @@
 
 package frc.robot.operator_interface;
 
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.lib.team6328.util.Alert;
-import frc.lib.team6328.util.Alert.AlertType;
 
 @java.lang.SuppressWarnings({"java:S3776"})
 
@@ -21,9 +21,9 @@ import frc.lib.team6328.util.Alert.AlertType;
 public class OISelector {
   private static String[] lastJoystickNames = new String[] {null, null, null, null, null, null};
   private static final Alert noOperatorInterfaceWarning =
-      new Alert("No operator controller(s) connected.", AlertType.WARNING);
+      new Alert("No operator controller(s) connected.", AlertType.kWarning);
   private static final Alert nonCompetitionOperatorInterfaceWarning =
-      new Alert("Non-competition operator controller connected.", AlertType.WARNING);
+      new Alert("Non-competition operator controller connected.", AlertType.kWarning);
 
   private static OperatorInterface oi = null;
 

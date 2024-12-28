@@ -14,12 +14,25 @@ import org.littletonrobotics.junction.AutoLog;
 public interface VisionIO {
   @AutoLog
   public static class VisionIOInputs {
-    Pose3d estimatedCameraPose = new Pose3d();
-    double estimatedCameraPoseTimestamp = 0.0;
-    double latencySecs = 0.0;
-    boolean[] tagsSeen = new boolean[] {};
-    double ambiguity = 0.0;
-    boolean poseFromMultiTag = false;
+    boolean connected;
+    PoseObservation[] poseObservations = new PoseObservation[0];
+  }
+
+  /** Represents a robot pose sample used for pose estimation. */
+  public static record PoseObservation(
+      double timestamp,
+      Pose3d cameraPose,
+      double latencySecs,
+      double averageAmbiguity,
+      double reprojectionError,
+      long tagsSeenBitMap,
+      int numTags,
+      double averageTagDistance,
+      PoseObservationType type) {}
+
+  public enum PoseObservationType {
+    SINGLE_TAG,
+    MULTI_TAG
   }
 
   /**

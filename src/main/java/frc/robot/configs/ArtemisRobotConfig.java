@@ -1,11 +1,22 @@
 package frc.robot.configs;
 
+import static edu.wpi.first.units.Units.*;
+
 import com.ctre.phoenix6.configs.MountPoseConfigs;
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularAcceleration;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.LinearAcceleration;
+import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.units.measure.Mass;
+import edu.wpi.first.units.measure.MomentOfInertia;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
 
@@ -17,36 +28,44 @@ public class ArtemisRobotConfig extends RobotConfig {
   private static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 1;
   private static final int FRONT_LEFT_MODULE_STEER_MOTOR = 2;
   private static final int FRONT_LEFT_MODULE_STEER_ENCODER = 22;
-  private static final double FRONT_LEFT_MODULE_STEER_OFFSET_ROT = 0.358398;
+  private static final Angle FRONT_LEFT_MODULE_STEER_OFFSET = Rotations.of(0.358398);
 
   private static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 3;
   private static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 4;
   private static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 23;
-  private static final double FRONT_RIGHT_MODULE_STEER_OFFSET_ROT = 0.024414;
+  private static final Angle FRONT_RIGHT_MODULE_STEER_OFFSET = Rotations.of(0.024414);
 
   private static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 7;
   private static final int BACK_LEFT_MODULE_STEER_MOTOR = 8;
   private static final int BACK_LEFT_MODULE_STEER_ENCODER = 24;
-  private static final double BACK_LEFT_MODULE_STEER_OFFSET_ROT = -0.025635;
+  private static final Angle BACK_LEFT_MODULE_STEER_OFFSET = Rotations.of(-0.025635);
 
   private static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 5;
   private static final int BACK_RIGHT_MODULE_STEER_MOTOR = 6;
   private static final int BACK_RIGHT_MODULE_STEER_ENCODER = 25;
-  private static final double BACK_RIGHT_MODULE_STEER_OFFSET_ROT = -0.491699;
+  private static final Angle BACK_RIGHT_MODULE_STEER_OFFSET = Rotations.of(-0.491699);
 
   private static final int GYRO_ID = 26;
 
-  private static final double TRACKWIDTH_METERS = 0.57785; // 22.75
-  private static final double WHEELBASE_METERS = 0.57785; // 22.75
-  private static final double WHEEL_DIAMETER_METERS = 0.1027125;
-  private static final double ROBOT_WIDTH_WITH_BUMPERS =
-      0.88265; // meters //34.75 in , measure the actual bumpers
-  private static final double ROBOT_LENGTH_WITH_BUMPERS = 0.88265; // meters // 34.75 in same above
+  private static final Distance TRACKWIDTH = Meters.of(0.57785); // 22.75
+  private static final Distance WHEELBASE = Meters.of(0.57785); // 22.75
+  private static final Distance WHEEL_RADIUS = Meters.of(0.0954405 / 2.0);
+  private static final Translation2d FRONT_RIGHT_CORNER_POSITION = new Translation2d(0.36, -0.36);
+
+  private static final Distance ROBOT_WIDTH_WITH_BUMPERS =
+      Meters.of(0.88265); // 34.75 in , measure the actual bumpers
+  private static final Distance ROBOT_LENGTH_WITH_BUMPERS =
+      Meters.of(0.88265); // 34.75 in same above
+
+  // FIXME: generate a new swerve drivetrain project from Tuner X and check the value of each of
+  // these
+  private static final double COUPLE_RATIO = 3.125; // FIXME: tune
 
   /* Angle Motor PID Values */
   private static final double ANGLE_KP = 100.0;
   private static final double ANGLE_KI = 0.0;
-  private static final double ANGLE_KD = 0.05;
+  private static final double ANGLE_KD =
+      0.05; // FIXME: check this as the CTRE swerve generator has a default value of 0.5
 
   private static final double ANGLE_KS = 0.24719;
   private static final double ANGLE_KV = 2.5845; // rps
@@ -61,17 +80,17 @@ public class ArtemisRobotConfig extends RobotConfig {
   private static final double DRIVE_KV = 0.0;
   private static final double DRIVE_KA = 0.0;
 
-  private static final double MAX_VELOCITY_METERS_PER_SECOND =
-      4.5; // FIXME: confirm max velocity with real robot
-  private static final double MAX_COAST_VELOCITY_METERS_PER_SECOND =
-      0.05; // FIXME: Values taken from nova, need to be updated
+  private static final LinearVelocity MAX_VELOCITY =
+      MetersPerSecond.of(5.5); // FIXME: confirm max velocity with real robot
+  private static final LinearVelocity MAX_COAST_VELOCITY =
+      MetersPerSecond.of(0.05); // FIXME: Values taken from nova, need to be updated
   private static final double SLOW_MODE_MULTIPLIER =
       0.75; // FIXME: Values taken from nova, need to be updated
 
-  private static final double MAX_DRIVE_ACCELERATION_METERS_PER_SECOND_SQUARED =
-      9.467; // from Choreo estimate
-  private static final double MAX_TURN_ACCELERATION_RADIANS_PER_SECOND_SQUARED =
-      33.436; // from Choreo estimate
+  private static final LinearAcceleration MAX_DRIVE_ACCELERATION =
+      MetersPerSecondPerSecond.of(9.467); // from Choreo estimate
+  private static final AngularAcceleration MAX_TURN_ACCELERATION =
+      RadiansPerSecondPerSecond.of(33.436); // from Choreo estimate
 
   private static final String CAN_BUS_NAME = "canbus1";
 
@@ -117,8 +136,8 @@ public class ArtemisRobotConfig extends RobotConfig {
               Units.inchesToMeters(8.189)),
           new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(180)));
 
-  private static final double AUTO_MAX_SPEED_METERS_PER_SECOND = 3.5;
-  private static final double AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED = 10;
+  private static final LinearVelocity AUTO_MAX_SPEED_METERS = MetersPerSecond.of(3.5);
+  private static final LinearAcceleration AUTO_MAX_ACCELERATION = MetersPerSecondPerSecond.of(10);
   private static final double AUTO_DRIVE_P_CONTROLLER = 5.0;
   private static final double AUTO_DRIVE_I_CONTROLLER = 0.0;
   private static final double AUTO_DRIVE_D_CONTROLLER = 0.0;
@@ -132,11 +151,11 @@ public class ArtemisRobotConfig extends RobotConfig {
   private static final double DRIVE_TO_POSE_THETA_KP = 4.5;
   private static final double DRIVE_TO_POSE_THETA_KI = 0;
   private static final double DRIVE_TO_POSE_THETA_KD = 0.0;
-  private static final double DRIVE_TO_POSE_DRIVE_TOLERANCE_METERS = 0.06;
-  private static final double DRIVE_TO_POSE_THETA_TOLERANCE_RADIANS = 0.02;
-  private static final double DRIVE_TO_POSE_MAX_VELOCITY = 1.25;
+  private static final Distance DRIVE_TO_POSE_DRIVE_TOLERANCE = Meters.of(0.06);
+  private static final Angle DRIVE_TO_POSE_THETA_TOLERANCE = Radians.of(0.02);
+  private static final LinearVelocity DRIVE_TO_POSE_MAX_VELOCITY = MetersPerSecond.of(1.25);
 
-  private static final double SQUARING_SPEED_METERS_PER_SECOND = 1.0;
+  private static final LinearVelocity SQUARING_SPEED = MetersPerSecond.of(1.0);
 
   // Drive Facing Angle constants
   private static final double DRIVE_FACING_ANGLE_KP = 6.0;
@@ -246,12 +265,12 @@ public class ArtemisRobotConfig extends RobotConfig {
   }
 
   @Override
-  public double[] getSwerveSteerOffsets() {
-    return new double[] {
-      FRONT_LEFT_MODULE_STEER_OFFSET_ROT,
-      FRONT_RIGHT_MODULE_STEER_OFFSET_ROT,
-      BACK_LEFT_MODULE_STEER_OFFSET_ROT,
-      BACK_RIGHT_MODULE_STEER_OFFSET_ROT
+  public Angle[] getSwerveSteerOffsets() {
+    return new Angle[] {
+      FRONT_LEFT_MODULE_STEER_OFFSET,
+      FRONT_RIGHT_MODULE_STEER_OFFSET,
+      BACK_LEFT_MODULE_STEER_OFFSET,
+      BACK_RIGHT_MODULE_STEER_OFFSET
     };
   }
 
@@ -261,27 +280,32 @@ public class ArtemisRobotConfig extends RobotConfig {
   }
 
   @Override
-  public double getTrackwidth() {
-    return TRACKWIDTH_METERS;
+  public Distance getTrackwidth() {
+    return TRACKWIDTH;
   }
 
   @Override
-  public double getWheelbase() {
-    return WHEELBASE_METERS;
+  public Distance getWheelbase() {
+    return WHEELBASE;
   }
 
   @Override
-  public double getWheelDiameterMeters() {
-    return WHEEL_DIAMETER_METERS;
+  public Distance getWheelRadius() {
+    return WHEEL_RADIUS;
   }
 
   @Override
-  public double getRobotWidthWithBumpers() {
+  public Translation2d getFrontRightCornerPosition() {
+    return FRONT_RIGHT_CORNER_POSITION;
+  }
+
+  @Override
+  public Distance getRobotWidthWithBumpers() {
     return ROBOT_WIDTH_WITH_BUMPERS;
   }
 
   @Override
-  public double getRobotLengthWithBumpers() {
+  public Distance getRobotLengthWithBumpers() {
     return ROBOT_LENGTH_WITH_BUMPERS;
   }
 
@@ -293,18 +317,18 @@ public class ArtemisRobotConfig extends RobotConfig {
   }
 
   @Override
-  public double getRobotMaxVelocity() {
-    return MAX_VELOCITY_METERS_PER_SECOND;
+  public LinearVelocity getRobotMaxVelocity() {
+    return MAX_VELOCITY;
   }
 
   @Override
-  public double getRobotMaxDriveAcceleration() {
-    return MAX_DRIVE_ACCELERATION_METERS_PER_SECOND_SQUARED;
+  public LinearAcceleration getRobotMaxDriveAcceleration() {
+    return MAX_DRIVE_ACCELERATION;
   }
 
   @Override
-  public double getRobotMaxTurnAcceleration() {
-    return MAX_TURN_ACCELERATION_RADIANS_PER_SECOND_SQUARED;
+  public AngularAcceleration getRobotMaxTurnAcceleration() {
+    return MAX_TURN_ACCELERATION;
   }
 
   @Override
@@ -313,18 +337,18 @@ public class ArtemisRobotConfig extends RobotConfig {
   }
 
   @Override
-  public double getRobotMaxCoastVelocity() {
-    return MAX_COAST_VELOCITY_METERS_PER_SECOND;
+  public LinearVelocity getRobotMaxCoastVelocity() {
+    return MAX_COAST_VELOCITY;
   }
 
   @Override
-  public double getAutoMaxSpeed() {
-    return AUTO_MAX_SPEED_METERS_PER_SECOND;
+  public LinearVelocity getAutoMaxSpeed() {
+    return AUTO_MAX_SPEED_METERS;
   }
 
   @Override
-  public double getAutoMaxAcceleration() {
-    return AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED;
+  public LinearAcceleration getAutoMaxAcceleration() {
+    return AUTO_MAX_ACCELERATION;
   }
 
   @Override
@@ -358,6 +382,21 @@ public class ArtemisRobotConfig extends RobotConfig {
   }
 
   @Override
+  public Mass getMass() {
+    return Kilograms.of(51.862);
+  }
+
+  @Override
+  public MomentOfInertia getMomentOfInertia() {
+    return KilogramSquareMeters.of(6.0);
+  }
+
+  @Override
+  public double getWheelCOF() {
+    return 1.2;
+  }
+
+  @Override
   public String getCANBusName() {
     return CAN_BUS_NAME;
   }
@@ -365,6 +404,11 @@ public class ArtemisRobotConfig extends RobotConfig {
   @Override
   public String[] getCameraNames() {
     return new String[] {CAMERA_NAME_0, CAMERA_NAME_1, CAMERA_NAME_2, CAMERA_NAME_3};
+  }
+
+  @Override
+  public double[] getCameraStdDevFactors() {
+    return new double[] {1.0, 1.0, 1.0, 1.0};
   }
 
   @Override
@@ -393,35 +437,37 @@ public class ArtemisRobotConfig extends RobotConfig {
   }
 
   @Override
-  public double getDriveToPoseDriveMaxVelocity() {
+  public LinearVelocity getDriveToPoseDriveMaxVelocity() {
     return DRIVE_TO_POSE_MAX_VELOCITY;
   }
 
   @Override
-  public double getDriveToPoseDriveMaxAcceleration() {
+  public LinearAcceleration getDriveToPoseDriveMaxAcceleration() {
     return getAutoMaxAcceleration();
   }
 
   @Override
-  public double getDriveToPoseTurnMaxVelocity() {
-    return getDriveToPoseDriveMaxVelocity()
-        / Math.hypot(getTrackwidth() / 2.0, getWheelbase() / 2.0);
+  public AngularVelocity getDriveToPoseTurnMaxVelocity() {
+    return RadiansPerSecond.of(
+        getDriveToPoseDriveMaxVelocity().in(MetersPerSecond)
+            / Math.hypot(getTrackwidth().in(Meters) / 2.0, getWheelbase().in(Meters) / 2.0));
   }
 
   @Override
-  public double getDriveToPoseTurnMaxAcceleration() {
-    return getDriveToPoseDriveMaxAcceleration()
-        / Math.hypot(getTrackwidth() / 2.0, getWheelbase() / 2.0);
+  public AngularAcceleration getDriveToPoseTurnMaxAcceleration() {
+    return RadiansPerSecondPerSecond.of(
+        getDriveToPoseDriveMaxAcceleration().in(MetersPerSecondPerSecond)
+            / Math.hypot(getTrackwidth().in(Meters) / 2.0, getWheelbase().in(Meters) / 2.0));
   }
 
   @Override
-  public double getDriveToPoseDriveTolerance() {
-    return DRIVE_TO_POSE_DRIVE_TOLERANCE_METERS;
+  public Distance getDriveToPoseDriveTolerance() {
+    return DRIVE_TO_POSE_DRIVE_TOLERANCE;
   }
 
   @Override
-  public double getDriveToPoseThetaTolerance() {
-    return DRIVE_TO_POSE_THETA_TOLERANCE_RADIANS;
+  public Angle getDriveToPoseThetaTolerance() {
+    return DRIVE_TO_POSE_THETA_TOLERANCE;
   }
 
   @Override
@@ -430,8 +476,8 @@ public class ArtemisRobotConfig extends RobotConfig {
   }
 
   @Override
-  public double getMoveToPathFinalVelocity() {
-    return SQUARING_SPEED_METERS_PER_SECOND;
+  public LinearVelocity getMoveToPathFinalVelocity() {
+    return SQUARING_SPEED;
   }
 
   @Override
@@ -478,5 +524,10 @@ public class ArtemisRobotConfig extends RobotConfig {
   @Override
   public SWERVE_CONTROL_MODE getSwerveDriveControlMode() {
     return SWERVE_CONTROL_MODE.TORQUE_CURRENT_FOC;
+  }
+
+  @Override
+  public double getAzimuthSteerCouplingRatio() {
+    return COUPLE_RATIO;
   }
 }

@@ -4,11 +4,13 @@
 
 package frc.robot;
 
-import com.pathplanner.lib.commands.FollowPathCommand;
+import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.hal.AllianceStationID;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Threads;
@@ -17,18 +19,17 @@ import edu.wpi.first.wpilibj.simulation.DriverStationSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.lib.team3061.leds.LEDs;
-import frc.lib.team6328.util.Alert;
-import frc.lib.team6328.util.Alert.AlertType;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.inputs.LoggedPowerDistribution;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
+
+@java.lang.SuppressWarnings({"java:S1192", "java:S106"})
 
 /**
  * This class models the entire Robot. It extends from LoggedRobot instead of TimedRobot as required
@@ -46,31 +47,15 @@ public class Robot extends LoggedRobot {
   private final Timer disabledTimer = new Timer();
 
   private final Alert logReceiverQueueAlert =
-      new Alert("Logging queue exceeded capacity, data will NOT be logged.", AlertType.ERROR);
+      new Alert("Logging queue exceeded capacity, data will NOT be logged.", AlertType.kError);
   private final Alert lowBatteryAlert =
       new Alert(
           "Battery voltage is very low, consider turning off the robot or replacing the battery.",
-          AlertType.WARNING);
+          AlertType.kWarning);
 
   /** Create a new Robot. */
   public Robot() {
-    super(Constants.LOOP_PERIOD_SECS);
-  }
-  /**
-   * This method is executed when the code first starts running on the robot and should be used for
-   * any initialization code.
-   */
-  @Override
-  public void robotInit() {
-    // DO THIS FIRST
-    Pathfinding.setPathfinder(new LocalADStarAK());
-
-    final String GIT_DIRTY = "GitDirty";
-
-    // from AdvantageKit Robot Configuration docs
-    // (https://github.com/Mechanical-Advantage/AdvantageKit/blob/main/docs/START-LOGGING.md#robot-configuration)
-
-    // Set a metadata value
+    // Record metadata
     Logger.recordMetadata("Robot", Constants.getRobot().toString());
     Logger.recordMetadata("TuningMode", Boolean.toString(Constants.TUNING_MODE));
     Logger.recordMetadata("RuntimeType", getRuntimeType().toString());
@@ -81,50 +66,43 @@ public class Robot extends LoggedRobot {
     Logger.recordMetadata("GitBranch", BuildConstants.GIT_BRANCH);
     switch (BuildConstants.DIRTY) {
       case 0:
-        Logger.recordMetadata(GIT_DIRTY, "All changes committed");
+        Logger.recordMetadata("GitDirty", "All changes committed");
         break;
       case 1:
-        Logger.recordMetadata(GIT_DIRTY, "Uncommitted changes");
+        Logger.recordMetadata("GitDirty", "Uncomitted changes");
         break;
       default:
-        Logger.recordMetadata(GIT_DIRTY, "Unknown");
+        Logger.recordMetadata("GitDirty", "Unknown");
         break;
     }
 
+    // Set up data receivers & replay source
     switch (Constants.getMode()) {
       case REAL:
-        Logger.addDataReceiver(new WPILOGWriter("/media/sda1"));
-
-        // Provide log data over the network, viewable in Advantage Scope.
+        // Running on a real robot, log to a USB stick ("/U/logs")
+        Logger.addDataReceiver(new WPILOGWriter());
         Logger.addDataReceiver(new NT4Publisher());
-
-        LoggedPowerDistribution.getInstance();
-
         break;
 
       case SIM:
+        // Running a physics simulator, log to NT
         Logger.addDataReceiver(new NT4Publisher());
         break;
 
       case REPLAY:
-        // Prompt the user for a file path on the command line (if not open in AdvantageScope)
-        String path = LogFileUtil.findReplayLog();
-
-        // Read log file for replay
-        Logger.setReplaySource(new WPILOGReader(path));
-
-        // Save replay results to a new log with the "_sim" suffix
-        Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(path, "_sim")));
+        // Replaying a log, set up replay source
+        setUseTiming(false); // Run as fast as possible
+        String logPath = LogFileUtil.findReplayLog();
+        Logger.setReplaySource(new WPILOGReader(logPath));
+        Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_sim")));
         break;
     }
 
-    // Run as fast as possible during replay
-    setUseTiming(Constants.getMode() != Constants.Mode.REPLAY);
-
-    // Start logging! No more data receivers, replay sources, or metadata values may be added.
+    // Start AdvantageKit logger
     Logger.start();
 
-    System.out.println("RobotInit");
+    // DO THIS FIRST
+    Pathfinding.setPathfinder(new LocalADStarAK());
 
     // Log active commands
     Map<String, Integer> commandCounts = new HashMap<>();
@@ -162,18 +140,19 @@ public class Robot extends LoggedRobot {
     PathPlannerLogging.setLogActivePathCallback(
         poses -> Logger.recordOutput("PathFollowing/activePath", poses.toArray(new Pose2d[0])));
 
+    // Start timers
+    disabledTimer.restart();
+
+    // Instantiate our RobotContainer. This will perform all our button bindings,
+    // and put our autonomous chooser on the dashboard.
+    robotContainer = new RobotContainer();
+
     // Due to the nature of how Java works, the first run of a path following command could have a
     // significantly higher delay compared with subsequent runs, as all the classes involved will
     // need to be loaded. To help alleviate this issue, you can run a warmup command in the
     // background when code starts.
-    FollowPathCommand.warmupCommand().schedule();
-
-    // Start timers
-    disabledTimer.reset();
-    disabledTimer.start();
-
-    // Invoke the factory method to create the RobotContainer singleton.
-    robotContainer = RobotContainer.getInstance();
+    // DO THIS AFTER CONFIGURATION OF YOUR DESIRED PATHFINDER
+    PathfindingCommand.warmupCommand().schedule();
   }
 
   /**
@@ -203,7 +182,7 @@ public class Robot extends LoggedRobot {
     }
     if (RobotController.getBatteryVoltage() < LOW_BATTERY_VOLTAGE
         && disabledTimer.hasElapsed(LOW_BATTERY_DISABLED_TIME)) {
-      LEDs.getInstance().setLowBatteryAlert(true);
+      LEDs.getInstance().requestState(LEDs.States.LOW_BATTERY);
       lowBatteryAlert.set(true);
     }
 
@@ -219,7 +198,6 @@ public class Robot extends LoggedRobot {
                 "*** Auto cancelled in %.2f secs ***", Timer.getFPGATimestamp() - autoStart));
       }
       autoMessagePrinted = true;
-      LEDs.getInstance().setAutoFinished(true);
     }
 
     robotContainer.periodic();
@@ -271,10 +249,7 @@ public class Robot extends LoggedRobot {
       autonomousCommand.cancel();
     }
 
-    // check if the alliance color has changed based on the FMS data; if the robot power cycled
-    // during a match, this would be the first opportunity to check the alliance color based on FMS
-    // data.
-    robotContainer.checkAllianceColor();
+    robotContainer.teleopInit();
   }
 
   /** This method is invoked at the start of the test period. */

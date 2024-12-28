@@ -1,8 +1,19 @@
 package frc.robot.configs;
 
+import static edu.wpi.first.units.Units.*;
+
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularAcceleration;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.LinearAcceleration;
+import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.units.measure.Mass;
+import edu.wpi.first.units.measure.MomentOfInertia;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
 
@@ -16,35 +27,34 @@ public class DefaultRobotConfig extends RobotConfig {
   private static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 13;
   private static final int FRONT_LEFT_MODULE_STEER_MOTOR = 12;
   private static final int FRONT_LEFT_MODULE_STEER_ENCODER = 14;
-  private static final double FRONT_LEFT_MODULE_STEER_OFFSET_ROT = -0.22591;
+  private static final Angle FRONT_LEFT_MODULE_STEER_OFFSET = Rotations.of(-0.22591);
 
   private static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 16;
   private static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 15;
   private static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 17;
-  private static final double FRONT_RIGHT_MODULE_STEER_OFFSET_ROT = -0.390381;
+  private static final Angle FRONT_RIGHT_MODULE_STEER_OFFSET = Rotations.of(-0.390381);
 
   private static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 7;
   private static final int BACK_LEFT_MODULE_STEER_MOTOR = 6;
   private static final int BACK_LEFT_MODULE_STEER_ENCODER = 8;
-  private static final double BACK_LEFT_MODULE_STEER_OFFSET_ROT = 0.327393;
+  private static final Angle BACK_LEFT_MODULE_STEER_OFFSET = Rotations.of(0.327393);
 
   private static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 10;
   private static final int BACK_RIGHT_MODULE_STEER_MOTOR = 9;
   private static final int BACK_RIGHT_MODULE_STEER_ENCODER = 11;
-  private static final double BACK_RIGHT_MODULE_STEER_OFFSET_ROT = -0.336670;
+  private static final Angle BACK_RIGHT_MODULE_STEER_OFFSET = Rotations.of(-0.336670);
 
   private static final int GYRO_ID = 3;
 
   // FIXME: update robot dimensions
-  private static final double TRACKWIDTH_METERS = 0.523875; // 20.625
-  private static final double WHEELBASE_METERS = 0.52705; // 20.75
-  /*
-  	Wheel diameter is best determined empirically. Refer to this document for more information:
-    https://docs.google.com/spreadsheets/d/1634BjWwzBszXMECL1l5OMsUfRWFhej5YlExvh_SI944/edit
-  */
-  private static final double WHEEL_DIAMETER_METERS = 0.09845567409;
-  private static final double ROBOT_WIDTH_WITH_BUMPERS = 0.8382; // meters //33 in
-  private static final double ROBOT_LENGTH_WITH_BUMPERS = 0.8382; // meters // 33 in
+  private static final Distance TRACKWIDTH = Meters.of(0.523875);
+  private static final Distance WHEELBASE = Meters.of(0.52705);
+  private static final Distance WHEEL_RADIUS = Meters.of(0.09845567409 / 2.0);
+  private static final Translation2d FRONT_RIGHT_CORNER_POSITION = new Translation2d(0.36, -0.36);
+  private static final Distance ROBOT_WIDTH_WITH_BUMPERS = Meters.of(0.8382);
+  private static final Distance ROBOT_LENGTH_WITH_BUMPERS = Meters.of(0.8382);
+
+  private static final double COUPLE_RATIO = 3.125; // FIXME: tune
 
   // FIXME: tune PID values for the angle and drive motors for the swerve modules
 
@@ -70,12 +80,14 @@ public class DefaultRobotConfig extends RobotConfig {
   private static final double DRIVE_KA = 0.0;
 
   // FIXME: determine maximum velocities empirically
-  private static final double MAX_VELOCITY_METERS_PER_SECOND = 3.5;
-  private static final double MAX_COAST_VELOCITY_METERS_PER_SECOND = 0.05;
+  private static final LinearVelocity MAX_VELOCITY = MetersPerSecond.of(3.5);
+  private static final LinearVelocity MAX_COAST_VELOCITY = MetersPerSecond.of(0.05);
   private static final double SLOW_MODE_MULTIPLIER = 0.75;
 
-  private static final double MAX_DRIVE_ACCELERATION_METERS_PER_SECOND_SQUARED = 11.365;
-  private static final double MAX_TURN_ACCELERATION_RADIANS_PER_SECOND_SQUARED = 36.0;
+  private static final LinearAcceleration MAX_DRIVE_ACCELERATION =
+      MetersPerSecondPerSecond.of(11.365);
+  private static final AngularAcceleration MAX_TURN_ACCELERATION =
+      RadiansPerSecondPerSecond.of(36.0);
 
   // FIXME: specify the name of the CANivore CAN FD bus as appropriate (an empty string uses the
   // default CAN bus)
@@ -95,8 +107,8 @@ public class DefaultRobotConfig extends RobotConfig {
   private static final int REV_LOW_PRESSURE_SENSOR_CHANNEL = 1;
 
   // FIXME: specify maximum velocity and acceleration and tune PID values for auto paths
-  private static final double AUTO_MAX_SPEED_METERS_PER_SECOND = 3.5;
-  private static final double AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED = 10;
+  private static final LinearVelocity AUTO_MAX_SPEED_METERS = MetersPerSecond.of(3.5);
+  private static final LinearAcceleration AUTO_MAX_ACCELERATION = MetersPerSecondPerSecond.of(10);
   private static final double AUTO_DRIVE_P_CONTROLLER = 5.0;
   private static final double AUTO_DRIVE_I_CONTROLLER = 0.0;
   private static final double AUTO_DRIVE_D_CONTROLLER = 0.0;
@@ -111,10 +123,11 @@ public class DefaultRobotConfig extends RobotConfig {
   private static final double DRIVE_TO_POSE_THETA_KP = 18.0;
   private static final double DRIVE_TO_POSE_THETA_KI = 10.0;
   private static final double DRIVE_TO_POSE_THETA_KD = 0.0;
-  private static final double DRIVE_TO_POSE_DRIVE_TOLERANCE_METERS = 0.08;
-  private static final double DRIVE_TO_POSE_THETA_TOLERANCE_RADIANS = 0.008;
+  private static final Distance DRIVE_TO_POSE_DRIVE_TOLERANCE = Meters.of(0.06);
+  private static final Angle DRIVE_TO_POSE_THETA_TOLERANCE = Radians.of(0.02);
+  private static final LinearVelocity DRIVE_TO_POSE_MAX_VELOCITY = MetersPerSecond.of(1.25);
 
-  private static final double SQUARING_SPEED_METERS_PER_SECOND = 1.0;
+  private static final LinearVelocity SQUARING_SPEED = MetersPerSecond.of(1.0);
 
   // FIXME: tune PID values for drive facing angle
   // Drive Facing Angle constants
@@ -228,12 +241,12 @@ public class DefaultRobotConfig extends RobotConfig {
   }
 
   @Override
-  public double[] getSwerveSteerOffsets() {
-    return new double[] {
-      FRONT_LEFT_MODULE_STEER_OFFSET_ROT,
-      FRONT_RIGHT_MODULE_STEER_OFFSET_ROT,
-      BACK_LEFT_MODULE_STEER_OFFSET_ROT,
-      BACK_RIGHT_MODULE_STEER_OFFSET_ROT
+  public Angle[] getSwerveSteerOffsets() {
+    return new Angle[] {
+      FRONT_LEFT_MODULE_STEER_OFFSET,
+      FRONT_RIGHT_MODULE_STEER_OFFSET,
+      BACK_LEFT_MODULE_STEER_OFFSET,
+      BACK_RIGHT_MODULE_STEER_OFFSET
     };
   }
 
@@ -243,27 +256,32 @@ public class DefaultRobotConfig extends RobotConfig {
   }
 
   @Override
-  public double getTrackwidth() {
-    return TRACKWIDTH_METERS;
+  public Distance getTrackwidth() {
+    return TRACKWIDTH;
   }
 
   @Override
-  public double getWheelbase() {
-    return WHEELBASE_METERS;
+  public Distance getWheelbase() {
+    return WHEELBASE;
   }
 
   @Override
-  public double getWheelDiameterMeters() {
-    return WHEEL_DIAMETER_METERS;
+  public Distance getWheelRadius() {
+    return WHEEL_RADIUS;
   }
 
   @Override
-  public double getRobotWidthWithBumpers() {
+  public Translation2d getFrontRightCornerPosition() {
+    return FRONT_RIGHT_CORNER_POSITION;
+  }
+
+  @Override
+  public Distance getRobotWidthWithBumpers() {
     return ROBOT_WIDTH_WITH_BUMPERS;
   }
 
   @Override
-  public double getRobotLengthWithBumpers() {
+  public Distance getRobotLengthWithBumpers() {
     return ROBOT_LENGTH_WITH_BUMPERS;
   }
 
@@ -273,18 +291,18 @@ public class DefaultRobotConfig extends RobotConfig {
   }
 
   @Override
-  public double getRobotMaxVelocity() {
-    return MAX_VELOCITY_METERS_PER_SECOND;
+  public LinearVelocity getRobotMaxVelocity() {
+    return MAX_VELOCITY;
   }
 
   @Override
-  public double getRobotMaxDriveAcceleration() {
-    return MAX_DRIVE_ACCELERATION_METERS_PER_SECOND_SQUARED;
+  public LinearAcceleration getRobotMaxDriveAcceleration() {
+    return MAX_DRIVE_ACCELERATION;
   }
 
   @Override
-  public double getRobotMaxTurnAcceleration() {
-    return MAX_TURN_ACCELERATION_RADIANS_PER_SECOND_SQUARED;
+  public AngularAcceleration getRobotMaxTurnAcceleration() {
+    return MAX_TURN_ACCELERATION;
   }
 
   @Override
@@ -293,18 +311,18 @@ public class DefaultRobotConfig extends RobotConfig {
   }
 
   @Override
-  public double getRobotMaxCoastVelocity() {
-    return MAX_COAST_VELOCITY_METERS_PER_SECOND;
+  public LinearVelocity getRobotMaxCoastVelocity() {
+    return MAX_COAST_VELOCITY;
   }
 
   @Override
-  public double getAutoMaxSpeed() {
-    return AUTO_MAX_SPEED_METERS_PER_SECOND;
+  public LinearVelocity getAutoMaxSpeed() {
+    return AUTO_MAX_SPEED_METERS;
   }
 
   @Override
-  public double getAutoMaxAcceleration() {
-    return AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED;
+  public LinearAcceleration getAutoMaxAcceleration() {
+    return AUTO_MAX_ACCELERATION;
   }
 
   @Override
@@ -338,6 +356,22 @@ public class DefaultRobotConfig extends RobotConfig {
   }
 
   @Override
+  public Mass getMass() {
+    return Kilograms.of(
+        51.862); // FIXME: update based on measured mass of robot with battery and bumpers
+  }
+
+  @Override
+  public MomentOfInertia getMomentOfInertia() {
+    return KilogramSquareMeters.of(6.0); // FIXME: update
+  }
+
+  @Override
+  public double getWheelCOF() {
+    return 1.2; // FIXME: update based on wheel coefficient of friction
+  }
+
+  @Override
   public String getCANBusName() {
     return CAN_BUS_NAME;
   }
@@ -345,6 +379,11 @@ public class DefaultRobotConfig extends RobotConfig {
   @Override
   public String[] getCameraNames() {
     return new String[] {CAMERA_NAME};
+  }
+
+  @Override
+  public double[] getCameraStdDevFactors() {
+    return new double[] {1.0};
   }
 
   @Override
@@ -373,35 +412,37 @@ public class DefaultRobotConfig extends RobotConfig {
   }
 
   @Override
-  public double getDriveToPoseDriveMaxVelocity() {
-    return 0.5;
+  public LinearVelocity getDriveToPoseDriveMaxVelocity() {
+    return DRIVE_TO_POSE_MAX_VELOCITY;
   }
 
   @Override
-  public double getDriveToPoseDriveMaxAcceleration() {
+  public LinearAcceleration getDriveToPoseDriveMaxAcceleration() {
     return getAutoMaxAcceleration();
   }
 
   @Override
-  public double getDriveToPoseTurnMaxVelocity() {
-    return getDriveToPoseDriveMaxVelocity()
-        / Math.hypot(getTrackwidth() / 2.0, getWheelbase() / 2.0);
+  public AngularVelocity getDriveToPoseTurnMaxVelocity() {
+    return RadiansPerSecond.of(
+        getDriveToPoseDriveMaxVelocity().in(MetersPerSecond)
+            / Math.hypot(getTrackwidth().in(Meters) / 2.0, getWheelbase().in(Meters) / 2.0));
   }
 
   @Override
-  public double getDriveToPoseTurnMaxAcceleration() {
-    return getDriveToPoseDriveMaxAcceleration()
-        / Math.hypot(getTrackwidth() / 2.0, getWheelbase() / 2.0);
+  public AngularAcceleration getDriveToPoseTurnMaxAcceleration() {
+    return RadiansPerSecondPerSecond.of(
+        getDriveToPoseDriveMaxAcceleration().in(MetersPerSecondPerSecond)
+            / Math.hypot(getTrackwidth().in(Meters) / 2.0, getWheelbase().in(Meters) / 2.0));
   }
 
   @Override
-  public double getDriveToPoseDriveTolerance() {
-    return DRIVE_TO_POSE_DRIVE_TOLERANCE_METERS;
+  public Distance getDriveToPoseDriveTolerance() {
+    return DRIVE_TO_POSE_DRIVE_TOLERANCE;
   }
 
   @Override
-  public double getDriveToPoseThetaTolerance() {
-    return DRIVE_TO_POSE_THETA_TOLERANCE_RADIANS;
+  public Angle getDriveToPoseThetaTolerance() {
+    return DRIVE_TO_POSE_THETA_TOLERANCE;
   }
 
   @Override
@@ -425,8 +466,8 @@ public class DefaultRobotConfig extends RobotConfig {
   }
 
   @Override
-  public double getMoveToPathFinalVelocity() {
-    return SQUARING_SPEED_METERS_PER_SECOND;
+  public LinearVelocity getMoveToPathFinalVelocity() {
+    return SQUARING_SPEED;
   }
 
   @Override
@@ -468,5 +509,10 @@ public class DefaultRobotConfig extends RobotConfig {
   @Override
   public SWERVE_CONTROL_MODE getSwerveDriveControlMode() {
     return SWERVE_CONTROL_MODE.TORQUE_CURRENT_FOC;
+  }
+
+  @Override
+  public double getAzimuthSteerCouplingRatio() {
+    return COUPLE_RATIO;
   }
 }

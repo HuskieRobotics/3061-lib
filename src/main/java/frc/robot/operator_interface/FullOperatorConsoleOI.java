@@ -4,8 +4,8 @@
 
 package frc.robot.operator_interface;
 
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 /**
@@ -19,7 +19,7 @@ public class FullOperatorConsoleOI implements OperatorInterface {
   private final CommandJoystick rotateJoystick;
   private final Trigger[] rotateJoystickButtons;
 
-  private final XboxController operatorController;
+  private final CommandXboxController operatorController;
 
   private final CommandJoystick operatorPanel;
   private final Trigger[] operatorPanelButtons;
@@ -28,7 +28,7 @@ public class FullOperatorConsoleOI implements OperatorInterface {
       int translatePort, int rotatePort, int operatorControllerPort, int operatorPanelPort) {
     translateJoystick = new CommandJoystick(translatePort);
     rotateJoystick = new CommandJoystick(rotatePort);
-    operatorController = new XboxController(operatorControllerPort);
+    operatorController = new CommandXboxController(operatorControllerPort);
     operatorPanel = new CommandJoystick(operatorPanelPort);
 
     // buttons use 1-based indexing such that the index matches the button number; leave index 0 set
@@ -92,7 +92,27 @@ public class FullOperatorConsoleOI implements OperatorInterface {
   // Operator Controller
   @Override
   public Trigger getInterruptAll() {
-    return new Trigger(operatorController::getStartButton);
+    return operatorController.start();
+  }
+
+  @Override
+  public Trigger getSysIdDynamicForward() {
+    return operatorController.back().and(operatorController.y());
+  }
+
+  @Override
+  public Trigger getSysIdDynamicReverse() {
+    return operatorController.back().and(operatorController.x());
+  }
+
+  @Override
+  public Trigger getSysIdQuasistaticForward() {
+    return operatorController.start().and(operatorController.y());
+  }
+
+  @Override
+  public Trigger getSysIdQuasistaticReverse() {
+    return operatorController.start().and(operatorController.x());
   }
 
   // Operator Panel

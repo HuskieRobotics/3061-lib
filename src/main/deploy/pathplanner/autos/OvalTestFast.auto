@@ -1,0 +1,25 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "OvalTestFast1"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "OvalTestFast2"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": "Tuning",
+  "choreoAuto": false
+}

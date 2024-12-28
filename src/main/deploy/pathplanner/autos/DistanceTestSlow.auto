@@ -1,12 +1,5 @@
 {
-  "version": 1.0,
-  "startingPose": {
-    "position": {
-      "x": 7.07,
-      "y": 0.35
-    },
-    "rotation": 90.0
-  },
+  "version": "2025.0",
   "command": {
     "type": "sequential",
     "data": {
@@ -14,12 +7,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Tuning"
+            "pathName": "DistanceTestSlow"
           }
         }
       ]
     }
   },
+  "resetOdom": true,
   "folder": "Tuning",
   "choreoAuto": false
 }

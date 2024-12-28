@@ -1,8 +1,9 @@
 package frc.robot.subsystems.subsystem;
 
+import static edu.wpi.first.units.Units.*;
 import static frc.robot.subsystems.subsystem.SubsystemConstants.*;
 
-import com.ctre.phoenix6.StatusCode;
+import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionVoltage;
@@ -11,12 +12,13 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
+import frc.lib.team254.Phoenix6Util;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.swerve.Conversions;
-import frc.lib.team6328.util.Alert;
-import frc.lib.team6328.util.Alert.AlertType;
-import frc.lib.team6328.util.TunableNumber;
+import frc.lib.team6328.util.LoggedTunableNumber;
 
 /** TalonFX implementation of the generic SubsystemIO */
 public class SubsystemIOTalonFX implements SubsystemIO {
@@ -27,13 +29,13 @@ public class SubsystemIOTalonFX implements SubsystemIO {
   private PositionVoltage positionRequest;
 
   private Alert configAlert =
-      new Alert("Failed to apply configuration for subsystem.", AlertType.ERROR);
+      new Alert("Failed to apply configuration for subsystem.", AlertType.kError);
 
-  private final TunableNumber kP = new TunableNumber("Subsystem/kP", POSITION_PID_P);
-  private final TunableNumber kI = new TunableNumber("Subsystem/kI", POSITION_PID_I);
-  private final TunableNumber kD = new TunableNumber("Subsystem/kD", POSITION_PID_D);
-  private final TunableNumber kPeakOutput =
-      new TunableNumber("Subsystem/kPeakOutput", POSITION_PID_PEAK_OUTPUT);
+  private final LoggedTunableNumber kP = new LoggedTunableNumber("Subsystem/kP", POSITION_PID_P);
+  private final LoggedTunableNumber kI = new LoggedTunableNumber("Subsystem/kI", POSITION_PID_I);
+  private final LoggedTunableNumber kD = new LoggedTunableNumber("Subsystem/kD", POSITION_PID_D);
+  private final LoggedTunableNumber kPeakOutput =
+      new LoggedTunableNumber("Subsystem/kPeakOutput", POSITION_PID_PEAK_OUTPUT);
 
   /** Create a TalonFX-specific generic SubsystemIO */
   public SubsystemIOTalonFX() {
@@ -49,28 +51,45 @@ public class SubsystemIOTalonFX implements SubsystemIO {
   public void updateInputs(SubsystemIOInputs inputs) {
     inputs.positionDeg =
         Conversions.falconRotationsToMechanismDegrees(
-            motor.getRotorPosition().getValue(), GEAR_RATIO);
+            BaseStatusSignal.getLatencyCompensatedValue(
+                    motor.getRotorPosition(), motor.getRotorVelocity())
+                .in(Rotations),
+            GEAR_RATIO);
     inputs.velocityRPM =
-        Conversions.falconRPSToMechanismRPM(motor.getRotorVelocity().getValue(), GEAR_RATIO);
+        Conversions.falconRPSToMechanismRPM(
+            motor.getRotorVelocity().getValue().in(RotationsPerSecond), GEAR_RATIO);
     inputs.closedLoopError = motor.getClosedLoopError().getValue();
     inputs.setpoint = motor.getClosedLoopReference().getValue();
     inputs.power = motor.getDutyCycle().getValue();
     inputs.controlMode = motor.getControlMode().toString();
-    inputs.statorCurrentAmps = motor.getStatorCurrent().getValue();
-    inputs.tempCelsius = motor.getDeviceTemp().getValue();
-    inputs.supplyCurrentAmps = motor.getSupplyCurrent().getValue();
+    inputs.statorCurrentAmps = motor.getStatorCurrent().getValue().in(Amps);
+    inputs.tempCelsius = motor.getDeviceTemp().getValue().in(Celsius);
+    inputs.supplyCurrentAmps = motor.getSupplyCurrent().getValue().in(Amps);
 
     // update configuration if tunables have changed
-    if (kP.hasChanged() || kI.hasChanged() || kD.hasChanged() || kPeakOutput.hasChanged()) {
-      TalonFXConfiguration config = new TalonFXConfiguration();
-      this.motor.getConfigurator().refresh(config);
-      config.Slot0.kP = kP.get();
-      config.Slot0.kI = kI.get();
-      config.Slot0.kD = kD.get();
-      config.Voltage.PeakForwardVoltage = kPeakOutput.get();
-      config.Voltage.PeakReverseVoltage = kPeakOutput.get();
-      this.motor.getConfigurator().apply(config);
-    }
+    LoggedTunableNumber.ifChanged(
+        hashCode(),
+        pid -> {
+          TalonFXConfiguration config = new TalonFXConfiguration();
+          this.motor.getConfigurator().refresh(config);
+          config.Slot0.kP = pid[0];
+          config.Slot0.kI = pid[1];
+          config.Slot0.kD = pid[2];
+          this.motor.getConfigurator().apply(config);
+        },
+        kP,
+        kI,
+        kD);
+    LoggedTunableNumber.ifChanged(
+        hashCode(),
+        peak -> {
+          TalonFXConfiguration config = new TalonFXConfiguration();
+          this.motor.getConfigurator().refresh(config);
+          config.Voltage.PeakForwardVoltage = peak[0];
+          config.Voltage.PeakReverseVoltage = peak[0];
+          this.motor.getConfigurator().apply(config);
+        },
+        kPeakOutput);
   }
 
   /**
@@ -114,10 +133,12 @@ public class SubsystemIOTalonFX implements SubsystemIO {
     TalonFXConfiguration config = new TalonFXConfiguration();
 
     CurrentLimitsConfigs currentLimits = new CurrentLimitsConfigs();
-    currentLimits.SupplyCurrentLimit = CONTINUOUS_CURRENT_LIMIT;
-    currentLimits.SupplyCurrentThreshold = PEAK_CURRENT_LIMIT;
-    currentLimits.SupplyTimeThreshold = PEAK_CURRENT_DURATION;
+    currentLimits.SupplyCurrentLimit = PEAK_CURRENT_LIMIT;
+    currentLimits.SupplyCurrentLowerLimit = CONTINUOUS_CURRENT_LIMIT;
+    currentLimits.SupplyCurrentLowerTime = PEAK_CURRENT_DURATION;
     currentLimits.SupplyCurrentLimitEnable = true;
+    currentLimits.StatorCurrentLimit = PEAK_CURRENT_LIMIT;
+    currentLimits.StatorCurrentLimitEnable = true;
     config.CurrentLimits = currentLimits;
 
     config.MotorOutput.Inverted =
@@ -130,18 +151,7 @@ public class SubsystemIOTalonFX implements SubsystemIO {
     config.Voltage.PeakForwardVoltage = kPeakOutput.get();
     config.Voltage.PeakReverseVoltage = kPeakOutput.get();
 
-    StatusCode status = StatusCode.StatusCodeNotInitialized;
-    for (int i = 0; i < 5; ++i) {
-      status = this.motor.getConfigurator().apply(config);
-      if (status.isOK()) {
-        configAlert.set(false);
-        break;
-      }
-    }
-    if (!status.isOK()) {
-      configAlert.set(true);
-      configAlert.setText(status.toString());
-    }
+    Phoenix6Util.applyAndCheckConfiguration(this.motor, config, configAlert);
 
     this.motor.setPosition(0);
 

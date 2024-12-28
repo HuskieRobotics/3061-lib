@@ -8,9 +8,9 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.RobotBase;
-import frc.lib.team6328.util.Alert;
-import frc.lib.team6328.util.Alert.AlertType;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -26,31 +26,30 @@ import frc.lib.team6328.util.Alert.AlertType;
 public final class Constants {
 
   // set to true in order to change all Tunable values via Shuffleboard
-  public static final boolean TUNING_MODE = false;
+  public static final boolean TUNING_MODE = true;
   public static final boolean DEMO_MODE = false;
 
-  private static final RobotType ROBOT = RobotType.ROBOT_SIMBOT_CTRE;
+  private static final RobotType ROBOT = RobotType.ROBOT_SIMBOT;
 
   private static final Alert invalidRobotAlert =
-      new Alert("Invalid robot selected, using competition robot as default.", AlertType.ERROR);
+      new Alert("Invalid robot selected, using competition robot as default.", AlertType.kError);
 
   // FIXME: update for various robots
   public enum RobotType {
     ROBOT_DEFAULT,
     ROBOT_SIMBOT,
-    ROBOT_SIMBOT_CTRE,
     ROBOT_PRACTICE,
-    ROBOT_2024_ARTEMIS,
-    ROBOT_PRACTICE_BOARD
+    ROBOT_COMPETITION,
+    ROBOT_PRACTICE_BOARD,
+    ROBOT_VISION_TEST_PLATFORM
   }
 
   // FIXME: update for various robots
   public static RobotType getRobot() {
     if (RobotBase.isReal()) {
-      if (ROBOT == RobotType.ROBOT_SIMBOT
-          || ROBOT == RobotType.ROBOT_SIMBOT_CTRE) { // Invalid robot selected
+      if (ROBOT == RobotType.ROBOT_SIMBOT) { // Invalid robot selected
         invalidRobotAlert.set(true);
-        return RobotType.ROBOT_2024_ARTEMIS;
+        return RobotType.ROBOT_COMPETITION;
       } else {
         return ROBOT;
       }
@@ -62,14 +61,10 @@ public final class Constants {
   // FIXME: update for various robots
   public static Mode getMode() {
     switch (getRobot()) {
-      case ROBOT_DEFAULT:
-      case ROBOT_PRACTICE:
-      case ROBOT_PRACTICE_BOARD:
-      case ROBOT_2024_ARTEMIS:
+      case ROBOT_DEFAULT, ROBOT_PRACTICE, ROBOT_PRACTICE_BOARD, ROBOT_COMPETITION:
         return RobotBase.isReal() ? Mode.REAL : Mode.REPLAY;
 
-      case ROBOT_SIMBOT:
-      case ROBOT_SIMBOT_CTRE:
+      case ROBOT_SIMBOT, ROBOT_VISION_TEST_PLATFORM:
         return Mode.SIM;
 
       default:

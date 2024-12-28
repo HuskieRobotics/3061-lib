@@ -1,10 +1,24 @@
 package frc.lib.team3061;
 
+import static edu.wpi.first.units.Units.*;
+
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
+import com.pathplanner.lib.config.ModuleConfig;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularAcceleration;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.LinearAcceleration;
+import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.units.measure.Mass;
+import edu.wpi.first.units.measure.MomentOfInertia;
 import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
+import java.io.IOException;
+import org.json.simple.parser.ParseException;
 
 @java.lang.SuppressWarnings({"java:S3010", "java:S3400"})
 public abstract class RobotConfig {
@@ -204,7 +218,7 @@ public abstract class RobotConfig {
    * @return the swerve module offsets, in units of rotations, in the order of front left, front
    *     right, back left, and back right
    */
-  public abstract double[] getSwerveSteerOffsets();
+  public abstract Angle[] getSwerveSteerOffsets();
 
   /**
    * Returns the CAN ID for the robot's gyro sensor. Must be overridden.
@@ -220,7 +234,7 @@ public abstract class RobotConfig {
    * @return the trackwidth (i.e., the center-to-center distance between the left and right wheels)
    *     of the robot in meters
    */
-  public abstract double getTrackwidth();
+  public abstract Distance getTrackwidth();
 
   /**
    * Returns the wheelbase (i.e., the center-to-center distance between the front and back wheels)
@@ -229,14 +243,14 @@ public abstract class RobotConfig {
    * @return the wheelbase (i.e., the center-to-center distance between the front and back wheels)
    *     of the robot in meters
    */
-  public abstract double getWheelbase();
+  public abstract Distance getWheelbase();
 
   /**
-   * Returns the diameter of the wheels on the robot in meters. Must be overridden.
+   * Returns the radius of the wheels on the robot in meters. Must be overridden.
    *
-   * @return the diameter of the wheels on the robot in meters
+   * @return the radius of the wheels on the robot in meters
    */
-  public abstract double getWheelDiameterMeters();
+  public abstract Distance getWheelRadius();
 
   /**
    * Returns the swerve drive kinematics object for the robot. The geometry and coordinate systems
@@ -246,15 +260,36 @@ public abstract class RobotConfig {
    * @return the swerve drive kinematics object for the robot
    */
   public SwerveDriveKinematics getSwerveDriveKinematics() {
-    return new SwerveDriveKinematics(
-        // Front left
-        new Translation2d(getWheelbase() / 2.0, getTrackwidth() / 2.0),
-        // Front right
-        new Translation2d(getWheelbase() / 2.0, -getTrackwidth() / 2.0),
-        // Back left
-        new Translation2d(-getWheelbase() / 2.0, getTrackwidth() / 2.0),
-        // Back right
-        new Translation2d(-getWheelbase() / 2.0, -getTrackwidth() / 2.0));
+    return new SwerveDriveKinematics(getSwerveModulePositions());
+  }
+
+  /**
+   * Returns the positions of the swerve modules on the robot. The positions are relative to the
+   * center of the robot. The order is front left, front right, back left, and back right.
+   *
+   * @return the positions of the swerve modules on the robot
+   */
+  public Translation2d[] getSwerveModulePositions() {
+    return new Translation2d[] {
+      // Front left
+      new Translation2d(getWheelbase().div(2.0), getTrackwidth().div(2.0)),
+      // Front right
+      new Translation2d(getWheelbase().div(2.0), getTrackwidth().div(-2.0)),
+      // Back left
+      new Translation2d(getWheelbase().div(-2.0), getTrackwidth().div(2.0)),
+      // Back right
+      new Translation2d(getWheelbase().div(-2.0), getTrackwidth().div(-2.0))
+    };
+  }
+
+  /**
+   * Returns the position of the front left corner of the robot. Defaults to the center of the
+   * robot.
+   *
+   * @return the position of the front left corner of the robot
+   */
+  public Translation2d getFrontRightCornerPosition() {
+    return new Translation2d(0.0, 0.0);
   }
 
   /**
@@ -262,8 +297,8 @@ public abstract class RobotConfig {
    *
    * @return the robot's width, including bumpers, in meters
    */
-  public double getRobotWidthWithBumpers() {
-    return 0.0;
+  public Distance getRobotWidthWithBumpers() {
+    return Meters.of(0.0);
   }
 
   /**
@@ -271,8 +306,8 @@ public abstract class RobotConfig {
    *
    * @return the robot's length, including bumpers, in meters
    */
-  public double getRobotLengthWithBumpers() {
-    return 0.0;
+  public Distance getRobotLengthWithBumpers() {
+    return Meters.of(0.0);
   }
 
   /**
@@ -285,13 +320,17 @@ public abstract class RobotConfig {
     return new Transform3d[] {};
   }
 
+  public double[] getCameraStdDevFactors() {
+    return new double[] {};
+  }
+
   /**
    * Returns the maximum translational velocity of the robot in meters per second. This is a measure
    * of how fast the robot should be able to drive in a straight line. Must be overridden.
    *
    * @return the maximum velocity of the robot in meters per second
    */
-  public abstract double getRobotMaxVelocity();
+  public abstract LinearVelocity getRobotMaxVelocity();
 
   /**
    * Returns the multiplier for when the robot is in slow mode. Defaults to 1 (no effect in slow
@@ -310,8 +349,10 @@ public abstract class RobotConfig {
    *
    * @return the maximum angular velocity of the robot in radians per second
    */
-  public double getRobotMaxAngularVelocity() {
-    return getRobotMaxVelocity() / Math.hypot(getTrackwidth() / 2.0, getWheelbase() / 2.0);
+  public AngularVelocity getRobotMaxAngularVelocity() {
+    return RadiansPerSecond.of(
+        getRobotMaxVelocity().in(MetersPerSecond)
+            / Math.hypot(getTrackwidth().in(Meters) / 2.0, getWheelbase().in(Meters) / 2.0));
   }
 
   /**
@@ -320,8 +361,8 @@ public abstract class RobotConfig {
    *
    * @return the maximum translational acceleration of the robot in meters per second squared
    */
-  public double getRobotMaxDriveAcceleration() {
-    return 1000.0;
+  public LinearAcceleration getRobotMaxDriveAcceleration() {
+    return MetersPerSecondPerSecond.of(1000.0);
   }
 
   /**
@@ -330,8 +371,8 @@ public abstract class RobotConfig {
    *
    * @return the maximum angular acceleration of the robot in radians per second squared
    */
-  public double getRobotMaxTurnAcceleration() {
-    return 1000.0;
+  public AngularAcceleration getRobotMaxTurnAcceleration() {
+    return RadiansPerSecondPerSecond.of(1000.0);
   }
 
   /**
@@ -341,8 +382,8 @@ public abstract class RobotConfig {
    * @return the maximum velocity, in meters per second, at which the robot can be moving while
    *     disabled before the drive motors are changed from brake to coast mode
    */
-  public double getRobotMaxCoastVelocity() {
-    return 0.0;
+  public LinearVelocity getRobotMaxCoastVelocity() {
+    return MetersPerSecond.of(0.0);
   }
 
   /**
@@ -351,7 +392,7 @@ public abstract class RobotConfig {
    *
    * @return the maximum speed, in meters per second, for the robot when following autonomous paths
    */
-  public abstract double getAutoMaxSpeed();
+  public abstract LinearVelocity getAutoMaxSpeed();
 
   /**
    * Returns the maximum acceleration, in meters per second squared, for the robot when following
@@ -360,7 +401,7 @@ public abstract class RobotConfig {
    * @return the maximum acceleration, in meters per second squared, for the robot when following
    *     autonomous paths
    */
-  public abstract double getAutoMaxAcceleration();
+  public abstract LinearAcceleration getAutoMaxAcceleration();
 
   /**
    * Returns the the proportional constant for the PID controller for translational motion when
@@ -426,6 +467,54 @@ public abstract class RobotConfig {
    */
   public double getAutoTurnKD() {
     return 0.0;
+  }
+
+  /**
+   * Returns the robot's configuration as specified in the PathPlanner GUI.
+   *
+   * @return
+   * @throws IOException
+   * @throws ParseException
+   */
+  public com.pathplanner.lib.config.RobotConfig getPathPlannerRobotConfig() {
+    return new com.pathplanner.lib.config.RobotConfig(
+        getMass(),
+        getMomentOfInertia(),
+        new ModuleConfig(
+            getWheelRadius(),
+            getRobotMaxVelocity(),
+            getWheelCOF(),
+            DCMotor.getKrakenX60(1).withReduction(getSwerveConstants().getDriveGearRatio()),
+            Amps.of(SwerveConstants.DRIVE_PEAK_CURRENT_LIMIT),
+            1),
+        getSwerveModulePositions());
+  }
+
+  /**
+   * Returns the mass of the robot. Defaults to 50 kg.
+   *
+   * @return the mass of the robot
+   */
+  public Mass getMass() {
+    return Kilograms.of(50.0);
+  }
+
+  /**
+   * Returns the moment of inertia of the robot. Defaults to 6.0 kg*m^2.
+   *
+   * @return the moment of inertia of the robot
+   */
+  public MomentOfInertia getMomentOfInertia() {
+    return KilogramSquareMeters.of(6.0);
+  }
+
+  /**
+   * Returns the coefficient of friction for the robot's wheels. Defaults to 1.2.
+   *
+   * @return the coefficient of friction for the robot's wheels
+   */
+  public double getWheelCOF() {
+    return 1.2;
   }
 
   /**
@@ -559,7 +648,7 @@ public abstract class RobotConfig {
    * @return the maximum translational speed, in meters per second, for the robot during the
    *     drive-to-pose command
    */
-  public double getDriveToPoseDriveMaxVelocity() {
+  public LinearVelocity getDriveToPoseDriveMaxVelocity() {
     return getAutoMaxSpeed();
   }
 
@@ -570,7 +659,7 @@ public abstract class RobotConfig {
    * @return the maximum translational acceleration, in meters per second squared, for the robot
    *     during the drive-to-pose command
    */
-  public double getDriveToPoseDriveMaxAcceleration() {
+  public LinearAcceleration getDriveToPoseDriveMaxAcceleration() {
     return getAutoMaxAcceleration();
   }
 
@@ -582,9 +671,10 @@ public abstract class RobotConfig {
    * @return the maximum rotational speed, in radians per second, for the robot during the
    *     drive-to-pose command
    */
-  public double getDriveToPoseTurnMaxVelocity() {
-    return getDriveToPoseDriveMaxVelocity()
-        / Math.hypot(getTrackwidth() / 2.0, getWheelbase() / 2.0);
+  public AngularVelocity getDriveToPoseTurnMaxVelocity() {
+    return RadiansPerSecond.of(
+        getDriveToPoseDriveMaxVelocity().in(MetersPerSecond)
+            / Math.hypot(getTrackwidth().in(Meters) / 2.0, getWheelbase().in(Meters) / 2.0));
   }
 
   /**
@@ -595,9 +685,10 @@ public abstract class RobotConfig {
    * @return the maximum rotational acceleration, in radians per second squared, for the robot
    *     during the drive-to-pose command
    */
-  public double getDriveToPoseTurnMaxAcceleration() {
-    return getDriveToPoseDriveMaxAcceleration()
-        / Math.hypot(getTrackwidth() / 2.0, getWheelbase() / 2.0);
+  public AngularAcceleration getDriveToPoseTurnMaxAcceleration() {
+    return RadiansPerSecondPerSecond.of(
+        getDriveToPoseDriveMaxAcceleration().in(MetersPerSecondPerSecond)
+            / Math.hypot(getTrackwidth().in(Meters) / 2.0, getWheelbase().in(Meters) / 2.0));
   }
 
   /**
@@ -607,8 +698,8 @@ public abstract class RobotConfig {
    * @return the tolerance, in meters, for which the robot's position is considered at the specified
    *     pose during the drive-to-pose command
    */
-  public double getDriveToPoseDriveTolerance() {
-    return 0.0;
+  public Distance getDriveToPoseDriveTolerance() {
+    return Meters.of(0.0);
   }
 
   /**
@@ -618,8 +709,8 @@ public abstract class RobotConfig {
    * @return the tolerance, in radians, for which the robot's heading is considered at the specified
    *     pose during the drive-to-pose command
    */
-  public double getDriveToPoseThetaTolerance() {
-    return 0.0;
+  public Angle getDriveToPoseThetaTolerance() {
+    return Radians.of(0.0);
   }
 
   /**
@@ -629,8 +720,8 @@ public abstract class RobotConfig {
    * @return the velocity, in meters per second, of the robot when driving into a field element
    *     during a move-to-pose command
    */
-  public double getMoveToPathFinalVelocity() {
-    return 0;
+  public LinearVelocity getMoveToPathFinalVelocity() {
+    return MetersPerSecond.of(0);
   }
 
   /**
@@ -732,6 +823,15 @@ public abstract class RobotConfig {
    */
   public SWERVE_CONTROL_MODE getSwerveDriveControlMode() {
     return SWERVE_CONTROL_MODE.VOLTAGE;
+  }
+
+  /**
+   * Returns the azimuth steer coupling ratio for the swerve drivetrain. Defaults to 0.
+   *
+   * @return the azimuth steer coupling ratio for the swerve drivetrain
+   */
+  public double getAzimuthSteerCouplingRatio() {
+    return 0.0;
   }
 
   public enum SWERVE_CONTROL_MODE {

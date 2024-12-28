@@ -1,8 +1,11 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.*;
+
 import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.path.Waypoint;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -112,10 +115,11 @@ public class Field2d {
     pointLocations.add(end.getTranslation());
 
     List<Pose2d> pathPoses = createPathPoses(pointLocations);
-    List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(pathPoses);
+    List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(pathPoses);
     return new PathPlannerPath(
-        bezierPoints,
+        waypoints,
         pathConstants,
+        null,
         new GoalEndState(
             RobotConfig.getInstance().getMoveToPathFinalVelocity(), end.getRotation()));
   }
@@ -215,13 +219,13 @@ public class Field2d {
 
   public boolean hasFullyLeftAllianceSideOfField() {
     if (alliance == Alliance.Blue) {
-      return RobotOdometry.getInstance().getEstimatedPosition().getX()
+      return RobotOdometry.getInstance().getEstimatedPose().getX()
           > FieldConstants.StagingLocations.centerlineX
-              + RobotConfig.getInstance().getRobotLengthWithBumpers() / 2;
+              + RobotConfig.getInstance().getRobotLengthWithBumpers().in(Meters) / 2;
     } else {
-      return RobotOdometry.getInstance().getEstimatedPosition().getX()
+      return RobotOdometry.getInstance().getEstimatedPose().getX()
           < FieldConstants.StagingLocations.centerlineX
-              - RobotConfig.getInstance().getRobotLengthWithBumpers() / 2;
+              - RobotConfig.getInstance().getRobotLengthWithBumpers().in(Meters) / 2;
     }
   }
 }

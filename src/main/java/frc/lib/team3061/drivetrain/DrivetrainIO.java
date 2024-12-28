@@ -1,12 +1,18 @@
 package frc.lib.team3061.drivetrain;
 
+import com.ctre.phoenix6.Utils;
+import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import frc.lib.team3061.gyro.GyroIOInputsAutoLogged;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.units.measure.Force;
+import frc.lib.team3061.drivetrain.DrivetrainConstants.SysIDCharacterizationMode;
+import java.util.Optional;
 import org.littletonrobotics.junction.AutoLog;
 
 @java.lang.SuppressWarnings({"java:S1104"})
@@ -14,40 +20,33 @@ public interface DrivetrainIO {
   @AutoLog
   public static class SwerveIOInputs {
     public boolean driveEnabled = false;
-    public double driveDistanceMeters = 0.0;
-    public double driveVelocityMetersPerSec = 0.0;
-    public double driveVelocityReferenceMetersPerSec = 0.0;
-    public double driveVelocityErrorMetersPerSec = 0.0;
-    public double driveAccelerationMetersPerSecPerSec = 0.0;
-    public double driveAppliedVolts = 0.0;
     public double driveStatorCurrentAmps = 0.0;
     public double driveSupplyCurrentAmps = 0.0;
     public double driveTempCelsius = 0.0;
 
-    public boolean steerEnabled = false;
     public double steerAbsolutePositionDeg = 0.0;
-    public double steerPositionDeg = 0.0;
-    public double steerPositionReferenceDeg = 0.0;
-    public double steerPositionErrorDeg = 0.0;
-    public double steerVelocityRevPerMin = 0.0;
-    public double steerAccelerationMetersPerSecPerSec = 0.0;
-    public double steerAppliedVolts = 0.0;
+
+    public boolean steerEnabled = false;
     public double steerStatorCurrentAmps = 0.0;
     public double steerSupplyCurrentAmps = 0.0;
     public double steerTempCelsius = 0.0;
+
+    public double[] odometryDrivePositionsMeters = new double[] {};
+    public Rotation2d[] odometryTurnPositions = new Rotation2d[] {};
   }
 
   /** Contains all of the input data received from hardware. */
   @AutoLog
   public static class DrivetrainIOInputs {
-    double targetVXMetersPerSec = 0.0;
-    double targetVYMetersPerSec = 0.0;
-    double targetAngularVelocityRadPerSec = 0.0;
+    ChassisSpeeds referenceChassisSpeeds = new ChassisSpeeds();
+    ChassisSpeeds measuredChassisSpeeds = new ChassisSpeeds();
 
-    double measuredVXMetersPerSec = 0.0;
-    double measuredVYMetersPerSec = 0.0;
-    double measuredAngularVelocityRadPerSec = 0.0;
-
+    SwerveModulePosition[] swerveModulePositions = {
+      new SwerveModulePosition(),
+      new SwerveModulePosition(),
+      new SwerveModulePosition(),
+      new SwerveModulePosition()
+    };
     SwerveModuleState[] swerveReferenceStates = {
       new SwerveModuleState(),
       new SwerveModuleState(),
@@ -61,12 +60,13 @@ public interface DrivetrainIO {
       new SwerveModuleState()
     };
 
-    Pose2d robotPoseWithoutGyro = new Pose2d();
-    Pose2d robotPose = new Pose2d();
-    Pose3d robotPose3D = new Pose3d();
-
     double averageDriveCurrent = 0.0;
-    Rotation2d rotation = new Rotation2d();
+    double rawHeadingDeg = 0.0;
+
+    Pose2d customPose = new Pose2d();
+
+    double[] odometryTimestamps = new double[] {};
+    Rotation2d[] odometryYawPositions = new Rotation2d[] {};
   }
 
   public static class DrivetrainIOInputsCollection {
@@ -76,8 +76,6 @@ public interface DrivetrainIO {
       new SwerveIOInputsAutoLogged(),
       new SwerveIOInputsAutoLogged()
     }; // FL, FR, BL, BR
-
-    GyroIOInputsAutoLogged gyro = new GyroIOInputsAutoLogged();
 
     DrivetrainIOInputsAutoLogged drivetrain = new DrivetrainIOInputsAutoLogged();
   }
@@ -95,9 +93,9 @@ public interface DrivetrainIO {
   /**
    * Controls the drivetrain to move the robot with the desired velocities in the x, y, and
    * rotational directions. The velocities are specified from the field's frame of reference. In the
-   * field frame of reference, the origin of the field to the lower left corner (i.e., the corner of
-   * the field to the driver's right). Zero degrees is away from the driver and increases in the CCW
-   * direction.
+   * field frame of reference, The origin of the field is always the blue origin (i.e., the positive
+   * x-axis points away from the blue alliance wall). Zero degrees is aligned to the positive x axis
+   * and increases in the CCW direction.
    *
    * @param xVelocity the desired velocity in the x direction (m/s)
    * @param yVelocity the desired velocity in the y direction (m/s)
@@ -107,24 +105,69 @@ public interface DrivetrainIO {
   public default void driveFieldRelative(
       double xVelocity, double yVelocity, double rotationalVelocity, boolean isOpenLoop) {}
 
+  /**
+   * Controls the drivetrain to move the robot with the desired velocities in the x and y
+   * directions, while maintaining the specified rotation. The velocities are specified from the
+   * field's frame of reference. In the field frame of reference, The origin of the field is always
+   * the blue origin (i.e., the positive x-axis points away from the blue alliance wall). Zero
+   * degrees is aligned to the positive x axis and increases in the CCW direction.
+   *
+   * @param xVelocity the desired velocity in the x direction (m/s)
+   * @param yVelocity the desired velocity in the y direction (m/s)
+   * @param targetDirection the desired direction the robot should face
+   * @param isOpenLoop true for open-loop control; false for closed-loop control
+   */
   public default void driveFieldRelativeFacingAngle(
       double xVelocity, double yVelocity, Rotation2d targetDirection, boolean isOpenLoop) {}
 
+  /**
+   * Sets the swerve modules wheels to point in the specified direction. The direction is specified
+   * from the field's frame of reference. In the field frame of reference, The origin of the field
+   * is always the blue origin (i.e., the positive x-axis points away from the blue alliance wall).
+   * Zero degrees is aligned to the positive x axis and increases in the CCW direction.
+   *
+   * @param targetDirection the desired direction each swerve module wheel should face
+   */
   public default void pointWheelsAt(Rotation2d targetDirection) {}
 
+  /**
+   * Controls the drivetrain to move the robot with the desired velocities in the x, y, and
+   * rotational directions. The velocities are specified from the robot's frame of reference. In the
+   * robot frame of reference, The origin of the robot is always the center of the robot. The
+   * positive x direction is forward; the positive y direction, left. Zero degrees is aligned to the
+   * positive x axis and increases in the CCW direction.
+   *
+   * @param xVelocity the desired velocity in the x direction (m/s)
+   * @param yVelocity the desired velocity in the y direction (m/s)
+   * @param rotationalVelocity the desired rotational velocity (rad/s)
+   * @param isOpenLoop true for open-loop control; false for closed-loop control
+   */
   public default void driveRobotRelative(
       double xVelocity, double yVelocity, double rotationalVelocity, boolean isOpenLoop) {}
 
-  public default void setChassisSpeeds(ChassisSpeeds speeds, boolean isOpenLoop) {}
+  /**
+   * Controls the drivetrain to move the robot with the desired velocities in the x, y, and
+   * rotational directions. The velocities are specified from the robot's frame of reference. In the
+   * robot frame of reference, The origin of the robot is always the center of the robot. The
+   * positive x direction is forward; the positive y direction, left. Zero degrees is aligned to the
+   * positive x axis and increases in the CCW direction.
+   *
+   * @param speeds the desired chassis speeds
+   * @param forcesX the robot-centric wheel forces in the x direction
+   * @param forcesY the robot-centric wheel forces in the y direction
+   * @param isOpenLoop true for open-loop control; false for closed-loop control
+   */
+  public default void applyRobotSpeeds(
+      ChassisSpeeds speeds, Force[] forcesX, Force[] forcesY, boolean isOpenLoop) {}
 
   /**
-   * Sets the rotation of the robot to the specified value. This method should only be invoked when
-   * the rotation of the robot is known (e.g., at the start of an autonomous path). Zero degrees is
-   * facing away from the driver station; CCW is positive.
+   * Applies the specified characterization mode to the drivetrain with the specified value. This is
+   * used to characterize the robot for the purpose of system identification.
    *
-   * @param expectedYaw the rotation of the robot (in degrees)
+   * @param mode the specified characterization mode
+   * @param value the value to apply to the characterization mode
    */
-  public default void setGyroOffset(double expectedYaw) {}
+  public default void applySysIdCharacterization(SysIDCharacterizationMode mode, double value) {}
 
   /**
    * Sets the robot's center of rotation. The origin is at the center of the robot. The positive x
@@ -135,44 +178,52 @@ public interface DrivetrainIO {
   public default void setCenterOfRotation(Translation2d centerOfRotation) {}
 
   /**
-   * Sets the odometry of the robot to the specified pose. This method should only be invoked when
-   * the rotation of the robot is known (e.g., at the start of an autonomous path). The origin of
-   * the field to the lower left corner (i.e., the corner of the field to the driver's right). Zero
-   * degrees is away from the driver and increases in the CCW direction.
+   * Sets the brake mode of the drivetrain.
+   *
+   * @param enable true to enable brake mode; false to disable brake mode
+   */
+  public default void setBrakeMode(boolean enable) {}
+
+  /**
+   * Sets the custom odometry of the robot to the specified pose. This method should only be invoked
+   * when the rotation of the robot is known (e.g., at the start of an autonomous path). The origin
+   * of the field to the lower left corner (i.e., the corner of the field to the driver's right).
+   * Zero degrees is away from the driver and increases in the CCW direction.
    *
    * @param pose the specified pose to which is set the odometry
    */
   public default void resetPose(Pose2d pose) {}
 
   /**
-   * Supplies the drive motors with the specified voltage. Used for drivetrain characterization.
+   * Return the custom pose at a given timestamp, if the buffer is not empty.
    *
-   * @param volts the commanded voltage
+   * @param timestampSeconds The pose's timestamp. Note that you must use a timestamp with an epoch
+   *     since system startup (i.e., the epoch of this timestamp is the same epoch as {@link
+   *     Utils#getCurrentTimeSeconds}). This means that you should use {@link
+   *     Utils#getCurrentTimeSeconds} as your time source in this case. An FPGA timestamp can be
+   *     converted to the correct timebase using {@link Utils#fpgaToCurrentTime}.
+   * @return The pose at the given timestamp (or Optional.empty() if the buffer is empty).
    */
-  public default void setDriveMotorVoltage(double volts) {}
+  public default Optional<Pose2d> samplePoseAt(double timestamp) {
+    return Optional.empty();
+  }
 
   /**
-   * Supplies the steer motors with the specified voltage. Used for drivetrain characterization.
+   * Adds a vision measurement to the Kalman Filter for the custom pose estimator. This will correct
+   * the odometry pose estimate while still accounting for measurement noise.
    *
-   * @param volts the commanded voltage
+   * @param visionRobotPoseMeters The pose of the robot as measured by the vision camera.
+   * @param timestampSeconds The timestamp of the vision measurement in seconds. Note that you must
+   *     use a timestamp with an epoch since system startup (i.e., the epoch of this timestamp is
+   *     the same epoch as {@link Utils#getCurrentTimeSeconds}). This means that you should use
+   *     {@link Utils#getCurrentTimeSeconds} as your time source or sync the epochs. An FPGA
+   *     timestamp can be converted to the correct timebase using {@link Utils#fpgaToCurrentTime}.
+   * @param visionMeasurementStdDevs Standard deviations of the vision pose measurement (x position
+   *     in meters, y position in meters, and heading in radians). Increase these numbers to trust
+   *     the vision pose measurement less.
    */
-  public default void setSteerMotorVoltage(double volts) {}
-
-  /**
-   * Supplies the drive motors with the specified current. Used for drivetrain characterization with
-   * TorqueCurrentFOC.
-   *
-   * @param amps the commanded current
-   */
-  public default void setDriveMotorCurrent(double amps) {}
-
-  /**
-   * Supplies the steer motors with the specified current. Used for drivetrain characterization with
-   * TorqueCurrentFOC.
-   *
-   * @param amps the commanded current
-   */
-  public default void setSteerMotorCurrent(double amps) {}
-
-  public default void setBrakeMode(boolean enable) {}
+  public default void addVisionMeasurement(
+      Pose2d visionRobotPoseMeters,
+      double timestampSeconds,
+      Matrix<N3, N1> visionMeasurementStdDevs) {}
 }

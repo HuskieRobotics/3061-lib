@@ -1,0 +1,874 @@
+{
+  "hubs": [
+    {
+      "x": 214,
+      "y": 57,
+      "width": 1265,
+      "height": 867,
+      "state": {
+        "sidebar": {
+          "width": 300,
+          "expanded": [
+            "/RealOutputs",
+            "/RealOutputs/Drivetrain",
+            "/RealOutputs/Vision",
+            "/RealOutputs/RobotOdometry",
+            "/RealOutputs/RobotOdometry/visionPoseDiff",
+            "/RealOutputs/RobotOdometry/visionPoseDiff/rotation",
+            "/RealOutputs/RobotOdometry/visionPoseDiff/translation",
+            "/NetworkInputs/Tuning/Vision",
+            "/Tuning/Vision",
+            "/RealOutputs/Odometry",
+            "/RealOutputs/PathFollowing",
+            "/RealOutputs/Vision/0",
+            "/RealOutputs/SystemStatus/Drivetrain",
+            "/RealOutputs/Drivetrain/DefaultPose/rotation",
+            "/RealOutputs/Drivetrain/DefaultPose/translation",
+            "/Tuning",
+            "/Vision/0",
+            "/RealOutputs/RobotOdometry/pastPose",
+            "/RealOutputs/RobotOdometry/pastPose/translation",
+            "/RealOutputs/PathFollowing/currentPose",
+            "/RealOutputs/PathFollowing/currentPose/translation",
+            "/RealOutputs/PathFollowing/currentPose/rotation",
+            "/RealOutputs/PathFollowing/targetPose",
+            "/RealOutputs/PathFollowing/targetPose/translation",
+            "/RealOutputs/PathFollowing/targetPose/rotation",
+            "/Drivetrain",
+            "/Drivetrain/MeasuredChassisSpeeds",
+            "/Drivetrain/ReferenceChassisSpeeds",
+            "/Drivetrain/SwerveMeasuredStates",
+            "/Drivetrain/SwerveMeasuredStates/0",
+            "/Drivetrain/SwerveReferenceStates",
+            "/Drivetrain/SwerveReferenceStates/0"
+          ]
+        },
+        "tabs": {
+          "selected": 4,
+          "tabs": [
+            {
+              "type": 0,
+              "title": "",
+              "controller": null,
+              "controllerUUID": "310mmnrbvfb1lv6k4swzfthvq3e5d83z",
+              "renderer": "#/",
+              "controlsHeight": 0
+            },
+            {
+              "type": 2,
+              "title": "Odometry",
+              "controller": {
+                "sources": [
+                  {
+                    "type": "robot",
+                    "logKey": "/RealOutputs/Drivetrain/CustomPose",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {}
+                  },
+                  {
+                    "type": "ghost",
+                    "logKey": "/RealOutputs/Drivetrain/Pose",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {
+                      "color": "#00ff00"
+                    }
+                  },
+                  {
+                    "type": "vision",
+                    "logKey": "/RealOutputs/Vision/AprilTags",
+                    "logType": "Pose2d[]",
+                    "visible": true,
+                    "options": {
+                      "color": "#00ff00",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "arrow",
+                    "logKey": "/RealOutputs/Drivetrain/FRPose",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {
+                      "position": "center"
+                    }
+                  },
+                  {
+                    "type": "trajectory",
+                    "logKey": "/RealOutputs/PathFollowing/activePath",
+                    "logType": "Pose2d[]",
+                    "visible": true,
+                    "options": {
+                      "color": "#00ff00",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "ghost",
+                    "logKey": "/RealOutputs/PathFollowing/targetPose",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {
+                      "color": "#ff0000"
+                    }
+                  },
+                  {
+                    "type": "ghost",
+                    "logKey": "/RealOutputs/Vision/0/RobotPose2d",
+                    "logType": "Pose2d",
+                    "visible": false,
+                    "options": {
+                      "color": "#ff8c00"
+                    }
+                  },
+                  {
+                    "type": "ghost",
+                    "logKey": "/RealOutputs/RobotOdometry/pastPose",
+                    "logType": "Pose2d",
+                    "visible": false,
+                    "options": {
+                      "color": "#ff00ff"
+                    }
+                  }
+                ],
+                "game": "Evergreen",
+                "bumpers": "auto",
+                "origin": "blue",
+                "orientation": 0,
+                "size": 27
+              },
+              "controllerUUID": "qcnqmnu8c7710fc7oyb9xyg0qaw85zg1",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
+              "type": 3,
+              "title": "3D Field",
+              "controller": {
+                "sources": [
+                  {
+                    "type": "robot",
+                    "logKey": "/RealOutputs/Drivetrain/Pose",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {
+                      "model": "3061 (Artemis)"
+                    }
+                  },
+                  {
+                    "type": "vision",
+                    "logKey": "/RealOutputs/Vision/AprilTags",
+                    "logType": "Pose2d[]",
+                    "visible": true,
+                    "options": {
+                      "color": "#00ff00",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "axes",
+                    "logKey": "/RealOutputs/Vision/0/CameraAxes",
+                    "logType": "Pose3d",
+                    "visible": true,
+                    "options": {}
+                  },
+                  {
+                    "type": "aprilTag",
+                    "logKey": "/RealOutputs/Vision/AprilTagsPoses",
+                    "logType": "Pose3d[]",
+                    "visible": true,
+                    "options": {
+                      "family": "36h11"
+                    }
+                  },
+                  {
+                    "type": "ghost",
+                    "logKey": "/RealOutputs/Vision/0/RobotPose3d",
+                    "logType": "Pose3d",
+                    "visible": true,
+                    "options": {
+                      "model": "3061 (Artemis)",
+                      "color": "#00ff00"
+                    }
+                  }
+                ],
+                "game": "Evergreen",
+                "origin": "blue"
+              },
+              "controllerUUID": "evx1fftrozhehzcwb3pbjh0pa9ucx1m9",
+              "renderer": {
+                "cameraIndex": -1,
+                "orbitFov": 50,
+                "cameraPosition": [
+                  -0.39552841416052553,
+                  35.518052935300666,
+                  -18.232925503758622
+                ],
+                "cameraTarget": [
+                  0.46367932150697244,
+                  -31.151342444290684,
+                  -4.693119975814822
+                ]
+              },
+              "controlsHeight": 200
+            },
+            {
+              "type": 1,
+              "title": "Line Graph",
+              "controller": {
+                "leftSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "/RealOutputs/Vision/0/UpdatePoseCount",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#2b66a2",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "rightSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "/RealOutputs/RobotOdometry/visionTime",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#e5b31b",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "/RealOutputs/RobotOdometry/updateTime",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#af2437",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "discreteSources": [],
+                "leftLockedRange": null,
+                "rightLockedRange": null,
+                "leftUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "rightUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "leftFilter": 0,
+                "rightFilter": 0
+              },
+              "controllerUUID": "0v4hu6brdvi36d9mg9f2a367plc0go5h",
+              "renderer": null,
+              "controlsHeight": 257
+            },
+            {
+              "type": 6,
+              "title": "Statistics",
+              "controller": {
+                "sources": [
+                  {
+                    "type": "independent",
+                    "logKey": "/RealOutputs/Vision/0/TimestampDifference",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#2b66a2"
+                    }
+                  }
+                ],
+                "timeRange": "enabled",
+                "rangeMin": 0,
+                "rangeMax": 10,
+                "stepSize": 1
+              },
+              "controllerUUID": "d2e8hed42yg7sb0exg4ph4bn3wp740ng",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
+              "type": 1,
+              "title": "Line Graph",
+              "controller": {
+                "leftSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "/RealOutputs/RobotOdometry/visionPoseDiff/translation/x",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#e5b31b",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "/RealOutputs/RobotOdometry/visionPoseDiff/translation/y",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#af2437",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "rightSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "/RealOutputs/RobotOdometry/visionPoseDiff/rotation/value",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#2b66a2",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "discreteSources": [],
+                "leftLockedRange": null,
+                "rightLockedRange": null,
+                "leftUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "rightUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "leftFilter": 0,
+                "rightFilter": 0
+              },
+              "controllerUUID": "0ky3jfcskw06ow984yjvrppqawqy0474",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
+              "type": 6,
+              "title": "vision latency tuning",
+              "controller": {
+                "sources": [
+                  {
+                    "type": "independent",
+                    "logKey": "/RealOutputs/RobotOdometry/visionPoseDiff/translation/x",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#e5b31b"
+                    }
+                  },
+                  {
+                    "type": "independent",
+                    "logKey": "/RealOutputs/RobotOdometry/visionPoseDiff/translation/y",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#af2437"
+                    }
+                  },
+                  {
+                    "type": "independent",
+                    "logKey": "/RealOutputs/RobotOdometry/visionPoseDiff/rotation/value",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#2b66a2"
+                    }
+                  }
+                ],
+                "timeRange": "enabled",
+                "rangeMin": 0,
+                "rangeMax": 0.2,
+                "stepSize": 0.01
+              },
+              "controllerUUID": "ndxnauwlwc655k8fpxtdqroeynhtm6ts",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
+              "type": 6,
+              "title": "auto path tuning",
+              "controller": {
+                "sources": [
+                  {
+                    "type": "reference",
+                    "logKey": "/RealOutputs/PathFollowing/currentPose/translation/x",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {}
+                  },
+                  {
+                    "type": "absoluteError",
+                    "logKey": "/RealOutputs/PathFollowing/targetPose/translation/x",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#2b66a2"
+                    }
+                  },
+                  {
+                    "type": "reference",
+                    "logKey": "/RealOutputs/PathFollowing/currentPose/translation/y",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {}
+                  },
+                  {
+                    "type": "absoluteError",
+                    "logKey": "/RealOutputs/PathFollowing/targetPose/translation/y",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#e5b31b"
+                    }
+                  },
+                  {
+                    "type": "reference",
+                    "logKey": "/RealOutputs/PathFollowing/currentPose/rotation/value",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {}
+                  },
+                  {
+                    "type": "absoluteError",
+                    "logKey": "/RealOutputs/PathFollowing/targetPose/rotation/value",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#af2437"
+                    }
+                  }
+                ],
+                "timeRange": "auto",
+                "rangeMin": 0,
+                "rangeMax": 0.2,
+                "stepSize": 0.01
+              },
+              "controllerUUID": "gqtxvam6jkyp2633w6vijt6kgestxbyk",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
+              "type": 1,
+              "title": "auto velocity tuning",
+              "controller": {
+                "leftSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "/Drivetrain/MeasuredChassisSpeeds/vx",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#2b66a2",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "/Drivetrain/ReferenceChassisSpeeds/vx",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#e5b31b",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "/Drivetrain/MeasuredChassisSpeeds/vy",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#af2437",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "/Drivetrain/ReferenceChassisSpeeds/vy",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#80588e",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "rightSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "/Drivetrain/MeasuredChassisSpeeds/omega",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#e48b32",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "/Drivetrain/ReferenceChassisSpeeds/omega",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#c0b487",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "discreteSources": [],
+                "leftLockedRange": null,
+                "rightLockedRange": null,
+                "leftUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "rightUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "leftFilter": 0,
+                "rightFilter": 0
+              },
+              "controllerUUID": "lx1d3nrjwpvnqyeakmnshukgevod1aym",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
+              "type": 1,
+              "title": "steer PID tuning",
+              "controller": {
+                "leftSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "/Drivetrain/SwerveMeasuredStates/0/angle/value",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#2b66a2",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "/Drivetrain/SwerveReferenceStates/0/angle/value",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#e5b31b",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "rightSources": [],
+                "discreteSources": [],
+                "leftLockedRange": null,
+                "rightLockedRange": null,
+                "leftUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "rightUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "leftFilter": 0,
+                "rightFilter": 0
+              },
+              "controllerUUID": "qsul4f9r2ww4haqg4lpe6aa3bg3y7i3x",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
+              "type": 1,
+              "title": "drive PID tuning",
+              "controller": {
+                "leftSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "/Drivetrain/SwerveMeasuredStates/0/speed",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#2b66a2",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "/Drivetrain/SwerveReferenceStates/0/speed",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#e5b31b",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "rightSources": [],
+                "discreteSources": [],
+                "leftLockedRange": null,
+                "rightLockedRange": null,
+                "leftUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "rightUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "leftFilter": 0,
+                "rightFilter": 0
+              },
+              "controllerUUID": "yz0csmzb1ekk3tatc9u8nk2u8v5ccymp",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
+              "type": 1,
+              "title": "slip current",
+              "controller": {
+                "leftSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "/Drivetrain/FL/DriveStatorCurrentAmps",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#2b66a2",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "rightSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "/Drivetrain/FL/DriveVelocityMetersPerSec",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#e5b31b",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "discreteSources": [],
+                "leftLockedRange": null,
+                "rightLockedRange": null,
+                "leftUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "rightUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "leftFilter": 0,
+                "rightFilter": 0
+              },
+              "controllerUUID": "70wx3hhb12iurab9n092d2fwen16fky4",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
+              "type": 1,
+              "title": "max speed",
+              "controller": {
+                "leftSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "/Drivetrain/MeasuredChassisSpeeds/vx",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#2b66a2",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "/Drivetrain/MeasuredChassisSpeeds/vy",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#e5b31b",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "rightSources": [],
+                "discreteSources": [],
+                "leftLockedRange": null,
+                "rightLockedRange": null,
+                "leftUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "rightUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "leftFilter": 0,
+                "rightFilter": 0
+              },
+              "controllerUUID": "2leftdj90zkei2pd13ihrirhbp5r3ui5",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
+              "type": 9,
+              "title": "Swerve",
+              "controller": {
+                "sources": [
+                  {
+                    "type": "states",
+                    "logKey": "/Drivetrain/SwerveMeasuredStates",
+                    "logType": "SwerveModuleState[]",
+                    "visible": true,
+                    "options": {
+                      "color": "#ff0000",
+                      "arrangement": "0,1,2,3"
+                    }
+                  },
+                  {
+                    "type": "states",
+                    "logKey": "/Drivetrain/SwerveReferenceStates",
+                    "logType": "SwerveModuleState[]",
+                    "visible": true,
+                    "options": {
+                      "color": "#0000ff",
+                      "arrangement": "0,1,2,3"
+                    }
+                  },
+                  {
+                    "type": "rotationLegacy",
+                    "logKey": "/Drivetrain/Gyro/YawDeg",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "units": "radians"
+                    }
+                  },
+                  {
+                    "type": "chassisSpeeds",
+                    "logKey": "/Drivetrain/MeasuredChassisSpeeds",
+                    "logType": "ChassisSpeeds",
+                    "visible": true,
+                    "options": {
+                      "color": "#ff0000"
+                    }
+                  },
+                  {
+                    "type": "chassisSpeeds",
+                    "logKey": "/Drivetrain/ReferenceChassisSpeeds",
+                    "logType": "ChassisSpeeds",
+                    "visible": true,
+                    "options": {
+                      "color": "#0000ff"
+                    }
+                  }
+                ],
+                "maxSpeed": 5,
+                "sizeX": 0.65,
+                "sizeY": 0.65,
+                "orientation": 1
+              },
+              "controllerUUID": "xl0u6oymqkjm45npjm7srhm3ccuitawi",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
+              "type": 6,
+              "title": "Statistics",
+              "controller": {
+                "sources": [
+                  {
+                    "type": "reference",
+                    "logKey": "/Drivetrain/ReferenceChassisSpeeds/vy",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {}
+                  },
+                  {
+                    "type": "relativeError",
+                    "logKey": "/Drivetrain/MeasuredChassisSpeeds/vy",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#e5b31b"
+                    }
+                  }
+                ],
+                "timeRange": "enabled",
+                "rangeMin": 0,
+                "rangeMax": 10,
+                "stepSize": 1
+              },
+              "controllerUUID": "n5u5mgwb0ei6ahnke33jnid3lmmxrnoc",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
+              "type": 1,
+              "title": "alerts",
+              "controller": {
+                "leftSources": [],
+                "rightSources": [],
+                "discreteSources": [
+                  {
+                    "type": "alerts",
+                    "logKey": "/RealOutputs/Alerts",
+                    "logType": "Alerts",
+                    "visible": true,
+                    "options": {}
+                  }
+                ],
+                "leftLockedRange": null,
+                "rightLockedRange": null,
+                "leftUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "rightUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "leftFilter": 0,
+                "rightFilter": 0
+              },
+              "controllerUUID": "941haqffhdjzmgvh6vgesnwzb3ujd5vg",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
+              "type": 12,
+              "title": "Metadata",
+              "controller": null,
+              "controllerUUID": "ikzdbpy3tjf9f82nnfi1qrtbgle8legr",
+              "renderer": null,
+              "controlsHeight": 0
+            },
+            {
+              "type": 5,
+              "title": "Console",
+              "controller": "/RealOutputs/Console",
+              "controllerUUID": "zume7t5grupogh4be5qmh7lpc2aby871",
+              "renderer": {
+                "highlight": false
+              },
+              "controlsHeight": 0
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "satellites": [],
+  "version": "4.0.0-beta-4"
+}

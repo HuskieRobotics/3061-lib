@@ -1,11 +1,12 @@
 package frc.robot.commands;
 
+import static edu.wpi.first.units.Units.*;
+
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.Drivetrain;
-import frc.lib.team6328.util.TunableNumber;
-import frc.robot.Constants;
+import frc.lib.team6328.util.LoggedTunableNumber;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
@@ -33,23 +34,13 @@ public class TeleopSwerve extends Command {
   private final boolean driveFacingAngle;
 
   private static final double DEADBAND = 0.1;
-  private double lastAngularVelocity;
-  private double lastXVelocity;
-  private double lastYVelocity;
 
-  private final double maxVelocityMetersPerSecond = RobotConfig.getInstance().getRobotMaxVelocity();
+  private final double maxVelocityMetersPerSecond =
+      RobotConfig.getInstance().getRobotMaxVelocity().in(MetersPerSecond);
   private final double maxAngularVelocityRadiansPerSecond =
-      RobotConfig.getInstance().getRobotMaxAngularVelocity();
-
-  private final TunableNumber maxTurnAcceleration =
-      new TunableNumber(
-          "TeleopSwerve/maxTurnAcceleration",
-          RobotConfig.getInstance().getRobotMaxTurnAcceleration());
-  private final TunableNumber joystickPower = new TunableNumber("TeleopSwerve/joystickPower", 2.0);
-  private final TunableNumber maxDriveAcceleration =
-      new TunableNumber(
-          "TeleopSwerve/maxDriveAcceleration",
-          RobotConfig.getInstance().getRobotMaxDriveAcceleration());
+      RobotConfig.getInstance().getRobotMaxAngularVelocity().in(RadiansPerSecond);
+  private final LoggedTunableNumber joystickPower =
+      new LoggedTunableNumber("TeleopSwerve/joystickPower", 2.0);
 
   /**
    * Create a new TeleopSwerve command object.
@@ -133,40 +124,6 @@ public class TeleopSwerve extends Command {
     Logger.recordOutput("TeleopSwerve/xVelocity", xVelocity);
     Logger.recordOutput("TeleopSwerve/yVelocity", yVelocity);
     Logger.recordOutput("TeleopSwerve/rotationalVelocity", rotationalVelocity);
-
-    // if the robot is not in turbo mode, limit the acceleration
-    if (!drivetrain.getTurbo()) {
-      double driveAccelerationMetersPer20Ms =
-          maxDriveAcceleration.get() * Constants.LOOP_PERIOD_SECS;
-
-      if (Math.abs(xVelocity - lastXVelocity) > driveAccelerationMetersPer20Ms) {
-        xVelocity =
-            lastXVelocity
-                + Math.copySign(driveAccelerationMetersPer20Ms, xVelocity - lastXVelocity);
-      }
-
-      if (Math.abs(yVelocity - lastYVelocity) > driveAccelerationMetersPer20Ms) {
-        yVelocity =
-            lastYVelocity
-                + Math.copySign(driveAccelerationMetersPer20Ms, yVelocity - lastYVelocity);
-      }
-
-      if (!this.driveFacingAngle) {
-        double turnAccelerationRadiansPer20Ms =
-            maxTurnAcceleration.get() * Constants.LOOP_PERIOD_SECS;
-
-        if (Math.abs(rotationalVelocity - lastAngularVelocity) > turnAccelerationRadiansPer20Ms) {
-          rotationalVelocity =
-              lastAngularVelocity
-                  + Math.copySign(
-                      turnAccelerationRadiansPer20Ms, rotationalVelocity - lastAngularVelocity);
-        }
-      }
-    }
-
-    lastXVelocity = xVelocity;
-    lastYVelocity = yVelocity;
-    lastAngularVelocity = rotationalVelocity;
 
     if (this.driveFacingAngle) {
       drivetrain.driveFacingAngle(xVelocity, yVelocity, angleSupplier.get(), true);

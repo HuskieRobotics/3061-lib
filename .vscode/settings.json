@@ -18,22 +18,39 @@
     {
       "name": "WPIlibUnitTests",
       "workingDirectory": "${workspaceFolder}/build/jni/release",
-      "vmargs": [ "-Djava.library.path=${workspaceFolder}/build/jni/release" ],
+      "vmargs": [
+        "-Djava.library.path=${workspaceFolder}/build/jni/release"
+      ],
       "env": {
-        "LD_LIBRARY_PATH": "${workspaceFolder}/build/jni/release" ,
+        "LD_LIBRARY_PATH": "${workspaceFolder}/build/jni/release",
         "DYLD_LIBRARY_PATH": "${workspaceFolder}/build/jni/release"
       }
     },
+    null
   ],
   "java.test.defaultConfig": "WPIlibUnitTests",
   "spotlessGradle.format.enable": true,
-  "editor.defaultFormatter": "richardwillis.vscode-spotless-gradle",
+  "spotlessGradle.diagnostics.enable": false,
+  "java.import.gradle.annotationProcessing.enabled": false,
   "editor.codeActionsOnSave": {
     "source.fixAll.spotlessGradle": "explicit"
+  },
+  "editor.defaultFormatter": "richardwillis.vscode-spotless-gradle",
+  "[json]": {
+    "editor.defaultFormatter": "richardwillis.vscode-spotless-gradle"
+  },
+  "[java]": {
+    "editor.defaultFormatter": "richardwillis.vscode-spotless-gradle"
+  },
+  "cSpell.enabledFileTypes": {
+    "*": true,
+    "json": false,
+    "gradle": false
   },
   "cSpell.words": [
     "algs",
     "APRILTAG",
+    "autoset",
     "bezier",
     "brushless",
     "canbus",
@@ -49,7 +66,8 @@
     "DEADBAND",
     "Devs",
     "dtheta",
-    "Feedforward",
+    "feedforward",
+    "feedforwards",
     "gamepad",
     "gradlew",
     "holonomic",
@@ -57,17 +75,22 @@
     "IOCTRE",
     "jama",
     "javac",
+    "Kalman",
     "leds",
     "Nivore",
     "odometry",
     "openloop",
     "pathfind",
     "pathfinding",
+    "pathplanner",
     "Penrose",
     "photonvision",
     "PIDF",
     "pseudoinverse",
+    "quasistatic",
     "rapidreact",
+    "reproj",
+    "reprojection",
     "REVPHJNI",
     "rezero",
     "roboRIO",
@@ -79,13 +102,15 @@
     "SIMBOT",
     "Teleop",
     "teleoperated",
+    "timebase",
     "TRACKWIDTH",
     "tunables",
+    "uncomitted",
     "Vandermonde",
     "VBAT",
     "wpilib",
     "WPILOG",
     "Xstance",
     "YUYV"
-  ]  
+  ]
 }

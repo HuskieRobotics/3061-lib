@@ -4,15 +4,15 @@
 
 package frc.robot.operator_interface;
 
-import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 /** Class for controlling the robot with a single Xbox controller. */
 public class SingleHandheldOI implements OperatorInterface {
-  private final XboxController controller;
+  private final CommandXboxController controller;
 
   public SingleHandheldOI(int port) {
-    controller = new XboxController(port);
+    controller = new CommandXboxController(port);
   }
 
   @Override
@@ -32,27 +32,27 @@ public class SingleHandheldOI implements OperatorInterface {
 
   @Override
   public Trigger getFieldRelativeButton() {
-    return new Trigger(controller::getBButton);
+    return controller.b();
   }
 
   @Override
   public Trigger getResetGyroButton() {
-    return new Trigger(controller::getStartButton);
+    return controller.start();
   }
 
   @Override
   public Trigger getXStanceButton() {
-    return new Trigger(controller::getYButton);
+    return controller.y();
   }
 
   @Override
   public Trigger getTranslationSlowModeButton() {
-    return new Trigger(controller::getLeftBumper);
+    return controller.leftBumper();
   }
 
   @Override
   public Trigger getRotationSlowModeButton() {
-    return new Trigger(controller::getRightBumper);
+    return controller.rightBumper();
   }
 
   @Override
@@ -63,6 +63,26 @@ public class SingleHandheldOI implements OperatorInterface {
 
   @Override
   public Trigger getLock180Button() {
-    return new Trigger(controller::getAButton);
+    return controller.a();
+  }
+
+  @Override
+  public Trigger getSysIdDynamicForward() {
+    return controller.back().and(controller.y());
+  }
+
+  @Override
+  public Trigger getSysIdDynamicReverse() {
+    return controller.back().and(controller.x());
+  }
+
+  @Override
+  public Trigger getSysIdQuasistaticForward() {
+    return controller.start().and(controller.y());
+  }
+
+  @Override
+  public Trigger getSysIdQuasistaticReverse() {
+    return controller.start().and(controller.x());
   }
 }
