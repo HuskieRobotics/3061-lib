@@ -47,9 +47,14 @@ public class ArtemisRobotConfig extends RobotConfig {
 
   private static final int GYRO_ID = 26;
 
+  private static final Mass MASS =
+      Kilograms.of(
+          51.862); // FIXME: update based on measured mass of robot with battery and bumpers
+  private static final MomentOfInertia MOI = KilogramSquareMeters.of(6.0); // FIXME: measure
   private static final Distance TRACKWIDTH = Meters.of(0.57785); // 22.75
   private static final Distance WHEELBASE = Meters.of(0.57785); // 22.75
   private static final Distance WHEEL_RADIUS = Meters.of(0.0954405 / 2.0);
+  private static final double WHEEL_COEFFICIENT_OF_FRICTION = 1.2;
   private static final Translation2d FRONT_RIGHT_CORNER_POSITION = new Translation2d(0.36, -0.36);
 
   private static final Distance ROBOT_WIDTH_WITH_BUMPERS =
@@ -383,17 +388,17 @@ public class ArtemisRobotConfig extends RobotConfig {
 
   @Override
   public Mass getMass() {
-    return Kilograms.of(51.862);
+    return MASS;
   }
 
   @Override
   public MomentOfInertia getMomentOfInertia() {
-    return KilogramSquareMeters.of(6.0);
+    return MOI;
   }
 
   @Override
   public double getWheelCOF() {
-    return 1.2;
+    return WHEEL_COEFFICIENT_OF_FRICTION;
   }
 
   @Override

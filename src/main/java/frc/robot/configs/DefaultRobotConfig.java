@@ -47,9 +47,15 @@ public class DefaultRobotConfig extends RobotConfig {
   private static final int GYRO_ID = 3;
 
   // FIXME: update robot dimensions
+  private static final Mass MASS =
+      Kilograms.of(
+          51.862); // FIXME: update based on measured mass of robot with battery and bumpers
+  private static final MomentOfInertia MOI = KilogramSquareMeters.of(6.0); // FIXME: measure
   private static final Distance TRACKWIDTH = Meters.of(0.523875);
   private static final Distance WHEELBASE = Meters.of(0.52705);
   private static final Distance WHEEL_RADIUS = Meters.of(0.09845567409 / 2.0);
+  private static final double WHEEL_COEFFICIENT_OF_FRICTION =
+      1.2; // FIXME: update based on wheel coefficient of friction
   private static final Translation2d FRONT_RIGHT_CORNER_POSITION = new Translation2d(0.36, -0.36);
   private static final Distance ROBOT_WIDTH_WITH_BUMPERS = Meters.of(0.8382);
   private static final Distance ROBOT_LENGTH_WITH_BUMPERS = Meters.of(0.8382);
@@ -357,18 +363,17 @@ public class DefaultRobotConfig extends RobotConfig {
 
   @Override
   public Mass getMass() {
-    return Kilograms.of(
-        51.862); // FIXME: update based on measured mass of robot with battery and bumpers
+    return MASS;
   }
 
   @Override
   public MomentOfInertia getMomentOfInertia() {
-    return KilogramSquareMeters.of(6.0); // FIXME: update
+    return MOI;
   }
 
   @Override
   public double getWheelCOF() {
-    return 1.2; // FIXME: update based on wheel coefficient of friction
+    return WHEEL_COEFFICIENT_OF_FRICTION;
   }
 
   @Override
