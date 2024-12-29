@@ -162,10 +162,16 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
 * [Coding a Subsystem](https://docs.google.com/document/d/e/2PACX-1vSoKDfaqDuGCELO67Z_OU1Wi1htoCOmoF5-17C2HNv1dCKMAVaq9HAGa5_nQpZRHAQsEgaKbTEiwgO4/pub): a more detailed description of what is required to create a new subsytem.
 * [Command Scheduler](https://docs.google.com/document/d/e/2PACX-1vS5TPIvj47OJelcBR2K0lNPXy0A72G__a6bLnf2l0SGfUjM-TADPxHw7-s6GHQu5gSJ95nnCRfcgxQs/pub): flowchart of WPILib's Command Scheduler.
 * [Competition Best Practices](https://docs.google.com/document/d/e/2PACX-1vQLStnC43iz8e7evLbORy99PDJclmt1k7UA60Lp2NWchMA0MyDMwknH0NvJk3FGo0KaARN6tOJ5sEnj/pub): best practices for reliability and traceability at competitions by leveraging the Event Deploy VS Code extension.
+* [Coordinate Systems](https://docs.google.com/document/d/e/2PACX-1vRWPD7hRjByRldjwQ2oxGno31mvY6BRdi-WEIVUMj7v8jjKbIr_kbUJfd8_5l8kuwlUIjM39yFLAKMh/pub): an overview, with diagrams, of robot, field, Pigeon, and joystick coordinate systems.
 * [Current Limiting](https://docs.google.com/document/d/e/2PACX-1vRYSPdktpdxEqfEJ5qOyJI1QZgMc7kVsm6Ehq9maGxWGrJPlZ-flu7b20wwI2OQtpVEouoiGKB02wDO/pub): description, rationale, and best practices for specifying current limits.
 * [Operator Interface](https://docs.google.com/document/d/e/2PACX-1vSW9bMBWT1qbvids2dnbw3Nyx9KVRfCczwkKzmkih6P6htDaCBE4KAIzxbC2n-0mct3-kXr1Bc9JJqJ/pub): rationale and description for the Operator Interface design.
+* [Phoenix 6 API Notes](https://docs.google.com/document/d/e/2PACX-1vQDTp-y6goSe_uPXCzGBasoqSanwskiwVedEaV50iE3vT0mL6Fs3bk0nt5iGK_R8BZ3371JZytDloSk/pub): most useful when migrating from Phoenix 5 to 6.
+* [Raspberry Pi & PhotonVision Settings](https://docs.google.com/document/d/e/2PACX-1vRCiyodcgBIta9bTmd4BgXOtCwyXbhBM1mI0SPSmPaC4V4HNVHCPMO7Hqh1-xQTKebPE9WGIP0F3JQV/pub): how we configure PhotonVision for AprilTag detection
+* [Robot Config](https://docs.google.com/document/d/e/2PACX-1vT_0-owsrGBXkkQI5R9a2-_YgukYuo5r8NEZFRvfdX9JiLqey7c9ew_8JmLjU84d7cHWUDx3FwtHRMc/pub): rationale and description for the Robot Config design.
+* [State Machines](https://docs.google.com/document/d/e/2PACX-1vRWPD7hRjByRldjwQ2oxGno31mvY6BRdi-WEIVUMj7v8jjKbIr_kbUJfd8_5l8kuwlUIjM39yFLAKMh/pub): rationale, example diagrams, and best practices for state machines and the state machine design in 3061-lib.
 * [Subsystem Testing and Tuning](https://docs.google.com/document/d/e/2PACX-1vT7eesqIg4E16QXMnDbtrsDJ6jEBApWDYRyNXWFtIHHf6upWCrLpBTFEyG6xL03H0mBDx3EbL_P5vCx/pub): how to perform initial tests on mechanisms, debug with log files, and tune constants.
-*
+* [Tuning Odometry](https://docs.google.com/document/d/e/2PACX-1vTCUeWsEIDd0dPoKiUDXsxO2hNxoeo5t55umNfDzaXLCjZHv5IoZo675Dm3F2JHVU9cVyAeMagXN3Hj/pub): rationale and good, better, best approaches to improving the accuracy of the robot's odometry.
+* [Tuning Drivetrain and Auto](https://docs.google.com/document/d/e/2PACX-1vSWmUUMqQuSlFtFWMCQ1ERwa_Xk1kULSdQkEioN4UbdIryG4_MpbVKU6gZtM85ZTYz6-JKXBN9UsG25/pub): rationale and instructions on how to use SysId to characterize the drivetrain, tune PIDs for swerve, and tune PIDs for PathPlanner.
 
 
 **Credits**
