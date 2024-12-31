@@ -124,7 +124,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
           .withCANBusName(RobotConfig.getInstance().getCANBusName())
           .withPigeon2Configs(RobotConfig.getInstance().getPigeonConfigForSwerveDrivetrain());
 
-  private static final SwerveModuleConstantsFactory constantCreator =
+  private static final SwerveModuleConstantsFactory frontModulesConstantCreator =
       new SwerveModuleConstantsFactory()
           .withDriveMotorInitialConfigs(
               new TalonFXConfiguration()
@@ -149,9 +149,52 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
                           .withStatorCurrentLimitEnable(
                               SwerveConstants.ANGLE_ENABLE_CURRENT_LIMIT)))
           .withDriveMotorGearRatio(
-              RobotConfig.getInstance().getSwerveConstants().getDriveGearRatio())
+              RobotConfig.getInstance().getFrontSwerveConstants().getDriveGearRatio())
           .withSteerMotorGearRatio(
-              RobotConfig.getInstance().getSwerveConstants().getAngleGearRatio())
+              RobotConfig.getInstance().getFrontSwerveConstants().getAngleGearRatio())
+          .withWheelRadius(RobotConfig.getInstance().getWheelRadius())
+          .withSlipCurrent(SwerveConstants.DRIVE_PEAK_CURRENT_LIMIT)
+          .withSteerMotorGains(steerGains)
+          .withDriveMotorGains(driveGains)
+          .withSteerMotorClosedLoopOutput(steerClosedLoopOutput)
+          .withDriveMotorClosedLoopOutput(driveClosedLoopOutput)
+          .withSpeedAt12Volts(RobotConfig.getInstance().getRobotMaxVelocity())
+          .withSteerInertia(STEER_INERTIA)
+          .withDriveInertia(DRIVE_INERTIA)
+          .withSteerFrictionVoltage(STEER_FRICTION_VOLTAGE)
+          .withDriveFrictionVoltage(DRIVE_FRICTION_VOLTAGE)
+          .withFeedbackSource(SteerFeedbackType.FusedCANcoder)
+          .withCouplingGearRatio(
+              COUPLE_RATIO); // Every 1 rotation of the azimuth results in couple ratio drive turns
+
+  private static final SwerveModuleConstantsFactory backModulesConstantCreator =
+      new SwerveModuleConstantsFactory()
+          .withDriveMotorInitialConfigs(
+              new TalonFXConfiguration()
+                  .withCurrentLimits(
+                      new CurrentLimitsConfigs()
+                          .withSupplyCurrentLimit(SwerveConstants.DRIVE_PEAK_CURRENT_LIMIT)
+                          .withSupplyCurrentLowerLimit(
+                              SwerveConstants.DRIVE_CONTINUOUS_CURRENT_LIMIT)
+                          .withSupplyCurrentLowerTime(SwerveConstants.DRIVE_PEAK_CURRENT_DURATION)
+                          .withSupplyCurrentLimitEnable(
+                              SwerveConstants.DRIVE_ENABLE_CURRENT_LIMIT)))
+          .withSteerMotorInitialConfigs(
+              new TalonFXConfiguration()
+                  .withCurrentLimits(
+                      new CurrentLimitsConfigs()
+                          .withSupplyCurrentLimit(SwerveConstants.ANGLE_PEAK_CURRENT_LIMIT)
+                          .withSupplyCurrentLowerLimit(
+                              SwerveConstants.ANGLE_CONTINUOUS_CURRENT_LIMIT)
+                          .withSupplyCurrentLowerTime(SwerveConstants.ANGLE_PEAK_CURRENT_DURATION)
+                          .withSupplyCurrentLimitEnable(SwerveConstants.ANGLE_ENABLE_CURRENT_LIMIT)
+                          .withStatorCurrentLimit(SwerveConstants.ANGLE_PEAK_CURRENT_LIMIT)
+                          .withStatorCurrentLimitEnable(
+                              SwerveConstants.ANGLE_ENABLE_CURRENT_LIMIT)))
+          .withDriveMotorGearRatio(
+              RobotConfig.getInstance().getBackSwerveConstants().getDriveGearRatio())
+          .withSteerMotorGearRatio(
+              RobotConfig.getInstance().getBackSwerveConstants().getAngleGearRatio())
           .withWheelRadius(RobotConfig.getInstance().getWheelRadius())
           .withSlipCurrent(SwerveConstants.DRIVE_PEAK_CURRENT_LIMIT)
           .withSteerMotorGains(steerGains)
@@ -168,48 +211,48 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
               COUPLE_RATIO); // Every 1 rotation of the azimuth results in couple ratio drive turns
 
   private static final SwerveModuleConstants frontLeft =
-      constantCreator.createModuleConstants(
+      frontModulesConstantCreator.createModuleConstants(
           RobotConfig.getInstance().getSwerveSteerMotorCANIDs()[0],
           RobotConfig.getInstance().getSwerveDriveMotorCANIDs()[0],
           RobotConfig.getInstance().getSwerveSteerEncoderCANIDs()[0],
           RobotConfig.getInstance().getSwerveSteerOffsets()[0],
           RobotConfig.getInstance().getWheelbase().div(2.0),
           RobotConfig.getInstance().getTrackwidth().div(2.0),
-          !RobotConfig.getInstance().getSwerveConstants().isDriveMotorInverted(),
-          RobotConfig.getInstance().getSwerveConstants().isAngleMotorInverted(),
+          !RobotConfig.getInstance().getFrontSwerveConstants().isDriveMotorInverted(),
+          RobotConfig.getInstance().getFrontSwerveConstants().isAngleMotorInverted(),
           false);
   private static final SwerveModuleConstants frontRight =
-      constantCreator.createModuleConstants(
+      frontModulesConstantCreator.createModuleConstants(
           RobotConfig.getInstance().getSwerveSteerMotorCANIDs()[1],
           RobotConfig.getInstance().getSwerveDriveMotorCANIDs()[1],
           RobotConfig.getInstance().getSwerveSteerEncoderCANIDs()[1],
           RobotConfig.getInstance().getSwerveSteerOffsets()[1],
           RobotConfig.getInstance().getWheelbase().div(2.0),
           RobotConfig.getInstance().getTrackwidth().div(-2.0),
-          RobotConfig.getInstance().getSwerveConstants().isDriveMotorInverted(),
-          RobotConfig.getInstance().getSwerveConstants().isAngleMotorInverted(),
+          RobotConfig.getInstance().getFrontSwerveConstants().isDriveMotorInverted(),
+          RobotConfig.getInstance().getFrontSwerveConstants().isAngleMotorInverted(),
           false);
   private static final SwerveModuleConstants backLeft =
-      constantCreator.createModuleConstants(
+      backModulesConstantCreator.createModuleConstants(
           RobotConfig.getInstance().getSwerveSteerMotorCANIDs()[2],
           RobotConfig.getInstance().getSwerveDriveMotorCANIDs()[2],
           RobotConfig.getInstance().getSwerveSteerEncoderCANIDs()[2],
           RobotConfig.getInstance().getSwerveSteerOffsets()[2],
           RobotConfig.getInstance().getWheelbase().div(-2.0),
           RobotConfig.getInstance().getTrackwidth().div(2.0),
-          !RobotConfig.getInstance().getSwerveConstants().isDriveMotorInverted(),
-          RobotConfig.getInstance().getSwerveConstants().isAngleMotorInverted(),
+          !RobotConfig.getInstance().getBackSwerveConstants().isDriveMotorInverted(),
+          RobotConfig.getInstance().getBackSwerveConstants().isAngleMotorInverted(),
           false);
   private static final SwerveModuleConstants backRight =
-      constantCreator.createModuleConstants(
+      backModulesConstantCreator.createModuleConstants(
           RobotConfig.getInstance().getSwerveSteerMotorCANIDs()[3],
           RobotConfig.getInstance().getSwerveDriveMotorCANIDs()[3],
           RobotConfig.getInstance().getSwerveSteerEncoderCANIDs()[3],
           RobotConfig.getInstance().getSwerveSteerOffsets()[3],
           RobotConfig.getInstance().getWheelbase().div(-2.0),
           RobotConfig.getInstance().getTrackwidth().div(-2.0),
-          RobotConfig.getInstance().getSwerveConstants().isDriveMotorInverted(),
-          RobotConfig.getInstance().getSwerveConstants().isAngleMotorInverted(),
+          RobotConfig.getInstance().getBackSwerveConstants().isDriveMotorInverted(),
+          RobotConfig.getInstance().getBackSwerveConstants().isAngleMotorInverted(),
           false);
 
   private Translation2d centerOfRotation;

@@ -182,6 +182,16 @@ public class NewPracticeRobotConfig extends RobotConfig {
   }
 
   @Override
+  public SwerveConstants getFrontSwerveConstants() {
+    return SwerveConstants.MK4N_L3_PLUS_CONSTANTS;
+  }
+
+  @Override
+  public SwerveConstants getBackSwerveConstants() {
+    return SwerveConstants.MK4I_L3_PLUS_CONSTANTS;
+  }
+
+  @Override
   public int[] getSwerveDriveMotorCANIDs() {
     return new int[] {
       FRONT_LEFT_MODULE_DRIVE_MOTOR,
