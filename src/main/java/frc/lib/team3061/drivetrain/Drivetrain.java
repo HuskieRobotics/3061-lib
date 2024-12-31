@@ -159,7 +159,7 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
               this));
 
   /* SysId routine for characterizing steer. This is used to find PID gains for the steer motors. */
-  private final SysIdRoutine sysIdRoutineSteer =
+  private final SysIdRoutine sysIdRoutineSteerVolts =
       new SysIdRoutine(
           new SysIdRoutine.Config(
               null, // Use default ramp rate (1 V/s)
@@ -171,6 +171,23 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
               volts ->
                   applySysIdCharacterization(
                       SysIDCharacterizationMode.STEER_VOLTS, volts.in(Volts)),
+              null,
+              this));
+
+  /* SysId routine for characterizing steer. This is used to find PID gains for the steer motors. */
+  private final SysIdRoutine sysIdRoutineSteerCurrent =
+      new SysIdRoutine(
+          new SysIdRoutine.Config(
+              Volts.of(10).per(Second), // Use ramp rate of 5 A/s
+              Volts.of(20), // Use dynamic step of 10 A
+              Seconds.of(5), // Use timeout of 5 seconds
+              // Log state with SignalLogger class
+              state -> SignalLogger.writeString("SysIdTranslation_State", state.toString())),
+          new SysIdRoutine.Mechanism(
+              output ->
+                  applySysIdCharacterization(
+                      SysIDCharacterizationMode.STEER_CURRENT,
+                      output.in(Volts)), // treat volts as amps
               null,
               this));
 
@@ -257,10 +274,18 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
     SysIdRoutineChooser.getInstance()
         .addOption(
             "Steer Volts",
-            sysIdRoutineSteer.dynamic(Direction.kForward),
-            sysIdRoutineSteer.dynamic(Direction.kReverse),
-            sysIdRoutineSteer.quasistatic(Direction.kForward),
-            sysIdRoutineSteer.quasistatic(Direction.kReverse));
+            sysIdRoutineSteerVolts.dynamic(Direction.kForward),
+            sysIdRoutineSteerVolts.dynamic(Direction.kReverse),
+            sysIdRoutineSteerVolts.quasistatic(Direction.kForward),
+            sysIdRoutineSteerVolts.quasistatic(Direction.kReverse));
+
+    SysIdRoutineChooser.getInstance()
+        .addOption(
+            "Steer Current",
+            sysIdRoutineSteerCurrent.dynamic(Direction.kForward),
+            sysIdRoutineSteerCurrent.dynamic(Direction.kReverse),
+            sysIdRoutineSteerCurrent.quasistatic(Direction.kForward),
+            sysIdRoutineSteerCurrent.quasistatic(Direction.kReverse));
 
     SysIdRoutineChooser.getInstance()
         .addOption(

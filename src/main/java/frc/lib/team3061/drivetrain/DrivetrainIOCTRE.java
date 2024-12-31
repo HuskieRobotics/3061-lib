@@ -229,8 +229,10 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
       new SwerveRequest.SysIdSwerveTranslation();
   private final SysIdSwerveTranslation_Torque translationCharacterizationCurrent =
       new SysIdSwerveTranslation_Torque();
-  private final SwerveRequest.SysIdSwerveSteerGains steerCharacterization =
+  private final SwerveRequest.SysIdSwerveSteerGains steerCharacterizationVolts =
       new SwerveRequest.SysIdSwerveSteerGains();
+  private final SysIdSwerveSteerGains_Torque steerCharacterizationCurrent =
+      new SysIdSwerveSteerGains_Torque();
   private final SwerveRequest.SysIdSwerveRotation rotationCharacterization =
       new SwerveRequest.SysIdSwerveRotation();
 
@@ -586,7 +588,10 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
         this.setControl(this.translationCharacterizationCurrent.withTorqueCurrent(value));
         break;
       case STEER_VOLTS:
-        this.setControl(this.steerCharacterization.withVolts(value));
+        this.setControl(this.steerCharacterizationVolts.withVolts(value));
+        break;
+      case STEER_CURRENT:
+        this.setControl(this.steerCharacterizationCurrent.withTorqueCurrent(value));
         break;
       case ROTATION_VOLTS:
         this.setControl(this.rotationCharacterization.withRotationalRate(value));

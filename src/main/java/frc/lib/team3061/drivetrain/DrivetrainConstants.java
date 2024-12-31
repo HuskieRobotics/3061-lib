@@ -19,6 +19,7 @@ public class DrivetrainConstants {
     TRANSLATION_VOLTS,
     TRANSLATION_CURRENT,
     STEER_VOLTS,
+    STEER_CURRENT,
     ROTATION_VOLTS
   }
 }
