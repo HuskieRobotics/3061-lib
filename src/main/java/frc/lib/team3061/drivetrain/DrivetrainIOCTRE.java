@@ -577,13 +577,13 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   @Override
   public void applySysIdCharacterization(SysIDCharacterizationMode mode, double value) {
     switch (mode) {
-      case TRANSLATION:
+      case TRANSLATION_VOLTS:
         this.setControl(this.translationCharacterization.withVolts(value));
         break;
-      case STEER:
+      case STEER_VOLTS:
         this.setControl(this.steerCharacterization.withVolts(value));
         break;
-      case ROTATION:
+      case ROTATION_VOLTS:
         this.setControl(this.rotationCharacterization.withRotationalRate(value));
         break;
       default:
