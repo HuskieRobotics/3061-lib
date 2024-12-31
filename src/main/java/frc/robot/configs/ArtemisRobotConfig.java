@@ -10,8 +10,6 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.AngularAcceleration;
-import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearAcceleration;
 import edu.wpi.first.units.measure.LinearVelocity;
@@ -92,11 +90,6 @@ public class ArtemisRobotConfig extends RobotConfig {
   private static final double SLOW_MODE_MULTIPLIER =
       0.75; // FIXME: Values taken from nova, need to be updated
 
-  private static final LinearAcceleration MAX_DRIVE_ACCELERATION =
-      MetersPerSecondPerSecond.of(9.467); // from Choreo estimate
-  private static final AngularAcceleration MAX_TURN_ACCELERATION =
-      RadiansPerSecondPerSecond.of(33.436); // from Choreo estimate
-
   private static final String CAN_BUS_NAME = "canbus1";
 
   private static final String CAMERA_NAME_0 = "OV2311FR";
@@ -141,8 +134,6 @@ public class ArtemisRobotConfig extends RobotConfig {
               Units.inchesToMeters(8.189)),
           new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(180)));
 
-  private static final LinearVelocity AUTO_MAX_SPEED_METERS = MetersPerSecond.of(3.5);
-  private static final LinearAcceleration AUTO_MAX_ACCELERATION = MetersPerSecondPerSecond.of(10);
   private static final double AUTO_DRIVE_P_CONTROLLER = 5.0;
   private static final double AUTO_DRIVE_I_CONTROLLER = 0.0;
   private static final double AUTO_DRIVE_D_CONTROLLER = 0.0;
@@ -159,6 +150,8 @@ public class ArtemisRobotConfig extends RobotConfig {
   private static final Distance DRIVE_TO_POSE_DRIVE_TOLERANCE = Meters.of(0.06);
   private static final Angle DRIVE_TO_POSE_THETA_TOLERANCE = Radians.of(0.02);
   private static final LinearVelocity DRIVE_TO_POSE_MAX_VELOCITY = MetersPerSecond.of(1.25);
+  private static final LinearAcceleration DRIVE_TO_POSE_MAX_ACCELERATION =
+      MetersPerSecondPerSecond.of(2.5);
 
   private static final LinearVelocity SQUARING_SPEED = MetersPerSecond.of(1.0);
 
@@ -327,16 +320,6 @@ public class ArtemisRobotConfig extends RobotConfig {
   }
 
   @Override
-  public LinearAcceleration getRobotMaxDriveAcceleration() {
-    return MAX_DRIVE_ACCELERATION;
-  }
-
-  @Override
-  public AngularAcceleration getRobotMaxTurnAcceleration() {
-    return MAX_TURN_ACCELERATION;
-  }
-
-  @Override
   public double getRobotSlowModeMultiplier() {
     return SLOW_MODE_MULTIPLIER;
   }
@@ -344,16 +327,6 @@ public class ArtemisRobotConfig extends RobotConfig {
   @Override
   public LinearVelocity getRobotMaxCoastVelocity() {
     return MAX_COAST_VELOCITY;
-  }
-
-  @Override
-  public LinearVelocity getAutoMaxSpeed() {
-    return AUTO_MAX_SPEED_METERS;
-  }
-
-  @Override
-  public LinearAcceleration getAutoMaxAcceleration() {
-    return AUTO_MAX_ACCELERATION;
   }
 
   @Override
@@ -448,21 +421,7 @@ public class ArtemisRobotConfig extends RobotConfig {
 
   @Override
   public LinearAcceleration getDriveToPoseDriveMaxAcceleration() {
-    return getAutoMaxAcceleration();
-  }
-
-  @Override
-  public AngularVelocity getDriveToPoseTurnMaxVelocity() {
-    return RadiansPerSecond.of(
-        getDriveToPoseDriveMaxVelocity().in(MetersPerSecond)
-            / Math.hypot(getTrackwidth().in(Meters) / 2.0, getWheelbase().in(Meters) / 2.0));
-  }
-
-  @Override
-  public AngularAcceleration getDriveToPoseTurnMaxAcceleration() {
-    return RadiansPerSecondPerSecond.of(
-        getDriveToPoseDriveMaxAcceleration().in(MetersPerSecondPerSecond)
-            / Math.hypot(getTrackwidth().in(Meters) / 2.0, getWheelbase().in(Meters) / 2.0));
+    return DRIVE_TO_POSE_MAX_ACCELERATION;
   }
 
   @Override

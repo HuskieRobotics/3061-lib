@@ -8,7 +8,6 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
-import edu.wpi.first.units.measure.LinearAcceleration;
 import edu.wpi.first.units.measure.LinearVelocity;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
@@ -56,16 +55,6 @@ public class VisionTestPlatformConfig extends RobotConfig {
   @Override
   public int getPneumaticsHubCANID() {
     return 0;
-  }
-
-  @Override
-  public LinearAcceleration getAutoMaxAcceleration() {
-    return MetersPerSecondPerSecond.of(0.0);
-  }
-
-  @Override
-  public LinearVelocity getAutoMaxSpeed() {
-    return MetersPerSecond.of(0.0);
   }
 
   @Override

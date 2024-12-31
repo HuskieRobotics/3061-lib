@@ -6,10 +6,7 @@ import com.ctre.phoenix6.configs.MountPoseConfigs;
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.AngularAcceleration;
-import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
-import edu.wpi.first.units.measure.LinearAcceleration;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Mass;
 import edu.wpi.first.units.measure.MomentOfInertia;
@@ -75,15 +72,7 @@ public class NewPracticeRobotConfig extends RobotConfig {
   private static final LinearVelocity MAX_COAST_VELOCITY = MetersPerSecond.of(0.05);
   private static final double SLOW_MODE_MULTIPLIER = 0.75;
 
-  private static final LinearAcceleration MAX_DRIVE_ACCELERATION =
-      MetersPerSecondPerSecond.of(11.365);
-  private static final AngularAcceleration MAX_TURN_ACCELERATION =
-      RadiansPerSecondPerSecond.of(36.0);
-
   private static final String CAN_BUS_NAME = "canbus1";
-
-  private static final LinearVelocity AUTO_MAX_SPEED_METERS = MetersPerSecond.of(3.5);
-  private static final LinearAcceleration AUTO_MAX_ACCELERATION = MetersPerSecondPerSecond.of(10);
 
   private static final double AUTO_DRIVE_P_CONTROLLER = 5.0;
   private static final double AUTO_DRIVE_I_CONTROLLER = 0.0;
@@ -262,16 +251,6 @@ public class NewPracticeRobotConfig extends RobotConfig {
   }
 
   @Override
-  public LinearAcceleration getRobotMaxDriveAcceleration() {
-    return MAX_DRIVE_ACCELERATION;
-  }
-
-  @Override
-  public AngularAcceleration getRobotMaxTurnAcceleration() {
-    return MAX_TURN_ACCELERATION;
-  }
-
-  @Override
   public double getRobotSlowModeMultiplier() {
     return SLOW_MODE_MULTIPLIER;
   }
@@ -279,16 +258,6 @@ public class NewPracticeRobotConfig extends RobotConfig {
   @Override
   public LinearVelocity getRobotMaxCoastVelocity() {
     return MAX_COAST_VELOCITY;
-  }
-
-  @Override
-  public LinearVelocity getAutoMaxSpeed() {
-    return AUTO_MAX_SPEED_METERS;
-  }
-
-  @Override
-  public LinearAcceleration getAutoMaxAcceleration() {
-    return AUTO_MAX_ACCELERATION;
   }
 
   @Override
@@ -369,25 +338,6 @@ public class NewPracticeRobotConfig extends RobotConfig {
   @Override
   public LinearVelocity getDriveToPoseDriveMaxVelocity() {
     return DRIVE_TO_POSE_MAX_VELOCITY;
-  }
-
-  @Override
-  public LinearAcceleration getDriveToPoseDriveMaxAcceleration() {
-    return getAutoMaxAcceleration();
-  }
-
-  @Override
-  public AngularVelocity getDriveToPoseTurnMaxVelocity() {
-    return RadiansPerSecond.of(
-        getDriveToPoseDriveMaxVelocity().in(MetersPerSecond)
-            / Math.hypot(getTrackwidth().in(Meters) / 2.0, getWheelbase().in(Meters) / 2.0));
-  }
-
-  @Override
-  public AngularAcceleration getDriveToPoseTurnMaxAcceleration() {
-    return RadiansPerSecondPerSecond.of(
-        getDriveToPoseDriveMaxAcceleration().in(MetersPerSecondPerSecond)
-            / Math.hypot(getTrackwidth().in(Meters) / 2.0, getWheelbase().in(Meters) / 2.0));
   }
 
   @Override
