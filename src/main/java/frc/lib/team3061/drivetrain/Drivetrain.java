@@ -127,7 +127,7 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
       };
 
   /* SysId routine for characterizing translation. This is used to find PID gains for the drive motors. */
-  private final SysIdRoutine sysIdRoutineTranslation =
+  private final SysIdRoutine sysIdRoutineTranslationVolts =
       new SysIdRoutine(
           new SysIdRoutine.Config(
               null, // Use default ramp rate (1 V/s)
@@ -139,6 +139,22 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
               output ->
                   applySysIdCharacterization(
                       SysIDCharacterizationMode.TRANSLATION_VOLTS, output.in(Volts)),
+              null,
+              this));
+
+  private final SysIdRoutine sysIdRoutineTranslationCurrent =
+      new SysIdRoutine(
+          new SysIdRoutine.Config(
+              Volts.of(10).per(Second), // Use ramp rate of 5 A/s
+              Volts.of(20), // Use dynamic step of 10 A
+              Seconds.of(5), // Use timeout of 5 seconds
+              // Log state with SignalLogger class
+              state -> SignalLogger.writeString("SysIdTranslation_State", state.toString())),
+          new SysIdRoutine.Mechanism(
+              output ->
+                  applySysIdCharacterization(
+                      SysIDCharacterizationMode.TRANSLATION_CURRENT,
+                      output.in(Volts)), // treat volts as amps
               null,
               this));
 
@@ -225,10 +241,18 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
     SysIdRoutineChooser.getInstance()
         .addOption(
             "Translation Volts",
-            sysIdRoutineTranslation.dynamic(Direction.kForward),
-            sysIdRoutineTranslation.dynamic(Direction.kReverse),
-            sysIdRoutineTranslation.quasistatic(Direction.kForward),
-            sysIdRoutineTranslation.quasistatic(Direction.kReverse));
+            sysIdRoutineTranslationVolts.dynamic(Direction.kForward),
+            sysIdRoutineTranslationVolts.dynamic(Direction.kReverse),
+            sysIdRoutineTranslationVolts.quasistatic(Direction.kForward),
+            sysIdRoutineTranslationVolts.quasistatic(Direction.kReverse));
+
+    SysIdRoutineChooser.getInstance()
+        .addOption(
+            "Translation Current",
+            sysIdRoutineTranslationCurrent.dynamic(Direction.kForward),
+            sysIdRoutineTranslationCurrent.dynamic(Direction.kReverse),
+            sysIdRoutineTranslationCurrent.quasistatic(Direction.kForward),
+            sysIdRoutineTranslationCurrent.quasistatic(Direction.kReverse));
 
     SysIdRoutineChooser.getInstance()
         .addOption(

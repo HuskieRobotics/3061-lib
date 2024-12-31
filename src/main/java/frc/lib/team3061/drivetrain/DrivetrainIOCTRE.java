@@ -225,8 +225,10 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
       new SwerveRequest.ApplyRobotSpeeds();
 
   /* Swerve requests to apply during SysId characterization */
-  private final SwerveRequest.SysIdSwerveTranslation translationCharacterization =
+  private final SwerveRequest.SysIdSwerveTranslation translationCharacterizationVolts =
       new SwerveRequest.SysIdSwerveTranslation();
+  private final SysIdSwerveTranslation_Torque translationCharacterizationCurrent =
+      new SysIdSwerveTranslation_Torque();
   private final SwerveRequest.SysIdSwerveSteerGains steerCharacterization =
       new SwerveRequest.SysIdSwerveSteerGains();
   private final SwerveRequest.SysIdSwerveRotation rotationCharacterization =
@@ -578,7 +580,10 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain implements DrivetrainIO {
   public void applySysIdCharacterization(SysIDCharacterizationMode mode, double value) {
     switch (mode) {
       case TRANSLATION_VOLTS:
-        this.setControl(this.translationCharacterization.withVolts(value));
+        this.setControl(this.translationCharacterizationVolts.withVolts(value));
+        break;
+      case TRANSLATION_CURRENT:
+        this.setControl(this.translationCharacterizationCurrent.withTorqueCurrent(value));
         break;
       case STEER_VOLTS:
         this.setControl(this.steerCharacterization.withVolts(value));
