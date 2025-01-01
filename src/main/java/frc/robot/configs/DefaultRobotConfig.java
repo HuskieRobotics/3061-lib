@@ -7,10 +7,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.AngularAcceleration;
-import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
-import edu.wpi.first.units.measure.LinearAcceleration;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Mass;
 import edu.wpi.first.units.measure.MomentOfInertia;
@@ -47,9 +44,15 @@ public class DefaultRobotConfig extends RobotConfig {
   private static final int GYRO_ID = 3;
 
   // FIXME: update robot dimensions
+  private static final Mass MASS =
+      Kilograms.of(
+          51.862); // FIXME: update based on measured mass of robot with battery and bumpers
+  private static final MomentOfInertia MOI = KilogramSquareMeters.of(6.0); // FIXME: measure
   private static final Distance TRACKWIDTH = Meters.of(0.523875);
   private static final Distance WHEELBASE = Meters.of(0.52705);
   private static final Distance WHEEL_RADIUS = Meters.of(0.09845567409 / 2.0);
+  private static final double WHEEL_COEFFICIENT_OF_FRICTION =
+      1.2; // FIXME: update based on wheel coefficient of friction
   private static final Translation2d FRONT_RIGHT_CORNER_POSITION = new Translation2d(0.36, -0.36);
   private static final Distance ROBOT_WIDTH_WITH_BUMPERS = Meters.of(0.8382);
   private static final Distance ROBOT_LENGTH_WITH_BUMPERS = Meters.of(0.8382);
@@ -84,11 +87,6 @@ public class DefaultRobotConfig extends RobotConfig {
   private static final LinearVelocity MAX_COAST_VELOCITY = MetersPerSecond.of(0.05);
   private static final double SLOW_MODE_MULTIPLIER = 0.75;
 
-  private static final LinearAcceleration MAX_DRIVE_ACCELERATION =
-      MetersPerSecondPerSecond.of(11.365);
-  private static final AngularAcceleration MAX_TURN_ACCELERATION =
-      RadiansPerSecondPerSecond.of(36.0);
-
   // FIXME: specify the name of the CANivore CAN FD bus as appropriate (an empty string uses the
   // default CAN bus)
   private static final String CAN_BUS_NAME = "";
@@ -107,8 +105,6 @@ public class DefaultRobotConfig extends RobotConfig {
   private static final int REV_LOW_PRESSURE_SENSOR_CHANNEL = 1;
 
   // FIXME: specify maximum velocity and acceleration and tune PID values for auto paths
-  private static final LinearVelocity AUTO_MAX_SPEED_METERS = MetersPerSecond.of(3.5);
-  private static final LinearAcceleration AUTO_MAX_ACCELERATION = MetersPerSecondPerSecond.of(10);
   private static final double AUTO_DRIVE_P_CONTROLLER = 5.0;
   private static final double AUTO_DRIVE_I_CONTROLLER = 0.0;
   private static final double AUTO_DRIVE_D_CONTROLLER = 0.0;
@@ -296,16 +292,6 @@ public class DefaultRobotConfig extends RobotConfig {
   }
 
   @Override
-  public LinearAcceleration getRobotMaxDriveAcceleration() {
-    return MAX_DRIVE_ACCELERATION;
-  }
-
-  @Override
-  public AngularAcceleration getRobotMaxTurnAcceleration() {
-    return MAX_TURN_ACCELERATION;
-  }
-
-  @Override
   public double getRobotSlowModeMultiplier() {
     return SLOW_MODE_MULTIPLIER;
   }
@@ -313,16 +299,6 @@ public class DefaultRobotConfig extends RobotConfig {
   @Override
   public LinearVelocity getRobotMaxCoastVelocity() {
     return MAX_COAST_VELOCITY;
-  }
-
-  @Override
-  public LinearVelocity getAutoMaxSpeed() {
-    return AUTO_MAX_SPEED_METERS;
-  }
-
-  @Override
-  public LinearAcceleration getAutoMaxAcceleration() {
-    return AUTO_MAX_ACCELERATION;
   }
 
   @Override
@@ -357,18 +333,17 @@ public class DefaultRobotConfig extends RobotConfig {
 
   @Override
   public Mass getMass() {
-    return Kilograms.of(
-        51.862); // FIXME: update based on measured mass of robot with battery and bumpers
+    return MASS;
   }
 
   @Override
   public MomentOfInertia getMomentOfInertia() {
-    return KilogramSquareMeters.of(6.0); // FIXME: update
+    return MOI;
   }
 
   @Override
   public double getWheelCOF() {
-    return 1.2; // FIXME: update based on wheel coefficient of friction
+    return WHEEL_COEFFICIENT_OF_FRICTION;
   }
 
   @Override
@@ -414,25 +389,6 @@ public class DefaultRobotConfig extends RobotConfig {
   @Override
   public LinearVelocity getDriveToPoseDriveMaxVelocity() {
     return DRIVE_TO_POSE_MAX_VELOCITY;
-  }
-
-  @Override
-  public LinearAcceleration getDriveToPoseDriveMaxAcceleration() {
-    return getAutoMaxAcceleration();
-  }
-
-  @Override
-  public AngularVelocity getDriveToPoseTurnMaxVelocity() {
-    return RadiansPerSecond.of(
-        getDriveToPoseDriveMaxVelocity().in(MetersPerSecond)
-            / Math.hypot(getTrackwidth().in(Meters) / 2.0, getWheelbase().in(Meters) / 2.0));
-  }
-
-  @Override
-  public AngularAcceleration getDriveToPoseTurnMaxAcceleration() {
-    return RadiansPerSecondPerSecond.of(
-        getDriveToPoseDriveMaxAcceleration().in(MetersPerSecondPerSecond)
-            / Math.hypot(getTrackwidth().in(Meters) / 2.0, getWheelbase().in(Meters) / 2.0));
   }
 
   @Override
