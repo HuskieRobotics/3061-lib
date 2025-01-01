@@ -18,7 +18,6 @@
     "types": {
       "/AdvantageKit/RealOutputs/Alerts": "Alerts",
       "/FMSInfo": "FMSInfo",
-      "/Shuffleboard/MAIN/SendableChooser[0]": "String Chooser",
       "/SmartDashboard/Alerts": "Alerts",
       "/SmartDashboard/Auto Routine": "String Chooser",
       "/SmartDashboard/SysId Chooser": "String Chooser",
@@ -30,13 +29,6 @@
       "/SmartDashboard/SystemStatus/SwerveModule2/SystemCheck": "Command",
       "/SmartDashboard/SystemStatus/SwerveModule3/SystemCheck": "Command",
       "/SmartDashboard/VisionSystemSim-simCamera/Sim Field": "Field2d"
-    },
-    "windows": {
-      "/Shuffleboard/MAIN/SendableChooser[0]": {
-        "window": {
-          "visible": true
-        }
-      }
     }
   },
   "NetworkTables Info": {

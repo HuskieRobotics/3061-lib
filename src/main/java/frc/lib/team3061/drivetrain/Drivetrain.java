@@ -600,6 +600,8 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
     Logger.recordOutput(
         SUBSYSTEM_NAME + "/ConstrainPoseToFieldCount", this.constrainPoseToFieldCount);
 
+    Logger.recordOutput(SUBSYSTEM_NAME + "/FieldRelative", this.getFieldRelative());
+
     // update the brake mode based on the robot's velocity and state (enabled/disabled)
     updateBrakeMode();
 
