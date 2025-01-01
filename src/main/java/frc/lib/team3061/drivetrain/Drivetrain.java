@@ -34,7 +34,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.DrivetrainConstants.SysIDCharacterizationMode;
@@ -268,45 +267,16 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
     this.odometry = RobotOdometry.getInstance();
     this.odometry.setCustomEstimator(this);
 
-    SysIdRoutineChooser.getInstance()
-        .addOption(
-            "Translation Volts",
-            sysIdRoutineTranslationVolts.dynamic(Direction.kForward),
-            sysIdRoutineTranslationVolts.dynamic(Direction.kReverse),
-            sysIdRoutineTranslationVolts.quasistatic(Direction.kForward),
-            sysIdRoutineTranslationVolts.quasistatic(Direction.kReverse));
+    SysIdRoutineChooser.getInstance().addOption("Translation Volts", sysIdRoutineTranslationVolts);
 
     SysIdRoutineChooser.getInstance()
-        .addOption(
-            "Translation Current",
-            sysIdRoutineTranslationCurrent.dynamic(Direction.kForward),
-            sysIdRoutineTranslationCurrent.dynamic(Direction.kReverse),
-            sysIdRoutineTranslationCurrent.quasistatic(Direction.kForward),
-            sysIdRoutineTranslationCurrent.quasistatic(Direction.kReverse));
+        .addOption("Translation Current", sysIdRoutineTranslationCurrent);
 
-    SysIdRoutineChooser.getInstance()
-        .addOption(
-            "Steer Volts",
-            sysIdRoutineSteerVolts.dynamic(Direction.kForward),
-            sysIdRoutineSteerVolts.dynamic(Direction.kReverse),
-            sysIdRoutineSteerVolts.quasistatic(Direction.kForward),
-            sysIdRoutineSteerVolts.quasistatic(Direction.kReverse));
+    SysIdRoutineChooser.getInstance().addOption("Steer Volts", sysIdRoutineSteerVolts);
 
-    SysIdRoutineChooser.getInstance()
-        .addOption(
-            "Steer Current",
-            sysIdRoutineSteerCurrent.dynamic(Direction.kForward),
-            sysIdRoutineSteerCurrent.dynamic(Direction.kReverse),
-            sysIdRoutineSteerCurrent.quasistatic(Direction.kForward),
-            sysIdRoutineSteerCurrent.quasistatic(Direction.kReverse));
+    SysIdRoutineChooser.getInstance().addOption("Steer Current", sysIdRoutineSteerCurrent);
 
-    SysIdRoutineChooser.getInstance()
-        .addOption(
-            "Rotation Volts",
-            sysIdRoutineRotation.dynamic(Direction.kForward),
-            sysIdRoutineRotation.dynamic(Direction.kReverse),
-            sysIdRoutineRotation.quasistatic(Direction.kForward),
-            sysIdRoutineRotation.quasistatic(Direction.kReverse));
+    SysIdRoutineChooser.getInstance().addOption("Rotation Volts", sysIdRoutineRotation);
   }
 
   /**

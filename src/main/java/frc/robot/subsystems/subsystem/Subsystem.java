@@ -8,7 +8,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.util.SysIdRoutineChooser;
 import frc.lib.team6328.util.LoggedTunableNumber;
@@ -153,13 +152,7 @@ public class Subsystem extends SubsystemBase {
 
     this.io = io;
 
-    SysIdRoutineChooser.getInstance()
-        .addOption(
-            "Subsystem Voltage",
-            sysIdRoutine.dynamic(Direction.kForward),
-            sysIdRoutine.dynamic(Direction.kReverse),
-            sysIdRoutine.quasistatic(Direction.kForward),
-            sysIdRoutine.quasistatic(Direction.kReverse));
+    SysIdRoutineChooser.getInstance().addOption("Subsystem Voltage", sysIdRoutine);
 
     FaultReporter.getInstance().registerSystemCheck(SUBSYSTEM_NAME, getSystemCheckCommand());
   }
