@@ -126,7 +126,10 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
         new SwerveModulePosition()
       };
 
-  /* SysId routine for characterizing translation. This is used to find PID gains for the drive motors. */
+  /**
+   * SysId routine for characterizing translation. This is used to find FF/PID gains for the drive
+   * motors. This should be used when the drive motors are using voltage control.
+   */
   private final SysIdRoutine sysIdRoutineTranslationVolts =
       new SysIdRoutine(
           new SysIdRoutine.Config(
@@ -134,7 +137,7 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
               Volts.of(4), // Reduce dynamic step voltage to 4 V to prevent brownout
               null, // Use default timeout (10 s)
               // Log state with SignalLogger class
-              state -> SignalLogger.writeString("SysIdTranslation_State", state.toString())),
+              state -> SignalLogger.writeString("SysIdTranslationVolts_State", state.toString())),
           new SysIdRoutine.Mechanism(
               output ->
                   applySysIdCharacterization(
@@ -142,6 +145,10 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
               null,
               this));
 
+  /**
+   * SysId routine for characterizing translation. This is used to find FF/PID gains for the drive
+   * motors. This should be used when the drive motors are using TorqueCurrentFOC control.
+   */
   private final SysIdRoutine sysIdRoutineTranslationCurrent =
       new SysIdRoutine(
           new SysIdRoutine.Config(
@@ -149,7 +156,7 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
               Volts.of(20), // Use dynamic step of 10 A
               Seconds.of(5), // Use timeout of 5 seconds
               // Log state with SignalLogger class
-              state -> SignalLogger.writeString("SysIdTranslation_State", state.toString())),
+              state -> SignalLogger.writeString("SysIdTranslationCurrent_State", state.toString())),
           new SysIdRoutine.Mechanism(
               output ->
                   applySysIdCharacterization(
@@ -158,7 +165,10 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
               null,
               this));
 
-  /* SysId routine for characterizing steer. This is used to find PID gains for the steer motors. */
+  /**
+   * SysId routine for characterizing steer. This is used to find FF/PID gains for the steer motors.
+   * This should be used when the steer motors are using voltage control.
+   */
   private final SysIdRoutine sysIdRoutineSteerVolts =
       new SysIdRoutine(
           new SysIdRoutine.Config(
@@ -166,7 +176,7 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
               Volts.of(7), // Use dynamic voltage of 7 V
               null, // Use default timeout (10 s)
               // Log state with SignalLogger class
-              state -> SignalLogger.writeString("SysIdSteer_State", state.toString())),
+              state -> SignalLogger.writeString("SysIdSteerVolts_State", state.toString())),
           new SysIdRoutine.Mechanism(
               volts ->
                   applySysIdCharacterization(
@@ -174,7 +184,10 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
               null,
               this));
 
-  /* SysId routine for characterizing steer. This is used to find PID gains for the steer motors. */
+  /**
+   * SysId routine for characterizing steer. This is used to find FF/PID gains for the steer motors.
+   * This should be used when the steer motors are using TorqueCurrentFOC control.
+   */
   private final SysIdRoutine sysIdRoutineSteerCurrent =
       new SysIdRoutine(
           new SysIdRoutine.Config(
@@ -182,7 +195,7 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
               Volts.of(20), // Use dynamic step of 10 A
               Seconds.of(5), // Use timeout of 5 seconds
               // Log state with SignalLogger class
-              state -> SignalLogger.writeString("SysIdTranslation_State", state.toString())),
+              state -> SignalLogger.writeString("SysIdTranslationCurrent_State", state.toString())),
           new SysIdRoutine.Mechanism(
               output ->
                   applySysIdCharacterization(
