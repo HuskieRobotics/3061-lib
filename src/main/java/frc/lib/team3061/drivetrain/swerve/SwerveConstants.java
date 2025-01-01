@@ -4,8 +4,6 @@
 
 package frc.lib.team3061.drivetrain.swerve;
 
-import com.ctre.phoenix6.signals.NeutralModeValue;
-
 public abstract class SwerveConstants {
   public abstract double getDriveGearRatio();
 
@@ -138,37 +136,34 @@ public abstract class SwerveConstants {
 
         @Override
         public boolean isDriveMotorInverted() {
-          return MK4N_L3_DRIVE_MOTOR_INVERTED;
+          return MK4N_L3_PLUS_DRIVE_MOTOR_INVERTED;
         }
 
         @Override
         public double getAngleGearRatio() {
-          return MK4N_L3_ANGLE_GEAR_RATIO;
+          return MK4N_L3_PLUS_ANGLE_GEAR_RATIO;
         }
 
         @Override
         public boolean isAngleMotorInverted() {
-          return MK4N_L3_ANGLE_MOTOR_INVERTED;
+          return MK4N_L3_PLUS_ANGLE_MOTOR_INVERTED;
         }
 
         @Override
         public boolean isCanCoderInverted() {
-          return MK4N_L3_CAN_CODER_INVERTED;
+          return MK4N_L3_PLUS_CAN_CODER_INVERTED;
         }
       };
 
   /* MK4n L3 Plus */
   private static final double MK4N_L3_PLUS_DRIVE_GEAR_RATIO =
       1 / ((16.0 / 50.0) * (28.0 / 16.0) * (15.0 / 45.0));
+  private static final boolean MK4N_L3_PLUS_DRIVE_MOTOR_INVERTED = true;
+  private static final double MK4N_L3_PLUS_ANGLE_GEAR_RATIO = 1 / ((16.0 / 50.0) * (10.0 / 60.0));
+  private static final boolean MK4N_L3_PLUS_ANGLE_MOTOR_INVERTED = true;
+  private static final boolean MK4N_L3_PLUS_CAN_CODER_INVERTED = false;
 
-  private static final double MK4N_L3_DRIVE_GEAR_RATIO =
-      1 / ((14.0 / 50.0) * (28.0 / 16.0) * (15.0 / 45.0));
-  private static final boolean MK4N_L3_DRIVE_MOTOR_INVERTED = true;
-  private static final double MK4N_L3_ANGLE_GEAR_RATIO = 1 / ((14.0 / 50.0) * (10.0 / 60.0));
-  private static final boolean MK4N_L3_ANGLE_MOTOR_INVERTED = true;
-  private static final boolean MK4N_L3_CAN_CODER_INVERTED = false;
-
-  /* MK4i L3 */
+  /* MK4i L3+ */
 
   private static final double MK4I_L3_PLUS_DRIVE_GEAR_RATIO =
       1 / ((16.0 / 50.0) * (28.0 / 16.0) * (15.0 / 45.0));
@@ -213,8 +208,4 @@ public abstract class SwerveConstants {
   public static final int DRIVE_PEAK_CURRENT_LIMIT = 50;
   public static final double DRIVE_PEAK_CURRENT_DURATION = 0.1;
   public static final boolean DRIVE_ENABLE_CURRENT_LIMIT = true;
-
-  /* Neutral Modes */
-  public static final NeutralModeValue ANGLE_NEUTRAL_MODE = NeutralModeValue.Coast;
-  public static final NeutralModeValue DRIVE_NEUTRAL_MODE = NeutralModeValue.Brake;
 }

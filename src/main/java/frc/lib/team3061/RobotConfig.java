@@ -185,6 +185,26 @@ public abstract class RobotConfig {
   public abstract SwerveConstants getSwerveConstants();
 
   /**
+   * Returns the swerve type for the front modules for this robot. Defaults to the swerve type
+   * returned by getSwerveConstants().
+   *
+   * @return the swerve type for the front modules for this robot
+   */
+  public SwerveConstants getFrontSwerveConstants() {
+    return getSwerveConstants();
+  }
+
+  /**
+   * Returns the swerve type for the back modules for this robot. Defaults to the swerve type
+   * returned by getSwerveConstants().
+   *
+   * @return the swerve type for the back modules for this robot
+   */
+  public SwerveConstants getBackSwerveConstants() {
+    return getSwerveConstants();
+  }
+
+  /**
    * Returns the CAN IDs for the swerve modules' drive motors in the order of front left, front
    * right, back left, and back right. Must be overridden.
    *
