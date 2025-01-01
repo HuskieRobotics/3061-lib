@@ -1,11 +1,15 @@
 package frc.robot.subsystems.subsystem;
 
+import static edu.wpi.first.units.Units.*;
 import static frc.robot.subsystems.subsystem.SubsystemConstants.*;
 
+import com.ctre.phoenix6.SignalLogger;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.lib.team3015.subsystem.FaultReporter;
+import frc.lib.team3061.util.SysIdRoutineChooser;
 import frc.lib.team6328.util.LoggedTunableNumber;
 import org.littletonrobotics.junction.Logger;
 
@@ -30,6 +34,17 @@ public class Subsystem extends SubsystemBase {
   private SubsystemIO io;
   private State state = State.A;
   private State lastState = State.UNINITIALIZED;
+
+  /* SysId routine for characterizing the subsystem. This is used to find FF/PID gains for the motor. */
+  private final SysIdRoutine sysIdRoutine =
+      new SysIdRoutine(
+          new SysIdRoutine.Config(
+              null, // Use default ramp rate (1 V/s)
+              null, // Use default step voltage (7 V)
+              null, // Use default timeout (10 s)
+              // Log state with SignalLogger class
+              state -> SignalLogger.writeString("SysId_State", state.toString())),
+          new SysIdRoutine.Mechanism(output -> setMotorVoltage(output.in(Volts)), null, this));
 
   /**
    * Few subsystems require the complexity of a state machine. A simpler command-based approach is
@@ -137,6 +152,8 @@ public class Subsystem extends SubsystemBase {
 
     this.io = io;
 
+    SysIdRoutineChooser.getInstance().addOption("Subsystem Voltage", sysIdRoutine);
+
     FaultReporter.getInstance().registerSystemCheck(SUBSYSTEM_NAME, getSystemCheckCommand());
   }
 
@@ -152,7 +169,7 @@ public class Subsystem extends SubsystemBase {
     // when testing, set the motor power, current, or position based on the Tunables (if non-zero)
     if (testingMode.get() != 0) {
       if (motorPower.get() != 0) {
-        this.setMotorPower(motorPower.get());
+        this.setMotorVoltage(motorPower.get());
       }
 
       if (motorCurrent.get() != 0) {
@@ -186,8 +203,8 @@ public class Subsystem extends SubsystemBase {
    *
    * @param power the percentage of maximum power to set the motor to
    */
-  public void setMotorPower(double power) {
-    io.setMotorPower(power);
+  public void setMotorVoltage(double volts) {
+    io.setMotorVoltage(volts);
   }
 
   /**
@@ -195,8 +212,8 @@ public class Subsystem extends SubsystemBase {
    *
    * @param power the current to set the motor to in amps
    */
-  public void setMotorCurrent(double power) {
-    io.setMotorCurrent(power);
+  public void setMotorCurrent(double current) {
+    io.setMotorCurrent(current);
   }
 
   /**
@@ -211,7 +228,7 @@ public class Subsystem extends SubsystemBase {
   private Command getSystemCheckCommand() {
     return Commands.sequence(
             Commands.runOnce(() -> FaultReporter.getInstance().clearFaults(SUBSYSTEM_NAME)),
-            Commands.run(() -> io.setMotorPower(0.3)).withTimeout(1.0),
+            Commands.run(() -> io.setMotorVoltage(3.6)).withTimeout(1.0),
             Commands.runOnce(
                 () -> {
                   if (inputs.velocityRPM < 2.0) {
@@ -223,7 +240,7 @@ public class Subsystem extends SubsystemBase {
                             true);
                   }
                 }),
-            Commands.run(() -> io.setMotorPower(-0.2)).withTimeout(1.0),
+            Commands.run(() -> io.setMotorVoltage(-2.4)).withTimeout(1.0),
             Commands.runOnce(
                 () -> {
                   if (inputs.velocityRPM > -2.0) {
@@ -236,6 +253,6 @@ public class Subsystem extends SubsystemBase {
                   }
                 }))
         .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
-        .andThen(Commands.runOnce(() -> io.setMotorPower(0.0)));
+        .andThen(Commands.runOnce(() -> io.setMotorVoltage(0.0)));
   }
 }

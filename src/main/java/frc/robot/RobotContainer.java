@@ -16,15 +16,16 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.Drivetrain;
 import frc.lib.team3061.drivetrain.DrivetrainIO;
 import frc.lib.team3061.drivetrain.DrivetrainIOCTRE;
 import frc.lib.team3061.leds.LEDs;
+import frc.lib.team3061.util.SysIdRoutineChooser;
 import frc.lib.team3061.vision.Vision;
 import frc.lib.team3061.vision.VisionConstants;
 import frc.lib.team3061.vision.VisionIO;
@@ -270,6 +271,9 @@ public class RobotContainer {
       return;
     }
 
+    // clear the list of composed commands since we are about to rebind them to potentially new
+    // triggers
+    CommandScheduler.getInstance().clearComposedCommands();
     configureButtonBindings();
   }
 
@@ -309,7 +313,7 @@ public class RobotContainer {
     oi.getInterruptAll()
         .onTrue(
             Commands.parallel(
-                Commands.runOnce(() -> subsystem.setMotorPower(0)),
+                Commands.runOnce(() -> subsystem.setMotorVoltage(0)),
                 new TeleopSwerve(drivetrain, oi::getTranslateX, oi::getTranslateY, oi::getRotate)));
   }
 
@@ -519,10 +523,12 @@ public class RobotContainer {
     oi.getXStanceButton()
         .whileTrue(Commands.run(drivetrain::holdXstance, drivetrain).withName("hold x-stance"));
 
-    oi.getSysIdDynamicForward().whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-    oi.getSysIdDynamicReverse().whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-    oi.getSysIdQuasistaticForward().whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-    oi.getSysIdQuasistaticReverse().whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
+    oi.getSysIdDynamicForward().whileTrue(SysIdRoutineChooser.getInstance().getDynamicForward());
+    oi.getSysIdDynamicReverse().whileTrue(SysIdRoutineChooser.getInstance().getDynamicReverse());
+    oi.getSysIdQuasistaticForward()
+        .whileTrue(SysIdRoutineChooser.getInstance().getQuasistaticForward());
+    oi.getSysIdQuasistaticReverse()
+        .whileTrue(SysIdRoutineChooser.getInstance().getQuasistaticReverse());
   }
 
   private void configureSubsystemCommands() {

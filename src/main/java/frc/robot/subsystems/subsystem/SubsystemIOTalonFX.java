@@ -98,8 +98,8 @@ public class SubsystemIOTalonFX implements SubsystemIO {
    * @param power the percentage of maximum power to set the motor to
    */
   @Override
-  public void setMotorPower(double power) {
-    this.motor.setControl(voltageRequest.withOutput(power * 12.0));
+  public void setMotorVoltage(double volts) {
+    this.motor.setControl(voltageRequest.withOutput(volts));
   }
 
   /**
