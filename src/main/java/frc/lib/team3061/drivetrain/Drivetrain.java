@@ -39,6 +39,7 @@ import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.DrivetrainConstants.SysIDCharacterizationMode;
 import frc.lib.team3061.util.CustomPoseEstimator;
 import frc.lib.team3061.util.RobotOdometry;
+import frc.lib.team3061.util.SysIdRoutineChooser;
 import frc.lib.team6328.util.FieldConstants;
 import frc.lib.team6328.util.LoggedTunableNumber;
 import frc.robot.Constants;
@@ -47,7 +48,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
  * This subsystem models the robot's drivetrain mechanism. It consists of a four swerve modules in
@@ -125,36 +125,81 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
         new SwerveModulePosition()
       };
 
-  private final LoggedDashboardChooser<SysIDCharacterizationMode> sysIdChooser =
-      new LoggedDashboardChooser<>("SysID Chooser");
-
-  /* SysId routine for characterizing translation. This is used to find PID gains for the drive motors. */
-  private final SysIdRoutine sysIdRoutineTranslation =
+  /**
+   * SysId routine for characterizing translation. This is used to find FF/PID gains for the drive
+   * motors. This should be used when the drive motors are using voltage control.
+   */
+  private final SysIdRoutine sysIdRoutineTranslationVolts =
       new SysIdRoutine(
           new SysIdRoutine.Config(
               null, // Use default ramp rate (1 V/s)
               Volts.of(4), // Reduce dynamic step voltage to 4 V to prevent brownout
               null, // Use default timeout (10 s)
               // Log state with SignalLogger class
-              state -> SignalLogger.writeString("SysIdTranslation_State", state.toString())),
+              state -> SignalLogger.writeString("SysIdTranslationVolts_State", state.toString())),
           new SysIdRoutine.Mechanism(
               output ->
                   applySysIdCharacterization(
-                      SysIDCharacterizationMode.TRANSLATION, output.in(Volts)),
+                      SysIDCharacterizationMode.TRANSLATION_VOLTS, output.in(Volts)),
               null,
               this));
 
-  /* SysId routine for characterizing steer. This is used to find PID gains for the steer motors. */
-  private final SysIdRoutine sysIdRoutineSteer =
+  /**
+   * SysId routine for characterizing translation. This is used to find FF/PID gains for the drive
+   * motors. This should be used when the drive motors are using TorqueCurrentFOC control.
+   */
+  private final SysIdRoutine sysIdRoutineTranslationCurrent =
+      new SysIdRoutine(
+          new SysIdRoutine.Config(
+              Volts.of(10).per(Second), // Use ramp rate of 5 A/s
+              Volts.of(20), // Use dynamic step of 10 A
+              Seconds.of(5), // Use timeout of 5 seconds
+              // Log state with SignalLogger class
+              state -> SignalLogger.writeString("SysIdTranslationCurrent_State", state.toString())),
+          new SysIdRoutine.Mechanism(
+              output ->
+                  applySysIdCharacterization(
+                      SysIDCharacterizationMode.TRANSLATION_CURRENT,
+                      output.in(Volts)), // treat volts as amps
+              null,
+              this));
+
+  /**
+   * SysId routine for characterizing steer. This is used to find FF/PID gains for the steer motors.
+   * This should be used when the steer motors are using voltage control.
+   */
+  private final SysIdRoutine sysIdRoutineSteerVolts =
       new SysIdRoutine(
           new SysIdRoutine.Config(
               null, // Use default ramp rate (1 V/s)
               Volts.of(7), // Use dynamic voltage of 7 V
               null, // Use default timeout (10 s)
               // Log state with SignalLogger class
-              state -> SignalLogger.writeString("SysIdSteer_State", state.toString())),
+              state -> SignalLogger.writeString("SysIdSteerVolts_State", state.toString())),
           new SysIdRoutine.Mechanism(
-              volts -> applySysIdCharacterization(SysIDCharacterizationMode.STEER, volts.in(Volts)),
+              volts ->
+                  applySysIdCharacterization(
+                      SysIDCharacterizationMode.STEER_VOLTS, volts.in(Volts)),
+              null,
+              this));
+
+  /**
+   * SysId routine for characterizing steer. This is used to find FF/PID gains for the steer motors.
+   * This should be used when the steer motors are using TorqueCurrentFOC control.
+   */
+  private final SysIdRoutine sysIdRoutineSteerCurrent =
+      new SysIdRoutine(
+          new SysIdRoutine.Config(
+              Volts.of(10).per(Second), // Use ramp rate of 5 A/s
+              Volts.of(20), // Use dynamic step of 10 A
+              Seconds.of(5), // Use timeout of 5 seconds
+              // Log state with SignalLogger class
+              state -> SignalLogger.writeString("SysIdTranslationCurrent_State", state.toString())),
+          new SysIdRoutine.Mechanism(
+              output ->
+                  applySysIdCharacterization(
+                      SysIDCharacterizationMode.STEER_CURRENT,
+                      output.in(Volts)), // treat volts as amps
               null,
               this));
 
@@ -176,7 +221,8 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
           new SysIdRoutine.Mechanism(
               output -> {
                 /* output is actually radians per second, but SysId only supports "volts" */
-                applySysIdCharacterization(SysIDCharacterizationMode.ROTATION, output.in(Volts));
+                applySysIdCharacterization(
+                    SysIDCharacterizationMode.ROTATION_VOLTS, output.in(Volts));
                 /* also log the requested output for SysId */
                 SignalLogger.writeDouble("Rotational_Rate", output.in(Volts));
               },
@@ -221,9 +267,16 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
     this.odometry = RobotOdometry.getInstance();
     this.odometry.setCustomEstimator(this);
 
-    sysIdChooser.addOption("Translation", SysIDCharacterizationMode.TRANSLATION);
-    sysIdChooser.addOption("Steer", SysIDCharacterizationMode.STEER);
-    sysIdChooser.addOption("Rotation", SysIDCharacterizationMode.ROTATION);
+    SysIdRoutineChooser.getInstance().addOption("Translation Volts", sysIdRoutineTranslationVolts);
+
+    SysIdRoutineChooser.getInstance()
+        .addOption("Translation Current", sysIdRoutineTranslationCurrent);
+
+    SysIdRoutineChooser.getInstance().addOption("Steer Volts", sysIdRoutineSteerVolts);
+
+    SysIdRoutineChooser.getInstance().addOption("Steer Current", sysIdRoutineSteerCurrent);
+
+    SysIdRoutineChooser.getInstance().addOption("Rotation Volts", sysIdRoutineRotation);
   }
 
   /**
@@ -836,40 +889,6 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
       double timestampSeconds,
       Matrix<N3, N1> visionMeasurementStdDevs) {
     this.io.addVisionMeasurement(visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
-  }
-
-  /**
-   * Runs the SysId Quasistatic test in the given direction for the routine selected in the
-   * characterization chooser.
-   *
-   * @param direction Direction of the SysId Quasistatic test
-   * @return Command to run
-   */
-  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-    return Commands.either(
-        sysIdRoutineTranslation.quasistatic(direction),
-        Commands.either(
-            sysIdRoutineSteer.quasistatic(direction),
-            sysIdRoutineRotation.quasistatic(direction),
-            () -> sysIdChooser.get() == SysIDCharacterizationMode.STEER),
-        () -> sysIdChooser.get() == SysIDCharacterizationMode.TRANSLATION);
-  }
-
-  /**
-   * Runs the SysId Dynamic test in the given direction for the routine selected in the
-   * characterization chooser.
-   *
-   * @param direction Direction of the SysId Dynamic test
-   * @return Command to run
-   */
-  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-    return Commands.either(
-        sysIdRoutineTranslation.dynamic(direction),
-        Commands.either(
-            sysIdRoutineSteer.dynamic(direction),
-            sysIdRoutineRotation.dynamic(direction),
-            () -> sysIdChooser.get() == SysIDCharacterizationMode.STEER),
-        () -> sysIdChooser.get() == SysIDCharacterizationMode.TRANSLATION);
   }
 
   private void applySysIdCharacterization(SysIDCharacterizationMode mode, double value) {

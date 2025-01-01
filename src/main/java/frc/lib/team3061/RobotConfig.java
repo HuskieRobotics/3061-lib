@@ -185,6 +185,26 @@ public abstract class RobotConfig {
   public abstract SwerveConstants getSwerveConstants();
 
   /**
+   * Returns the swerve type for the front modules for this robot. Defaults to the swerve type
+   * returned by getSwerveConstants().
+   *
+   * @return the swerve type for the front modules for this robot
+   */
+  public SwerveConstants getFrontSwerveConstants() {
+    return getSwerveConstants();
+  }
+
+  /**
+   * Returns the swerve type for the back modules for this robot. Defaults to the swerve type
+   * returned by getSwerveConstants().
+   *
+   * @return the swerve type for the back modules for this robot
+   */
+  public SwerveConstants getBackSwerveConstants() {
+    return getSwerveConstants();
+  }
+
+  /**
    * Returns the CAN IDs for the swerve modules' drive motors in the order of front left, front
    * right, back left, and back right. Must be overridden.
    *
@@ -356,26 +376,6 @@ public abstract class RobotConfig {
   }
 
   /**
-   * Returns the maximum translational acceleration of the robot in meters per second squared.
-   * Defaults to 1000 m/s/s.
-   *
-   * @return the maximum translational acceleration of the robot in meters per second squared
-   */
-  public LinearAcceleration getRobotMaxDriveAcceleration() {
-    return MetersPerSecondPerSecond.of(1000.0);
-  }
-
-  /**
-   * Returns the maximum angular acceleration of the robot in radians per second squared. Defaults
-   * to 1000 rad/s/s.
-   *
-   * @return the maximum angular acceleration of the robot in radians per second squared
-   */
-  public AngularAcceleration getRobotMaxTurnAcceleration() {
-    return RadiansPerSecondPerSecond.of(1000.0);
-  }
-
-  /**
    * Returns the maximum velocity, in meters per second, at which the robot can be moving while
    * disabled before the drive motors are changed from brake to coast mode. Defaults to 0.
    *
@@ -385,23 +385,6 @@ public abstract class RobotConfig {
   public LinearVelocity getRobotMaxCoastVelocity() {
     return MetersPerSecond.of(0.0);
   }
-
-  /**
-   * Returns the maximum speed, in meters per second, for the robot when following autonomous paths.
-   * Must be overridden.
-   *
-   * @return the maximum speed, in meters per second, for the robot when following autonomous paths
-   */
-  public abstract LinearVelocity getAutoMaxSpeed();
-
-  /**
-   * Returns the maximum acceleration, in meters per second squared, for the robot when following
-   * autonomous paths. Must be overridden.
-   *
-   * @return the maximum acceleration, in meters per second squared, for the robot when following
-   *     autonomous paths
-   */
-  public abstract LinearAcceleration getAutoMaxAcceleration();
 
   /**
    * Returns the the proportional constant for the PID controller for translational motion when
@@ -643,24 +626,24 @@ public abstract class RobotConfig {
 
   /**
    * Returns the maximum translational speed, in meters per second, for the robot during the
-   * drive-to-pose command. Defaults to the maximum speed for autonomous.
+   * drive-to-pose command. Defaults to the robot's maximum velocity.
    *
    * @return the maximum translational speed, in meters per second, for the robot during the
    *     drive-to-pose command
    */
   public LinearVelocity getDriveToPoseDriveMaxVelocity() {
-    return getAutoMaxSpeed();
+    return getRobotMaxVelocity();
   }
 
   /**
    * Returns the maximum translational acceleration, in meters per second squared, for the robot
-   * during the drive-to-pose command. Defaults to the maximum acceleration for autonomous.
+   * during the drive-to-pose command. Defaults to twice the robot's maximum velocity.
    *
    * @return the maximum translational acceleration, in meters per second squared, for the robot
    *     during the drive-to-pose command
    */
   public LinearAcceleration getDriveToPoseDriveMaxAcceleration() {
-    return getAutoMaxAcceleration();
+    return MetersPerSecondPerSecond.of(getRobotMaxVelocity().in(MetersPerSecond) * 2.0);
   }
 
   /**

@@ -16,8 +16,10 @@ public class DrivetrainConstants {
   public static final double DEMO_MODE_MAX_VELOCITY = 0.5;
 
   public enum SysIDCharacterizationMode {
-    TRANSLATION,
-    STEER,
-    ROTATION
+    TRANSLATION_VOLTS,
+    TRANSLATION_CURRENT,
+    STEER_VOLTS,
+    STEER_CURRENT,
+    ROTATION_VOLTS
   }
 }

@@ -20,7 +20,7 @@
       "/FMSInfo": "FMSInfo",
       "/SmartDashboard/Alerts": "Alerts",
       "/SmartDashboard/Auto Routine": "String Chooser",
-      "/SmartDashboard/SysID Chooser": "String Chooser",
+      "/SmartDashboard/SysId Chooser": "String Chooser",
       "/SmartDashboard/SystemStatus/ClearAllFaults": "Command",
       "/SmartDashboard/SystemStatus/Drivetrain/SystemCheck": "Command",
       "/SmartDashboard/SystemStatus/Subsystem/SystemCheck": "Command",

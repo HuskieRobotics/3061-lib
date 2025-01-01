@@ -26,7 +26,7 @@ public interface SubsystemIO {
    *
    * @param power the percentage of maximum power to set the motor to
    */
-  public default void setMotorPower(double power) {}
+  public default void setMotorVoltage(double volts) {}
 
   /**
    * Set the motor current to the specified value in amps.
