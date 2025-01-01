@@ -313,7 +313,7 @@ public class RobotContainer {
     oi.getInterruptAll()
         .onTrue(
             Commands.parallel(
-                Commands.runOnce(() -> subsystem.setMotorPower(0)),
+                Commands.runOnce(() -> subsystem.setMotorVoltage(0)),
                 new TeleopSwerve(drivetrain, oi::getTranslateX, oi::getTranslateY, oi::getRotate)));
   }
 
