@@ -25,7 +25,8 @@ public class SysIdSwerveSteerGains_Torque implements SwerveRequest {
   /* Local reference to a torque current request for the steer motors */
   private final TorqueCurrentFOC m_steerRequest = new TorqueCurrentFOC(0);
 
-  public StatusCode apply(SwerveControlParameters parameters, SwerveModule... modulesToApply) {
+  public StatusCode apply(
+      SwerveControlParameters parameters, SwerveModule<?, ?, ?>... modulesToApply) {
     for (int i = 0; i < modulesToApply.length; ++i) {
       modulesToApply[i].apply(m_driveRequest, m_steerRequest.withOutput(TorqueCurrentToApply));
     }

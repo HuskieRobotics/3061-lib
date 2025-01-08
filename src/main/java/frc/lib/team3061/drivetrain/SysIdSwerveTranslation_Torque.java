@@ -27,7 +27,8 @@ public class SysIdSwerveTranslation_Torque implements SwerveRequest {
   private final PositionVoltage m_steerRequest = new PositionVoltage(0);
   // private final PositionTorqueCurrentFOC m_steerRequest = new PositionTorqueCurrentFOC(0);
 
-  public StatusCode apply(SwerveControlParameters parameters, SwerveModule... modulesToApply) {
+  public StatusCode apply(
+      SwerveControlParameters parameters, SwerveModule<?, ?, ?>... modulesToApply) {
     for (int i = 0; i < modulesToApply.length; ++i) {
       modulesToApply[i].apply(
           m_driveRequest.withOutput(TorqueCurrentToApply), m_steerRequest.withPosition(0));
