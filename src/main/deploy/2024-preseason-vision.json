@@ -41,8 +41,8 @@
       "pose": {
         "translation": {
           "x": 0,
-          "y": 2.315,
-          "z": 0.508
+          "y": 2.398,
+          "z": 0.591
         },
         "rotation": {
           "quaternion": {
@@ -59,8 +59,8 @@
       "pose": {
         "translation": {
           "x": 0,
-          "y": 2.8448,
-          "z": 0.508
+          "y": 2.9274,
+          "z": 0.591
         },
         "rotation": {
           "quaternion": {
@@ -94,9 +94,9 @@
       "ID": 6,
       "pose": {
         "translation": {
-          "x": 7.1628,
-          "y": 3.175,
-          "z": 1.3081
+          "x": 7.245,
+          "y": 3.213,
+          "z": 1.375
         },
         "rotation": {
           "quaternion": {
