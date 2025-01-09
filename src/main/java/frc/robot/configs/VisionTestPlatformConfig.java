@@ -24,7 +24,7 @@ public class VisionTestPlatformConfig extends RobotConfig {
       new Transform3d(
           // FIXME: update based on CAD
           new Translation3d(
-              Units.inchesToMeters(0.0), Units.inchesToMeters(0.0), Units.inchesToMeters(17.5)),
+              Units.inchesToMeters(0.0), Units.inchesToMeters(0.0), Units.inchesToMeters(17.25)),
           new Rotation3d());
 
   @Override
