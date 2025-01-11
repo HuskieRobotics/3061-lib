@@ -24,7 +24,7 @@ public class NewPracticeRobotConfig extends RobotConfig {
   private static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 41;
   private static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 42;
   private static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 8;
-  private static final Angle FRONT_RIGHT_MODULE_STEER_OFFSET = Rotations.of(-0.487793);
+  private static final Angle FRONT_RIGHT_MODULE_STEER_OFFSET = Rotations.of(-0.487793 + 0.5);
 
   private static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 38;
   private static final int BACK_LEFT_MODULE_STEER_MOTOR = 37;
@@ -34,7 +34,7 @@ public class NewPracticeRobotConfig extends RobotConfig {
   private static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 39;
   private static final int BACK_RIGHT_MODULE_STEER_MOTOR = 40;
   private static final int BACK_RIGHT_MODULE_STEER_ENCODER = 11;
-  private static final Angle BACK_RIGHT_MODULE_STEER_OFFSET = Rotations.of(-0.105957);
+  private static final Angle BACK_RIGHT_MODULE_STEER_OFFSET = Rotations.of(-0.105957 + 0.5);
 
   private static final int GYRO_ID = 3; // ?
 
