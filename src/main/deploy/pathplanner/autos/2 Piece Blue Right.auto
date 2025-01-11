@@ -1,0 +1,37 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "First Piece 2BR"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Second Piece 2BR"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Third Piece 2BR"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Fourth Piece 2BR"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}
