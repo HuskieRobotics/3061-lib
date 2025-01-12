@@ -52,11 +52,11 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
 * If you are not using all CTRE hardware, do the following.
     * Setting Steer Offsets (e.g., ```FRONT_LEFT_MODULE_STEER_OFFSET_ROT```) in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
         * For finding the offsets, use a piece of 2x1 extrusion that is straight against the forks of the front and back modules (on the left and right side) to ensure that the modules are straight
-        * Point the bevel gears of all the wheels in the same direction (either facing left or right), and preferably you should have the wheels facing in the direction where a positive input to the drive motor drives forward; if for some reason you set the offsets with the wheels backwards, you can change the appropriate ```DRIVE_MOTOR_INVERTED``` in ```SwerveModuleConstants``` to fix
+        * Point the bevel gears of all the wheels towards the center of the robot.
         * Open Phoenix Tuner X and, for each CANcoder on a swerve module, copy the negated rotation value of the "Absolute Position No Offset" signal to the ```STEER_OFFSET``` constants. For example, if the CANcoder "Absolute Position No Offset" signal is 0.104004, specify a value of -0.104004 for the corresponding constant.
 * Checking geometry:
     1. elevate the robot on a cart positioned in front of the operator console so the driver's perspective is the same as the robot's (i.e., the front of the robot facing away from the driver); we label the front, back, left, and right of the robot on the robot since which is which may be ambiguous until more of the robot is assembled
-    2. position all four wheels such that they are pointing forward (bevel gears all facing the same direction as when the steer offsets were determined)
+    2. position all four wheels such that they are pointing forward (bevel gears all facing the same direction as when the steer offsets were determined, which is towards the center of the robot)
     3. push the drive joystick forward
     4. verify that the joystick is specifying a positive x velocity (graph /RealOutput/TeleopSwerve/xVelocity in AdvantageScope); if not, update the corresponding method in the OperatorInterface subclass
     5. verify that each wheel is rotating to move the robot forward (+x direction)
