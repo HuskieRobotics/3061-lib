@@ -119,8 +119,8 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, CANcode
   private static final double DRIVE_INERTIA = 0.01;
 
   // Simulated voltage necessary to overcome friction
-  private static final Voltage STEER_FRICTION_VOLTAGE = Volts.of(0.25);
-  private static final Voltage DRIVE_FRICTION_VOLTAGE = Volts.of(0.25);
+  private static final Voltage STEER_FRICTION_VOLTAGE = Volts.of(0.2);
+  private static final Voltage DRIVE_FRICTION_VOLTAGE = Volts.of(0.2);
 
   private static final SwerveDrivetrainConstants drivetrainConstants =
       new SwerveDrivetrainConstants()

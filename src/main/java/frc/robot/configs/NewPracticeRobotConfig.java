@@ -53,6 +53,7 @@ public class NewPracticeRobotConfig extends RobotConfig {
   private static final double ANGLE_KI = 0.0;
   private static final double ANGLE_KD = 0.05;
 
+  // FIXME: tune; starting values from Phoenix Tuner X .withKS(0.1).withKV(2.33).withKA(0)
   private static final double ANGLE_KS = 0.1891233333;
   private static final double ANGLE_KV =
       0.4399866667 * 2 * Math.PI; // convert from V/(radians/s) to V/(rotations/s)
