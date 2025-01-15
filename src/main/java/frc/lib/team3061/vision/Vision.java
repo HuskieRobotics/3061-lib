@@ -60,6 +60,8 @@ public class Vision extends SubsystemBase {
   private double mostRecentBestPoseStdDev = 0.0;
 
   private final Map<Integer, Double> lastTagDetectionTimes = new HashMap<>();
+  private final Map<Pose3d, Double> lastPoseEstimationAcceptedTimes = new HashMap<>();
+  private final Map<Pose3d, Double> lastPoseEstimationRejectedTimes = new HashMap<>();
 
   private List<Pose3d> allRobotPoses = new ArrayList<>();
   private List<Pose3d> allRobotPosesAccepted = new ArrayList<>();
@@ -196,6 +198,7 @@ public class Vision extends SubsystemBase {
 
           if (acceptPose) {
             robotPosesAccepted.add(estimatedRobotPose3d);
+            lastPoseEstimationAcceptedTimes.put(estimatedRobotPose3d, Timer.getFPGATimestamp());
 
             Matrix<N3, N1> stdDev = getStandardDeviations(cameraIndex, observation);
             odometry.addVisionMeasurement(
@@ -226,6 +229,7 @@ public class Vision extends SubsystemBase {
             Logger.recordOutput(SUBSYSTEM_NAME + "/" + cameraIndex + "/StdDevT", stdDev.get(2, 0));
           } else {
             robotPosesRejected.add(estimatedRobotPose3d);
+            lastPoseEstimationRejectedTimes.put(estimatedRobotPose3d, Timer.getFPGATimestamp());
           }
           this.cyclesWithNoResults[cameraIndex] = 0;
           isVisionUpdating = true;
@@ -257,21 +261,31 @@ public class Vision extends SubsystemBase {
           SUBSYSTEM_NAME + "/" + cameraIndex + "/CameraAxes",
           new Pose3d(RobotOdometry.getInstance().getEstimatedPose())
               .plus(RobotConfig.getInstance().getRobotToCameraTransforms()[cameraIndex]));
-
-      allRobotPoses.addAll(robotPoses);
-      allRobotPosesAccepted.addAll(robotPosesAccepted);
-      allRobotPosesRejected.addAll(robotPosesRejected);
     }
 
     // Log summary data
-    Logger.recordOutput(
-        SUBSYSTEM_NAME + "/RobotPoses", allRobotPoses.toArray(new Pose3d[allRobotPoses.size()]));
+    for (Map.Entry<Pose3d, Double> entry : lastPoseEstimationAcceptedTimes.entrySet()) {
+      if (Timer.getFPGATimestamp() - entry.getValue() < POSE_LOG_TIME_SECS) {
+        allRobotPosesAccepted.add(entry.getKey());
+      }
+    }
     Logger.recordOutput(
         SUBSYSTEM_NAME + "/RobotPosesAccepted",
         allRobotPosesAccepted.toArray(new Pose3d[allRobotPosesAccepted.size()]));
+
+    for (Map.Entry<Pose3d, Double> entry : lastPoseEstimationRejectedTimes.entrySet()) {
+      if (Timer.getFPGATimestamp() - entry.getValue() < POSE_LOG_TIME_SECS) {
+        allRobotPosesRejected.add(entry.getKey());
+      }
+    }
     Logger.recordOutput(
         SUBSYSTEM_NAME + "/RobotPosesRejected",
         allRobotPosesRejected.toArray(new Pose3d[allRobotPosesRejected.size()]));
+
+    allRobotPoses.addAll(allRobotPosesAccepted);
+    allRobotPoses.addAll(allRobotPosesRejected);
+    Logger.recordOutput(
+        SUBSYSTEM_NAME + "/RobotPoses", allRobotPoses.toArray(new Pose3d[allRobotPoses.size()]));
 
     // Log tag poses
     List<Pose3d> allTagPoses = new ArrayList<>();
