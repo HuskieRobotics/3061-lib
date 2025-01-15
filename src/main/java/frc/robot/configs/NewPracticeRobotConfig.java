@@ -19,22 +19,22 @@ public class NewPracticeRobotConfig extends RobotConfig {
   private static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 43;
   private static final int FRONT_LEFT_MODULE_STEER_MOTOR = 44;
   private static final int FRONT_LEFT_MODULE_STEER_ENCODER = 14;
-  private static final Angle FRONT_LEFT_MODULE_STEER_OFFSET = Rotations.of(0.474121); // tune
+  private static final Angle FRONT_LEFT_MODULE_STEER_OFFSET = Rotations.of(0.271484);
 
   private static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 41;
   private static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 42;
-  private static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 17;
-  private static final Angle FRONT_RIGHT_MODULE_STEER_OFFSET = Rotations.of(-0.358398); // tune
+  private static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 8;
+  private static final Angle FRONT_RIGHT_MODULE_STEER_OFFSET = Rotations.of(-0.487793 + 0.5);
 
   private static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 38;
   private static final int BACK_LEFT_MODULE_STEER_MOTOR = 37;
-  private static final int BACK_LEFT_MODULE_STEER_ENCODER = 8;
-  private static final Angle BACK_LEFT_MODULE_STEER_OFFSET = Rotations.of(-0.234863); // tune
+  private static final int BACK_LEFT_MODULE_STEER_ENCODER = 17;
+  private static final Angle BACK_LEFT_MODULE_STEER_OFFSET = Rotations.of(-0.280029);
 
   private static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 39;
   private static final int BACK_RIGHT_MODULE_STEER_MOTOR = 40;
   private static final int BACK_RIGHT_MODULE_STEER_ENCODER = 11;
-  private static final Angle BACK_RIGHT_MODULE_STEER_OFFSET = Rotations.of(0.161133); // tune
+  private static final Angle BACK_RIGHT_MODULE_STEER_OFFSET = Rotations.of(-0.105957 + 0.5);
 
   private static final int GYRO_ID = 3; // ?
 
@@ -53,6 +53,7 @@ public class NewPracticeRobotConfig extends RobotConfig {
   private static final double ANGLE_KI = 0.0;
   private static final double ANGLE_KD = 0.05;
 
+  // FIXME: tune; starting values from Phoenix Tuner X .withKS(0.1).withKV(2.33).withKA(0)
   private static final double ANGLE_KS = 0.1891233333;
   private static final double ANGLE_KV =
       0.4399866667 * 2 * Math.PI; // convert from V/(radians/s) to V/(rotations/s)
