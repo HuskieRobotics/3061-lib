@@ -28,6 +28,10 @@ public final class VisionConstants {
   // logged
   public static final double TAG_LOG_TIME_SECS = 0.1;
 
+  // Vision poses that were estimated more than this many seconds ago are considered stale and are
+  // not logged
+  public static final double POSE_LOG_TIME_SECS = 0.1;
+
   // the pose ambiguity must be less than this value for the target to be considered valid
   public static final double AMBIGUITY_THRESHOLD = 0.5;
 
