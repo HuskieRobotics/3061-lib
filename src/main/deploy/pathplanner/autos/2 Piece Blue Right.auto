@@ -7,25 +7,43 @@
         {
           "type": "path",
           "data": {
-            "pathName": "First Piece 2BR"
+            "pathName": "#1 Score Coral E 2BR"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 2.0
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Second Piece 2BR"
+            "pathName": "#2 Collect Coral 2BR"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 2.0
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Third Piece 2BR"
+            "pathName": "#3 Score Coral D 2BR"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 2.0
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Fourth Piece 2BR"
+            "pathName": "#4 Collect Coral 2BR"
           }
         }
       ]
