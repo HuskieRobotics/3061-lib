@@ -13,6 +13,7 @@ public class SelfCheckingCANCoder implements SelfChecking {
   private final CANcoder canCoder;
   private StatusSignal<Voltage> statusSignal;
   private final Debouncer connectedDebounce = new Debouncer(0.5);
+  private final List<SubsystemFault> faults = new ArrayList<>();
 
   public SelfCheckingCANCoder(String label, CANcoder canCoder) {
     this.label = label;
@@ -22,7 +23,7 @@ public class SelfCheckingCANCoder implements SelfChecking {
 
   @Override
   public List<SubsystemFault> checkForFaults() {
-    List<SubsystemFault> faults = new ArrayList<>();
+    faults.clear();
 
     if (canCoder.getFault_Hardware().getValue() == Boolean.TRUE) {
       faults.add(new SubsystemFault(String.format("[%s]: Hardware fault detected", label)));

@@ -20,7 +20,7 @@ public class SubsystemFault {
 
   public SubsystemFault(String description, boolean isWarning, boolean sticky) {
     this.description = description;
-    this.timestamp = Timer.getFPGATimestamp();
+    this.timestamp = Timer.getTimestamp();
     this.isWarning = isWarning;
     this.sticky = sticky;
   }

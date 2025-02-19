@@ -13,6 +13,7 @@ public class SelfCheckingPhoenixMotor implements SelfChecking {
   private final TalonFX motor;
   private StatusSignal<Voltage> statusSignal;
   private final Debouncer connectedDebounce = new Debouncer(0.5);
+  private final List<SubsystemFault> faults = new ArrayList<>();
 
   public SelfCheckingPhoenixMotor(String label, TalonFX motor) {
     this.label = label;
@@ -22,7 +23,7 @@ public class SelfCheckingPhoenixMotor implements SelfChecking {
 
   @Override
   public List<SubsystemFault> checkForFaults() {
-    List<SubsystemFault> faults = new ArrayList<>();
+    faults.clear();
 
     if (motor.getFault_BootDuringEnable().getValue() == Boolean.TRUE) {
       faults.add(new SubsystemFault(String.format("[%s]: Device booted while enabled", label)));

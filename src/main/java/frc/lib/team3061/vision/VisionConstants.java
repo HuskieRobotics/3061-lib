@@ -20,6 +20,8 @@ public final class VisionConstants {
 
   public static final String SUBSYSTEM_NAME = "Vision";
 
+  public static final boolean ENABLE_DETAILED_LOGGING = false;
+
   // an accepted pose must be within this many seconds of the current time in order to qualify for
   // resetting the robot's pose with the reset pose to vision command
   public static final double BEST_POSE_TIME_THRESHOLD_SECS = 0.5;
@@ -36,7 +38,7 @@ public final class VisionConstants {
   public static final double AMBIGUITY_THRESHOLD = 0.5;
 
   // the reprojection error must be less than this value for the target to be considered valid
-  public static final double REPROJECTION_ERROR_THRESHOLD = 1.0;
+  public static final double REPROJECTION_ERROR_THRESHOLD = 5.0;
 
   // the maximum error in the z component of the robot's pose for the pose to be considered valid
   // (assumes that the robot is always on the carpet)
@@ -58,16 +60,16 @@ public final class VisionConstants {
 
   // the coefficient from which the standard deviation for the x and y components is initiated
   // FIXME: tune
-  public static final double X_Y_STD_DEV_COEFFICIENT = 0.005;
+  public static final double X_Y_STD_DEV_COEFFICIENT = 0.08;
 
   // the coefficient from which the standard deviation for the theta component is initiated (only
   // used with multi-tag estimation)
   // FIXME: tune
-  public static final double THETA_STD_DEV_COEFFICIENT = 0.01;
+  public static final double THETA_STD_DEV_COEFFICIENT = 0.1;
 
   // the average error in pixels for the simulated camera
-  public static final double SIM_AVERAGE_ERROR_PIXELS = 0.35;
+  public static final double SIM_AVERAGE_ERROR_PIXELS = 0.1;
 
   // te standard deviation of the error in pixels for the simulated camera
-  public static final double SIM_ERROR_STD_DEV_PIXELS = 0.1;
+  public static final double SIM_ERROR_STD_DEV_PIXELS = 0.05;
 }

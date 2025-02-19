@@ -15,6 +15,7 @@ import org.photonvision.targeting.PhotonPipelineResult;
 public class VisionIOPhotonVision implements VisionIO {
   protected final PhotonCamera camera;
   protected PhotonPoseEstimator photonEstimator;
+  private final List<VisionIO.PoseObservation> observations = new ArrayList<>();
 
   /**
    * Creates a new VisionIOPhotonVision object.
@@ -42,7 +43,7 @@ public class VisionIOPhotonVision implements VisionIO {
   @Override
   public void updateInputs(VisionIOInputs inputs) {
     inputs.connected = camera.isConnected();
-    List<VisionIO.PoseObservation> observations = new ArrayList<>();
+    observations.clear();
 
     for (PhotonPipelineResult result : camera.getAllUnreadResults()) {
       Optional<EstimatedRobotPose> visionEstimate = this.photonEstimator.update(result);

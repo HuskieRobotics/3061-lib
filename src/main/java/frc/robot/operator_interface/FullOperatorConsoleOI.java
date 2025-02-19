@@ -118,7 +118,7 @@ public class FullOperatorConsoleOI implements OperatorInterface {
   // Operator Panel
 
   @Override
-  public Trigger getVisionIsEnabledSwitch() {
+  public Trigger getVisionIsEnabledTrigger() {
     return operatorPanelButtons[10];
   }
 }
