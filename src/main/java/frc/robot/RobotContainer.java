@@ -4,9 +4,6 @@
 
 package frc.robot;
 
-import com.pathplanner.lib.commands.PathPlannerAuto;
-import com.pathplanner.lib.events.EventTrigger;
-import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Alert;
@@ -14,10 +11,8 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.Drivetrain;
@@ -31,10 +26,10 @@ import frc.lib.team3061.vision.VisionIO;
 import frc.lib.team3061.vision.VisionIOPhotonVision;
 import frc.lib.team3061.vision.VisionIOSim;
 import frc.robot.Constants.Mode;
-import frc.robot.commands.CharacterizationCommands;
+import frc.robot.commands.AutonomousCommandFactory;
 import frc.robot.commands.TeleopSwerve;
-import frc.robot.configs.ArtemisRobotConfig;
 import frc.robot.configs.DefaultRobotConfig;
+import frc.robot.configs.New2025RobotConfig;
 import frc.robot.configs.NewPracticeRobotConfig;
 import frc.robot.configs.PracticeBoardConfig;
 import frc.robot.configs.VisionTestPlatformConfig;
@@ -45,7 +40,6 @@ import frc.robot.subsystems.subsystem.SubsystemIO;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Optional;
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 /**
@@ -62,17 +56,11 @@ public class RobotContainer {
   private Vision vision;
   private Subsystem subsystem;
 
-  // use AdvantageKit's LoggedDashboardChooser instead of SendableChooser to ensure accurate logging
-  private final LoggedDashboardChooser<Command> autoChooser =
-      new LoggedDashboardChooser<>("Auto Routine");
-
   private final LoggedNetworkNumber endgameAlert1 =
       new LoggedNetworkNumber("/Tuning/Endgame Alert #1", 20.0);
   private final LoggedNetworkNumber endgameAlert2 =
       new LoggedNetworkNumber("/Tuning/Endgame Alert #2", 10.0);
 
-  private Alert pathFileMissingAlert =
-      new Alert("Could not find the specified path file.", AlertType.kError);
   private static final String LAYOUT_FILE_MISSING =
       "Could not find the specified AprilTags layout file";
   private Alert layoutFileMissingAlert = new Alert(LAYOUT_FILE_MISSING, AlertType.kError);
@@ -91,6 +79,8 @@ public class RobotContainer {
     createRobotConfig();
 
     LEDs.getInstance();
+
+    Field2d.getInstance().populateReefBranchPoseMaps();
 
     // create real, simulated, or replay subsystems based on the mode and robot specified
     if (Constants.getMode() != Mode.REPLAY) {
@@ -139,7 +129,7 @@ public class RobotContainer {
 
     updateOI();
 
-    configureAutoCommands();
+    AutonomousCommandFactory.getInstance().configureAutoCommands(drivetrain, vision);
 
     // Alert when tuning
     if (Constants.TUNING_MODE) {
@@ -160,7 +150,7 @@ public class RobotContainer {
         config = new NewPracticeRobotConfig();
         break;
       case ROBOT_COMPETITION, ROBOT_SIMBOT:
-        config = new ArtemisRobotConfig();
+        config = new New2025RobotConfig();
         break;
       case ROBOT_PRACTICE_BOARD:
         config = new PracticeBoardConfig();
@@ -198,27 +188,29 @@ public class RobotContainer {
   }
 
   private void createCTRESimSubsystems() {
-    DrivetrainIO drivetrainIO = new DrivetrainIOCTRE();
-    drivetrain = new Drivetrain(drivetrainIO);
+    drivetrain = new Drivetrain(new DrivetrainIOCTRE());
 
+    String[] cameraNames = config.getCameraNames();
+    VisionIO[] visionIOs = new VisionIO[cameraNames.length];
     AprilTagFieldLayout layout;
     try {
       layout = new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
     } catch (IOException e) {
       layout = new AprilTagFieldLayout(new ArrayList<>(), 16.4592, 8.2296);
-
       layoutFileMissingAlert.setText(
           LAYOUT_FILE_MISSING + ": " + VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
       layoutFileMissingAlert.set(true);
     }
-    vision =
-        new Vision(
-            new VisionIO[] {
-              new VisionIOSim(
-                  layout,
-                  drivetrain::getPose,
-                  RobotConfig.getInstance().getRobotToCameraTransforms()[0])
-            });
+
+    for (int i = 0; i < visionIOs.length; i++) {
+      visionIOs[i] =
+          new VisionIOSim(
+              cameraNames[i],
+              layout,
+              drivetrain::getPose,
+              RobotConfig.getInstance().getRobotToCameraTransforms()[i]);
+    }
+    vision = new Vision(visionIOs);
 
     // FIXME: create the hardware-specific subsystem class
   }
@@ -306,144 +298,6 @@ public class RobotContainer {
                 Commands.waitSeconds(0.25),
                 Commands.run(() -> LEDs.getInstance().requestState(LEDs.States.ENDGAME_ALERT))
                     .withTimeout(0.5)));
-
-    // interrupt all commands by running a command that requires every subsystem. This is used to
-    // recover to a known state if the robot becomes "stuck" in a command.
-    oi.getInterruptAll()
-        .onTrue(
-            Commands.parallel(
-                Commands.runOnce(() -> subsystem.setMotorVoltage(0)),
-                new TeleopSwerve(drivetrain, oi::getTranslateX, oi::getTranslateY, oi::getRotate)));
-  }
-
-  /** Use this method to define your commands for autonomous mode. */
-  private void configureAutoCommands() {
-    // Event Markers
-    new EventTrigger("Marker").onTrue(Commands.print("reached event marker"));
-    new EventTrigger("ZoneMarker").onTrue(Commands.print("entered zone"));
-    new EventTrigger("ZoneMarker").onFalse(Commands.print("left zone"));
-
-    // build auto path commands
-
-    // add commands to the auto chooser
-    autoChooser.addDefaultOption("Do Nothing", new InstantCommand());
-
-    /************ Start Point ************
-     *
-     * useful for initializing the pose of the robot to a known location
-     *
-     */
-
-    Command startPoint =
-        Commands.runOnce(
-            () -> {
-              try {
-                drivetrain.resetPose(
-                    PathPlannerPath.fromPathFile("Start Point").getStartingDifferentialPose());
-              } catch (Exception e) {
-                pathFileMissingAlert.setText("Could not find the specified path file: Start Point");
-                pathFileMissingAlert.set(true);
-              }
-            },
-            drivetrain);
-    autoChooser.addOption("Start Point", startPoint);
-
-    /************ Distance Test ************
-     *
-     * used for empirically determining the wheel radius
-     *
-     */
-    autoChooser.addOption("Distance Test Slow", createTuningAutoPath("DistanceTestSlow", true));
-    autoChooser.addOption("Distance Test Med", createTuningAutoPath("DistanceTestMed", true));
-    autoChooser.addOption("Distance Test Fast", createTuningAutoPath("DistanceTestFast", true));
-
-    /************ Auto Tuning ************
-     *
-     * useful for tuning the autonomous PID controllers
-     *
-     */
-    autoChooser.addOption("Rotation Test Slow", createTuningAutoPath("RotationTestSlow", false));
-    autoChooser.addOption("Rotation Test Fast", createTuningAutoPath("RotationTestFast", false));
-
-    autoChooser.addOption("Oval Test Slow", createTuningAutoPath("OvalTestSlow", false));
-    autoChooser.addOption("Oval Test Fast", createTuningAutoPath("OvalTestFast", false));
-
-    /************ Drive Velocity Tuning ************
-     *
-     * useful for tuning the drive velocity PID controller
-     *
-     */
-    autoChooser.addOption(
-        "Drive Velocity Tuning",
-        Commands.sequence(
-            Commands.runOnce(drivetrain::disableFieldRelative, drivetrain),
-            Commands.repeatingSequence(
-                Commands.deadline(
-                    Commands.waitSeconds(1.0),
-                    Commands.run(() -> drivetrain.drive(2.0, 0.0, 0.0, false, false), drivetrain)),
-                Commands.deadline(
-                    Commands.waitSeconds(1.0),
-                    Commands.run(() -> drivetrain.drive(-0.5, 0.0, 0.0, false, false), drivetrain)),
-                Commands.deadline(
-                    Commands.waitSeconds(1.0),
-                    Commands.run(() -> drivetrain.drive(1.0, 0.0, 0.0, false, false), drivetrain)),
-                Commands.deadline(
-                    Commands.waitSeconds(0.5),
-                    Commands.run(() -> drivetrain.drive(3.0, 0.0, 0.0, false, false), drivetrain)),
-                Commands.deadline(
-                    Commands.waitSeconds(2.0),
-                    Commands.run(() -> drivetrain.drive(1.0, 0.0, 0.0, false, false), drivetrain)),
-                Commands.deadline(
-                    Commands.waitSeconds(2.0),
-                    Commands.run(() -> drivetrain.drive(-1.0, 0.0, 0.0, false, false), drivetrain)),
-                Commands.deadline(
-                    Commands.waitSeconds(0.5),
-                    Commands.run(() -> drivetrain.drive(-3.0, 0.0, 0.0, false, false), drivetrain)),
-                Commands.deadline(
-                    Commands.waitSeconds(2.0),
-                    Commands.run(
-                        () -> drivetrain.drive(-1.0, 0.0, 0.0, false, false), drivetrain)))));
-
-    /************ Swerve Rotation Tuning ************
-     *
-     * useful for tuning the swerve module rotation PID controller
-     *
-     */
-    autoChooser.addOption(
-        "Swerve Rotation Tuning",
-        Commands.sequence(
-            Commands.runOnce(drivetrain::enableFieldRelative, drivetrain),
-            Commands.repeatingSequence(
-                Commands.deadline(
-                    Commands.waitSeconds(0.5),
-                    Commands.run(() -> drivetrain.drive(0.1, 0.1, 0.0, true, false), drivetrain)),
-                Commands.deadline(
-                    Commands.waitSeconds(0.5),
-                    Commands.run(() -> drivetrain.drive(-0.1, 0.1, 0.0, true, false), drivetrain)),
-                Commands.deadline(
-                    Commands.waitSeconds(0.5),
-                    Commands.run(() -> drivetrain.drive(-0.1, -0.1, 0.0, true, false), drivetrain)),
-                Commands.deadline(
-                    Commands.waitSeconds(0.5),
-                    Commands.run(
-                        () -> drivetrain.drive(0.1, -0.1, 0.0, true, false), drivetrain)))));
-
-    /************ Drive Wheel Radius Characterization ************
-     *
-     * useful for characterizing the drive wheel Radius
-     *
-     */
-    autoChooser.addOption( // start by driving slowing in a circle to align wheels
-        "Drive Wheel Radius Characterization",
-        CharacterizationCommands.wheelRadiusCharacterization(drivetrain)
-            .withName("Drive Wheel Radius Characterization"));
-  }
-
-  private Command createTuningAutoPath(String autoName, boolean measureDistance) {
-    return Commands.sequence(
-        Commands.runOnce(drivetrain::captureInitialConditions),
-        new PathPlannerAuto(autoName),
-        Commands.runOnce(() -> drivetrain.captureFinalConditions(autoName, measureDistance)));
   }
 
   private void configureDrivetrainCommands() {
@@ -534,25 +388,16 @@ public class RobotContainer {
 
   private void configureVisionCommands() {
     // enable/disable vision
-    oi.getVisionIsEnabledSwitch()
+    oi.getVisionIsEnabledTrigger()
         .onTrue(
             Commands.runOnce(() -> vision.enable(true))
                 .ignoringDisable(true)
                 .withName("enable vision"));
-    oi.getVisionIsEnabledSwitch()
+    oi.getVisionIsEnabledTrigger()
         .onFalse(
             Commands.runOnce(() -> vision.enable(false), vision)
                 .ignoringDisable(true)
                 .withName("disable vision"));
-  }
-
-  /**
-   * Use this to pass the autonomous command to the main {@link Robot} class.
-   *
-   * @return the command to run in autonomous
-   */
-  public Command getAutonomousCommand() {
-    return autoChooser.get();
   }
 
   /**

@@ -14,6 +14,7 @@ import static frc.robot.Constants.*;
 
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
@@ -41,6 +42,7 @@ public class DriveToPose extends Command {
   private final Drivetrain drivetrain;
   private final Supplier<Pose2d> poseSupplier;
   private Pose2d targetPose;
+  private Transform2d targetTolerance;
 
   private boolean running = false;
   private Timer timer;
@@ -82,14 +84,10 @@ public class DriveToPose extends Command {
           RobotConfig.getInstance()
               .getDriveToPoseTurnMaxAcceleration()
               .in(RadiansPerSecondPerSecond));
-  private static final LoggedTunableNumber driveTolerance =
-      new LoggedTunableNumber(
-          "DriveToPose/DriveToleranceMeters",
-          RobotConfig.getInstance().getDriveToPoseDriveTolerance().in(Meters));
-  private static final LoggedTunableNumber thetaTolerance =
-      new LoggedTunableNumber(
-          "DriveToPose/ThetaToleranceRadians",
-          RobotConfig.getInstance().getDriveToPoseThetaTolerance().in(Radians));
+
+  private static final LoggedTunableNumber closeVelocityBoost =
+      new LoggedTunableNumber("DriveToPose/close velocity boost", 0.5);
+
   private static final LoggedTunableNumber timeout =
       new LoggedTunableNumber("DriveToPose/timeout", 5.0);
 
@@ -123,9 +121,10 @@ public class DriveToPose extends Command {
    * @param drivetrain the drivetrain subsystem required by this command
    * @param poseSupplier a supplier that returns the pose to drive to
    */
-  public DriveToPose(Drivetrain drivetrain, Supplier<Pose2d> poseSupplier) {
+  public DriveToPose(Drivetrain drivetrain, Supplier<Pose2d> poseSupplier, Transform2d tolerance) {
     this.drivetrain = drivetrain;
     this.poseSupplier = poseSupplier;
+    this.targetTolerance = tolerance;
     this.timer = new Timer();
     addRequirements(drivetrain);
     thetaController.enableContinuousInput(-Math.PI, Math.PI);
@@ -145,10 +144,9 @@ public class DriveToPose extends Command {
     xController.reset(currentPose.getX());
     yController.reset(currentPose.getY());
     thetaController.reset(currentPose.getRotation().getRadians());
-    xController.setTolerance(driveTolerance.get());
-    yController.setTolerance(driveTolerance.get());
-    thetaController.setTolerance(thetaTolerance.get());
     this.targetPose = poseSupplier.get();
+
+    drivetrain.enableAccelerationLimiting();
 
     Logger.recordOutput("DriveToPose/targetPose", targetPose);
 
@@ -185,13 +183,6 @@ public class DriveToPose extends Command {
         },
         driveMaxVelocity,
         driveMaxAcceleration);
-    LoggedTunableNumber.ifChanged(
-        hashCode(),
-        tolerance -> {
-          xController.setTolerance(tolerance[0]);
-          yController.setTolerance(tolerance[0]);
-        },
-        driveTolerance);
 
     LoggedTunableNumber.ifChanged(
         hashCode(),
@@ -204,19 +195,28 @@ public class DriveToPose extends Command {
         max -> thetaController.setConstraints(new TrapezoidProfile.Constraints(max[0], max[1])),
         thetaMaxVelocity,
         thetaMaxAcceleration);
-    LoggedTunableNumber.ifChanged(
-        hashCode(), tolerance -> thetaController.setTolerance(tolerance[0]), thetaTolerance);
 
     Pose2d currentPose = drivetrain.getPose();
 
+    // Transform2d difference = currentPose.minus(targetPose);
+    // double highVelocityDistanceThresholdMeters = 1.0; // arbitrary 1 meters away right now
+    // double straightLineHighVelocityMPS = 2.0; // arbitrary 2 m/s right now
+
+    // use last values of filter
     double xVelocity = xController.calculate(currentPose.getX(), this.targetPose.getX());
     double yVelocity = yController.calculate(currentPose.getY(), this.targetPose.getY());
     double thetaVelocity =
         thetaController.calculate(
             currentPose.getRotation().getRadians(), this.targetPose.getRotation().getRadians());
-    if (xController.atGoal()) xVelocity = 0.0;
-    if (yController.atGoal()) yVelocity = 0.0;
-    if (thetaController.atGoal()) thetaVelocity = 0.0;
+
+    Transform2d difference = drivetrain.getPose().minus(targetPose);
+    if (Math.abs(difference.getX()) < 0.0762) {
+      if (difference.getY() < 0.05 && difference.getY() > 0) {
+        yVelocity -= closeVelocityBoost.get();
+      } else if (difference.getY() > -0.05 && difference.getY() < 0) {
+        yVelocity += closeVelocityBoost.get();
+      }
+    }
 
     int allianceMultiplier = Field2d.getInstance().getAlliance() == Alliance.Blue ? 1 : -1;
 
@@ -234,16 +234,19 @@ public class DriveToPose extends Command {
    */
   @Override
   public boolean isFinished() {
-    Logger.recordOutput("DriveToPose/xErr", xController.atGoal());
-    Logger.recordOutput("DriveToPose/yErr", yController.atGoal());
-    Logger.recordOutput("DriveToPose/tErr", thetaController.atGoal());
+    Transform2d difference = drivetrain.getPose().minus(targetPose);
+    Logger.recordOutput("DriveToPose/difference", difference);
+
+    boolean atGoal =
+        Math.abs(difference.getX()) < targetTolerance.getX()
+            && Math.abs(difference.getY()) < targetTolerance.getY()
+            && Math.abs(difference.getRotation().getRadians())
+                < targetTolerance.getRotation().getRadians();
 
     // check that running is true (i.e., the calculate method has been invoked on the PID
     // controllers) and that each of the controllers is at their goal. This is important since these
     // controllers will return true for atGoal if the calculate method has not yet been invoked.
-    return !drivetrain.isMoveToPoseEnabled()
-        || this.timer.hasElapsed(timeout.get())
-        || (running && xController.atGoal() && yController.atGoal() && thetaController.atGoal());
+    return !drivetrain.isMoveToPoseEnabled() || this.timer.hasElapsed(timeout.get()) || atGoal;
   }
 
   /**
@@ -254,6 +257,7 @@ public class DriveToPose extends Command {
    */
   @Override
   public void end(boolean interrupted) {
+    drivetrain.disableAccelerationLimiting();
     drivetrain.stop();
     running = false;
   }

@@ -55,7 +55,7 @@ public interface OperatorInterface {
     return new Trigger(() -> false);
   }
 
-  public default Trigger getVisionIsEnabledSwitch() {
+  public default Trigger getVisionIsEnabledTrigger() {
     return new Trigger(() -> false);
   }
 

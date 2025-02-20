@@ -1,18 +1,15 @@
 {
   "hubs": [
     {
-      "x": 236,
-      "y": 25,
-      "width": 1775,
-      "height": 1127,
+      "x": 214,
+      "y": 38,
+      "width": 1265,
+      "height": 944,
       "state": {
         "sidebar": {
           "width": 324,
           "expanded": [
             "/RealOutputs",
-            "/RealOutputs/Drivetrain",
-            "/RealOutputs/Vision",
-            "/RealOutputs/RobotOdometry",
             "/RealOutputs/RobotOdometry/visionPoseDiff",
             "/RealOutputs/RobotOdometry/visionPoseDiff/rotation",
             "/RealOutputs/RobotOdometry/visionPoseDiff/translation",
@@ -55,12 +52,23 @@
             "/Vision/Camera0",
             "/Vision/Camera0/PoseObservations",
             "/Vision/Camera0/PoseObservations/0",
-            "/Drivetrain",
-            "/Drivetrain/MeasuredChassisSpeeds"
+            "/Drivetrain/MeasuredChassisSpeeds",
+            "/RealOutputs/DriveToPose",
+            "/RealOutputs/DriveToPose/difference",
+            "/RealOutputs/DriveToPose/difference/translation",
+            "/RealOutputs/Elevator",
+            "/RealOutputs/Manipulator",
+            "/Manipulator",
+            "/Elevator",
+            "/RealOutputs/Vision",
+            "/RealOutputs/Vision/1",
+            "/RealOutputs/Vision/2",
+            "/RealOutputs/Vision/3",
+            "/DriverStation"
           ]
         },
         "tabs": {
-          "selected": 2,
+          "selected": 5,
           "tabs": [
             {
               "type": 0,
@@ -157,7 +165,7 @@
                     }
                   }
                 ],
-                "game": "Evergreen",
+                "game": "2025 Field (Welded)",
                 "bumpers": "auto",
                 "origin": "blue",
                 "orientation": 0,
@@ -235,7 +243,7 @@
                     "options": {}
                   }
                 ],
-                "game": "Evergreen",
+                "game": "2025 Field (Welded)",
                 "origin": "blue"
               },
               "controllerUUID": "a2ne20vy5gsiry2k68wixx7wpqhk1h7a",
@@ -243,9 +251,9 @@
                 "cameraIndex": -1,
                 "orbitFov": 50,
                 "cameraPosition": [
-                  0.35904632608452713,
-                  3.095022415398287,
-                  -6.6369207074994145
+                  0.3590463260845276,
+                  3.0950224153982866,
+                  -6.636920707499418
                 ],
                 "cameraTarget": [
                   3.548328271261648,
@@ -254,6 +262,107 @@
                 ]
               },
               "controlsHeight": 200
+            },
+            {
+              "type": 1,
+              "title": "Line Graph",
+              "controller": {
+                "leftSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "/Elevator/PositionInches",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#c0b487",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "rightSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "/Manipulator/IndexerVelocityRPS",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#e48b32",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "discreteSources": [
+                  {
+                    "type": "stripes",
+                    "logKey": "/DriverStation/Enabled",
+                    "logType": "Boolean",
+                    "visible": true,
+                    "options": {
+                      "color": "#2b66a2"
+                    }
+                  },
+                  {
+                    "type": "stripes",
+                    "logKey": "/DriverStation/Autonomous",
+                    "logType": "Boolean",
+                    "visible": true,
+                    "options": {
+                      "color": "#e5b31b"
+                    }
+                  },
+                  {
+                    "type": "stripes",
+                    "logKey": "/RealOutputs/Elevator/targetPosition",
+                    "logType": "String",
+                    "visible": true,
+                    "options": {
+                      "color": "#af2437"
+                    }
+                  },
+                  {
+                    "type": "stripes",
+                    "logKey": "/RealOutputs/Manipulator/State",
+                    "logType": "String",
+                    "visible": true,
+                    "options": {
+                      "color": "#80588e"
+                    }
+                  },
+                  {
+                    "type": "stripes",
+                    "logKey": "/Manipulator/IsFunnelIRBlocked",
+                    "logType": "Boolean",
+                    "visible": true,
+                    "options": {
+                      "color": "#858584"
+                    }
+                  },
+                  {
+                    "type": "stripes",
+                    "logKey": "/Manipulator/IsIndexerIRBlocked",
+                    "logType": "Boolean",
+                    "visible": true,
+                    "options": {
+                      "color": "#3b875a"
+                    }
+                  }
+                ],
+                "leftLockedRange": null,
+                "rightLockedRange": null,
+                "leftUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "rightUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "leftFilter": 0,
+                "rightFilter": 0
+              },
+              "controllerUUID": "oqrmlfp8in5fniyi0djkt3edx4h74pvr",
+              "renderer": null,
+              "controlsHeight": 341
             },
             {
               "type": 1,
@@ -310,6 +419,81 @@
               "controllerUUID": "0v4hu6brdvi36d9mg9f2a367plc0go5h",
               "renderer": null,
               "controlsHeight": 257
+            },
+            {
+              "type": 1,
+              "title": "Vision Results",
+              "controller": {
+                "leftSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "/RealOutputs/Vision/0/CyclesWithNoResults",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#2b66a2",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "/RealOutputs/Vision/1/CyclesWithNoResults",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#e5b31b",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "/RealOutputs/Vision/2/CyclesWithNoResults",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#af2437",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "/RealOutputs/Vision/3/CyclesWithNoResults",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#80588e",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "rightSources": [],
+                "discreteSources": [
+                  {
+                    "type": "stripes",
+                    "logKey": "/DriverStation/Autonomous",
+                    "logType": "Boolean",
+                    "visible": true,
+                    "options": {
+                      "color": "#e48b32"
+                    }
+                  }
+                ],
+                "leftLockedRange": null,
+                "rightLockedRange": null,
+                "leftUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "rightUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "leftFilter": 0,
+                "rightFilter": 0
+              },
+              "controllerUUID": "0okipfdg6nymvu4zpy4lqulzrsc18gzf",
+              "renderer": null,
+              "controlsHeight": 254
             },
             {
               "type": 6,
@@ -434,8 +618,8 @@
               "controller": [
                 "Generic Joystick",
                 "Generic Joystick",
-                "2023OperatorPanel",
-                "Xbox Controller (White)",
+                "Generic Joystick",
+                "Generic Joystick",
                 "None",
                 "None"
               ],
@@ -755,7 +939,7 @@
                 ],
                 "timeRange": "enabled",
                 "rangeMin": 0,
-                "rangeMax": 20,
+                "rangeMax": 40,
                 "stepSize": 0.1
               },
               "controllerUUID": "yqbbacv88i356600ip0ruy3qo9rntz3m",
@@ -818,5 +1002,5 @@
     }
   ],
   "satellites": [],
-  "version": "4.0.0-beta-4"
+  "version": "4.1.2"
 }

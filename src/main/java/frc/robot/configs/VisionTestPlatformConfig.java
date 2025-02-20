@@ -5,7 +5,6 @@ import static edu.wpi.first.units.Units.*;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
@@ -17,15 +16,11 @@ import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
  * these methods, refer to the documentation in the RobotConfig class.
  */
 public class VisionTestPlatformConfig extends RobotConfig {
-  private static final String CAMERA_NAME_0 = "OV2311";
+  private static final String CAMERA_NAME_0 = "photonvisionVTP";
 
   // Front right camera
   private static final Transform3d ROBOT_TO_CAMERA_0 =
-      new Transform3d(
-          // FIXME: update based on CAD
-          new Translation3d(
-              Units.inchesToMeters(0.0), Units.inchesToMeters(0.0), Units.inchesToMeters(37.0)),
-          new Rotation3d());
+      new Transform3d(new Translation3d(), new Rotation3d());
 
   @Override
   public boolean getPhoenix6Licensed() {

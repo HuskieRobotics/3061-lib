@@ -23,6 +23,7 @@ public interface DrivetrainIO {
     public double driveStatorCurrentAmps = 0.0;
     public double driveSupplyCurrentAmps = 0.0;
     public double driveTempCelsius = 0.0;
+    public double driveVoltage = 0.0;
 
     public double steerAbsolutePositionDeg = 0.0;
 
@@ -66,6 +67,7 @@ public interface DrivetrainIO {
     Pose2d customPose = new Pose2d();
 
     double[] odometryTimestamps = new double[] {};
+    double[] odometryCTRETimestamps = new double[] {};
     Rotation2d[] odometryYawPositions = new Rotation2d[] {};
   }
 

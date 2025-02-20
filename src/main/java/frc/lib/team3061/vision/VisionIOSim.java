@@ -21,8 +21,7 @@ import org.photonvision.simulation.VisionSystemSim;
  * is being used.
  */
 public class VisionIOSim extends VisionIOPhotonVision {
-  private static final String CAMERA_NAME = "simCamera";
-  private static final double DIAGONAL_FOV = 95.5; // FOV in degrees
+  private static final double DIAGONAL_FOV = 96.0; // FOV in degrees
   private static final int IMG_WIDTH = 1600; // image width in px
   private static final int IMG_HEIGHT = 1200; // image heigh in px
 
@@ -38,12 +37,15 @@ public class VisionIOSim extends VisionIOPhotonVision {
    * @param robotToCamera the transform from the robot's center to the simulated camera
    */
   public VisionIOSim(
-      AprilTagFieldLayout layout, Supplier<Pose2d> poseSupplier, Transform3d robotToCamera) {
-    super(CAMERA_NAME, layout);
+      String cameraName,
+      AprilTagFieldLayout layout,
+      Supplier<Pose2d> poseSupplier,
+      Transform3d robotToCamera) {
+    super(cameraName, layout);
 
     this.poseSupplier = poseSupplier;
 
-    this.visionSim = new VisionSystemSim(CAMERA_NAME);
+    this.visionSim = new VisionSystemSim(cameraName);
     this.visionSim.addAprilTags(layout);
     SimCameraProperties cameraProp = new SimCameraProperties();
     cameraProp.setCalibration(IMG_WIDTH, IMG_HEIGHT, Rotation2d.fromDegrees(DIAGONAL_FOV));

@@ -15,6 +15,7 @@ import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.util.DriveFeedforwards;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -25,6 +26,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -96,6 +98,13 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
   private static final double BREAK_MODE_DELAY_SEC = 10.0;
 
   private boolean isMoveToPoseEnabled = true;
+
+  // arbitrary to half of theoretical max acceleration
+  private SlewRateLimiter xFilter = new SlewRateLimiter(1.5);
+  private SlewRateLimiter yFilter = new SlewRateLimiter(1.5);
+  private SlewRateLimiter thetaFilter = new SlewRateLimiter(Units.degreesToRadians(360));
+
+  private boolean accelerationLimiting = false;
 
   private Alert noPoseAlert =
       new Alert("Attempted to reset pose from vision, but no pose was found.", AlertType.kWarning);
@@ -267,6 +276,10 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
     this.odometry = RobotOdometry.getInstance();
     this.odometry.setCustomEstimator(this);
 
+    this.xFilter.reset(0.0);
+    this.yFilter.reset(0.0);
+    this.thetaFilter.reset(0.0);
+
     SysIdRoutineChooser.getInstance().addOption("Translation Volts", sysIdRoutineTranslationVolts);
 
     SysIdRoutineChooser.getInstance()
@@ -424,6 +437,19 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
 
     // get the slow-mode multiplier from the config
     double slowModeMultiplier = RobotConfig.getInstance().getRobotSlowModeMultiplier();
+
+    // should we give it the actual current velocity or the desired velocity?
+    // always calculate whenever we are driving so that we maintain a history of recent values
+    // find the other method that the autobuilder uses to drive
+    this.xFilter.calculate(xVelocity);
+    this.yFilter.calculate(yVelocity);
+    this.thetaFilter.calculate(rotationalVelocity);
+
+    if (accelerationLimiting) {
+      xVelocity = this.xFilter.lastValue();
+      yVelocity = this.yFilter.lastValue();
+      rotationalVelocity = this.thetaFilter.lastValue();
+    }
 
     // if translation or rotation is in slow mode, multiply the x and y velocities by the
     // slow-mode multiplier
@@ -601,6 +627,12 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
         SUBSYSTEM_NAME + "/ConstrainPoseToFieldCount", this.constrainPoseToFieldCount);
 
     Logger.recordOutput(SUBSYSTEM_NAME + "/FieldRelative", this.getFieldRelative());
+
+    Logger.recordOutput(
+        SUBSYSTEM_NAME + "/Speed",
+        Math.hypot(
+            inputs.drivetrain.measuredChassisSpeeds.vxMetersPerSecond,
+            inputs.drivetrain.measuredChassisSpeeds.vyMetersPerSecond));
 
     // update the brake mode based on the robot's velocity and state (enabled/disabled)
     updateBrakeMode();
@@ -845,6 +877,30 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
 
   public void disableRotationOverride() {
     this.isRotationOverrideEnabled = false;
+  }
+
+  /*
+   * enable and disable acceleration limiting
+   */
+  public void enableAccelerationLimiting() {
+    this.accelerationLimiting = true;
+
+    // convert from robot-relative coordinates to field-relative coordinates
+    ChassisSpeeds robotRelativeSpeeds = this.getRobotRelativeSpeeds();
+
+    // CCW rotation into field frame
+    var rotated =
+        new Translation2d(
+                robotRelativeSpeeds.vxMetersPerSecond, robotRelativeSpeeds.vyMetersPerSecond)
+            .rotateBy(RobotOdometry.getInstance().getEstimatedPose().getRotation());
+
+    this.xFilter.reset(rotated.getX());
+    this.yFilter.reset(rotated.getY());
+    this.thetaFilter.reset(robotRelativeSpeeds.omegaRadiansPerSecond);
+  }
+
+  public void disableAccelerationLimiting() {
+    this.accelerationLimiting = false;
   }
 
   public Optional<Rotation2d> getRotationTargetOverride() {

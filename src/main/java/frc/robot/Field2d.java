@@ -6,9 +6,12 @@ import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.path.Waypoint;
+import com.pathplanner.lib.util.FlippingUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.lib.team3061.RobotConfig;
@@ -17,9 +20,11 @@ import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team6328.util.FieldConstants;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
@@ -37,6 +42,13 @@ public class Field2d {
   private Region2d[] regions;
 
   private Alliance alliance = DriverStation.Alliance.Blue;
+
+  private Map<Pose2d, Pose2d> leftReefPoses = new HashMap<Pose2d, Pose2d>();
+  private Map<Pose2d, Pose2d> rightReefPoses = new HashMap<Pose2d, Pose2d>();
+  private Map<Pose2d, Pose2d> removeAlgaePoses = new HashMap<Pose2d, Pose2d>();
+
+  private static final double PIPE_FROM_REEF_CENTER_INCHES =
+      6.469; // taken from FieldConstants adjustY for reef y offset
 
   /**
    * Get the singleton instance of the Field2d class.
@@ -217,15 +229,68 @@ public class Field2d {
     return alliance;
   }
 
-  public boolean hasFullyLeftAllianceSideOfField() {
-    if (alliance == Alliance.Blue) {
-      return RobotOdometry.getInstance().getEstimatedPose().getX()
-          > FieldConstants.StagingLocations.centerlineX
-              + RobotConfig.getInstance().getRobotLengthWithBumpers().in(Meters) / 2;
-    } else {
-      return RobotOdometry.getInstance().getEstimatedPose().getX()
-          < FieldConstants.StagingLocations.centerlineX
-              - RobotConfig.getInstance().getRobotLengthWithBumpers().in(Meters) / 2;
+  public void populateReefBranchPoseMaps() {
+    // get each transformed pose on the reef (center of the hexagonal side)
+    // add left or right offset (y) as well as bumper offset (x)
+    Pose2d[] reefCenterFaces = FieldConstants.Reef.centerFaces;
+    for (Pose2d reefCenterFace : reefCenterFaces) {
+      Pose2d leftPose =
+          reefCenterFace.transformBy(
+              new Transform2d(
+                  RobotConfig.getInstance().getRobotLengthWithBumpers().in(Meters) / 2.0,
+                  -Units.inchesToMeters(PIPE_FROM_REEF_CENTER_INCHES),
+                  Rotation2d.fromDegrees(180)));
+      Pose2d rightPose =
+          reefCenterFace.transformBy(
+              new Transform2d(
+                  RobotConfig.getInstance().getRobotLengthWithBumpers().in(Meters) / 2.0,
+                  Units.inchesToMeters(PIPE_FROM_REEF_CENTER_INCHES),
+                  Rotation2d.fromDegrees(180)));
+      Pose2d removeAlgaePose =
+          reefCenterFace.transformBy(
+              new Transform2d(
+                  RobotConfig.getInstance().getRobotLengthWithBumpers().in(Meters) / 2.0,
+                  -Units.inchesToMeters(PIPE_FROM_REEF_CENTER_INCHES - 3.0),
+                  Rotation2d.fromDegrees(180)));
+
+      leftReefPoses.put(reefCenterFace, leftPose);
+      rightReefPoses.put(reefCenterFace, rightPose);
+      removeAlgaePoses.put(reefCenterFace, removeAlgaePose);
     }
+  }
+
+  public Pose2d getNearestBranch(Side side) {
+    Pose2d pose = RobotOdometry.getInstance().getEstimatedPose();
+
+    // If we are on the red alliance, flip the current pose to the blue alliance to find the nearest
+    // reef face. We will then flip back to the red alliance.
+    if (getAlliance() == Alliance.Red) {
+      pose = FlippingUtil.flipFieldPose(pose);
+    }
+    Pose2d nearestReefCenterFace = pose.nearest(Arrays.asList(FieldConstants.Reef.centerFaces));
+
+    Pose2d bumpersOnReefAlignedToBranch;
+    if (side == Side.LEFT) {
+      bumpersOnReefAlignedToBranch = leftReefPoses.get(nearestReefCenterFace);
+    } else if (side == Side.RIGHT) {
+      bumpersOnReefAlignedToBranch = rightReefPoses.get(nearestReefCenterFace);
+    } else {
+      bumpersOnReefAlignedToBranch = removeAlgaePoses.get(nearestReefCenterFace);
+    }
+
+    // If we are on the rest alliance, we have flipped the current pose to the blue alliance and
+    // have found the nearest reef face on the blue alliance side. We now need to flip the pose for
+    // that reef face back to the red alliance.
+    if (getAlliance() == Alliance.Red) {
+      bumpersOnReefAlignedToBranch = FlippingUtil.flipFieldPose(bumpersOnReefAlignedToBranch);
+    }
+
+    return bumpersOnReefAlignedToBranch;
+  }
+
+  public enum Side {
+    LEFT,
+    RIGHT,
+    REMOVE_ALGAE
   }
 }

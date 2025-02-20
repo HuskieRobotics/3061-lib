@@ -2,6 +2,7 @@ package frc.lib.team3061.util;
 
 import static frc.robot.Constants.TUNING_MODE;
 
+import com.ctre.phoenix6.Utils;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -39,7 +40,8 @@ public class RobotOdometry {
    * AdvantageScope but not add them to the custom pose estimator. This flag controls whether vision
    * pose estimates are added to the custom pose estimator.
    */
-  private static final boolean INCLUDE_VISION_POSE_ESTIMATES_IN_CUSTOM_ESTIMATOR = true;
+  private static final boolean INCLUDE_VISION_POSE_ESTIMATES_IN_CUSTOM_ESTIMATOR =
+      false; // typically false
 
   private RobotOdometry() {
     estimator =
@@ -94,11 +96,10 @@ public class RobotOdometry {
    * Updates the pose estimator with the current time, gyro angle, and module positions. The custom
    * pose estimator will be updated via its own mechanism.
    *
-   * @param currentTimeSeconds the current time in seconds. Note that you must use a timestamp with
-   *     an epoch since system startup (i.e., the epoch of this timestamp is the same epoch as
-   *     Utils.getCurrentTimeSeconds()). This means that you should use
-   *     Utils.getCurrentTimeSeconds() as your time source or sync the epochs. An FPGA timestamp can
-   *     be converted to the correct timebase using Utils.fpgaToCurrentTime(double).
+   * @param currentTimeSeconds the current time in seconds. Note that you must use a timestamp
+   *     aligned with the FPGA timebase. Note that this is different than the timebase used by CTRE
+   *     which uses an epoch since system startup (i.e., the epoch of this timestamp is the same
+   *     epoch as Utils.getCurrentTimeSeconds()).
    * @param gyroAngle the current raw heading of the gyro
    * @param modulePositions the current positions of the swerve modules
    * @return the estimated pose of the robot
@@ -121,10 +122,9 @@ public class RobotOdometry {
    *
    * @param visionRobotPoseMeters the pose of the robot as determined by vision
    * @param timestampSeconds the timestamp of the vision measurement. . Note that you must use a
-   *     timestamp with an epoch since system startup (i.e., the epoch of this timestamp is the same
-   *     epoch as Utils.getCurrentTimeSeconds()). This means that you should use
-   *     Utils.getCurrentTimeSeconds() as your time source or sync the epochs. An FPGA timestamp can
-   *     be converted to the correct timebase using Utils.fpgaToCurrentTime(double).
+   *     timestamp aligned with the FPGA timebase. Note that this is different than the timebase
+   *     used by CTRE which uses an epoch since system startup (i.e., the epoch of this timestamp is
+   *     the same epoch as Utils.getCurrentTimeSeconds()).
    * @param latencyAdjustmentSeconds the latency adjustment of the vision system in seconds
    * @param visionMeasurementStdDevs the standard deviations of the vision measurement
    */
@@ -143,14 +143,16 @@ public class RobotOdometry {
 
       if (INCLUDE_VISION_POSE_ESTIMATES_IN_CUSTOM_ESTIMATOR && this.customEstimator != null) {
         this.customEstimator.addVisionMeasurement(
-            visionRobotPoseMeters, adjustedTimestamp, visionMeasurementStdDevs);
+            visionRobotPoseMeters,
+            Utils.fpgaToCurrentTime(adjustedTimestamp),
+            visionMeasurementStdDevs);
       }
     }
 
     // log the difference between the vision pose estimate and the pose estimate corresponding to
     // the same timestamp
-    if (TUNING_MODE && this.customEstimator != null) {
-      var sample = this.customEstimator.samplePoseAt(adjustedTimestamp);
+    if (TUNING_MODE) {
+      var sample = this.estimator.sampleAt(adjustedTimestamp);
       if (!sample.isEmpty()) {
         Pose2d pastPose = sample.get();
         Transform2d diff = pastPose.minus(visionRobotPoseMeters);

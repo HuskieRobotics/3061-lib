@@ -8,13 +8,13 @@ import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 /** Class for controlling the robot with two joysticks. */
-public class DualJoysticksOI extends OperatorDashboard {
+public class SimDualJoysticksOI extends OperatorDashboard {
   private final CommandJoystick translateJoystick;
   private final CommandJoystick rotateJoystick;
   private final Trigger[] translateJoystickButtons;
   private final Trigger[] rotateJoystickButtons;
 
-  public DualJoysticksOI(int translatePort, int rotatePort) {
+  public SimDualJoysticksOI(int translatePort, int rotatePort) {
     translateJoystick = new CommandJoystick(translatePort);
     rotateJoystick = new CommandJoystick(rotatePort);
 
@@ -29,7 +29,6 @@ public class DualJoysticksOI extends OperatorDashboard {
     }
   }
 
-  // Translate Joystick
   @Override
   public double getTranslateX() {
     return -translateJoystick.getY();
@@ -41,28 +40,22 @@ public class DualJoysticksOI extends OperatorDashboard {
   }
 
   @Override
-  public Trigger getInterruptAll() {
-    return translateJoystickButtons[5];
-  }
-
-  @Override
-  public Trigger getResetGyroButton() {
-    return translateJoystickButtons[8];
-  }
-
-  @Override
-  public Trigger getFieldRelativeButton() {
-    return translateJoystickButtons[9];
-  }
-
-  // Rotate Joystick
-  @Override
   public double getRotate() {
     return -rotateJoystick.getX();
   }
 
   @Override
+  public Trigger getFieldRelativeButton() {
+    return translateJoystickButtons[3];
+  }
+
+  @Override
+  public Trigger getLock180Button() {
+    return new Trigger(() -> false);
+  }
+
+  @Override
   public Trigger getResetPoseToVisionButton() {
-    return rotateJoystickButtons[5];
+    return translateJoystickButtons[3];
   }
 }

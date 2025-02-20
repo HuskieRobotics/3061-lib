@@ -13,6 +13,7 @@ public class SelfCheckingPigeon2 implements SelfChecking {
   private final Pigeon2 pigeon;
   private StatusSignal<Voltage> statusSignal;
   private final Debouncer connectedDebounce = new Debouncer(0.5);
+  private final List<SubsystemFault> faults = new ArrayList<>();
 
   public SelfCheckingPigeon2(String label, Pigeon2 pigeon) {
     this.label = label;
@@ -22,7 +23,7 @@ public class SelfCheckingPigeon2 implements SelfChecking {
 
   @Override
   public List<SubsystemFault> checkForFaults() {
-    List<SubsystemFault> faults = new ArrayList<>();
+    faults.clear();
 
     if (pigeon.getFault_BootDuringEnable().getValue() == Boolean.TRUE) {
       faults.add(new SubsystemFault(String.format("[%s]: Device booted while enabled", label)));

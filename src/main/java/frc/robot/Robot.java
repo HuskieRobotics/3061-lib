@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.leds.LEDs;
 import frc.robot.Constants.Mode;
+import frc.robot.commands.AutonomousCommandFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -67,6 +68,8 @@ public class Robot extends LoggedRobot {
       new Alert(
           "Battery voltage is very low, consider turning off the robot or replacing the battery.",
           AlertType.kWarning);
+  private final Alert gcAlert =
+      new Alert("Please wait to enable, JITing in progress.", AlertType.kWarning);
 
   /** Create a new Robot. */
   public Robot() {
@@ -144,6 +147,7 @@ public class Robot extends LoggedRobot {
     // Default to blue alliance in sim
     if (Constants.getMode() == Constants.Mode.SIM) {
       DriverStationSim.setAllianceStationId(AllianceStationID.Blue1);
+      DriverStationSim.notifyNewData();
     }
 
     // Logging of autonomous paths
@@ -203,6 +207,11 @@ public class Robot extends LoggedRobot {
 
     // Check CAN status
     var canStatus = RobotController.getCANStatus();
+    Logger.recordOutput("CANStatus/OffCount", canStatus.busOffCount);
+    Logger.recordOutput("CANStatus/TxFullCount", canStatus.txFullCount);
+    Logger.recordOutput("CANStatus/ReceiveErrorCount", canStatus.receiveErrorCount);
+    Logger.recordOutput("CANStatus/TransmitErrorCount", canStatus.transmitErrorCount);
+
     if (canStatus.transmitErrorCount > 0 || canStatus.receiveErrorCount > 0) {
       canErrorTimer.restart();
     }
@@ -219,9 +228,7 @@ public class Robot extends LoggedRobot {
       Logger.recordOutput("CANivoreStatus/TxFullCount", canivoreStatus.TxFullCount);
       Logger.recordOutput("CANivoreStatus/ReceiveErrorCount", canivoreStatus.REC);
       Logger.recordOutput("CANivoreStatus/TransmitErrorCount", canivoreStatus.TEC);
-      if (!canivoreStatus.Status.isOK()
-          || canStatus.transmitErrorCount > 0
-          || canStatus.receiveErrorCount > 0) {
+      if (!canivoreStatus.Status.isOK() || canivoreStatus.REC > 0 || canivoreStatus.TEC > 0) {
         canivoreErrorTimer.restart();
       }
       canivoreErrorAlert.set(
@@ -239,23 +246,24 @@ public class Robot extends LoggedRobot {
       lowBatteryAlert.set(true);
     }
 
+    // GC alert
+    gcAlert.set(Timer.getTimestamp() < 45.0);
+
     // Print auto duration
     if (autonomousCommand != null && !autonomousCommand.isScheduled() && !autoMessagePrinted) {
       if (DriverStation.isAutonomousEnabled()) {
         System.out.println(
-            String.format(
-                "*** Auto finished in %.2f secs ***", Timer.getFPGATimestamp() - autoStart));
+            String.format("*** Auto finished in %.2f secs ***", Timer.getTimestamp() - autoStart));
       } else {
         System.out.println(
-            String.format(
-                "*** Auto cancelled in %.2f secs ***", Timer.getFPGATimestamp() - autoStart));
+            String.format("*** Auto cancelled in %.2f secs ***", Timer.getTimestamp() - autoStart));
       }
       autoMessagePrinted = true;
     }
 
     robotContainer.periodic();
 
-    Threads.setCurrentThreadPriority(true, 10);
+    Threads.setCurrentThreadPriority(false, 10);
   }
 
   /** This method is invoked periodically when the robot is in the disabled state. */
@@ -266,6 +274,8 @@ public class Robot extends LoggedRobot {
 
     // check if the alliance color has changed based on the FMS data
     robotContainer.checkAllianceColor();
+
+    AutonomousCommandFactory.getInstance().alignedToStartingPose();
   }
 
   /**
@@ -278,9 +288,9 @@ public class Robot extends LoggedRobot {
     // not guaranteed to be correct until the start of autonomous
     robotContainer.checkAllianceColor();
 
-    autoStart = Timer.getFPGATimestamp();
+    autoStart = Timer.getTimestamp();
     autoMessagePrinted = false;
-    autonomousCommand = robotContainer.getAutonomousCommand();
+    autonomousCommand = AutonomousCommandFactory.getInstance().getAutonomousCommand();
 
     // schedule the autonomous command
     if (autonomousCommand != null) {
