@@ -8,6 +8,7 @@ import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.revrobotics.spark.SparkMax;
 import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.motorcontrol.PWMMotorController;
@@ -161,27 +162,29 @@ public class FaultReporter {
   }
 
   private void publishStatus() {
-    for (Map.Entry<String, SubsystemFaults> entry : subsystemsFaults.entrySet()) {
-      String subsystemName = entry.getKey();
-      SubsystemFaults subsystemFaults = entry.getValue();
+    if (DriverStation.isDisabled()) {
+      for (Map.Entry<String, SubsystemFaults> entry : subsystemsFaults.entrySet()) {
+        String subsystemName = entry.getKey();
+        SubsystemFaults subsystemFaults = entry.getValue();
 
-      SystemStatus status = getSystemStatus(subsystemFaults.faults);
+        SystemStatus status = getSystemStatus(subsystemFaults.faults);
 
-      String statusTable = SYSTEM_STATUS + subsystemName;
-      Logger.recordOutput(statusTable + "/Status", status.name());
-      Logger.recordOutput(statusTable + "/SystemOK", status == SystemStatus.OK);
+        String statusTable = SYSTEM_STATUS + subsystemName;
+        Logger.recordOutput(statusTable + "/Status", status.name());
+        Logger.recordOutput(statusTable + "/SystemOK", status == SystemStatus.OK);
 
-      String[] faultStrings = new String[subsystemFaults.faults.size()];
-      for (int i = 0; i < subsystemFaults.faults.size(); i++) {
-        SubsystemFault fault = subsystemFaults.faults.get(i);
-        faultStrings[i] = String.format("[%.2f] %s", fault.timestamp, fault.description);
-      }
-      Logger.recordOutput(statusTable + "/Faults", faultStrings);
+        String[] faultStrings = new String[subsystemFaults.faults.size()];
+        for (int i = 0; i < subsystemFaults.faults.size(); i++) {
+          SubsystemFault fault = subsystemFaults.faults.get(i);
+          faultStrings[i] = String.format("[%.2f] %s", fault.timestamp, fault.description);
+        }
+        Logger.recordOutput(statusTable + "/Faults", faultStrings);
 
-      if (faultStrings.length > 0) {
-        Logger.recordOutput(statusTable + "/LastFault", faultStrings[faultStrings.length - 1]);
-      } else {
-        Logger.recordOutput(statusTable + "/LastFault", "");
+        if (faultStrings.length > 0) {
+          Logger.recordOutput(statusTable + "/LastFault", faultStrings[faultStrings.length - 1]);
+        } else {
+          Logger.recordOutput(statusTable + "/LastFault", "");
+        }
       }
     }
   }
@@ -388,7 +391,7 @@ public class FaultReporter {
 
   // Method to check for faults while the robot is operating normally
   private void checkForFaults() {
-    if (checkErrors) {
+    if (checkErrors && DriverStation.isDisabled()) {
       for (Map.Entry<String, SubsystemFaults> entry : subsystemsFaults.entrySet()) {
         String subsystemName = entry.getKey();
         SubsystemFaults subsystemFaults = entry.getValue();

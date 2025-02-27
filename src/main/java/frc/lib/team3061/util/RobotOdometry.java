@@ -40,8 +40,7 @@ public class RobotOdometry {
    * AdvantageScope but not add them to the custom pose estimator. This flag controls whether vision
    * pose estimates are added to the custom pose estimator.
    */
-  private static final boolean INCLUDE_VISION_POSE_ESTIMATES_IN_CUSTOM_ESTIMATOR =
-      false; // typically false
+  private static final boolean INCLUDE_VISION_POSE_ESTIMATES_IN_CUSTOM_ESTIMATOR = true;
 
   private RobotOdometry() {
     estimator =
