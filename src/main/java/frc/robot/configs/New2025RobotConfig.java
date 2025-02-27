@@ -45,8 +45,7 @@ public class New2025RobotConfig extends RobotConfig {
   private static final int GYRO_ID = 26;
 
   private static final Mass MASS = Pounds.of(146.5);
-  private static final MomentOfInertia MOI =
-      KilogramSquareMeters.of(6.5); // FIXME: update based on mass
+  private static final MomentOfInertia MOI = KilogramSquareMeters.of(6.985073979);
   private static final Distance TRACKWIDTH = Meters.of(0.57785);
   private static final Distance WHEELBASE = Meters.of(0.57785);
   private static final Distance WHEEL_RADIUS = Meters.of(0.049930);
@@ -76,7 +75,7 @@ public class New2025RobotConfig extends RobotConfig {
   private static final double DRIVE_KV = 0.072502;
   private static final double DRIVE_KA = 0.43636;
 
-  private static final LinearVelocity MAX_VELOCITY = MetersPerSecond.of(5.0); // actually 4.16
+  private static final LinearVelocity MAX_VELOCITY = MetersPerSecond.of(4.67);
   private static final LinearVelocity MAX_COAST_VELOCITY =
       MetersPerSecond.of(0.04); // FIXME: determine with real robot
   private static final double SLOW_MODE_MULTIPLIER = 0.7;
@@ -137,9 +136,9 @@ public class New2025RobotConfig extends RobotConfig {
   private static final double AUTO_TURN_D_CONTROLLER = 0.0;
 
   // Drive to Pose constants
-  private static final double DRIVE_TO_POSE_DRIVE_KP = 8.0; // FIXME: update with testing
+  private static final double DRIVE_TO_POSE_DRIVE_KP = 2.0;
   private static final double DRIVE_TO_POSE_DRIVE_KD = 0.0;
-  private static final double DRIVE_TO_POSE_THETA_KP = 7.5; // FIXME: update with testing
+  private static final double DRIVE_TO_POSE_THETA_KP = 2.0;
   private static final double DRIVE_TO_POSE_THETA_KI = 0;
   private static final double DRIVE_TO_POSE_THETA_KD = 0.0;
   private static final Distance DRIVE_TO_POSE_DRIVE_TOLERANCE =
@@ -156,7 +155,7 @@ public class New2025RobotConfig extends RobotConfig {
   private static final double DRIVE_FACING_ANGLE_KD = 0.1;
   private static final double DRIVE_FACING_ANGLE_KI = 0.0;
 
-  private static final int LED_COUNT = 35; // FIXME: update for new leds
+  private static final int LED_COUNT = 34; // 17 on each strip
 
   @Override
   public boolean getPhoenix6Licensed() {

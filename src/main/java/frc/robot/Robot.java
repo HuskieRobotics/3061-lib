@@ -275,7 +275,9 @@ public class Robot extends LoggedRobot {
     // check if the alliance color has changed based on the FMS data
     robotContainer.checkAllianceColor();
 
-    AutonomousCommandFactory.getInstance().alignedToStartingPose();
+    if (AutonomousCommandFactory.getInstance().alignedToStartingPose()) {
+      LEDs.getInstance().requestState(LEDs.States.ALIGNED_FOR_AUTO);
+    }
   }
 
   /**

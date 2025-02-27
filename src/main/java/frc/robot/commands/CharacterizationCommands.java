@@ -27,7 +27,7 @@ import java.text.NumberFormat;
 
 @java.lang.SuppressWarnings({"java:S106"})
 public class CharacterizationCommands {
-  private static final double WHEEL_RADIUS_MAX_VELOCITY = 0.25; // Rad/Sec
+  private static final double WHEEL_RADIUS_MAX_VELOCITY = 0.5; // Rad/Sec
   private static final double WHEEL_RADIUS_RAMP_RATE = 0.05; // Rad/Sec^2
   private static final double DRIVE_RADIUS =
       Math.hypot(
@@ -86,7 +86,7 @@ public class CharacterizationCommands {
                       }
                       double wheelRadius = (state.gyroDelta * DRIVE_RADIUS) / wheelDelta;
 
-                      NumberFormat formatter = new DecimalFormat("#0.000");
+                      NumberFormat formatter = new DecimalFormat("#0.000000");
                       System.out.println(
                           "********** Wheel Radius Characterization Results **********");
                       System.out.println(

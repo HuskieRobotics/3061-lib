@@ -100,8 +100,8 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
   private boolean isMoveToPoseEnabled = true;
 
   // arbitrary to half of theoretical max acceleration
-  private SlewRateLimiter xFilter = new SlewRateLimiter(1.5);
-  private SlewRateLimiter yFilter = new SlewRateLimiter(1.5);
+  private SlewRateLimiter xFilter = new SlewRateLimiter(4);
+  private SlewRateLimiter yFilter = new SlewRateLimiter(4);
   private SlewRateLimiter thetaFilter = new SlewRateLimiter(Units.degreesToRadians(360));
 
   private boolean accelerationLimiting = false;
@@ -438,12 +438,23 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
     // get the slow-mode multiplier from the config
     double slowModeMultiplier = RobotConfig.getInstance().getRobotSlowModeMultiplier();
 
+    // log velocity before and after filter
+    Logger.recordOutput(SUBSYSTEM_NAME + "/requestedXVelocity", xVelocity);
+    Logger.recordOutput(SUBSYSTEM_NAME + "/requestedYVelocity", yVelocity);
+    Logger.recordOutput(SUBSYSTEM_NAME + "/requestedRotationalVelocity", rotationalVelocity);
+
     // should we give it the actual current velocity or the desired velocity?
     // always calculate whenever we are driving so that we maintain a history of recent values
     // find the other method that the autobuilder uses to drive
     this.xFilter.calculate(xVelocity);
     this.yFilter.calculate(yVelocity);
     this.thetaFilter.calculate(rotationalVelocity);
+
+    // log velocity after filter
+    Logger.recordOutput(SUBSYSTEM_NAME + "/filteredXVelocity", this.xFilter.lastValue());
+    Logger.recordOutput(SUBSYSTEM_NAME + "/filteredYVelocity", this.yFilter.lastValue());
+    Logger.recordOutput(
+        SUBSYSTEM_NAME + "/filteredRotationalVelocity", this.thetaFilter.lastValue());
 
     if (accelerationLimiting) {
       xVelocity = this.xFilter.lastValue();
