@@ -8,7 +8,7 @@
 
 package frc.robot.operator_interface;
 
-import edu.wpi.first.wpilibj2.command.button.*;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 /** Interface for all driver and operator controls. */
 public interface OperatorInterface {
@@ -75,10 +75,25 @@ public interface OperatorInterface {
     return new Trigger(() -> false);
   }
 
-  // drivetrain, game-specific
+  // DRIVER TRIGGERS, mostly game-specific
+  public default Trigger getOverrideDriveToPoseButton() {
+    return new Trigger(() -> false);
+  }
 
-  // miscellaneous
+  public default Trigger getCurrentPoseButton() {
+    return new Trigger(() -> false);
+  }
+
   public default Trigger getInterruptAll() {
+    return new Trigger(() -> false);
+  }
+
+  // OPERATOR TRIGGERS, mostly game-specific
+  public default Trigger getEnablePrimaryIRSensorsTrigger() {
+    return new Trigger(() -> false);
+  }
+
+  public default Trigger getEnableAutoScoringTrigger() {
     return new Trigger(() -> false);
   }
 }

@@ -16,7 +16,7 @@ import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.lib.team3061.RobotConfig;
+import frc.lib.team6328.util.LoggedTracer;
 import frc.robot.Constants;
 import frc.robot.Field2d;
 import java.util.List;
@@ -31,12 +31,8 @@ public abstract class LEDs extends SubsystemBase {
 
   public static LEDs getInstance() {
     if (instance == null) {
-      if (RobotConfig.getInstance().getLEDHardware() == RobotConfig.LED_HARDWARE.CANDLE) {
-        instance = new LEDsCANdle();
-      } else {
         instance = new LEDsRIO();
       }
-    }
     return instance;
   }
 
@@ -68,10 +64,14 @@ public abstract class LEDs extends SubsystemBase {
                 Color.kGreen)),
     LOW_BATTERY((leds, section) -> leds.solid(section, new Color(255, 20, 0))),
     DISABLED_DEMO_MODE((leds, section) -> leds.updateToPridePattern()),
-    ALIGNED_FOR_AUTO((leds, section) -> leds.solid(section, Color.kGreen)),
+    NO_AUTO_SELECTED((leds, section) -> leds.solid(section, Color.kYellow)),
     DISABLED(LEDs::updateToDisabledPattern),
     AUTO((leds, section) -> leds.orangePulse(section, PULSE_DURATION)),
     ENDGAME_ALERT((leds, section) -> leds.strobe(section, Color.kYellow, STROBE_SLOW_DURATION)),
+    UNTILTING_ROBOT((leds, section) -> leds.strobe(section, Color.kRed, STROBE_SLOW_DURATION)),
+    DRIVE_TO_POSE_CANCELED(
+        (leds, section) -> leds.strobe(section, Color.kPink, STROBE_SLOW_DURATION)),
+        AUTO_DRIVING_TO_SCORE((leds, section) -> leds.orangePulse(section, PULSE_DURATION)),
     DEFAULT((leds, section) -> leds.solid(section, Color.kBlack));
 
     public final BiConsumer<LEDs, Section> setter;
@@ -97,8 +97,8 @@ public abstract class LEDs extends SubsystemBase {
    * This is handled by specifying the length as half the actual length and mirroring the buffer
    * before updating the LEDs.
    */
-  protected static final boolean MIRROR_LEDS = false;
-  protected static final int ACTUAL_LENGTH = RobotConfig.getInstance().getLEDCount();
+  protected static final boolean MIRROR_LEDS = true;
+  protected static final int ACTUAL_LENGTH = 42; // RobotConfig.getInstance().getLEDCount();
   protected static final int LENGTH = MIRROR_LEDS ? ACTUAL_LENGTH / 2 : ACTUAL_LENGTH;
   private static final int STATIC_LENGTH = LENGTH / 2;
   private static final int STATIC_SECTION_LENGTH = STATIC_LENGTH / 3;
@@ -120,7 +120,7 @@ public abstract class LEDs extends SubsystemBase {
   private static final double WAVE_FAST_CYCLE_LENGTH = 25.0;
 
   @SuppressWarnings("unused")
-  private static final double WAVE_FAST_DURATION = 0.25;
+  private static final double WAVE_FAST_DURATION = 0.5;
 
   @SuppressWarnings("unused")
   private static final double WAVE_MEDIUM_DURATION = 0.75;
@@ -246,6 +246,9 @@ public abstract class LEDs extends SubsystemBase {
     staticLowStates.clear();
     staticMidStates.clear();
     staticHighStates.clear();
+
+    // Record cycle time
+    LoggedTracer.record("LEDs");
   }
 
   private void updateToDisabledPattern(Section section) {

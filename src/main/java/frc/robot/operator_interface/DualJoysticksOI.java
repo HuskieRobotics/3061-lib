@@ -40,6 +40,8 @@ public class DualJoysticksOI extends OperatorDashboard {
     return -translateJoystick.getX();
   }
 
+  // Translation Joystick
+
   @Override
   public Trigger getInterruptAll() {
     return translateJoystickButtons[5];
@@ -55,14 +57,24 @@ public class DualJoysticksOI extends OperatorDashboard {
     return translateJoystickButtons[9];
   }
 
-  // Rotate Joystick
+  // Rotation Joystick
   @Override
   public double getRotate() {
     return -rotateJoystick.getX();
   }
 
   @Override
+  public Trigger getOverrideDriveToPoseButton() {
+    return rotateJoystickButtons[4];
+  }
+
+  @Override
   public Trigger getResetPoseToVisionButton() {
     return rotateJoystickButtons[5];
+  }
+
+  @Override
+  public Trigger getCurrentPoseButton() {
+    return rotateJoystickButtons[6];
   }
 }

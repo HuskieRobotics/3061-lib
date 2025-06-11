@@ -50,14 +50,12 @@ public class NewPracticeRobotConfig extends RobotConfig {
   private static final Distance ROBOT_WIDTH_WITH_BUMPERS = Meters.of(0.88026); // 34.656 in
   private static final Distance ROBOT_LENGTH_WITH_BUMPERS = Meters.of(0.88026); // 34.656 in
 
-  private static final double COUPLE_RATIO = 3.125; // FIXME: tune
+  private static final double COUPLE_RATIO = 3.125;
 
   /* Angle Motor PID Values */
   private static final double ANGLE_KP = 100.0;
   private static final double ANGLE_KI = 0.0;
   private static final double ANGLE_KD = 0.5;
-
-  // FIXME: tune; starting values from Phoenix Tuner X .withKS(0.1).withKV(2.33).withKA(0)
 
   // values from sysid routines
   private static final double ANGLE_KS = 0.28516;

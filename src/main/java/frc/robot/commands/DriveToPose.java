@@ -9,19 +9,18 @@
 
 package frc.robot.commands;
 
-import static edu.wpi.first.units.Units.*;
 import static frc.robot.Constants.*;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.Drivetrain;
+import frc.lib.team3061.leds.LEDs;
 import frc.lib.team6328.util.LoggedTunableNumber;
 import frc.robot.Field2d;
 import java.util.function.Consumer;
@@ -33,6 +32,9 @@ import org.littletonrobotics.junction.Logger;
  * a straight line. The execute method invokes the drivetrain subsystem's drive method. For
  * following a predetermined path, refer to the FollowPath Command class. For generating a path on
  * the fly and following that path, refer to the MoveToPose Command class.
+ *
+ * <p>This is a more generic command that drives to any given pose, and can be customized for other
+ * specific goals.
  *
  * <p>Requires: the Drivetrain subsystem
  *
@@ -49,7 +51,6 @@ public class DriveToPose extends Command {
 
   private double timeout;
 
-  private boolean running = false;
   private Timer timer;
 
   private static final LoggedTunableNumber driveKp =
@@ -69,9 +70,6 @@ public class DriveToPose extends Command {
   private static final LoggedTunableNumber thetaKi =
       new LoggedTunableNumber(
           "DriveToPose/ThetaKi", RobotConfig.getInstance().getDriveToPoseThetaKI());
-
-  private static final LoggedTunableNumber closeVelocityBoost =
-      new LoggedTunableNumber("DriveToPose/close velocity boost", 0.5);
 
   private final PIDController xController =
       new PIDController(driveKp.get(), driveKi.get(), driveKd.get(), LOOP_PERIOD_SECS);
@@ -132,10 +130,8 @@ public class DriveToPose extends Command {
    */
   @Override
   public void execute() {
-    // set running to true in this method to capture that the calculate method has been invoked on
-    // the PID controllers. This is important since these controllers will return true for atGoal if
-    // the calculate method has not yet been invoked.
-    running = true;
+
+    LEDs.getInstance().requestState(LEDs.States.AUTO_DRIVING_TO_SCORE);
 
     // Update from tunable numbers
     LoggedTunableNumber.ifChanged(
@@ -156,10 +152,6 @@ public class DriveToPose extends Command {
 
     Pose2d currentPose = drivetrain.getPose();
 
-    // Transform2d difference = currentPose.minus(targetPose);
-    // double highVelocityDistanceThresholdMeters = 1.0; // arbitrary 1 meters away right now
-    // double straightLineHighVelocityMPS = 2.0; // arbitrary 2 m/s right now
-
     // use last values of filter
     double xVelocity = xController.calculate(currentPose.getX(), this.targetPose.getX());
     double yVelocity = yController.calculate(currentPose.getY(), this.targetPose.getY());
@@ -167,45 +159,13 @@ public class DriveToPose extends Command {
         thetaController.calculate(
             currentPose.getRotation().getRadians(), this.targetPose.getRotation().getRadians());
 
-    Logger.recordOutput("DriveToPose/x velocity (field frame)", xVelocity);
-    Logger.recordOutput("DriveToPose/y velocity (field frame)", yVelocity);
-
-    // convert the pose difference and velocities into the reef frame
-    Transform2d reefRelativeDifference = new Transform2d(targetPose, drivetrain.getPose());
-    var reefRelativeVelocities =
-        new Translation2d(xVelocity, yVelocity).rotateBy(targetPose.getRotation().unaryMinus());
-
-    if (Math.abs(reefRelativeDifference.getX()) < 0.0762) {
-      Logger.recordOutput("DriveToPose/boost velocity", true);
-      if (reefRelativeDifference.getY() > 0) {
-        reefRelativeVelocities =
-            new Translation2d(
-                reefRelativeVelocities.getX(),
-                reefRelativeVelocities.getY() - closeVelocityBoost.get());
-      } else if (reefRelativeDifference.getY() < 0) {
-        reefRelativeVelocities =
-            new Translation2d(
-                reefRelativeVelocities.getX(),
-                reefRelativeVelocities.getY() + closeVelocityBoost.get());
-      }
-    } else {
-      Logger.recordOutput("DriveToPose/boost velocity", false);
-    }
-
-    Logger.recordOutput("DriveToPose/x velocity (reef frame)", reefRelativeVelocities.getX());
-    Logger.recordOutput("DriveToPose/y velocity (reef frame)", reefRelativeVelocities.getY());
-
-    // convert the velocities back into the field frame
-    var fieldRelativeVelocities = reefRelativeVelocities.rotateBy(targetPose.getRotation());
+    Logger.recordOutput("DriveToPose/x velocity (field relative)", xVelocity);
+    Logger.recordOutput("DriveToPose/y velocity (field relative)", yVelocity);
 
     int allianceMultiplier = Field2d.getInstance().getAlliance() == Alliance.Blue ? 1 : -1;
 
     drivetrain.drive(
-        allianceMultiplier * fieldRelativeVelocities.getX(),
-        allianceMultiplier * fieldRelativeVelocities.getY(),
-        thetaVelocity,
-        true,
-        true);
+        allianceMultiplier * xVelocity, allianceMultiplier * yVelocity, thetaVelocity, true, true);
   }
 
   /**
@@ -218,24 +178,23 @@ public class DriveToPose extends Command {
    */
   @Override
   public boolean isFinished() {
-    Transform2d difference = drivetrain.getPose().minus(targetPose);
-    Logger.recordOutput(
-        "DriveToPose/difference",
+    Transform2d difference =
         new Transform2d(
             drivetrain.getPose().getX() - targetPose.getX(),
             drivetrain.getPose().getY() - targetPose.getY(),
             Rotation2d.fromRadians(
                 drivetrain.getPose().getRotation().getRadians()
-                    - targetPose.getRotation().getRadians())));
+                    - targetPose.getRotation().getRadians()));
 
-    // convert the pose difference and velocities into the reef frame
-    Transform2d reefRelativeDifference = new Transform2d(targetPose, drivetrain.getPose());
-    Logger.recordOutput("DriveToPose/difference (reef frame)", reefRelativeDifference);
+    Logger.recordOutput("DriveToPose/difference", difference);
+
+    Transform2d robotRelativeDifference = new Transform2d(targetPose, drivetrain.getPose());
+    Logger.recordOutput("DriveToPose/difference (robot relative)", robotRelativeDifference);
 
     boolean atGoal =
-        Math.abs(reefRelativeDifference.getX()) < targetTolerance.getX()
-            && Math.abs(reefRelativeDifference.getY()) < targetTolerance.getY()
-            && Math.abs(reefRelativeDifference.getRotation().getRadians())
+        Math.abs(robotRelativeDifference.getX()) < targetTolerance.getX()
+            && Math.abs(robotRelativeDifference.getY()) < targetTolerance.getY()
+            && Math.abs(robotRelativeDifference.getRotation().getRadians())
                 < targetTolerance.getRotation().getRadians();
 
     if (atGoal) {
@@ -245,9 +204,7 @@ public class DriveToPose extends Command {
       onTarget.accept(false);
     }
 
-    // check that running is true (i.e., the calculate method has been invoked on the PID
-    // controllers) and that each of the controllers is at their goal. This is important since these
-    // controllers will return true for atGoal if the calculate method has not yet been invoked.
+    // check each of the controllers is at their goal or if the timeout has elapsed
     return !drivetrain.isMoveToPoseEnabled() || this.timer.hasElapsed(timeout) || atGoal;
   }
 
@@ -262,6 +219,5 @@ public class DriveToPose extends Command {
     drivetrain.disableAccelerationLimiting();
     drivetrain.stop();
     Logger.recordOutput("DriveToPose/isFinished", true);
-    running = false;
   }
 }

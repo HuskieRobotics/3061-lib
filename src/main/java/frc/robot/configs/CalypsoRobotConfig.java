@@ -4,7 +4,12 @@ import static edu.wpi.first.units.Units.*;
 
 import com.ctre.phoenix6.configs.MountPoseConfigs;
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Quaternion;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -19,8 +24,7 @@ import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
 
 /** Most of this is copied from Artemis; update with actual values */
-public class New2025RobotConfig extends RobotConfig {
-  // FIXME: UPDATE ALL OFFSETS WITH REAL ROBOT TOMORROW
+public class CalypsoRobotConfig extends RobotConfig {
 
   private static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 1;
   private static final int FRONT_LEFT_MODULE_STEER_MOTOR = 3;
@@ -30,7 +34,7 @@ public class New2025RobotConfig extends RobotConfig {
   private static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 5;
   private static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 7;
   private static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 24;
-  private static final Angle FRONT_RIGHT_MODULE_STEER_OFFSET = Rotations.of(-0.299805);
+  private static final Angle FRONT_RIGHT_MODULE_STEER_OFFSET = Rotations.of(-0.483643);
 
   private static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 6;
   private static final int BACK_LEFT_MODULE_STEER_MOTOR = 8;
@@ -48,7 +52,7 @@ public class New2025RobotConfig extends RobotConfig {
   private static final MomentOfInertia MOI = KilogramSquareMeters.of(6.985073979);
   private static final Distance TRACKWIDTH = Meters.of(0.57785);
   private static final Distance WHEELBASE = Meters.of(0.57785);
-  private static final Distance WHEEL_RADIUS = Meters.of(0.049930);
+  private static final Distance WHEEL_RADIUS = Meters.of(0.050154);
   private static final double WHEEL_COEFFICIENT_OF_FRICTION = 1.5;
   private static final Translation2d FRONT_RIGHT_CORNER_POSITION =
       new Translation2d(0.34925, 0.34925);
@@ -60,7 +64,6 @@ public class New2025RobotConfig extends RobotConfig {
 
   private static final double COUPLE_RATIO = 3.125; // possibly needs to be updated for mk4ns
 
-  /* PID Values, Update all of these based on sysid routine when new robot arrives */
   private static final double ANGLE_KP = 100.0;
   private static final double ANGLE_KI = 0.0;
   private static final double ANGLE_KD = 0.5;
@@ -76,8 +79,7 @@ public class New2025RobotConfig extends RobotConfig {
   private static final double DRIVE_KA = 0.43636;
 
   private static final LinearVelocity MAX_VELOCITY = MetersPerSecond.of(4.67);
-  private static final LinearVelocity MAX_COAST_VELOCITY =
-      MetersPerSecond.of(0.04); // FIXME: determine with real robot
+  private static final LinearVelocity MAX_COAST_VELOCITY = MetersPerSecond.of(0.04);
   private static final double SLOW_MODE_MULTIPLIER = 0.7;
 
   private static final String CAN_BUS_NAME = "canbus1";
@@ -93,39 +95,27 @@ public class New2025RobotConfig extends RobotConfig {
   // Front right camera
   private static final Transform3d ROBOT_TO_CAMERA_0 =
       new Transform3d(
-          new Translation3d(
-              Units.inchesToMeters(6.659),
-              Units.inchesToMeters(-10.725),
-              Units.inchesToMeters(9.601)),
-          new Rotation3d(0, Units.degreesToRadians(-24.248), Units.degreesToRadians(20.577)));
+          new Translation3d(0.178, -0.268, 0.236),
+          new Rotation3d(new Quaternion(-0.977, -0.032, 0.115, -0.177)));
   // pitch 45 degrees
 
   // Back right camera
   private static final Transform3d ROBOT_TO_CAMERA_1 =
       new Transform3d(
-          new Translation3d(
-              Units.inchesToMeters(-10.497),
-              Units.inchesToMeters(-10.741),
-              Units.inchesToMeters(8.040)),
-          new Rotation3d(0, Units.degreesToRadians(-20), Units.degreesToRadians(-162)));
+          new Translation3d(-0.279, -0.273, 0.253),
+          new Rotation3d(new Quaternion(-0.149, 0.161, 0.027, 0.975)));
 
   // Front left camera
   private static final Transform3d ROBOT_TO_CAMERA_2 =
       new Transform3d(
-          new Translation3d(
-              Units.inchesToMeters(6.657),
-              Units.inchesToMeters(10.724),
-              Units.inchesToMeters(9.605)),
-          new Rotation3d(0, Units.degreesToRadians(-24.248), Units.degreesToRadians(-20.577)));
+          new Translation3d(0.178, 0.267, 0.240),
+          new Rotation3d(new Quaternion(-0.976, 0.009, 0.119, 0.182)));
 
   // Back left camera
   private static final Transform3d ROBOT_TO_CAMERA_3 =
       new Transform3d(
-          new Translation3d(
-              Units.inchesToMeters(-10.497),
-              Units.inchesToMeters(10.741),
-              Units.inchesToMeters(8.040)),
-          new Rotation3d(0, Units.degreesToRadians(-20), Units.degreesToRadians(162)));
+          new Translation3d(-0.276, 0.276, 0.253),
+          new Rotation3d(new Quaternion(0.157, 0.163, -0.025, 0.974)));
 
   // default values for tunables
   private static final double AUTO_DRIVE_P_CONTROLLER = 5.0;
@@ -141,9 +131,6 @@ public class New2025RobotConfig extends RobotConfig {
   private static final double DRIVE_TO_POSE_THETA_KP = 2.0;
   private static final double DRIVE_TO_POSE_THETA_KI = 0;
   private static final double DRIVE_TO_POSE_THETA_KD = 0.0;
-  private static final Distance DRIVE_TO_POSE_DRIVE_TOLERANCE =
-      Meters.of(0.06); // FIXME: update with testing (different from reef?)
-  private static final Angle DRIVE_TO_POSE_THETA_TOLERANCE = Radians.of(0.02);
   private static final LinearVelocity DRIVE_TO_POSE_MAX_VELOCITY = MetersPerSecond.of(1.25);
   private static final LinearAcceleration DRIVE_TO_POSE_MAX_ACCELERATION =
       MetersPerSecondPerSecond.of(2.5);
@@ -155,7 +142,7 @@ public class New2025RobotConfig extends RobotConfig {
   private static final double DRIVE_FACING_ANGLE_KD = 0.1;
   private static final double DRIVE_FACING_ANGLE_KI = 0.0;
 
-  private static final int LED_COUNT = 34; // 17 on each strip
+  private static final int LED_COUNT = 42;
 
   @Override
   public boolean getPhoenix6Licensed() {
@@ -310,6 +297,53 @@ public class New2025RobotConfig extends RobotConfig {
   }
 
   @Override
+  public Pose3d[] getPosesForRobotToCameraTransformCalibration() {
+    // robot to camera transformation calibration
+    Pose3d[] robotPosesForCalibration = new Pose3d[getRobotToCameraTransforms().length];
+
+    Pose2d tagPose =
+        new Pose2d(
+            Units.inchesToMeters(144.003),
+            Units.inchesToMeters(158.500),
+            Rotation2d.fromDegrees(180));
+
+    // FL and FR cameras are calibrated based on a centered AprilTag on the robot-to-camera
+    // transform calibration jig
+    robotPosesForCalibration[0] =
+        new Pose3d(
+            tagPose.transformBy(
+                new Transform2d(
+                    RobotConfig.getInstance().getRobotLengthWithBumpers().in(Meters) / 2.0,
+                    0,
+                    Rotation2d.fromDegrees(180))));
+    robotPosesForCalibration[2] = robotPosesForCalibration[0];
+
+    // the BR camera is calibrated based on an offset AprilTag on the robot-to-camera transform
+    // calibration jig
+    robotPosesForCalibration[1] =
+        new Pose3d(tagPose)
+            .transformBy(
+                new Transform3d(
+                    RobotConfig.getInstance().getRobotLengthWithBumpers().in(Meters) / 2.0,
+                    Units.inchesToMeters(14.0),
+                    -Units.inchesToMeters(1.0),
+                    new Rotation3d()));
+
+    // the BL camera is calibrated based on an offset AprilTag on the robot-to-camera transform
+    // calibration jig
+    robotPosesForCalibration[3] =
+        new Pose3d(tagPose)
+            .transformBy(
+                new Transform3d(
+                    RobotConfig.getInstance().getRobotLengthWithBumpers().in(Meters) / 2.0,
+                    -Units.inchesToMeters(14.0),
+                    -Units.inchesToMeters(1.0),
+                    new Rotation3d()));
+
+    return robotPosesForCalibration;
+  }
+
+  @Override
   public LinearVelocity getRobotMaxVelocity() {
     return MAX_VELOCITY;
   }
@@ -417,16 +451,6 @@ public class New2025RobotConfig extends RobotConfig {
   @Override
   public LinearAcceleration getDriveToPoseDriveMaxAcceleration() {
     return DRIVE_TO_POSE_MAX_ACCELERATION;
-  }
-
-  @Override
-  public Distance getDriveToPoseDriveTolerance() {
-    return DRIVE_TO_POSE_DRIVE_TOLERANCE;
-  }
-
-  @Override
-  public Angle getDriveToPoseThetaTolerance() {
-    return DRIVE_TO_POSE_THETA_TOLERANCE;
   }
 
   @Override

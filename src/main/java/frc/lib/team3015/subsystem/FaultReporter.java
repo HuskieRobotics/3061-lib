@@ -9,7 +9,6 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.revrobotics.spark.SparkMax;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.motorcontrol.PWMMotorController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -59,14 +58,12 @@ public class FaultReporter {
   private static final String SYSTEM_STATUS = "SystemStatus/";
 
   private final Map<String, SubsystemFaults> subsystemsFaults = new HashMap<>();
-  private final boolean checkErrors;
 
   private boolean startedCTRESignalLogger = false;
 
   private FaultReporter() {
-    this.checkErrors = RobotBase.isReal();
     setupCallbacks();
-    registerClearAllFaultsCommand();
+    registerDashboardCommands();
   }
 
   /**
@@ -112,7 +109,7 @@ public class FaultReporter {
    * FaultReporter. The command is located at "SystemStatus/ClearAllFaults" in Network Tables. This
    * command is registered with the FaultReporter is instantiated.
    */
-  private void registerClearAllFaultsCommand() {
+  private void registerDashboardCommands() {
     SmartDashboard.putData(
         SYSTEM_STATUS + "ClearAllFaults",
         Commands.runOnce(
@@ -122,10 +119,20 @@ public class FaultReporter {
                     for (SelfChecking device : subsystemFaults.hardware) {
                       device.clearStickyFaults();
                     }
+
+                    for (Alert alert : subsystemFaults.faultAlerts) {
+                      alert.set(false);
+                  }
+                    subsystemFaults.faultAlerts.clear();
+                    subsystemFaults.faults.clear();
                   }
                 })
             .ignoringDisable(true)
             .withName("ClearAllFaults"));
+
+    SmartDashboard.putData(
+        SYSTEM_STATUS + "CheckForFaults",
+        Commands.runOnce(this::checkForFaults).ignoringDisable(true).withName("check for faults"));
   }
 
   private Command wrapSystemCheckCommand(String subsystemName, Command systemCheckCommand) {
@@ -149,9 +156,9 @@ public class FaultReporter {
     CommandScheduler.getInstance()
         .schedule(
             Commands.repeatingSequence(
-                    Commands.runOnce(this::checkForFaults), Commands.waitSeconds(1.0))
+                    Commands.runOnce(this::checkForFaultsWhenDisabled), Commands.waitSeconds(1.0))
                 .ignoringDisable(true)
-                .withName("check for faults"));
+                .withName("check for faults when disabled"));
 
     CommandScheduler.getInstance()
         .schedule(
@@ -389,9 +396,14 @@ public class FaultReporter {
     subsystemsFaults.put(subsystemName, subsystemFaults);
   }
 
+  private void checkForFaultsWhenDisabled() {
+    if (DriverStation.isDisabled()) {
+      checkForFaults();
+  }
+  }
+
   // Method to check for faults while the robot is operating normally
-  private void checkForFaults() {
-    if (checkErrors && DriverStation.isDisabled()) {
+  public void checkForFaults() {
       for (Map.Entry<String, SubsystemFaults> entry : subsystemsFaults.entrySet()) {
         String subsystemName = entry.getKey();
         SubsystemFaults subsystemFaults = entry.getValue();
@@ -403,4 +415,3 @@ public class FaultReporter {
       }
     }
   }
-}
