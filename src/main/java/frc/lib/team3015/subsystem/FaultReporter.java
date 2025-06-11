@@ -122,7 +122,7 @@ public class FaultReporter {
 
                     for (Alert alert : subsystemFaults.faultAlerts) {
                       alert.set(false);
-                  }
+                    }
                     subsystemFaults.faultAlerts.clear();
                     subsystemFaults.faults.clear();
                   }
@@ -399,19 +399,19 @@ public class FaultReporter {
   private void checkForFaultsWhenDisabled() {
     if (DriverStation.isDisabled()) {
       checkForFaults();
-  }
+    }
   }
 
   // Method to check for faults while the robot is operating normally
   public void checkForFaults() {
-      for (Map.Entry<String, SubsystemFaults> entry : subsystemsFaults.entrySet()) {
-        String subsystemName = entry.getKey();
-        SubsystemFaults subsystemFaults = entry.getValue();
-        for (SelfChecking device : subsystemFaults.hardware) {
-          for (SubsystemFault fault : device.checkForFaults()) {
-            addFault(subsystemName, fault);
-          }
+    for (Map.Entry<String, SubsystemFaults> entry : subsystemsFaults.entrySet()) {
+      String subsystemName = entry.getKey();
+      SubsystemFaults subsystemFaults = entry.getValue();
+      for (SelfChecking device : subsystemFaults.hardware) {
+        for (SubsystemFault fault : device.checkForFaults()) {
+          addFault(subsystemName, fault);
         }
       }
     }
   }
+}

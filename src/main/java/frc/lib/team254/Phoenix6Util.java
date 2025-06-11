@@ -210,7 +210,7 @@ public class Phoenix6Util {
       System.arraycopy(rioSignals, 0, newSignals, 0, rioSignals.length);
       System.arraycopy(signals, 0, newSignals, rioSignals.length, signals.length);
       rioSignals = newSignals;
-}
+    }
   }
 
   /** Refresh all registered signals. */

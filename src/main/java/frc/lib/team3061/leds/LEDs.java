@@ -31,8 +31,8 @@ public abstract class LEDs extends SubsystemBase {
 
   public static LEDs getInstance() {
     if (instance == null) {
-        instance = new LEDsRIO();
-      }
+      instance = new LEDsRIO();
+    }
     return instance;
   }
 
@@ -71,7 +71,7 @@ public abstract class LEDs extends SubsystemBase {
     UNTILTING_ROBOT((leds, section) -> leds.strobe(section, Color.kRed, STROBE_SLOW_DURATION)),
     DRIVE_TO_POSE_CANCELED(
         (leds, section) -> leds.strobe(section, Color.kPink, STROBE_SLOW_DURATION)),
-        AUTO_DRIVING_TO_SCORE((leds, section) -> leds.orangePulse(section, PULSE_DURATION)),
+    AUTO_DRIVING_TO_SCORE((leds, section) -> leds.orangePulse(section, PULSE_DURATION)),
     DEFAULT((leds, section) -> leds.solid(section, Color.kBlack));
 
     public final BiConsumer<LEDs, Section> setter;

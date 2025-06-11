@@ -210,7 +210,7 @@ public class Robot extends LoggedRobot {
 
     if (!TUNING_MODE) {
       Threads.setCurrentThreadPriority(true, 10);
-  }
+    }
   }
 
   /**

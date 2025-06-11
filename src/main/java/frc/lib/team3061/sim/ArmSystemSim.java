@@ -91,7 +91,7 @@ public class ArmSystemSim {
     if (this.hasExternalEncoder) {
       this.encoder = encoder;
       this.rotorToSensorRatio = rotorToSensorRatio;
-    this.encoderSimState = this.encoder.getSimState();
+      this.encoderSimState = this.encoder.getSimState();
     } else {
       this.rotorToSensorRatio = 1;
     }
@@ -127,7 +127,7 @@ public class ArmSystemSim {
     // update the sim states supply voltage based on the simulated battery
     this.motorSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
     if (this.hasExternalEncoder) {
-    this.encoderSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
+      this.encoderSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
     }
 
     // update the input voltages of the models based on the outputs of the simulated TalonFXs
@@ -152,8 +152,8 @@ public class ArmSystemSim {
     this.motorSimState.setRotorVelocity(motorRPS);
 
     if (this.hasExternalEncoder) {
-    this.encoderSimState.setRawPosition(sensorRotations);
-    this.encoderSimState.setVelocity(encoderRPS);
+      this.encoderSimState.setRawPosition(sensorRotations);
+      this.encoderSimState.setVelocity(encoderRPS);
     }
 
     // Update the Mechanism Arm angle based on the simulated arm angle

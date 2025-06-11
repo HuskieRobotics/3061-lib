@@ -42,7 +42,7 @@ public class SysIdRoutineChooser {
     if (dynamicForwardSelectorCommand == null) {
       dynamicForwardSelectorCommand =
           new SelectCommand<>(this.dynamicForwardRoutines, sysIdChooser::get);
-  }
+    }
     return dynamicForwardSelectorCommand;
   }
 
@@ -50,7 +50,7 @@ public class SysIdRoutineChooser {
     if (dynamicBackupSelectorCommand == null) {
       dynamicBackupSelectorCommand =
           new SelectCommand<>(this.dynamicReverseRoutines, sysIdChooser::get);
-  }
+    }
 
     return dynamicBackupSelectorCommand;
   }
@@ -59,7 +59,7 @@ public class SysIdRoutineChooser {
     if (quasistaticForwardSelectorCommand == null) {
       quasistaticForwardSelectorCommand =
           new SelectCommand<>(this.quasistaticForwardRoutines, sysIdChooser::get);
-  }
+    }
 
     return quasistaticForwardSelectorCommand;
   }
@@ -68,7 +68,7 @@ public class SysIdRoutineChooser {
     if (quasistaticBackwardSelectorCommand == null) {
       quasistaticBackwardSelectorCommand =
           new SelectCommand<>(this.quasistaticReverseRoutines, sysIdChooser::get);
-  }
+    }
     return quasistaticBackwardSelectorCommand;
-}
+  }
 }
