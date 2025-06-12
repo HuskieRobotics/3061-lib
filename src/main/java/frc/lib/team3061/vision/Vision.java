@@ -6,6 +6,7 @@ import com.ctre.phoenix6.Utils;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.numbers.N1;
@@ -53,6 +54,7 @@ public class Vision extends SubsystemBase {
 
   private boolean isEnabled = true;
   private boolean isVisionUpdating = false;
+  private final Debouncer isVisionUpdatingDebounce = new Debouncer(0.1);
 
   private RobotOdometry odometry;
 
@@ -349,7 +351,8 @@ public class Vision extends SubsystemBase {
     Logger.recordOutput(SUBSYSTEM_NAME + "/AprilTags", allTagPoses.toArray(Pose3d[]::new));
 
     Logger.recordOutput(SUBSYSTEM_NAME + "/IsEnabled", isEnabled);
-    Logger.recordOutput(SUBSYSTEM_NAME + "/IsUpdating", isVisionUpdating);
+    Logger.recordOutput(
+        SUBSYSTEM_NAME + "/IsUpdating", !isVisionUpdatingDebounce.calculate(!isVisionUpdating));
 
     Logger.recordOutput(SUBSYSTEM_NAME + "/CamerasToConsider", camerasToConsider.toString());
   }
