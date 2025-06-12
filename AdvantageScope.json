@@ -1,10 +1,10 @@
 {
   "hubs": [
     {
-      "x": 214,
+      "x": 236,
       "y": 38,
-      "width": 1265,
-      "height": 944,
+      "width": 1706,
+      "height": 1088,
       "state": {
         "sidebar": {
           "width": 324,
@@ -32,7 +32,6 @@
             "/RealOutputs/Vision/0/RobotPose3d",
             "/RealOutputs/Vision/0/CameraPose3d",
             "/RealOutputs/Vision/0/CameraPose3d/translation",
-            "/Tuning",
             "/RealOutputs/Vision/AprilTags/12",
             "/RealOutputs/Vision/AprilTags/8",
             "/RealOutputs/Vision/AprilTags/7",
@@ -50,8 +49,6 @@
             "/Vision/Camera0/PoseObservations/0",
             "/RealOutputs/DriveToPose/difference",
             "/RealOutputs/DriveToPose/difference/translation",
-            "/RealOutputs/CommandsAll",
-            "/RealOutputs/DriveToPose",
             "/RealOutputs/DriveToPose/difference (reef frame)",
             "/RealOutputs/DriveToPose/difference (reef frame)/translation",
             "/Vision/3/PoseObservations",
@@ -98,12 +95,14 @@
             "/RealOutputs/DriveToBarge/targetPose",
             "/RealOutputs/DriveToBarge/targetPose/translation",
             "/RealOutputs/DriveToBarge/difference (robot relative)/translation",
-            "/RealOutputs/Drivetrain",
-            "/Climber"
+            "/Climber",
+            "/RealOutputs/DriveToPose/pose difference (target frame)",
+            "/RealOutputs/DriveToPose/pose difference (target frame)/translation",
+            "/Tuning/operatorDashboard"
           ]
         },
         "tabs": {
-          "selected": 6,
+          "selected": 18,
           "tabs": [
             {
               "type": 0,
@@ -193,34 +192,7 @@
                   },
                   {
                     "type": "ghost",
-                    "logKey": "/RealOutputs/DriveToReef/targetPose",
-                    "logType": "Pose2d",
-                    "visible": true,
-                    "options": {
-                      "color": "#00ffff"
-                    }
-                  },
-                  {
-                    "type": "ghost",
-                    "logKey": "/RealOutputs/DriveToBarge/targetPose",
-                    "logType": "Pose2d",
-                    "visible": true,
-                    "options": {
-                      "color": "#00ffff"
-                    }
-                  },
-                  {
-                    "type": "ghost",
-                    "logKey": "/RealOutputs/DriveToProcessor/targetPose",
-                    "logType": "Pose2d",
-                    "visible": true,
-                    "options": {
-                      "color": "#00ffff"
-                    }
-                  },
-                  {
-                    "type": "ghost",
-                    "logKey": "/RealOutputs/DriveToStation/targetPose",
+                    "logKey": "/RealOutputs/DriveToPose/targetPose",
                     "logType": "Pose2d",
                     "visible": true,
                     "options": {
@@ -310,9 +282,9 @@
                 "cameraIndex": -1,
                 "orbitFov": 50,
                 "cameraPosition": [
-                  -7.131209963237522,
-                  3.3655387142570454,
-                  -3.3389900393854393
+                  7.632136143270328,
+                  6.804635301716988,
+                  -10.634090058042382
                 ],
                 "cameraTarget": [
                   -3.8519104237044157,
@@ -326,84 +298,13 @@
               "type": 1,
               "title": "States",
               "controller": {
-                "leftSources": [
-                  {
-                    "type": "stepped",
-                    "logKey": "/Elevator/PositionInches",
-                    "logType": "Number",
-                    "visible": false,
-                    "options": {
-                      "color": "#c0b487",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "/Elevator/StatorCurrentAmpsLead",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#d993aa",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "/Elevator/SupplyCurrentAmpsLead",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#2b66a2",
-                      "size": "normal"
-                    }
-                  }
-                ],
+                "leftSources": [],
                 "rightSources": [
-                  {
-                    "type": "stepped",
-                    "logKey": "/Manipulator/IndexerVelocityRPS",
-                    "logType": "Number",
-                    "visible": false,
-                    "options": {
-                      "color": "#e48b32",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "/Manipulator/PivotMotorAngleDeg",
-                    "logType": "Number",
-                    "visible": false,
-                    "options": {
-                      "color": "#af2437",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "/Manipulator/IndexerStatorCurrentAmps",
-                    "logType": "Number",
-                    "visible": false,
-                    "options": {
-                      "color": "#3b875a",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "/Manipulator/IndexerPositionRotations",
-                    "logType": "Number",
-                    "visible": false,
-                    "options": {
-                      "color": "#d993aa",
-                      "size": "normal"
-                    }
-                  },
                   {
                     "type": "stepped",
                     "logKey": "/RealOutputs/Drivetrain/Speed",
                     "logType": "Number",
-                    "visible": false,
+                    "visible": true,
                     "options": {
                       "color": "#5f4528",
                       "size": "normal"
@@ -431,51 +332,6 @@
                   },
                   {
                     "type": "stripes",
-                    "logKey": "/RealOutputs/Elevator/targetPosition",
-                    "logType": "String",
-                    "visible": true,
-                    "options": {
-                      "color": "#af2437"
-                    }
-                  },
-                  {
-                    "type": "stripes",
-                    "logKey": "/RealOutputs/Manipulator/State",
-                    "logType": "String",
-                    "visible": true,
-                    "options": {
-                      "color": "#80588e"
-                    }
-                  },
-                  {
-                    "type": "stripes",
-                    "logKey": "/Manipulator/IsFunnelIRBlocked",
-                    "logType": "Boolean",
-                    "visible": true,
-                    "options": {
-                      "color": "#858584"
-                    }
-                  },
-                  {
-                    "type": "stripes",
-                    "logKey": "/Manipulator/IsIndexerIRBlocked",
-                    "logType": "Boolean",
-                    "visible": true,
-                    "options": {
-                      "color": "#3b875a"
-                    }
-                  },
-                  {
-                    "type": "stripes",
-                    "logKey": "/Manipulator/IsAlgaeIRBlocked",
-                    "logType": "Boolean",
-                    "visible": true,
-                    "options": {
-                      "color": "#80588e"
-                    }
-                  },
-                  {
-                    "type": "stripes",
                     "logKey": "/RealOutputs/LEDS/state",
                     "logType": "String",
                     "visible": true,
@@ -485,47 +341,29 @@
                   },
                   {
                     "type": "stripes",
-                    "logKey": "/RealOutputs/DriveToReef/withinTolerance",
-                    "logType": "Boolean",
-                    "visible": true,
-                    "options": {
-                      "color": "#5f4528"
-                    }
-                  },
-                  {
-                    "type": "stripes",
-                    "logKey": "/RealOutputs/DriveToReef/isFinished",
-                    "logType": "Boolean",
-                    "visible": true,
-                    "options": {
-                      "color": "#e5b31b"
-                    }
-                  },
-                  {
-                    "type": "stripes",
-                    "logKey": "/NetworkInputs/Tuning/operatorDashboard/Enable Auto Scoring",
-                    "logType": "Boolean",
-                    "visible": true,
-                    "options": {
-                      "color": "#e48b32"
-                    }
-                  },
-                  {
-                    "type": "stripes",
-                    "logKey": "/RealOutputs/Elevator/canScoreFartherAway",
-                    "logType": "Boolean",
-                    "visible": true,
-                    "options": {
-                      "color": "#c0b487"
-                    }
-                  },
-                  {
-                    "type": "stripes",
                     "logKey": "/NetworkInputs/SmartDashboard/Auto Routine",
                     "logType": "String",
                     "visible": true,
                     "options": {
                       "color": "#858584"
+                    }
+                  },
+                  {
+                    "type": "stripes",
+                    "logKey": "/RealOutputs/DriveToPose/withinTolerance",
+                    "logType": "Boolean",
+                    "visible": true,
+                    "options": {
+                      "color": "#80588e"
+                    }
+                  },
+                  {
+                    "type": "stripes",
+                    "logKey": "/RealOutputs/DriveToPose/isFinished",
+                    "logType": "Boolean",
+                    "visible": true,
+                    "options": {
+                      "color": "#af2437"
                     }
                   }
                 ],
@@ -547,60 +385,27 @@
               "controlsHeight": 412
             },
             {
-              "type": 6,
-              "title": "Statistics",
-              "controller": {
-                "sources": [
-                  {
-                    "type": "independent",
-                    "logKey": "/Elevator/StatorCurrentAmpsLead",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#2b66a2"
-                    }
-                  },
-                  {
-                    "type": "independent",
-                    "logKey": "/Elevator/SupplyCurrentAmpsLead",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#e5b31b"
-                    }
-                  }
-                ],
-                "timeRange": "enabled",
-                "rangeMin": 0,
-                "rangeMax": 100,
-                "stepSize": 5
-              },
-              "controllerUUID": "jvx18j1isn55lkxlbi3nx3wutdeizl5w",
-              "renderer": null,
-              "controlsHeight": 200
-            },
-            {
               "type": 1,
-              "title": "DriveToReef",
+              "title": "DriveToPose",
               "controller": {
                 "leftSources": [
                   {
                     "type": "stepped",
-                    "logKey": "/RealOutputs/DriveToReef/difference (reef frame)/translation/x",
+                    "logKey": "/RealOutputs/DriveToPose/pose difference (target frame)/translation/x",
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#2b66a2",
+                      "color": "#d993aa",
                       "size": "normal"
                     }
                   },
                   {
                     "type": "stepped",
-                    "logKey": "/RealOutputs/DriveToReef/x velocity (reef frame)",
+                    "logKey": "/RealOutputs/DriveToPose/x velocity (target frame)",
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#858584",
+                      "color": "#5f4528",
                       "size": "normal"
                     }
                   }
@@ -608,21 +413,21 @@
                 "rightSources": [
                   {
                     "type": "stepped",
-                    "logKey": "/RealOutputs/DriveToReef/difference (reef frame)/translation/y",
+                    "logKey": "/RealOutputs/DriveToPose/pose difference (target frame)/translation/y",
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#e5b31b",
+                      "color": "#af2437",
                       "size": "normal"
                     }
                   },
                   {
                     "type": "stepped",
-                    "logKey": "/RealOutputs/DriveToReef/y velocity (reef frame)",
+                    "logKey": "/RealOutputs/DriveToPose/y velocity (target frame)",
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#3b875a",
+                      "color": "#80588e",
                       "size": "normal"
                     }
                   }
@@ -630,38 +435,20 @@
                 "discreteSources": [
                   {
                     "type": "stripes",
-                    "logKey": "/RealOutputs/DriveToReef/isFinished",
+                    "logKey": "/RealOutputs/DriveToPose/isFinished",
                     "logType": "Boolean",
                     "visible": true,
                     "options": {
-                      "color": "#af2437"
+                      "color": "#2b66a2"
                     }
                   },
                   {
                     "type": "stripes",
-                    "logKey": "/RealOutputs/DriveToReef/one coral away",
+                    "logKey": "/RealOutputs/DriveToPose/withinTolerance",
                     "logType": "Boolean",
                     "visible": true,
                     "options": {
-                      "color": "#80588e"
-                    }
-                  },
-                  {
-                    "type": "stripes",
-                    "logKey": "/RealOutputs/DriveToReef/withinTolerance",
-                    "logType": "Boolean",
-                    "visible": true,
-                    "options": {
-                      "color": "#e48b32"
-                    }
-                  },
-                  {
-                    "type": "stripes",
-                    "logKey": "/RealOutputs/DriveToReef/boost velocity",
-                    "logType": "Boolean",
-                    "visible": true,
-                    "options": {
-                      "color": "#c0b487"
+                      "color": "#858584"
                     }
                   }
                 ],
@@ -681,99 +468,6 @@
               "controllerUUID": "407fzjz08dofovgshfuuh2zatxjyfsa5",
               "renderer": null,
               "controlsHeight": 272
-            },
-            {
-              "type": 1,
-              "title": "Climber",
-              "controller": {
-                "leftSources": [
-                  {
-                    "type": "stepped",
-                    "logKey": "/Climber/StatorCurrentAmps",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#2b66a2",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "/Climber/SupplyCurrentAmps",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#af2437",
-                      "size": "normal"
-                    }
-                  }
-                ],
-                "rightSources": [
-                  {
-                    "type": "stepped",
-                    "logKey": "/Climber/PositionInches",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#858584",
-                      "size": "normal"
-                    }
-                  }
-                ],
-                "discreteSources": [
-                  {
-                    "type": "stripes",
-                    "logKey": "/DriverStation/Enabled",
-                    "logType": "Boolean",
-                    "visible": true,
-                    "options": {
-                      "color": "#e5b31b"
-                    }
-                  },
-                  {
-                    "type": "stripes",
-                    "logKey": "/Climber/CageCatcherLimitSwitchEngaged",
-                    "logType": "Boolean",
-                    "visible": true,
-                    "options": {
-                      "color": "#80588e"
-                    }
-                  },
-                  {
-                    "type": "stripes",
-                    "logKey": "/Climber/LimitSwitch1Engaged",
-                    "logType": "Boolean",
-                    "visible": true,
-                    "options": {
-                      "color": "#e48b32"
-                    }
-                  },
-                  {
-                    "type": "stripes",
-                    "logKey": "/Climber/LimitSwitch2Engaged",
-                    "logType": "Boolean",
-                    "visible": true,
-                    "options": {
-                      "color": "#c0b487"
-                    }
-                  }
-                ],
-                "leftLockedRange": null,
-                "rightLockedRange": null,
-                "leftUnitConversion": {
-                  "type": null,
-                  "factor": 1
-                },
-                "rightUnitConversion": {
-                  "type": null,
-                  "factor": 1
-                },
-                "leftFilter": 0,
-                "rightFilter": 0
-              },
-              "controllerUUID": "y2b0juqwv450pvttovz25fkwty2eu7pg",
-              "renderer": null,
-              "controlsHeight": 200
             },
             {
               "type": 1,
@@ -922,71 +616,6 @@
               "controlsHeight": 200
             },
             {
-              "type": 1,
-              "title": "Line Graph",
-              "controller": {
-                "leftSources": [
-                  {
-                    "type": "stepped",
-                    "logKey": "/Drivetrain/BL/SteerAbsolutePositionDeg",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#2b66a2",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "/Drivetrain/BR/SteerAbsolutePositionDeg",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#e5b31b",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "/Drivetrain/FL/SteerAbsolutePositionDeg",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#af2437",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "/Drivetrain/FR/SteerAbsolutePositionDeg",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#80588e",
-                      "size": "normal"
-                    }
-                  }
-                ],
-                "rightSources": [],
-                "discreteSources": [],
-                "leftLockedRange": null,
-                "rightLockedRange": null,
-                "leftUnitConversion": {
-                  "type": null,
-                  "factor": 1
-                },
-                "rightUnitConversion": {
-                  "type": null,
-                  "factor": 1
-                },
-                "leftFilter": 0,
-                "rightFilter": 0
-              },
-              "controllerUUID": "pc5m8oxlcjjtb53grqxsz5xvo69s80lt",
-              "renderer": null,
-              "controlsHeight": 261
-            },
-            {
               "type": 8,
               "title": "Joysticks",
               "controller": [
@@ -1037,56 +666,11 @@
                   },
                   {
                     "type": "stripes",
-                    "logKey": "/RealOutputs/CommandsAll/prep to score",
+                    "logKey": "/RealOutputs/CommandsAll/drive to pose",
                     "logType": "Boolean",
                     "visible": true,
                     "options": {
-                      "color": "#80588e"
-                    }
-                  },
-                  {
-                    "type": "stripes",
-                    "logKey": "/RealOutputs/CommandsAll/drive to nearest coral station",
-                    "logType": "Boolean",
-                    "visible": true,
-                    "options": {
-                      "color": "#e48b32"
-                    }
-                  },
-                  {
-                    "type": "stripes",
-                    "logKey": "/RealOutputs/CommandsAll/go to selected position or L2",
-                    "logType": "Boolean",
-                    "visible": true,
-                    "options": {
-                      "color": "#c0b487"
-                    }
-                  },
-                  {
-                    "type": "stripes",
-                    "logKey": "/RealOutputs/CommandsAll/Override driveToPose",
-                    "logType": "Boolean",
-                    "visible": true,
-                    "options": {
-                      "color": "#858584"
-                    }
-                  },
-                  {
-                    "type": "stripes",
-                    "logKey": "/RealOutputs/CommandsAll/score",
-                    "logType": "Boolean",
-                    "visible": true,
-                    "options": {
-                      "color": "#3b875a"
-                    }
-                  },
-                  {
-                    "type": "stripes",
-                    "logKey": "/RealOutputs/CommandsAll/InstantCommand",
-                    "logType": "Boolean",
-                    "visible": true,
-                    "options": {
-                      "color": "#d993aa"
+                      "color": "#5f4528"
                     }
                   }
                 ],
@@ -1433,67 +1017,16 @@
                 "leftSources": [
                   {
                     "type": "stepped",
-                    "logKey": "/Climber/TempCelsius",
+                    "logKey": "/Subsystem/TempCelsius",
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#2b66a2",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "/Elevator/FollowerTempCelsius",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#e5b31b",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "/Elevator/LeadTempCelsius",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#af2437",
+                      "color": "#858584",
                       "size": "normal"
                     }
                   }
                 ],
-                "rightSources": [
-                  {
-                    "type": "stepped",
-                    "logKey": "/Manipulator/FunnelTempCelsius",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#80588e",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "/Manipulator/IndexerTempCelsius",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#e48b32",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "/Manipulator/PivotTempCelsius",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#c0b487",
-                      "size": "normal"
-                    }
-                  }
-                ],
+                "rightSources": [],
                 "discreteSources": [],
                 "leftLockedRange": null,
                 "rightLockedRange": null,
@@ -1731,16 +1264,6 @@
                 "leftSources": [
                   {
                     "type": "stepped",
-                    "logKey": "/RealOutputs/LoggedTracer/ClimberMS",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#2b66a2",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
                     "logKey": "/RealOutputs/LoggedTracer/CommandsMS",
                     "logType": "Number",
                     "visible": true,
@@ -1761,31 +1284,11 @@
                   },
                   {
                     "type": "stepped",
-                    "logKey": "/RealOutputs/LoggedTracer/ElevatorMS",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#80588e",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
                     "logKey": "/RealOutputs/LoggedTracer/LEDsMS",
                     "logType": "Number",
                     "visible": true,
                     "options": {
                       "color": "#e48b32",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "/RealOutputs/LoggedTracer/ManipulatorMS",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#c0b487",
                       "size": "normal"
                     }
                   },
@@ -1816,6 +1319,16 @@
                     "visible": true,
                     "options": {
                       "color": "#d993aa",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "/RealOutputs/LoggedTracer/SubsystemMS",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#80588e",
                       "size": "normal"
                     }
                   }
