@@ -1,6 +1,5 @@
 package frc.lib.team3061.vision;
 
-import static edu.wpi.first.units.Units.*;
 import static frc.lib.team3061.vision.VisionConstants.*;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;

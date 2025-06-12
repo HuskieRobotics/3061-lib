@@ -29,7 +29,7 @@ public class DualJoysticksOI extends OperatorDashboard {
     }
   }
 
-  // Translate Joystick
+  // Translation Joystick
   @Override
   public double getTranslateX() {
     return -translateJoystick.getY();
@@ -40,7 +40,10 @@ public class DualJoysticksOI extends OperatorDashboard {
     return -translateJoystick.getX();
   }
 
-  // Translation Joystick
+  @Override
+  public Trigger getDriveToPoseButton() {
+    return translateJoystickButtons[1];
+  }
 
   @Override
   public Trigger getInterruptAll() {

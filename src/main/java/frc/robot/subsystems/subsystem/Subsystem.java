@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.util.SysIdRoutineChooser;
+import frc.lib.team6328.util.LoggedTracer;
 import frc.lib.team6328.util.LoggedTunableNumber;
 import org.littletonrobotics.junction.Logger;
 
@@ -182,6 +183,9 @@ public class Subsystem extends SubsystemBase {
     } else {
       runStateMachine();
     }
+
+    // Record cycle time
+    LoggedTracer.record("Subsystem");
   }
 
   private void setState(State state) {

@@ -76,6 +76,11 @@ public interface OperatorInterface {
   }
 
   // DRIVER TRIGGERS, mostly game-specific
+
+  public default Trigger getDriveToPoseButton() {
+    return new Trigger(() -> false);
+  }
+
   public default Trigger getOverrideDriveToPoseButton() {
     return new Trigger(() -> false);
   }

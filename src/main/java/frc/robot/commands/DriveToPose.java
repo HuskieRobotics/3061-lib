@@ -1,216 +1,246 @@
-// Copyright (c) 2023 FRC 6328
-// http://github.com/Mechanical-Advantage
-//
-// Use of this source code is governed by an MIT-style
-// license that can be found in the LICENSE file at
-// the root directory of this project.
-
-// originally from https://github.com/Mechanical-Advantage/RobotCode2023
-
 package frc.robot.commands;
 
-import static frc.robot.Constants.*;
-
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.Drivetrain;
 import frc.lib.team3061.leds.LEDs;
-import frc.lib.team6328.util.LoggedTunableNumber;
 import frc.robot.Field2d;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 /**
- * This command, when executed, instructs the drivetrain subsystem to drive to the specified pose in
+ * This command, when executed, instructs the drivetrain subsystem to drive to the supplied pose in
  * a straight line. The execute method invokes the drivetrain subsystem's drive method. For
- * following a predetermined path, refer to the FollowPath Command class. For generating a path on
- * the fly and following that path, refer to the MoveToPose Command class.
+ * following a predetermined path, refer to PathPlanner. For generating a path on the fly and
+ * following that path, refer to Field2d's makePath method.
  *
- * <p>This is a more generic command that drives to any given pose, and can be customized for other
- * specific goals.
+ * <p>This command is highly customizable with a variety of suppliers. It can be further customized
+ * by extending and overriding the desired methods.
  *
  * <p>Requires: the Drivetrain subsystem
  *
- * <p>Finished When: the robot is at the specified pose (within the specified tolerances)
+ * <p>Finished When one of the following is true: it is specified that this command finishes when
+ * the the robot is at the target pose and the robot is at the target pose (within the specified
+ * tolerances), when the timeout occurs, when it is determined that the robot cannot reach the
+ * target pose, or when the move-to-pose feature is disabled on the drivetrain subsystem.
  *
- * <p>At End: stops the drivetrain
+ * <p>At End: stops the drivetrain, disables acceleration limiting
  */
 public class DriveToPose extends Command {
   private final Drivetrain drivetrain;
-  private final Supplier<Pose2d> poseSupplier;
-  private final Consumer<Boolean> onTarget;
-  private Pose2d targetPose;
+  private final Supplier<Pose2d> targetPoseSupplier;
+  private final BiFunction<Double, Double, Double> xSupplier;
+  private final BiFunction<Double, Double, Double> ySupplier;
+  private final BiFunction<Double, Double, Double> thetaSupplier;
   private Transform2d targetTolerance;
-
+  private final boolean finishesWhenAtTarget;
+  private final Consumer<Boolean> atTargetConsumer;
+  private final Consumer<Transform2d> poseDifferenceConsumer;
   private double timeout;
 
   private Timer timer;
-
-  private static final LoggedTunableNumber driveKp =
-      new LoggedTunableNumber(
-          "DriveToPose/DriveKp", RobotConfig.getInstance().getDriveToPoseDriveKP());
-  private static final LoggedTunableNumber driveKd =
-      new LoggedTunableNumber(
-          "DriveToPose/DriveKd", RobotConfig.getInstance().getDriveToPoseDriveKD());
-  private static final LoggedTunableNumber driveKi =
-      new LoggedTunableNumber("DriveToPose/DriveKi", 0);
-  private static final LoggedTunableNumber thetaKp =
-      new LoggedTunableNumber(
-          "DriveToPose/ThetaKp", RobotConfig.getInstance().getDriveToPoseThetaKP());
-  private static final LoggedTunableNumber thetaKd =
-      new LoggedTunableNumber(
-          "DriveToPose/ThetaKd", RobotConfig.getInstance().getDriveToPoseThetaKD());
-  private static final LoggedTunableNumber thetaKi =
-      new LoggedTunableNumber(
-          "DriveToPose/ThetaKi", RobotConfig.getInstance().getDriveToPoseThetaKI());
-
-  private final PIDController xController =
-      new PIDController(driveKp.get(), driveKi.get(), driveKd.get(), LOOP_PERIOD_SECS);
-  private final PIDController yController =
-      new PIDController(driveKp.get(), driveKi.get(), driveKd.get(), LOOP_PERIOD_SECS);
-  private final PIDController thetaController =
-      new PIDController(thetaKp.get(), thetaKi.get(), thetaKd.get(), LOOP_PERIOD_SECS);
+  private boolean firstRun = true;
+  private Transform2d poseDifferenceInTargetFrame; // optimization to calculate once per loop
 
   /**
    * Constructs a new DriveToPose command that drives the robot in a straight line to the specified
-   * pose. A pose supplier is specified instead of a pose since the target pose may not be known
-   * when this command is created.
+   * target pose.
    *
    * @param drivetrain the drivetrain subsystem required by this command
-   * @param poseSupplier a supplier that returns the pose to drive to
+   * @param targetPoseSupplier a supplier that returns the pose to drive to. A pose supplier is
+   *     specified instead of a pose since the target pose may not be known when this command is
+   *     created. In addition, for more complex applications, this provides the opportunity for the
+   *     target pose to change while this command executes.
+   * @param xSupplier a function that takes the current and target x positions in the field frame
+   *     and returns the x velocity in the field frame to drive at. The function should return a
+   *     value in meters per second. Most commonly, this will be be calculated by a PID controller.
+   * @param ySupplier a function that takes the current and target y positions in the field frame
+   *     and returns the y velocity in the field frame to drive at. The function should return a
+   *     value in meters per second. Most commonly, this will be be calculated by a PID controller.
+   *     However, this enables other approaches such as fusing driver input (like was done in 2025
+   *     when aligning to the barge).
+   * @param thetaSupplier a function that takes the current and target theta positions and returns
+   *     the theta velocity to drive at. The function should return a value in radians per second.
+   *     Most commonly, this will be be calculated by a PID controller.
+   * @param targetTolerance the tolerance for determining if the robot has reached the target pose
+   *     specified in meters. This tolerance is specified in the frame of the target pose, not in
+   *     the field frame. If more complex logic is needed, the isPoseWithinTolerance method can be
+   *     overriden (e.g., for asymmetric tolerances).
+   * @param finishesWhenAtTarget if true, this command will finish when the robot is at the target
+   *     pose (within the specified tolerances). If false, this command will not finish when the
+   *     robot is at the target pose, but will continue until another condition is met (e.g.,
+   *     timeout, cannot reach target pose, move-to-pose feature disabled) or the command is
+   *     canceled.
+   * @param atTargetConsumer a consumer that is invoked with a boolean indicating whether the robot
+   *     is at the target pose (within the specified tolerances). This can be used to change LEDs to
+   *     indicate to the driver that the robot is at the target pose.
+   * @param poseDifferenceConsumer a consumer that is invoked with the pose difference in the frame
+   *     of the target pose. This can be used in more complicated collections of commands to control
+   *     other subsystems as the robot moves towards the target pose.
+   * @param timeout the timeout in seconds for this command. If the timeout is reached, this command
+   *     will finish. If the timeout is less than or equal to zero, this command will not time out.
+   *     This is useful for debugging purposes, but should be set to a reasonable value in
+   *     production code to prevent the robot from driving indefinitely.
    */
   public DriveToPose(
       Drivetrain drivetrain,
-      Supplier<Pose2d> poseSupplier,
-      Consumer<Boolean> onTargetConsumer,
-      Transform2d tolerance,
+      Supplier<Pose2d> targetPoseSupplier,
+      BiFunction<Double, Double, Double> xSupplier,
+      BiFunction<Double, Double, Double> ySupplier,
+      BiFunction<Double, Double, Double> thetaSupplier,
+      Transform2d targetTolerance,
+      boolean finishesWhenAtTarget,
+      Consumer<Boolean> atTargetConsumer,
+      Consumer<Transform2d> poseDifferenceConsumer,
       double timeout) {
     this.drivetrain = drivetrain;
-    this.poseSupplier = poseSupplier;
-    this.onTarget = onTargetConsumer;
-    this.targetTolerance = tolerance;
-    this.timer = new Timer();
+    this.targetPoseSupplier = targetPoseSupplier;
+    this.xSupplier = xSupplier;
+    this.ySupplier = ySupplier;
+    this.thetaSupplier = thetaSupplier;
+    this.targetTolerance = targetTolerance;
+    this.finishesWhenAtTarget = finishesWhenAtTarget;
+    this.atTargetConsumer = atTargetConsumer;
+    this.poseDifferenceConsumer = poseDifferenceConsumer;
     this.timeout = timeout;
+
+    this.timer = new Timer();
     addRequirements(drivetrain);
-    thetaController.enableContinuousInput(-Math.PI, Math.PI);
   }
 
   /**
-   * This method is invoked once when this command is scheduled. It resets all the PID controllers
-   * and initializes the current and target poses. It is critical that this initialization occurs in
-   * this method and not the constructor as this object is constructed well before the command is
-   * scheduled and the robot's pose will definitely have changed and the target pose may not be
-   * known until this command is scheduled.
+   * This method is invoked once when this command is scheduled. It enables acceleration limiting on
+   * the drivetrain subsystem, initializes the timer, and sets the firstRun flag to true. This
+   * operations need to occur in this method and not in the constructor as this command may be
+   * scheduled multiple times.
    */
   @Override
   public void initialize() {
-    // Reset all controllers
-    this.targetPose = poseSupplier.get();
-
     drivetrain.enableAccelerationLimiting();
 
-    Logger.recordOutput("DriveToPose/targetPose", targetPose);
     Logger.recordOutput("DriveToPose/isFinished", false);
     Logger.recordOutput("DriveToPose/withinTolerance", false);
 
     this.timer.restart();
+    this.firstRun = true;
   }
 
   /**
    * This method is invoked periodically while this command is scheduled. It calculates the
-   * velocities based on the current and target poses and invokes the drivetrain subsystem's drive
-   * method.
+   * velocities by invoking the suppliers and passing the current and target poses. This method
+   * accounts for the alliance color; so, the suppliers should not do this. The adjustVelocities
+   * method is invoked (and can be overriden) to provide the opportunity to change the calculated
+   * velocities if needed by the application (e.g., boosting the x velocity to ensure the robot
+   * drives into a field element). After all calculations and adjustments, the drivetrain
+   * subsystem's drive method is invoked.
    */
   @Override
   public void execute() {
+    LEDs.getInstance().requestState(LEDs.States.AUTO_DRIVING_TO_POSE);
 
-    LEDs.getInstance().requestState(LEDs.States.AUTO_DRIVING_TO_SCORE);
-
-    // Update from tunable numbers
-    LoggedTunableNumber.ifChanged(
-        hashCode(),
-        pid -> {
-          xController.setPID(pid[0], pid[1], pid[2]);
-          yController.setPID(pid[0], pid[1], pid[2]);
-        },
-        driveKp,
-        driveKi,
-        driveKd);
-    LoggedTunableNumber.ifChanged(
-        hashCode(),
-        pid -> thetaController.setPID(pid[0], pid[1], pid[2]),
-        thetaKp,
-        thetaKi,
-        thetaKd);
-
+    Pose2d targetPose = targetPoseSupplier.get();
     Pose2d currentPose = drivetrain.getPose();
 
-    // use last values of filter
-    double xVelocity = xController.calculate(currentPose.getX(), this.targetPose.getX());
-    double yVelocity = yController.calculate(currentPose.getY(), this.targetPose.getY());
+    // calculate new velocities in the field frame
+    double xVelocity = xSupplier.apply(currentPose.getX(), targetPose.getX());
+    double yVelocity = ySupplier.apply(currentPose.getY(), targetPose.getY());
     double thetaVelocity =
-        thetaController.calculate(
-            currentPose.getRotation().getRadians(), this.targetPose.getRotation().getRadians());
+        thetaSupplier.apply(
+            currentPose.getRotation().getRadians(), targetPose.getRotation().getRadians());
 
-    Logger.recordOutput("DriveToPose/x velocity (field relative)", xVelocity);
-    Logger.recordOutput("DriveToPose/y velocity (field relative)", yVelocity);
+    // calculate the pose difference in the frame of the field
+    Transform2d fieldRelativeDifference =
+        new Transform2d(
+            targetPose.getX() - currentPose.getX(),
+            targetPose.getY() - currentPose.getY(),
+            Rotation2d.fromRadians(
+                targetPose.getRotation().getRadians() - currentPose.getRotation().getRadians()));
 
+    // calculate the pose difference in the frame of the target pose
+    this.poseDifferenceInTargetFrame = new Transform2d(targetPose, currentPose);
+
+    // convert the velocities in the field frame to the frame of the target pose
+    Translation2d velocitiesInTargetFrame =
+        new Translation2d(xVelocity, yVelocity).rotateBy(targetPose.getRotation().unaryMinus());
+
+    // opportunity to adjust velocities in the robot frame
+    velocitiesInTargetFrame =
+        adjustVelocities(velocitiesInTargetFrame, this.poseDifferenceInTargetFrame);
+
+    // convert the velocities in the frame of the target pose back into the field frame
+    Translation2d fieldRelativeVelocities =
+        velocitiesInTargetFrame.rotateBy(targetPose.getRotation());
+
+    // account for which side of the field the driver station is on
     int allianceMultiplier = Field2d.getInstance().getAlliance() == Alliance.Blue ? 1 : -1;
 
     drivetrain.drive(
-        allianceMultiplier * xVelocity, allianceMultiplier * yVelocity, thetaVelocity, true, true);
+        allianceMultiplier * fieldRelativeVelocities.getX(),
+        allianceMultiplier * fieldRelativeVelocities.getY(),
+        thetaVelocity,
+        true,
+        true);
+
+    Logger.recordOutput("DriveToPose/targetPose", targetPose);
+    Logger.recordOutput("DriveToPose/x velocity (field frame)", xVelocity);
+    Logger.recordOutput("DriveToPose/y velocity (field frame)", yVelocity);
+    Logger.recordOutput("DriveToPose/theta velocity (field frame)", thetaVelocity);
+    Logger.recordOutput("DriveToPose/pose difference (field frame)", fieldRelativeDifference);
+    Logger.recordOutput(
+        "DriveToPose/pose difference (target frame)", this.poseDifferenceInTargetFrame);
+    Logger.recordOutput("DriveToPose/x velocity (target frame)", velocitiesInTargetFrame.getX());
+    Logger.recordOutput("DriveToPose/y velocity (target frame)", velocitiesInTargetFrame.getY());
   }
 
   /**
    * This method returns true if the command has finished. It is invoked periodically while this
-   * command is scheduled (after execute is invoked). This command is considered finished if the
-   * move-to-pose feature is disabled on the drivetrain subsystem or if the timeout has elapsed or
-   * if all the PID controllers are at their goal.
+   * command is scheduled (after execute is invoked). The isPoseWithinTolerance method is invoked
+   * (and can be overriden) to provide custom definitions of "finished" (e.g., asymmetric
+   * tolerances). The canReachTargetPose method is invoked (and can be overriden) to provide
+   * specialized behavior to determine if the robot can physically reach the target pose (e.g., a
+   * field element is in its path). This command is considered finished when one of the following is
+   * true: it is specified that this command finishes when the the robot is at the target pose and
+   * the robot is at the target pose (within the specified tolerances), when the timeout occurs,
+   * when it is determined that the robot cannot reach the target pose, or when the move-to-pose
+   * feature is disabled on the drivetrain subsystem.
    *
    * @return true if the command has finished
    */
   @Override
   public boolean isFinished() {
-    Transform2d difference =
-        new Transform2d(
-            drivetrain.getPose().getX() - targetPose.getX(),
-            drivetrain.getPose().getY() - targetPose.getY(),
-            Rotation2d.fromRadians(
-                drivetrain.getPose().getRotation().getRadians()
-                    - targetPose.getRotation().getRadians()));
+    poseDifferenceConsumer.accept(this.poseDifferenceInTargetFrame);
 
-    Logger.recordOutput("DriveToPose/difference", difference);
+    boolean withinTolerance = isPoseWithinTolerance();
+    atTargetConsumer.accept(withinTolerance);
 
-    Transform2d robotRelativeDifference = new Transform2d(targetPose, drivetrain.getPose());
-    Logger.recordOutput("DriveToPose/difference (robot relative)", robotRelativeDifference);
-
-    boolean atGoal =
-        Math.abs(robotRelativeDifference.getX()) < targetTolerance.getX()
-            && Math.abs(robotRelativeDifference.getY()) < targetTolerance.getY()
-            && Math.abs(robotRelativeDifference.getRotation().getRadians())
-                < targetTolerance.getRotation().getRadians();
-
-    if (atGoal) {
-      onTarget.accept(true);
-      Logger.recordOutput("DriveToPose/withinTolerance", true);
-    } else if (!drivetrain.isMoveToPoseEnabled() || this.timer.hasElapsed(timeout)) {
-      onTarget.accept(false);
+    boolean canReachTargetPose = true;
+    if (this.firstRun) {
+      this.firstRun = false;
+      canReachTargetPose = canReachTargetPose(this.poseDifferenceInTargetFrame);
+      if (!canReachTargetPose) {
+        drivetrain.setDriveToPoseCanceled(true);
+      }
+      Logger.recordOutput("DriveToPose/canReachTargetPose", canReachTargetPose);
     }
 
-    // check each of the controllers is at their goal or if the timeout has elapsed
-    return !drivetrain.isMoveToPoseEnabled() || this.timer.hasElapsed(timeout) || atGoal;
+    Logger.recordOutput("DriveToPose/withinTolerance", withinTolerance);
+
+    return (finishesWhenAtTarget && withinTolerance)
+        || !canReachTargetPose
+        || !drivetrain.isMoveToPoseEnabled()
+        || this.timer.hasElapsed(timeout);
   }
 
   /**
    * This method will be invoked when this command finishes or is interrupted. It stops the motion
-   * of the drivetrain.
+   * of the drivetrain and disables acceleration limiting.
    *
    * @param interrupted true if the command was interrupted by another command being scheduled
    */
@@ -219,5 +249,53 @@ public class DriveToPose extends Command {
     drivetrain.disableAccelerationLimiting();
     drivetrain.stop();
     Logger.recordOutput("DriveToPose/isFinished", true);
+  }
+
+  /**
+   * This method is invoked to adjust the velocities in the frame of the target pose. It can be
+   * overridden to provide custom behavior for adjusting the velocities. By default, it returns the
+   * velocities unchanged. This provides the opportunity to adjust the velocities based on the pose
+   * difference in the target frame. For example, this can be used to boost the x velocity to ensure
+   * the robot drives into a field element.
+   *
+   * @param velocitiesInTargetFrame the velocities in the robot frame, calculated in the frame of
+   *     the target pose
+   * @param poseDifferenceInTargetFrame the pose difference in the target frame, which can be used
+   *     to adjust the velocities
+   * @return the adjusted velocities in the of the target pose
+   */
+  public Translation2d adjustVelocities(
+      Translation2d velocitiesInTargetFrame, Transform2d poseDifferenceInTargetFrame) {
+    return velocitiesInTargetFrame;
+  }
+
+  /**
+   * This method checks if the robot is within the specified tolerances of the target pose in the
+   * frame of the target pose. This method can be overridden to provide custom behavior for
+   * determining if the robot is at the target pose. For example, this can be used to provide
+   * asymmetric tolerances.
+   *
+   * @return true if the robot is within the specified tolerances of the target pose (in the frame
+   *     of the target pose), false otherwise
+   */
+  public boolean isPoseWithinTolerance() {
+    return Math.abs(this.poseDifferenceInTargetFrame.getX()) < this.targetTolerance.getX()
+        && Math.abs(this.poseDifferenceInTargetFrame.getY()) < this.targetTolerance.getY()
+        && Math.abs(this.poseDifferenceInTargetFrame.getRotation().getRadians())
+            < this.targetTolerance.getRotation().getRadians();
+  }
+
+  /**
+   * This method checks if the robot can reach the target pose based on the pose difference in the
+   * frame of the target pose. This method can be overridden to provide custom behavior for
+   * determining if the robot can physically reach the target pose. For example, this can be used to
+   * determine if a field element is in the robot's path.
+   *
+   * @param poseDifferenceInTargetFrame the pose difference in the frame of the target pose
+   * @return true if the robot can reach the target pose, false otherwise
+   */
+  public boolean canReachTargetPose(Transform2d poseDifferenceInTargetFrame) {
+    // by default, assume we can reach the target pose
+    return true;
   }
 }

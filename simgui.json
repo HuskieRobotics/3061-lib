@@ -17,10 +17,13 @@
   "NTProvider": {
     "types": {
       "/AdvantageKit/RealOutputs/Alerts": "Alerts",
+      "/AdvantageKit/RealOutputs/PathPlanner": "Alerts",
       "/FMSInfo": "FMSInfo",
       "/SmartDashboard/Alerts": "Alerts",
       "/SmartDashboard/Auto Routine": "String Chooser",
+      "/SmartDashboard/PathPlanner": "Alerts",
       "/SmartDashboard/SysId Chooser": "String Chooser",
+      "/SmartDashboard/SystemStatus/CheckForFaults": "Command",
       "/SmartDashboard/SystemStatus/ClearAllFaults": "Command",
       "/SmartDashboard/SystemStatus/Drivetrain/SystemCheck": "Command",
       "/SmartDashboard/SystemStatus/Subsystem/SystemCheck": "Command",

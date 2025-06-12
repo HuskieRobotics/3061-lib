@@ -26,6 +26,7 @@ import frc.lib.team3061.vision.VisionIOPhotonVision;
 import frc.lib.team3061.vision.VisionIOSim;
 import frc.robot.Constants.Mode;
 import frc.robot.commands.AutonomousCommandFactory;
+import frc.robot.commands.CrossSubsystemsCommandsFactory;
 import frc.robot.commands.SubsystemCommandFactory;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.configs.CalypsoRobotConfig;
@@ -37,6 +38,7 @@ import frc.robot.operator_interface.OISelector;
 import frc.robot.operator_interface.OperatorInterface;
 import frc.robot.subsystems.subsystem.Subsystem;
 import frc.robot.subsystems.subsystem.SubsystemIO;
+import frc.robot.subsystems.subsystem.SubsystemIOTalonFX;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -117,6 +119,8 @@ public class RobotContainer {
         visionIOs[i] = new VisionIO() {};
       }
       vision = new Vision(visionIOs);
+
+      // FIXME: initialize other subsystems
       subsystem = new Subsystem(new SubsystemIO() {});
     }
 
@@ -181,8 +185,8 @@ public class RobotContainer {
     }
     vision = new Vision(visionIOs);
 
-    // FIXME: create the hardware-specific subsystem class
-    subsystem = new Subsystem(new SubsystemIO() {});
+    // FIXME: initialize other subsystems
+    subsystem = new Subsystem(new SubsystemIOTalonFX());
   }
 
   private void createCTRESimSubsystems() {
@@ -210,13 +214,17 @@ public class RobotContainer {
     }
     vision = new Vision(visionIOs);
 
-    // FIXME: create the hardware-specific subsystem class
+    // FIXME: initialize other subsystems
+    subsystem = new Subsystem(new SubsystemIOTalonFX());
   }
 
   private void createPracticeBoardSubsystems() {
     // change the following to connect the subsystem being tested to actual hardware
     drivetrain = new Drivetrain(new DrivetrainIO() {});
     vision = new Vision(new VisionIO[] {new VisionIO() {}});
+
+    // FIXME: initialize other subsystems
+    subsystem = new Subsystem(new SubsystemIO() {});
   }
 
   private void createVisionTestPlatformSubsystems() {
@@ -239,6 +247,9 @@ public class RobotContainer {
       visionIOs[i] = new VisionIOPhotonVision(cameraNames[i], layout);
     }
     vision = new Vision(visionIOs);
+
+    // FIXME: initialize other subsystems
+    subsystem = new Subsystem(new SubsystemIO() {});
   }
 
   /**
@@ -269,7 +280,10 @@ public class RobotContainer {
     configureDrivetrainCommands();
     configureVisionCommands();
 
+    // register commands for other subsystems
     SubsystemCommandFactory.registerCommands(oi, subsystem);
+
+    CrossSubsystemsCommandsFactory.registerCommands(oi, drivetrain, vision, subsystem);
 
     // Endgame alerts
     new Trigger(

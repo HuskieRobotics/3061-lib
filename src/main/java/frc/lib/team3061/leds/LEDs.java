@@ -71,7 +71,8 @@ public abstract class LEDs extends SubsystemBase {
     UNTILTING_ROBOT((leds, section) -> leds.strobe(section, Color.kRed, STROBE_SLOW_DURATION)),
     DRIVE_TO_POSE_CANCELED(
         (leds, section) -> leds.strobe(section, Color.kPink, STROBE_SLOW_DURATION)),
-    AUTO_DRIVING_TO_SCORE((leds, section) -> leds.orangePulse(section, PULSE_DURATION)),
+    AUTO_DRIVING_TO_POSE((leds, section) -> leds.orangePulse(section, PULSE_DURATION)),
+    AT_POSE((leds, section) -> leds.solid(section, Color.kGreen)),
     DEFAULT((leds, section) -> leds.solid(section, Color.kBlack));
 
     public final BiConsumer<LEDs, Section> setter;

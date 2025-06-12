@@ -42,13 +42,18 @@ public class SimDualJoysticksOI extends OperatorDashboard {
   }
 
   @Override
-  public Trigger getFieldRelativeButton() {
+  public Trigger getDriveToPoseButton() {
     return translateJoystickButtons[1];
   }
 
   @Override
-  public Trigger getResetPoseToVisionButton() {
+  public Trigger getFieldRelativeButton() {
     return translateJoystickButtons[2];
+  }
+
+  @Override
+  public Trigger getResetPoseToVisionButton() {
+    return translateJoystickButtons[3];
   }
 
   // rotation joystick
