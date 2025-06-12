@@ -8,7 +8,6 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.lib.team3061.drivetrain.Drivetrain;
-import frc.lib.team3061.leds.LEDs;
 import frc.robot.Field2d;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -143,8 +142,6 @@ public class DriveToPose extends Command {
    */
   @Override
   public void execute() {
-    LEDs.getInstance().requestState(LEDs.States.AUTO_DRIVING_TO_POSE);
-
     Pose2d targetPose = targetPoseSupplier.get();
     Pose2d currentPose = drivetrain.getPose();
 
