@@ -2,43 +2,18 @@ package frc.robot.commands;
 
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
-import com.pathplanner.lib.util.FlippingUtil;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.lib.team3061.drivetrain.Drivetrain;
-import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team3061.vision.Vision;
-import frc.lib.team6328.util.FieldConstants;
-import frc.robot.Field2d;
-import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 public class AutonomousCommandFactory {
 
   private static AutonomousCommandFactory autonomousCommandFactory = null;
-
-  // arbitrary, find the actual starting poses
-  private Pose2d blueLeftStartingAutoPose =
-      new Pose2d(7.017, 6.076, Rotation2d.fromDegrees(-132.957));
-  private Pose2d blueRightStartingAutoPose =
-      new Pose2d(6.972, 1.884, Rotation2d.fromDegrees(145.333));
-  private Pose2d redLeftStartingAutoPose = FlippingUtil.flipFieldPose(blueLeftStartingAutoPose);
-  private Pose2d redRightStartingAutoPose = FlippingUtil.flipFieldPose(blueRightStartingAutoPose);
-
-  // set arbitrary tolerance values to 3 inches in each direction and 5 degrees
-  private Transform2d autoStartTolerance =
-      new Transform2d(
-          Units.inchesToMeters(3),
-          Units.inchesToMeters(3),
-          new Rotation2d(Units.degreesToRadians(5)));
 
   // use AdvantageKit's LoggedDashboardChooser instead of SendableChooser to ensure accurate logging
   private final LoggedDashboardChooser<Command> autoChooser =
@@ -199,37 +174,5 @@ public class AutonomousCommandFactory {
         Commands.runOnce(drivetrain::captureInitialConditions),
         new PathPlannerAuto(autoName),
         Commands.runOnce(() -> drivetrain.captureFinalConditions(autoName, measureDistance)));
-  }
-
-  public boolean alignedToStartingPose() {
-
-    // find the target position
-    Transform2d difference;
-
-    if (Field2d.getInstance().getAlliance() == Alliance.Blue) {
-      difference =
-          RobotOdometry.getInstance().getEstimatedPose().getY() > (FieldConstants.fieldWidth / 2.0)
-              ? RobotOdometry.getInstance().getEstimatedPose().minus(blueLeftStartingAutoPose)
-              : RobotOdometry.getInstance().getEstimatedPose().minus(blueRightStartingAutoPose);
-    } else {
-      difference =
-          RobotOdometry.getInstance().getEstimatedPose().getY() > (FieldConstants.fieldWidth / 2.0)
-              ? RobotOdometry.getInstance().getEstimatedPose().minus(redRightStartingAutoPose)
-              : RobotOdometry.getInstance().getEstimatedPose().minus(redLeftStartingAutoPose);
-    }
-
-    boolean isAligned =
-        Math.abs(difference.getX()) < autoStartTolerance.getX()
-            && Math.abs(difference.getY()) < autoStartTolerance.getY()
-            && Math.abs(difference.getRotation().getRadians())
-                < autoStartTolerance.getRotation().getRadians();
-
-    // this method will be invoked in something like our disabledPeriodic method
-    Logger.recordOutput("PathFinding/alignedForAuto", isAligned);
-    Logger.recordOutput("PathFinding/xDiff", difference.getX());
-    Logger.recordOutput("PathFinding/yDiff", difference.getY());
-    Logger.recordOutput("PathFinding/rotDiff", difference.getRotation().getDegrees());
-
-    return isAligned;
   }
 }

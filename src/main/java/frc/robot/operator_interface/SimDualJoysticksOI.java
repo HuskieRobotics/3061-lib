@@ -29,6 +29,8 @@ public class SimDualJoysticksOI extends OperatorDashboard {
     }
   }
 
+  // translation joystick
+
   @Override
   public double getTranslateX() {
     return -translateJoystick.getY();
@@ -40,22 +42,29 @@ public class SimDualJoysticksOI extends OperatorDashboard {
   }
 
   @Override
-  public double getRotate() {
-    return -rotateJoystick.getX();
+  public Trigger getDriveToPoseButton() {
+    return translateJoystickButtons[1];
   }
 
   @Override
   public Trigger getFieldRelativeButton() {
-    return translateJoystickButtons[3];
-  }
-
-  @Override
-  public Trigger getLock180Button() {
-    return new Trigger(() -> false);
+    return translateJoystickButtons[2];
   }
 
   @Override
   public Trigger getResetPoseToVisionButton() {
     return translateJoystickButtons[3];
+  }
+
+  // rotation joystick
+
+  @Override
+  public double getRotate() {
+    return -rotateJoystick.getX();
+  }
+
+  @Override
+  public Trigger getInterruptAll() {
+    return rotateJoystickButtons[4];
   }
 }

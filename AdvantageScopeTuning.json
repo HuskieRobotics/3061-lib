@@ -1,9 +1,9 @@
 {
   "hubs": [
     {
-      "x": 236,
+      "x": 619,
       "y": 25,
-      "width": 1778,
+      "width": 1343,
       "height": 1127,
       "state": {
         "sidebar": {
@@ -48,7 +48,6 @@
             "/RealOutputs/Vision/0",
             "/RealOutputs/Vision/2",
             "/RealOutputs/Vision/2/RobotPosesRejected",
-            "/RealOutputs/TeleopSwerve",
             "/Phoenix6",
             "/Log1",
             "/Log1/Phoenix6",
@@ -69,15 +68,10 @@
             "/RealOutputs/DriveToPose/difference/translation",
             "/ReplayOutputs/RobotOdometry/visionPoseDiff",
             "/ReplayOutputs/RobotOdometry/visionPoseDiff/translation",
-            "/RealOutputs/LEDS",
             "/RealOutputs/Vision/1",
             "/RealOutputs/Vision/3",
-            "/RealOutputs/Vision/1/RobotPosesAccepted",
             "/RealOutputs/Vision/3/RobotPosesAccepted",
             "/RealOutputs/Vision/3/RobotPosesRejected",
-            "/RealOutputs/DriveToPose",
-            "/RealOutputs/Drivetrain",
-            "/RealOutputs/CommandsAll",
             "/ReplayOutputs/DriveToPose",
             "/ReplayOutputs/DriveToPose/difference (reef frame)/translation",
             "/ReplayOutputs/DriveToPose/difference",
@@ -94,14 +88,21 @@
             "/RealOutputs/DriveToPose/difference (reef frame)",
             "/RealOutputs/DriveToPose/difference (reef frame)/translation",
             "/Tuning/DriveToPose",
-            "/RealOutputs/Elevator",
-            "/RealOutputs/Manipulator",
-            "/Drivetrain",
-            "/RealOutputs/Drivetrain/Pose"
+            "/RealOutputs/Vision/0/CameraPoses",
+            "/RealOutputs/Vision/1/CameraPoses",
+            "/RealOutputs/Vision/2/CameraPoses",
+            "/RealOutputs/Vision/3/CameraPoses",
+            "/RealOutputs/DriveToReef",
+            "/RealOutputs/DriveToReef/difference (reef frame)",
+            "/RealOutputs/DriveToReef/difference (reef frame)/translation",
+            "/RealOutputs/DriveToPose/pose difference (target frame)",
+            "/RealOutputs/DriveToPose/pose difference (target frame)/translation",
+            "/RealOutputs/DriveToPose/pose difference (field frame)",
+            "/RealOutputs/DriveToPose/pose difference (field frame)/translation"
           ]
         },
         "tabs": {
-          "selected": 19,
+          "selected": 1,
           "tabs": [
             {
               "type": 0,
@@ -117,11 +118,13 @@
               "controller": {
                 "sources": [
                   {
-                    "type": "robot",
+                    "type": "ghost",
                     "logKey": "/RealOutputs/Drivetrain/CustomPose",
                     "logType": "Pose2d",
-                    "visible": false,
-                    "options": {}
+                    "visible": true,
+                    "options": {
+                      "color": "#ff8c00"
+                    }
                   },
                   {
                     "type": "robot",
@@ -154,7 +157,7 @@
                     "type": "arrow",
                     "logKey": "/RealOutputs/Drivetrain/FRPose",
                     "logType": "Pose2d",
-                    "visible": false,
+                    "visible": true,
                     "options": {
                       "position": "center"
                     }
@@ -163,7 +166,7 @@
                     "type": "trajectory",
                     "logKey": "/RealOutputs/PathFollowing/activePath",
                     "logType": "Pose2d[]",
-                    "visible": false,
+                    "visible": true,
                     "options": {
                       "color": "#00ff00",
                       "size": "normal"
@@ -173,7 +176,7 @@
                     "type": "ghost",
                     "logKey": "/RealOutputs/PathFollowing/targetPose",
                     "logType": "Pose2d",
-                    "visible": false,
+                    "visible": true,
                     "options": {
                       "color": "#ff0000"
                     }
@@ -182,7 +185,7 @@
                     "type": "ghost",
                     "logKey": "/RealOutputs/RobotOdometry/pastPose",
                     "logType": "Pose2d",
-                    "visible": false,
+                    "visible": true,
                     "options": {
                       "color": "#ff00ff"
                     }
@@ -226,92 +229,114 @@
               "controlsHeight": 200
             },
             {
-              "type": 1,
-              "title": "Auto Efficiency",
+              "type": 3,
+              "title": "camera transforms",
               "controller": {
-                "leftSources": [],
-                "rightSources": [],
-                "discreteSources": [
+                "sources": [
                   {
-                    "type": "stripes",
-                    "logKey": "/RealOutputs/Elevator/targetPosition",
-                    "logType": "String",
+                    "type": "robot",
+                    "logKey": "/RealOutputs/Drivetrain/Pose",
+                    "logType": "Pose2d",
                     "visible": true,
                     "options": {
-                      "color": "#2b66a2"
+                      "model": "3061 (2025)"
                     }
                   },
                   {
-                    "type": "stripes",
-                    "logKey": "/RealOutputs/Manipulator/State",
-                    "logType": "String",
+                    "type": "ghost",
+                    "logKey": "/RealOutputs/Vision/0/RobotToCameraPose",
+                    "logType": "Pose3d",
                     "visible": true,
                     "options": {
-                      "color": "#e5b31b"
+                      "model": "3061 (2025)",
+                      "color": "#00ff00"
                     }
                   },
                   {
-                    "type": "stripes",
-                    "logKey": "/DriverStation/Enabled",
-                    "logType": "Boolean",
+                    "type": "axes",
+                    "logKey": "/RealOutputs/Vision/0/CameraPoses/0",
+                    "logType": "Pose3d",
                     "visible": true,
-                    "options": {
-                      "color": "#af2437"
-                    }
+                    "options": {}
                   },
                   {
-                    "type": "stripes",
-                    "logKey": "/DriverStation/Autonomous",
-                    "logType": "Boolean",
+                    "type": "axes",
+                    "logKey": "/RealOutputs/Vision/0/RobotToCameraTransform",
+                    "logType": "Transform3d",
                     "visible": true,
-                    "options": {
-                      "color": "#80588e"
-                    }
+                    "options": {}
                   },
                   {
-                    "type": "stripes",
-                    "logKey": "/Manipulator/IsFunnelIRBlocked",
-                    "logType": "Boolean",
+                    "type": "axes",
+                    "logKey": "/RealOutputs/Vision/1/CameraPoses",
+                    "logType": "Pose3d[]",
                     "visible": true,
-                    "options": {
-                      "color": "#e48b32"
-                    }
+                    "options": {}
                   },
                   {
-                    "type": "stripes",
-                    "logKey": "/Manipulator/IsIndexerIRBlocked",
-                    "logType": "Boolean",
+                    "type": "axes",
+                    "logKey": "/RealOutputs/Vision/1/RobotToCameraTransform",
+                    "logType": "Transform3d",
                     "visible": true,
-                    "options": {
-                      "color": "#c0b487"
-                    }
+                    "options": {}
+                  },
+                  {
+                    "type": "axes",
+                    "logKey": "/RealOutputs/Vision/2/CameraPoses/0",
+                    "logType": "Pose3d",
+                    "visible": true,
+                    "options": {}
+                  },
+                  {
+                    "type": "axes",
+                    "logKey": "/RealOutputs/Vision/2/RobotToCameraTransform",
+                    "logType": "Transform3d",
+                    "visible": true,
+                    "options": {}
+                  },
+                  {
+                    "type": "axes",
+                    "logKey": "/RealOutputs/Vision/3/CameraPoses/0",
+                    "logType": "Pose3d",
+                    "visible": true,
+                    "options": {}
+                  },
+                  {
+                    "type": "axes",
+                    "logKey": "/RealOutputs/Vision/3/RobotToCameraTransform",
+                    "logType": "Transform3d",
+                    "visible": true,
+                    "options": {}
                   }
                 ],
-                "leftLockedRange": null,
-                "rightLockedRange": null,
-                "leftUnitConversion": {
-                  "type": null,
-                  "factor": 1
-                },
-                "rightUnitConversion": {
-                  "type": null,
-                  "factor": 1
-                },
-                "leftFilter": 0,
-                "rightFilter": 0
+                "game": "2025 Field (Welded)",
+                "origin": "blue"
               },
-              "controllerUUID": "5xusdj7zdolekgd8b5ji99gj8cg6vvvi",
-              "renderer": null,
+              "controllerUUID": "v8de94sw767ofrs9xy6f0j9qs69bfnlm",
+              "renderer": {
+                "cameraIndex": -1,
+                "orbitFov": 50,
+                "cameraPosition": [
+                  5.63949716376335,
+                  1.1098085590481928,
+                  -2.2326330712457105
+                ],
+                "cameraTarget": [
+                  5.7355498277028945,
+                  0.3817895813408314,
+                  -0.05417977521878486
+                ]
+              },
               "controlsHeight": 200
             },
             {
               "type": 1,
-              "title": "DriveToPose (reef)",
+              "title": "DriveToPose (target frame)",
               "controller": {
                 "leftSources": [
                   {
                     "type": "stepped",
-                    "logKey": "/RealOutputs/DriveToPose/x velocity (reef frame)",
+                    "logKey": "/RealOutputs/DriveToPose/pose difference (target frame)/translation/x",
                     "logType": "Number",
                     "visible": true,
                     "options": {
@@ -321,31 +346,11 @@
                   },
                   {
                     "type": "stepped",
-                    "logKey": "/RealOutputs/DriveToPose/difference (reef frame)/translation/x",
+                    "logKey": "/RealOutputs/DriveToPose/x velocity (target frame)",
                     "logType": "Number",
                     "visible": true,
                     "options": {
                       "color": "#d993aa",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "/Drivetrain/FL/DriveStatorCurrentAmps",
-                    "logType": "Number",
-                    "visible": false,
-                    "options": {
-                      "color": "#e5b31b",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "/Drivetrain/FR/DriveStatorCurrentAmps",
-                    "logType": "Number",
-                    "visible": false,
-                    "options": {
-                      "color": "#80588e",
                       "size": "normal"
                     }
                   }
@@ -353,7 +358,7 @@
                 "rightSources": [
                   {
                     "type": "stepped",
-                    "logKey": "/RealOutputs/DriveToPose/y velocity (reef frame)",
+                    "logKey": "/RealOutputs/DriveToPose/pose difference (target frame)/translation/y",
                     "logType": "Number",
                     "visible": true,
                     "options": {
@@ -363,11 +368,11 @@
                   },
                   {
                     "type": "stepped",
-                    "logKey": "/RealOutputs/DriveToPose/difference (reef frame)/translation/y",
+                    "logKey": "/RealOutputs/DriveToPose/y velocity (target frame)",
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#af2437",
+                      "color": "#80588e",
                       "size": "normal"
                     }
                   }
@@ -375,7 +380,16 @@
                 "discreteSources": [
                   {
                     "type": "stripes",
-                    "logKey": "/RealOutputs/CommandsAll/drive to nearest right branch",
+                    "logKey": "/RealOutputs/DriveToPose/canReachTargetPose",
+                    "logType": "Boolean",
+                    "visible": true,
+                    "options": {
+                      "color": "#af2437"
+                    }
+                  },
+                  {
+                    "type": "stripes",
+                    "logKey": "/RealOutputs/DriveToPose/isFinished",
                     "logType": "Boolean",
                     "visible": true,
                     "options": {
@@ -384,20 +398,11 @@
                   },
                   {
                     "type": "stripes",
-                    "logKey": "/RealOutputs/CommandsAll/drive to nearest left branch",
+                    "logKey": "/RealOutputs/DriveToPose/withinTolerance",
                     "logType": "Boolean",
                     "visible": true,
                     "options": {
                       "color": "#3b875a"
-                    }
-                  },
-                  {
-                    "type": "stripes",
-                    "logKey": "/RealOutputs/DriveToPose/boost velocity",
-                    "logType": "Boolean",
-                    "visible": true,
-                    "options": {
-                      "color": "#c0b487"
                     }
                   }
                 ],
@@ -425,21 +430,21 @@
                 "leftSources": [
                   {
                     "type": "stepped",
-                    "logKey": "/RealOutputs/DriveToPose/x velocity (field frame)",
+                    "logKey": "/RealOutputs/DriveToPose/pose difference (field frame)/translation/x",
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#3b875a",
+                      "color": "#c0b487",
                       "size": "normal"
                     }
                   },
                   {
                     "type": "stepped",
-                    "logKey": "/RealOutputs/DriveToPose/difference/translation/x",
+                    "logKey": "/RealOutputs/DriveToPose/x velocity (field frame)",
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#d993aa",
+                      "color": "#858584",
                       "size": "normal"
                     }
                   }
@@ -447,21 +452,21 @@
                 "rightSources": [
                   {
                     "type": "stepped",
-                    "logKey": "/RealOutputs/DriveToPose/y velocity (field frame)",
+                    "logKey": "/RealOutputs/DriveToPose/pose difference (field frame)/translation/y",
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#af2437",
+                      "color": "#2b66a2",
                       "size": "normal"
                     }
                   },
                   {
                     "type": "stepped",
-                    "logKey": "/RealOutputs/DriveToPose/difference/translation/y",
+                    "logKey": "/RealOutputs/DriveToPose/y velocity (field frame)",
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#e48b32",
+                      "color": "#e5b31b",
                       "size": "normal"
                     }
                   }
@@ -469,29 +474,29 @@
                 "discreteSources": [
                   {
                     "type": "stripes",
-                    "logKey": "/RealOutputs/CommandsAll/drive to nearest left branch",
+                    "logKey": "/RealOutputs/DriveToPose/canReachTargetPose",
                     "logType": "Boolean",
                     "visible": true,
                     "options": {
-                      "color": "#2b66a2"
+                      "color": "#3b875a"
                     }
                   },
                   {
                     "type": "stripes",
-                    "logKey": "/RealOutputs/CommandsAll/drive to nearest right branch",
+                    "logKey": "/RealOutputs/DriveToPose/isFinished",
                     "logType": "Boolean",
                     "visible": true,
                     "options": {
-                      "color": "#e5b31b"
+                      "color": "#d993aa"
                     }
                   },
                   {
                     "type": "stripes",
-                    "logKey": "/RealOutputs/DriveToPose/boost velocity",
+                    "logKey": "/RealOutputs/DriveToPose/withinTolerance",
                     "logType": "Boolean",
                     "visible": true,
                     "options": {
-                      "color": "#80588e"
+                      "color": "#5f4528"
                     }
                   }
                 ],
@@ -556,7 +561,7 @@
                     "type": "ghost",
                     "logKey": "/RealOutputs/RobotOdometry/pastPose",
                     "logType": "Pose2d",
-                    "visible": false,
+                    "visible": true,
                     "options": {
                       "model": "3061 (2025)",
                       "color": "#ff00ff"
@@ -584,12 +589,12 @@
                   },
                   {
                     "type": "ghost",
-                    "logKey": "/ReplayOutputs/Drivetrain/Pose",
+                    "logKey": "/Drivetrain/CustomPose",
                     "logType": "Pose2d",
                     "visible": true,
                     "options": {
                       "model": "3061 (2025)",
-                      "color": "#ffff00"
+                      "color": "#ff8c00"
                     }
                   }
                 ],
@@ -912,7 +917,7 @@
             },
             {
               "type": 6,
-              "title": "Statistics",
+              "title": "max speed",
               "controller": {
                 "sources": [
                   {
@@ -1216,7 +1221,7 @@
             },
             {
               "type": 1,
-              "title": "Line Graph",
+              "title": "vision tuning",
               "controller": {
                 "leftSources": [
                   {
@@ -1302,7 +1307,7 @@
             },
             {
               "type": 1,
-              "title": "Line Graph",
+              "title": "vision latency tuning",
               "controller": {
                 "leftSources": [
                   {
@@ -1358,7 +1363,7 @@
             },
             {
               "type": 1,
-              "title": "Line Graph",
+              "title": "vision time check",
               "controller": {
                 "leftSources": [
                   {
@@ -1414,7 +1419,7 @@
             },
             {
               "type": 6,
-              "title": "Statistics",
+              "title": "vision time check",
               "controller": {
                 "sources": [
                   {
@@ -1500,7 +1505,7 @@
             },
             {
               "type": 6,
-              "title": "Statistics",
+              "title": "velocity tuning",
               "controller": {
                 "sources": [
                   {
@@ -1584,18 +1589,6 @@
       }
     }
   ],
-  "satellites": [
-    {
-      "x": 320,
-      "y": 1190,
-      "width": 1511,
-      "height": 722,
-      "state": {
-        "type": 2,
-        "visualizer": null
-      },
-      "uuid": "qcnqmnu8c7710fc7oyb9xyg0qaw85zg1"
-    }
-  ],
-  "version": "4.1.2"
+  "satellites": [],
+  "version": "4.1.6"
 }

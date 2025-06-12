@@ -11,7 +11,6 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.team3061.RobotConfig;
@@ -27,9 +26,11 @@ import frc.lib.team3061.vision.VisionIOPhotonVision;
 import frc.lib.team3061.vision.VisionIOSim;
 import frc.robot.Constants.Mode;
 import frc.robot.commands.AutonomousCommandFactory;
+import frc.robot.commands.CrossSubsystemsCommandsFactory;
+import frc.robot.commands.SubsystemCommandFactory;
 import frc.robot.commands.TeleopSwerve;
+import frc.robot.configs.CalypsoRobotConfig;
 import frc.robot.configs.DefaultRobotConfig;
-import frc.robot.configs.New2025RobotConfig;
 import frc.robot.configs.NewPracticeRobotConfig;
 import frc.robot.configs.PracticeBoardConfig;
 import frc.robot.configs.VisionTestPlatformConfig;
@@ -37,6 +38,7 @@ import frc.robot.operator_interface.OISelector;
 import frc.robot.operator_interface.OperatorInterface;
 import frc.robot.subsystems.subsystem.Subsystem;
 import frc.robot.subsystems.subsystem.SubsystemIO;
+import frc.robot.subsystems.subsystem.SubsystemIOTalonFX;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -55,6 +57,8 @@ public class RobotContainer {
   private Alliance lastAlliance = Field2d.getInstance().getAlliance();
   private Vision vision;
   private Subsystem subsystem;
+
+  private Trigger driveToPoseCanceledTrigger;
 
   private final LoggedNetworkNumber endgameAlert1 =
       new LoggedNetworkNumber("/Tuning/Endgame Alert #1", 20.0);
@@ -77,10 +81,6 @@ public class RobotContainer {
      * that use it directly or indirectly. If this isn't done, a null pointer exception will result.
      */
     createRobotConfig();
-
-    LEDs.getInstance();
-
-    Field2d.getInstance().populateReefBranchPoseMaps();
 
     // create real, simulated, or replay subsystems based on the mode and robot specified
     if (Constants.getMode() != Mode.REPLAY) {
@@ -119,6 +119,8 @@ public class RobotContainer {
         visionIOs[i] = new VisionIO() {};
       }
       vision = new Vision(visionIOs);
+
+      // FIXME: initialize other subsystems
       subsystem = new Subsystem(new SubsystemIO() {});
     }
 
@@ -150,7 +152,7 @@ public class RobotContainer {
         config = new NewPracticeRobotConfig();
         break;
       case ROBOT_COMPETITION, ROBOT_SIMBOT:
-        config = new New2025RobotConfig();
+        config = new CalypsoRobotConfig();
         break;
       case ROBOT_PRACTICE_BOARD:
         config = new PracticeBoardConfig();
@@ -183,8 +185,8 @@ public class RobotContainer {
     }
     vision = new Vision(visionIOs);
 
-    // FIXME: create the hardware-specific subsystem class
-    subsystem = new Subsystem(new SubsystemIO() {});
+    // FIXME: initialize other subsystems
+    subsystem = new Subsystem(new SubsystemIOTalonFX());
   }
 
   private void createCTRESimSubsystems() {
@@ -212,13 +214,17 @@ public class RobotContainer {
     }
     vision = new Vision(visionIOs);
 
-    // FIXME: create the hardware-specific subsystem class
+    // FIXME: initialize other subsystems
+    subsystem = new Subsystem(new SubsystemIOTalonFX());
   }
 
   private void createPracticeBoardSubsystems() {
     // change the following to connect the subsystem being tested to actual hardware
     drivetrain = new Drivetrain(new DrivetrainIO() {});
     vision = new Vision(new VisionIO[] {new VisionIO() {}});
+
+    // FIXME: initialize other subsystems
+    subsystem = new Subsystem(new SubsystemIO() {});
   }
 
   private void createVisionTestPlatformSubsystems() {
@@ -241,6 +247,9 @@ public class RobotContainer {
       visionIOs[i] = new VisionIOPhotonVision(cameraNames[i], layout);
     }
     vision = new Vision(visionIOs);
+
+    // FIXME: initialize other subsystems
+    subsystem = new Subsystem(new SubsystemIO() {});
   }
 
   /**
@@ -262,9 +271,6 @@ public class RobotContainer {
       return;
     }
 
-    // clear the list of composed commands since we are about to rebind them to potentially new
-    // triggers
-    CommandScheduler.getInstance().clearComposedCommands();
     configureButtonBindings();
   }
 
@@ -272,10 +278,12 @@ public class RobotContainer {
   private void configureButtonBindings() {
 
     configureDrivetrainCommands();
-
-    configureSubsystemCommands();
-
     configureVisionCommands();
+
+    // register commands for other subsystems
+    SubsystemCommandFactory.registerCommands(oi, subsystem);
+
+    CrossSubsystemsCommandsFactory.registerCommands(oi, drivetrain, vision, subsystem);
 
     // Endgame alerts
     new Trigger(
@@ -313,6 +321,16 @@ public class RobotContainer {
      */
     drivetrain.setDefaultCommand(
         new TeleopSwerve(drivetrain, oi::getTranslateX, oi::getTranslateY, oi::getRotate));
+
+    driveToPoseCanceledTrigger = new Trigger(drivetrain::getDriveToPoseCanceled);
+    driveToPoseCanceledTrigger.onTrue(
+        Commands.sequence(
+                Commands.run(
+                        () -> LEDs.getInstance().requestState(LEDs.States.DRIVE_TO_POSE_CANCELED),
+                        drivetrain)
+                    .withTimeout(0.5),
+                Commands.runOnce(() -> drivetrain.setDriveToPoseCanceled(false)))
+            .withName("cancel drive to pose"));
 
     // lock rotation to the nearest 180° while driving
     oi.getLock180Button()
@@ -374,16 +392,36 @@ public class RobotContainer {
     oi.getXStanceButton()
         .whileTrue(Commands.run(drivetrain::holdXstance, drivetrain).withName("hold x-stance"));
 
+    // print pose to console for field calibration
+    // format the string so that it shows how to make the pose2d object given our current x
+    // (double), current y (double), and current rotation (Rotation2d)
+    oi.getCurrentPoseButton()
+        .onTrue(
+            Commands.runOnce(
+                    () ->
+                        System.out.println(
+                            "new Pose2d("
+                                + drivetrain.getPose().getTranslation().getX()
+                                + ", "
+                                + drivetrain.getPose().getTranslation().getY()
+                                + ", Rotation2d.fromDegrees("
+                                + drivetrain.getPose().getRotation().getDegrees()
+                                + "));"))
+                .ignoringDisable(true)
+                .withName("print current pose"));
+
+    // new Trigger(
+    //         () -> {
+    //           return drivetrain.isTilted() && !climber.isClimbing();
+    //         })
+    //     .whileTrue(Commands.run(() -> drivetrain.untilt(), drivetrain).withName("untilt"));
+
     oi.getSysIdDynamicForward().whileTrue(SysIdRoutineChooser.getInstance().getDynamicForward());
     oi.getSysIdDynamicReverse().whileTrue(SysIdRoutineChooser.getInstance().getDynamicReverse());
     oi.getSysIdQuasistaticForward()
         .whileTrue(SysIdRoutineChooser.getInstance().getQuasistaticForward());
     oi.getSysIdQuasistaticReverse()
         .whileTrue(SysIdRoutineChooser.getInstance().getQuasistaticReverse());
-  }
-
-  private void configureSubsystemCommands() {
-    // FIXME: add commands for the subsystem
   }
 
   private void configureVisionCommands() {
@@ -395,7 +433,7 @@ public class RobotContainer {
                 .withName("enable vision"));
     oi.getVisionIsEnabledTrigger()
         .onFalse(
-            Commands.runOnce(() -> vision.enable(false), vision)
+            Commands.runOnce(() -> vision.enable(false))
                 .ignoringDisable(true)
                 .withName("disable vision"));
   }

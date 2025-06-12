@@ -29,7 +29,7 @@ public class DualJoysticksOI extends OperatorDashboard {
     }
   }
 
-  // Translate Joystick
+  // Translation Joystick
   @Override
   public double getTranslateX() {
     return -translateJoystick.getY();
@@ -38,6 +38,11 @@ public class DualJoysticksOI extends OperatorDashboard {
   @Override
   public double getTranslateY() {
     return -translateJoystick.getX();
+  }
+
+  @Override
+  public Trigger getDriveToPoseButton() {
+    return translateJoystickButtons[1];
   }
 
   @Override
@@ -55,14 +60,24 @@ public class DualJoysticksOI extends OperatorDashboard {
     return translateJoystickButtons[9];
   }
 
-  // Rotate Joystick
+  // Rotation Joystick
   @Override
   public double getRotate() {
     return -rotateJoystick.getX();
   }
 
   @Override
+  public Trigger getOverrideDriveToPoseButton() {
+    return rotateJoystickButtons[4];
+  }
+
+  @Override
   public Trigger getResetPoseToVisionButton() {
     return rotateJoystickButtons[5];
+  }
+
+  @Override
+  public Trigger getCurrentPoseButton() {
+    return rotateJoystickButtons[6];
   }
 }
