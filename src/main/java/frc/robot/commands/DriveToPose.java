@@ -7,7 +7,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.lib.team3061.drivetrain.Drivetrain;
+import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
 import frc.robot.Field2d;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -33,7 +33,7 @@ import org.littletonrobotics.junction.Logger;
  * <p>At End: stops the drivetrain, disables acceleration limiting
  */
 public class DriveToPose extends Command {
-  private final Drivetrain drivetrain;
+  private final SwerveDrivetrain drivetrain;
   private final Supplier<Pose2d> targetPoseSupplier;
   private final BiFunction<Double, Double, Double> xSupplier;
   private final BiFunction<Double, Double, Double> ySupplier;
@@ -89,7 +89,7 @@ public class DriveToPose extends Command {
    *     production code to prevent the robot from driving indefinitely.
    */
   public DriveToPose(
-      Drivetrain drivetrain,
+      SwerveDrivetrain drivetrain,
       Supplier<Pose2d> targetPoseSupplier,
       BiFunction<Double, Double, Double> xSupplier,
       BiFunction<Double, Double, Double> ySupplier,

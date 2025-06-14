@@ -5,7 +5,7 @@
 package frc.lib.team3061.gyro;
 
 import static edu.wpi.first.units.Units.*;
-import static frc.lib.team3061.drivetrain.DrivetrainConstants.SUBSYSTEM_NAME;
+import static frc.lib.team3061.swerve_drivetrain.SwerveDrivetrainConstants.SUBSYSTEM_NAME;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;

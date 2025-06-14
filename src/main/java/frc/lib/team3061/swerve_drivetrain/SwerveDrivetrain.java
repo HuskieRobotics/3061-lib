@@ -2,10 +2,10 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.lib.team3061.drivetrain;
+package frc.lib.team3061.swerve_drivetrain;
 
 import static edu.wpi.first.units.Units.*;
-import static frc.lib.team3061.drivetrain.DrivetrainConstants.*;
+import static frc.lib.team3061.swerve_drivetrain.SwerveDrivetrainConstants.*;
 
 import com.ctre.phoenix6.SignalLogger;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -38,8 +38,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
-import frc.lib.team3061.drivetrain.DrivetrainConstants.SysIDCharacterizationMode;
 import frc.lib.team3061.leds.LEDs;
+import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrainConstants.SysIDCharacterizationMode;
 import frc.lib.team3061.util.CustomPoseEstimator;
 import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team3061.util.SysIdRoutineChooser;
@@ -60,11 +60,11 @@ import org.littletonrobotics.junction.Logger;
  * 3061-lib supports hardware abstraction via the standard AdvantageKit architecture, 3061-lib only
  * supports CTRE devices at this time.
  */
-public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
+public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimator {
 
-  private final DrivetrainIO io;
-  private final DrivetrainIO.DrivetrainIOInputsCollection inputs =
-      new DrivetrainIO.DrivetrainIOInputsCollection();
+  private final SwerveDrivetrainIO io;
+  private final SwerveDrivetrainIO.SwerveDrivetrainIOInputsCollection inputs =
+      new SwerveDrivetrainIO.SwerveDrivetrainIOInputsCollection();
 
   /*
    * If TUNING is set to true in Constants.java, the following tunables will be available in
@@ -245,7 +245,7 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
    *
    * @param io the abstracted interface for the drivetrain
    */
-  public Drivetrain(DrivetrainIO io) {
+  public SwerveDrivetrain(SwerveDrivetrainIO io) {
     this.io = io;
 
     this.autoThetaController.enableContinuousInput(-Math.PI, Math.PI);

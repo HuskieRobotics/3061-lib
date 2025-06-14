@@ -21,7 +21,7 @@ import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Mass;
 import edu.wpi.first.units.measure.MomentOfInertia;
 import frc.lib.team3061.RobotConfig;
-import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
+import frc.lib.team3061.swerve_drivetrain.swerve.SwerveConstants;
 
 /** Most of this is copied from Artemis; update with actual values */
 public class CalypsoRobotConfig extends RobotConfig {

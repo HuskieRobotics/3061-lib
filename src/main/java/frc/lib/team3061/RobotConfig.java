@@ -17,7 +17,7 @@ import edu.wpi.first.units.measure.LinearAcceleration;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Mass;
 import edu.wpi.first.units.measure.MomentOfInertia;
-import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
+import frc.lib.team3061.swerve_drivetrain.swerve.SwerveConstants;
 import java.io.IOException;
 import org.json.simple.parser.ParseException;
 

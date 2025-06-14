@@ -21,7 +21,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.lib.team3061.RobotConfig;
-import frc.lib.team3061.drivetrain.Drivetrain;
+import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
@@ -37,7 +37,7 @@ public class CharacterizationCommands {
   private CharacterizationCommands() {}
 
   /** Measures the robot's wheel radius by spinning in a circle. */
-  public static Command wheelRadiusCharacterization(Drivetrain drive) {
+  public static Command wheelRadiusCharacterization(SwerveDrivetrain drive) {
     SlewRateLimiter limiter = new SlewRateLimiter(WHEEL_RADIUS_RAMP_RATE);
     WheelRadiusCharacterizationState state = new WheelRadiusCharacterizationState();
 

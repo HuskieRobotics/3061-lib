@@ -14,10 +14,10 @@ import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.team3061.RobotConfig;
-import frc.lib.team3061.drivetrain.Drivetrain;
-import frc.lib.team3061.drivetrain.DrivetrainIO;
-import frc.lib.team3061.drivetrain.DrivetrainIOCTRE;
 import frc.lib.team3061.leds.LEDs;
+import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
+import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrainIO;
+import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrainIOCTRE;
 import frc.lib.team3061.util.SysIdRoutineChooser;
 import frc.lib.team3061.vision.Vision;
 import frc.lib.team3061.vision.VisionConstants;
@@ -53,7 +53,7 @@ import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 public class RobotContainer {
   private OperatorInterface oi = new OperatorInterface() {};
   private RobotConfig config;
-  private Drivetrain drivetrain;
+  private SwerveDrivetrain drivetrain;
   private Alliance lastAlliance = Field2d.getInstance().getAlliance();
   private Vision vision;
   private Subsystem subsystem;
@@ -111,7 +111,7 @@ public class RobotContainer {
       }
 
     } else {
-      drivetrain = new Drivetrain(new DrivetrainIO() {});
+      drivetrain = new SwerveDrivetrain(new SwerveDrivetrainIO() {});
 
       String[] cameraNames = config.getCameraNames();
       VisionIO[] visionIOs = new VisionIO[cameraNames.length];
@@ -166,7 +166,7 @@ public class RobotContainer {
   }
 
   private void createCTRESubsystems() {
-    drivetrain = new Drivetrain(new DrivetrainIOCTRE());
+    drivetrain = new SwerveDrivetrain(new SwerveDrivetrainIOCTRE());
 
     String[] cameraNames = config.getCameraNames();
     VisionIO[] visionIOs = new VisionIO[cameraNames.length];
@@ -190,7 +190,7 @@ public class RobotContainer {
   }
 
   private void createCTRESimSubsystems() {
-    drivetrain = new Drivetrain(new DrivetrainIOCTRE());
+    drivetrain = new SwerveDrivetrain(new SwerveDrivetrainIOCTRE());
 
     String[] cameraNames = config.getCameraNames();
     VisionIO[] visionIOs = new VisionIO[cameraNames.length];
@@ -220,7 +220,7 @@ public class RobotContainer {
 
   private void createPracticeBoardSubsystems() {
     // change the following to connect the subsystem being tested to actual hardware
-    drivetrain = new Drivetrain(new DrivetrainIO() {});
+    drivetrain = new SwerveDrivetrain(new SwerveDrivetrainIO() {});
     vision = new Vision(new VisionIO[] {new VisionIO() {}});
 
     // FIXME: initialize other subsystems
@@ -229,7 +229,7 @@ public class RobotContainer {
 
   private void createVisionTestPlatformSubsystems() {
     // change the following to connect the subsystem being tested to actual hardware
-    drivetrain = new Drivetrain(new DrivetrainIO() {});
+    drivetrain = new SwerveDrivetrain(new SwerveDrivetrainIO() {});
 
     String[] cameraNames = config.getCameraNames();
     VisionIO[] visionIOs = new VisionIO[cameraNames.length];
