@@ -51,9 +51,7 @@ public class PracticeBoardConfig extends RobotConfig {
   private static final Distance ROBOT_LENGTH_WITH_BUMPERS =
       Meters.of(0.88265); // 34.75 in same above
 
-  // FIXME: generate a new swerve drivetrain project from Tuner X and check the value of each of
-  // these
-  private static final double COUPLE_RATIO = 3.125; // FIXME: tune
+  private static final double COUPLE_RATIO = 3.125;
 
   /* Angle Motor PID Values */
   private static final double ANGLE_KP = 100.0;

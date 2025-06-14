@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import static frc.robot.Constants.TUNING_MODE;
+
 import com.ctre.phoenix6.CANBus;
 import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.pathfinding.Pathfinding;
@@ -15,16 +17,22 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
+import edu.wpi.first.wpilibj.IterativeRobotBase;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Threads;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.Watchdog;
 import edu.wpi.first.wpilibj.simulation.DriverStationSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.lib.team254.Phoenix6Util;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.leds.LEDs;
+import frc.lib.team6328.util.LoggedTracer;
+import frc.lib.team6328.util.NTClientLogger;
 import frc.robot.Constants.Mode;
 import frc.robot.commands.AutonomousCommandFactory;
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -68,11 +76,16 @@ public class Robot extends LoggedRobot {
       new Alert(
           "Battery voltage is very low, consider turning off the robot or replacing the battery.",
           AlertType.kWarning);
-  private final Alert gcAlert =
+  private final Alert jitAlert =
       new Alert("Please wait to enable, JITing in progress.", AlertType.kWarning);
 
+  private final Alert noAutoSelectedAlert =
+      new Alert("No auto selected: please select an auto", AlertType.kWarning);
   /** Create a new Robot. */
   public Robot() {
+    // start code loading LED animation
+    LEDs.getInstance();
+
     // Record metadata
     Logger.recordMetadata("Robot", Constants.getRobot().toString());
     Logger.recordMetadata("TuningMode", Boolean.toString(Constants.TUNING_MODE));
@@ -169,6 +182,18 @@ public class Robot extends LoggedRobot {
     canivoreErrorTimer.restart();
     disabledTimer.restart();
 
+    // adjust loop overrun warning timeout
+    if (!Constants.TUNING_MODE) {
+      try {
+        Field watchdogField = IterativeRobotBase.class.getDeclaredField("m_watchdog");
+        watchdogField.setAccessible(true);
+        Watchdog watchdog = (Watchdog) watchdogField.get(this);
+        watchdog.setTimeout(0.2);
+      } catch (Exception e) {
+        DriverStation.reportWarning("Failed to disable loop overrun warnings", false);
+      }
+    }
+
     // Instantiate our RobotContainer. This will perform all our button bindings,
     // and put our autonomous chooser on the dashboard.
     robotContainer = new RobotContainer();
@@ -182,6 +207,10 @@ public class Robot extends LoggedRobot {
     // background when code starts.
     // DO THIS AFTER CONFIGURATION OF YOUR DESIRED PATHFINDER
     PathfindingCommand.warmupCommand().schedule();
+
+    if (!TUNING_MODE) {
+      Threads.setCurrentThreadPriority(true, 10);
+    }
   }
 
   /**
@@ -193,7 +222,10 @@ public class Robot extends LoggedRobot {
    */
   @Override
   public void robotPeriodic() {
-    Threads.setCurrentThreadPriority(true, 99);
+    // Refresh all Phoenix signals
+    LoggedTracer.reset();
+    Phoenix6Util.refreshAll();
+    LoggedTracer.record("PhoenixRefresh");
 
     /*
      * Runs the Scheduler. This is responsible for polling buttons, adding newly-scheduled commands,
@@ -202,6 +234,7 @@ public class Robot extends LoggedRobot {
      * for anything in the Command-based framework to work.
      */
     CommandScheduler.getInstance().run();
+    LoggedTracer.record("Commands");
 
     logReceiverQueueAlert.set(Logger.getReceiverQueueFault());
 
@@ -236,6 +269,9 @@ public class Robot extends LoggedRobot {
               && canInitialErrorTimer.hasElapsed(CAN_ERROR_TIME_THRESHOLD));
     }
 
+    // Log NT client list
+    NTClientLogger.log();
+
     // Update low battery alert
     if (DriverStation.isEnabled()) {
       disabledTimer.reset();
@@ -246,8 +282,8 @@ public class Robot extends LoggedRobot {
       lowBatteryAlert.set(true);
     }
 
-    // GC alert
-    gcAlert.set(Timer.getTimestamp() < 45.0);
+    // JIT alert
+    jitAlert.set(Timer.getTimestamp() < 45.0);
 
     // Print auto duration
     if (autonomousCommand != null && !autonomousCommand.isScheduled() && !autoMessagePrinted) {
@@ -262,8 +298,8 @@ public class Robot extends LoggedRobot {
     }
 
     robotContainer.periodic();
-
-    Threads.setCurrentThreadPriority(false, 10);
+    // Record cycle time
+    LoggedTracer.record("RobotPeriodic");
   }
 
   /** This method is invoked periodically when the robot is in the disabled state. */
@@ -275,8 +311,15 @@ public class Robot extends LoggedRobot {
     // check if the alliance color has changed based on the FMS data
     robotContainer.checkAllianceColor();
 
-    if (AutonomousCommandFactory.getInstance().alignedToStartingPose()) {
-      LEDs.getInstance().requestState(LEDs.States.ALIGNED_FOR_AUTO);
+    // get the autochooser auto selected and if the default is selected then do solid red leds
+    if (AutonomousCommandFactory.getInstance()
+        .getAutonomousCommand()
+        .getName()
+        .equals("Do Nothing")) {
+      LEDs.getInstance().requestState(LEDs.States.NO_AUTO_SELECTED);
+      noAutoSelectedAlert.set(true);
+    } else {
+      noAutoSelectedAlert.set(false);
     }
   }
 

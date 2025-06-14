@@ -39,10 +39,12 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.drivetrain.DrivetrainConstants.SysIDCharacterizationMode;
+import frc.lib.team3061.leds.LEDs;
 import frc.lib.team3061.util.CustomPoseEstimator;
 import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team3061.util.SysIdRoutineChooser;
 import frc.lib.team6328.util.FieldConstants;
+import frc.lib.team6328.util.LoggedTracer;
 import frc.lib.team6328.util.LoggedTunableNumber;
 import frc.robot.Constants;
 import frc.robot.Field2d;
@@ -99,12 +101,12 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
 
   private boolean isMoveToPoseEnabled = true;
 
-  // arbitrary to half of theoretical max acceleration
-  private SlewRateLimiter xFilter = new SlewRateLimiter(4);
-  private SlewRateLimiter yFilter = new SlewRateLimiter(4);
-  private SlewRateLimiter thetaFilter = new SlewRateLimiter(Units.degreesToRadians(360));
+  private SlewRateLimiter xFilter = new SlewRateLimiter(8);
+  private SlewRateLimiter yFilter = new SlewRateLimiter(8);
+  // private SlewRateLimiter thetaFilter = new SlewRateLimiter(Units.degreesToRadians(360));
 
   private boolean accelerationLimiting = false;
+  private boolean driveToPoseCanceled = false;
 
   private Alert noPoseAlert =
       new Alert("Attempted to reset pose from vision, but no pose was found.", AlertType.kWarning);
@@ -278,7 +280,7 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
 
     this.xFilter.reset(0.0);
     this.yFilter.reset(0.0);
-    this.thetaFilter.reset(0.0);
+    // this.thetaFilter.reset(0.0);
 
     SysIdRoutineChooser.getInstance().addOption("Translation Volts", sysIdRoutineTranslationVolts);
 
@@ -448,18 +450,18 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
     // find the other method that the autobuilder uses to drive
     this.xFilter.calculate(xVelocity);
     this.yFilter.calculate(yVelocity);
-    this.thetaFilter.calculate(rotationalVelocity);
+    // this.thetaFilter.calculate(rotationalVelocity);
 
     // log velocity after filter
     Logger.recordOutput(SUBSYSTEM_NAME + "/filteredXVelocity", this.xFilter.lastValue());
     Logger.recordOutput(SUBSYSTEM_NAME + "/filteredYVelocity", this.yFilter.lastValue());
-    Logger.recordOutput(
-        SUBSYSTEM_NAME + "/filteredRotationalVelocity", this.thetaFilter.lastValue());
+    // Logger.recordOutput(
+    //     SUBSYSTEM_NAME + "/filteredRotationalVelocity", this.thetaFilter.lastValue());
 
     if (accelerationLimiting) {
       xVelocity = this.xFilter.lastValue();
       yVelocity = this.yFilter.lastValue();
-      rotationalVelocity = this.thetaFilter.lastValue();
+      // rotationalVelocity = this.thetaFilter.lastValue();
     }
 
     // if translation or rotation is in slow mode, multiply the x and y velocities by the
@@ -664,6 +666,9 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
         autoTurnKp,
         autoTurnKi,
         autoTurnKd);
+
+    // Record cycle time
+    LoggedTracer.record("Drivetrain");
   }
 
   /**
@@ -895,19 +900,6 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
    */
   public void enableAccelerationLimiting() {
     this.accelerationLimiting = true;
-
-    // convert from robot-relative coordinates to field-relative coordinates
-    ChassisSpeeds robotRelativeSpeeds = this.getRobotRelativeSpeeds();
-
-    // CCW rotation into field frame
-    var rotated =
-        new Translation2d(
-                robotRelativeSpeeds.vxMetersPerSecond, robotRelativeSpeeds.vyMetersPerSecond)
-            .rotateBy(RobotOdometry.getInstance().getEstimatedPose().getRotation());
-
-    this.xFilter.reset(rotated.getX());
-    this.yFilter.reset(rotated.getY());
-    this.thetaFilter.reset(robotRelativeSpeeds.omegaRadiansPerSecond);
   }
 
   public void disableAccelerationLimiting() {
@@ -975,6 +967,39 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
         .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
         .andThen(Commands.runOnce(() -> this.drive(0, 0, 0, true, false), this))
         .withName(SUBSYSTEM_NAME + "SystemCheck");
+  }
+
+  public void setDriveToPoseCanceled(boolean canceled) {
+    this.driveToPoseCanceled = canceled;
+  }
+
+  public boolean getDriveToPoseCanceled() {
+    return this.driveToPoseCanceled;
+  }
+
+  public boolean isTilted() {
+    boolean isTilted =
+        Math.abs(this.inputs.drivetrain.rollDeg) > TILT_THRESHOLD_DEG
+            || Math.abs(this.inputs.drivetrain.pitchDeg) > TILT_THRESHOLD_DEG;
+    if (isTilted) {
+      LEDs.getInstance().requestState(LEDs.States.UNTILTING_ROBOT);
+    }
+
+    return isTilted;
+  }
+
+  public void untilt() {
+    double roll = Units.degreesToRadians(this.inputs.drivetrain.rollDeg);
+    double pitch = Units.degreesToRadians(this.inputs.drivetrain.pitchDeg);
+
+    double gravityX = (9.8 * Math.cos(pitch) * Math.cos(roll) * Math.sin(pitch) * Math.cos(pitch));
+    double gravityY = (-9.8 * Math.cos(pitch) * Math.cos(roll) * Math.sin(roll));
+
+    double heading = Math.atan2(gravityY, gravityX);
+    double xVelocity = Math.cos(heading) * UNTILT_VELOCITY_MPS;
+    double yVelocity = Math.sin(heading) * UNTILT_VELOCITY_MPS;
+
+    this.drive(xVelocity, yVelocity, 0.0, false, false);
   }
 
   // method to convert swerve module number to location
@@ -1123,10 +1148,30 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
                     .andThen(
                         Commands.runOnce(
                             () -> {
-                              checkSwerveModule(0, 135, 1, -0.38 * Math.PI, .1);
-                              checkSwerveModule(1, 45, 1, -0.38 * Math.PI, .1);
-                              checkSwerveModule(2, 45, 1, 0.38 * Math.PI, .1);
-                              checkSwerveModule(3, 135, 1, 0.38 * Math.PI, .1);
+                              checkSwerveModule(
+                                  0,
+                                  135,
+                                  SYSTEM_TEST_ANGLE_TOLERANCE_DEG,
+                                  -0.38 * Math.PI,
+                                  SYSTEM_TEST_VELOCITY_TOLERANCE);
+                              checkSwerveModule(
+                                  1,
+                                  45,
+                                  SYSTEM_TEST_ANGLE_TOLERANCE_DEG,
+                                  -0.38 * Math.PI,
+                                  SYSTEM_TEST_VELOCITY_TOLERANCE);
+                              checkSwerveModule(
+                                  2,
+                                  45,
+                                  SYSTEM_TEST_ANGLE_TOLERANCE_DEG,
+                                  0.38 * Math.PI,
+                                  SYSTEM_TEST_VELOCITY_TOLERANCE);
+                              checkSwerveModule(
+                                  3,
+                                  135,
+                                  SYSTEM_TEST_ANGLE_TOLERANCE_DEG,
+                                  0.38 * Math.PI,
+                                  SYSTEM_TEST_VELOCITY_TOLERANCE);
                             })))
             .withTimeout(1);
       case COUNTERCLOCKWISE:
@@ -1136,10 +1181,30 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
                     .andThen(
                         Commands.runOnce(
                             () -> {
-                              checkSwerveModule(0, 135, 1, .38 * Math.PI, .1);
-                              checkSwerveModule(1, 45, 1, .38 * Math.PI, .1);
-                              checkSwerveModule(2, 45, 1, -.38 * Math.PI, .1);
-                              checkSwerveModule(3, 135, 1, -.38 * Math.PI, .1);
+                              checkSwerveModule(
+                                  0,
+                                  135,
+                                  SYSTEM_TEST_ANGLE_TOLERANCE_DEG,
+                                  .38 * Math.PI,
+                                  SYSTEM_TEST_VELOCITY_TOLERANCE);
+                              checkSwerveModule(
+                                  1,
+                                  45,
+                                  SYSTEM_TEST_ANGLE_TOLERANCE_DEG,
+                                  .38 * Math.PI,
+                                  SYSTEM_TEST_VELOCITY_TOLERANCE);
+                              checkSwerveModule(
+                                  2,
+                                  45,
+                                  SYSTEM_TEST_ANGLE_TOLERANCE_DEG,
+                                  -.38 * Math.PI,
+                                  SYSTEM_TEST_VELOCITY_TOLERANCE);
+                              checkSwerveModule(
+                                  3,
+                                  135,
+                                  SYSTEM_TEST_ANGLE_TOLERANCE_DEG,
+                                  -.38 * Math.PI,
+                                  SYSTEM_TEST_VELOCITY_TOLERANCE);
                             })))
             .withTimeout(1);
       default:
@@ -1159,7 +1224,12 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
                     Commands.runOnce(
                         () -> {
                           for (int i = 0; i < this.inputs.swerve.length; i++) {
-                            checkSwerveModule(i, angleTarget, 1, velocityTarget, 0.1);
+                            checkSwerveModule(
+                                i,
+                                angleTarget,
+                                SYSTEM_TEST_ANGLE_TOLERANCE_DEG,
+                                velocityTarget,
+                                SYSTEM_TEST_VELOCITY_TOLERANCE);
                           }
                         })))
         .withTimeout(2);

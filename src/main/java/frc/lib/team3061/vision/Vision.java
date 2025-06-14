@@ -2,13 +2,13 @@ package frc.lib.team3061.vision;
 
 import static frc.lib.team3061.vision.VisionConstants.*;
 
-import com.ctre.phoenix6.Utils;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
@@ -19,6 +19,7 @@ import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team3061.vision.VisionIO.PoseObservation;
 import frc.lib.team3061.vision.VisionIO.PoseObservationType;
+import frc.lib.team6328.util.LoggedTracer;
 import frc.lib.team6328.util.LoggedTunableNumber;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -76,6 +77,8 @@ public class Vision extends SubsystemBase {
   private List<List<Pose3d>> robotPoses;
   private List<List<Pose3d>> robotPosesAccepted;
   private List<List<Pose3d>> robotPosesRejected;
+
+  private final Pose3d[] robotPosesForCalibration;
 
   private final LoggedTunableNumber latencyAdjustmentSeconds =
       new LoggedTunableNumber("Vision/LatencyAdjustmentSeconds", 0.0);
@@ -150,6 +153,10 @@ public class Vision extends SubsystemBase {
       aprilTagsPoses[i] = this.layout.getTags().get(i).pose;
     }
     Logger.recordOutput(SUBSYSTEM_NAME + "/AprilTagsPoses", aprilTagsPoses);
+
+    // robot to camera transformation calibration
+    robotPosesForCalibration =
+        RobotConfig.getInstance().getPosesForRobotToCameraTransformCalibration();
   }
 
   /**
@@ -184,25 +191,11 @@ public class Vision extends SubsystemBase {
       robotPosesRejected.get(cameraIndex).clear();
 
       for (PoseObservation observation : inputs[cameraIndex].poseObservations) {
-        double observationTimestamp = observation.timestamp();
-        double timestamp = Timer.getTimestamp();
-        double convertedTime = Utils.fpgaToCurrentTime(observation.timestamp());
-
         // only process the vision data if the timestamp is newer than the last one
         if (this.lastTimestamps[cameraIndex] < observation.timestamp()) {
-          final int finalCameraIndex = cameraIndex;
-          // get tag poses and update last detection times
-          for (int tagID = 1; tagID < MAX_NUMBER_TAGS; tagID++) {
-            if ((observation.tagsSeenBitMap() & (1L << tagID)) != 0) {
-              if (ENABLE_DETAILED_LOGGING) {
-                lastTagDetectionTimes.put(tagID, Timer.getTimestamp());
-              }
-              Optional<Pose3d> tagPose = this.layout.getTagPose(tagID);
-              tagPose.ifPresent(
-                  (e) -> {
-                    tagPoses.get(finalCameraIndex).add(e);
-                  });
-            }
+
+          if (CALIBRATE_CAMERA_TRANSFORMS) {
+            logCameraTransforms(cameraIndex, observation);
           }
 
           // Initialize logging values
@@ -229,9 +222,24 @@ public class Vision extends SubsystemBase {
                       || observation.averageAmbiguity() < AMBIGUITY_THRESHOLD)
                   && (observation.type() == PoseObservationType.SINGLE_TAG
                       || Math.abs(observation.reprojectionError()) < REPROJECTION_ERROR_THRESHOLD)
-                  && poseIsOnField(estimatedRobotPose3d);
+                  && poseIsOnField(estimatedRobotPose3d)
+                  && arePoseRotationsReasonable(estimatedRobotPose3d);
 
           if (acceptPose) {
+            // get tag poses and update last detection times
+            final int finalCameraIndex = cameraIndex;
+            for (int tagID = 1; tagID < MAX_NUMBER_TAGS; tagID++) {
+              if ((observation.tagsSeenBitMap() & (1L << tagID)) != 0) {
+                if (ENABLE_DETAILED_LOGGING) {
+                  lastTagDetectionTimes.put(tagID, Timer.getTimestamp());
+                }
+                Optional<Pose3d> tagPose = this.layout.getTagPose(tagID);
+                tagPose.ifPresent(
+                    (e) -> {
+                      tagPoses.get(finalCameraIndex).add(e);
+                    });
+              }
+            }
             robotPosesAccepted.get(cameraIndex).add(estimatedRobotPose3d);
             if (ENABLE_DETAILED_LOGGING) {
               lastPoseEstimationAcceptedTimes.put(estimatedRobotPose3d, Timer.getTimestamp());
@@ -355,6 +363,9 @@ public class Vision extends SubsystemBase {
         SUBSYSTEM_NAME + "/IsUpdating", !isVisionUpdatingDebounce.calculate(!isVisionUpdating));
 
     Logger.recordOutput(SUBSYSTEM_NAME + "/CamerasToConsider", camerasToConsider.toString());
+
+    // Record cycle time
+    LoggedTracer.record("Vision");
   }
 
   public void specifyCamerasToConsider(List<Integer> cameraIndices) {
@@ -408,6 +419,16 @@ public class Vision extends SubsystemBase {
         && Math.abs(pose.getZ()) < MAX_Z_ERROR_METERS;
   }
 
+  private boolean arePoseRotationsReasonable(Pose3d pose) {
+    return Math.abs(
+            RobotOdometry.getInstance()
+                .getEstimatedPose()
+                .getRotation()
+                .minus(pose.getRotation().toRotation2d())
+                .getRadians())
+        < ROTATION_THRESHOLD_DEGREES;
+  }
+
   /**
    * The standard deviations of the estimated pose from {@link #getEstimatedGlobalPose()}, for use
    * with {@link edu.wpi.first.math.estimator.SwerveDrivePoseEstimator SwerveDrivePoseEstimator}.
@@ -427,7 +448,7 @@ public class Vision extends SubsystemBase {
     if (observation.type() == PoseObservationType.MULTI_TAG) {
       xyStdDev *= (reprojectionErrorScaleFactor.get() * observation.reprojectionError());
     } else {
-      xyStdDev *= (ambiguityScaleFactor.get() * observation.averageAmbiguity());
+      xyStdDev *= (ambiguityScaleFactor.get() * (observation.averageAmbiguity() + 0.1));
     }
 
     // only trust the rotation component for multi-tag strategies; for single-tag, set the standard
@@ -442,5 +463,17 @@ public class Vision extends SubsystemBase {
             : Double.POSITIVE_INFINITY;
 
     return VecBuilder.fill(xyStdDev, xyStdDev, thetaStdDev);
+  }
+
+  private void logCameraTransforms(int cameraIndex, PoseObservation observation) {
+    // this is the pose of the robot when centered on the reef face that faces the driver station
+    Pose3d cameraPose = observation.cameraPose();
+    Transform3d robotToCameraTransform = cameraPose.minus(robotPosesForCalibration[cameraIndex]);
+
+    Logger.recordOutput(
+        SUBSYSTEM_NAME + "/" + cameraIndex + "/RobotToCameraTransform", robotToCameraTransform);
+    Logger.recordOutput(
+        SUBSYSTEM_NAME + "/" + cameraIndex + "/RobotToCameraPose",
+        robotPosesForCalibration[cameraIndex]);
   }
 }

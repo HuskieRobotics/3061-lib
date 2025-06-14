@@ -16,6 +16,10 @@ public class SysIdRoutineChooser {
   private Map<Integer, Command> dynamicReverseRoutines = new HashMap<>();
   private Map<Integer, Command> quasistaticForwardRoutines = new HashMap<>();
   private Map<Integer, Command> quasistaticReverseRoutines = new HashMap<>();
+  private Command dynamicForwardSelectorCommand = null;
+  private Command dynamicBackupSelectorCommand = null;
+  private Command quasistaticForwardSelectorCommand = null;
+  private Command quasistaticBackwardSelectorCommand = null;
 
   private final LoggedDashboardChooser<Integer> sysIdChooser =
       new LoggedDashboardChooser<>("SysId Chooser");
@@ -35,18 +39,36 @@ public class SysIdRoutineChooser {
   }
 
   public Command getDynamicForward() {
-    return new SelectCommand<>(this.dynamicForwardRoutines, sysIdChooser::get);
+    if (dynamicForwardSelectorCommand == null) {
+      dynamicForwardSelectorCommand =
+          new SelectCommand<>(this.dynamicForwardRoutines, sysIdChooser::get);
+    }
+    return dynamicForwardSelectorCommand;
   }
 
   public Command getDynamicReverse() {
-    return new SelectCommand<>(this.dynamicReverseRoutines, sysIdChooser::get);
+    if (dynamicBackupSelectorCommand == null) {
+      dynamicBackupSelectorCommand =
+          new SelectCommand<>(this.dynamicReverseRoutines, sysIdChooser::get);
+    }
+
+    return dynamicBackupSelectorCommand;
   }
 
   public Command getQuasistaticForward() {
-    return new SelectCommand<>(this.quasistaticForwardRoutines, sysIdChooser::get);
+    if (quasistaticForwardSelectorCommand == null) {
+      quasistaticForwardSelectorCommand =
+          new SelectCommand<>(this.quasistaticForwardRoutines, sysIdChooser::get);
+    }
+
+    return quasistaticForwardSelectorCommand;
   }
 
   public Command getQuasistaticReverse() {
-    return new SelectCommand<>(this.quasistaticReverseRoutines, sysIdChooser::get);
+    if (quasistaticBackwardSelectorCommand == null) {
+      quasistaticBackwardSelectorCommand =
+          new SelectCommand<>(this.quasistaticReverseRoutines, sysIdChooser::get);
+    }
+    return quasistaticBackwardSelectorCommand;
   }
 }
