@@ -25,6 +25,7 @@ public class SelfCheckingPigeon2 implements SelfChecking {
   public List<SubsystemFault> checkForFaults() {
     faults.clear();
 
+    // faults
     if (pigeon.getFault_BootDuringEnable().getValue() == Boolean.TRUE) {
       faults.add(new SubsystemFault(String.format("[%s]: Device booted while enabled", label)));
     }
@@ -72,9 +73,69 @@ public class SelfCheckingPigeon2 implements SelfChecking {
       faults.add(new SubsystemFault(String.format("[%s]: Unlicensed feature in use", label)));
     }
 
+    // sticky faults
+    if (pigeon.getStickyFault_BootDuringEnable().getValue() == Boolean.TRUE) {
+      faults.add(
+          new SubsystemFault(String.format("[%s]: [STICKY] Device booted while enabled", label)));
+    }
+    if (pigeon.getStickyFault_BootIntoMotion().getValue() == Boolean.TRUE) {
+      faults.add(
+          new SubsystemFault(String.format("[%s]: [STICKY] Device booted while in motion", label)));
+    }
+    if (pigeon.getStickyFault_BootupAccelerometer().getValue() == Boolean.TRUE) {
+      faults.add(
+          new SubsystemFault(String.format("[%s]: [STICKY] Accelerometer fault detected", label)));
+    }
+    if (pigeon.getStickyFault_BootupGyroscope().getValue() == Boolean.TRUE) {
+      faults.add(new SubsystemFault(String.format("[%s]: [STICKY] Gyro fault detected", label)));
+    }
+    if (pigeon.getStickyFault_BootupMagnetometer().getValue() == Boolean.TRUE) {
+      faults.add(
+          new SubsystemFault(String.format("[%s]: [STICKY] Magnetometer fault detected", label)));
+    }
+    if (pigeon.getStickyFault_DataAcquiredLate().getValue() == Boolean.TRUE) {
+      faults.add(
+          new SubsystemFault(
+              String.format(
+                  "[%s]: [STICKY] Motion stack data acquisition slower than expected", label)));
+    }
+    if (pigeon.getStickyFault_Hardware().getValue() == Boolean.TRUE) {
+      faults.add(
+          new SubsystemFault(String.format("[%s]: [STICKY] Hardware fault detected", label)));
+    }
+    if (pigeon.getStickyFault_LoopTimeSlow().getValue() == Boolean.TRUE) {
+      faults.add(
+          new SubsystemFault(
+              String.format(
+                  "[%s]: [STICKY] Motion stack loop time was slower than expected", label)));
+    }
+    if (pigeon.getStickyFault_SaturatedAccelerometer().getValue() == Boolean.TRUE) {
+      faults.add(
+          new SubsystemFault(
+              String.format("[%s]: [STICKY] Accelerometer values are saturated", label)));
+    }
+    if (pigeon.getStickyFault_SaturatedGyroscope().getValue() == Boolean.TRUE) {
+      faults.add(
+          new SubsystemFault(String.format("[%s]: [STICKY] Gyro values are saturated", label)));
+    }
+    if (pigeon.getStickyFault_SaturatedMagnetometer().getValue() == Boolean.TRUE) {
+      faults.add(
+          new SubsystemFault(
+              String.format("[%s]: [STICKY] Magnetometer values are saturated", label)));
+    }
+    if (pigeon.getStickyFault_Undervoltage().getValue() == Boolean.TRUE) {
+      faults.add(
+          new SubsystemFault(
+              String.format("[%s]: [STICKY] Device supply voltage near brownout", label)));
+    }
+    if (pigeon.getStickyFault_UnlicensedFeatureInUse().getValue() == Boolean.TRUE) {
+      faults.add(
+          new SubsystemFault(String.format("[%s]: [STICKY] Unlicensed feature in use", label)));
+    }
+
     this.statusSignal.refresh();
     if (!connectedDebounce.calculate(this.statusSignal.getStatus().isOK())) {
-      faults.add(new SubsystemFault(String.format("[%s]: device is unreachable", label)));
+      faults.add(new SubsystemFault(String.format("[%s]: [STICKY] device is unreachable", label)));
     }
 
     return faults;

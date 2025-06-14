@@ -25,6 +25,7 @@ public class SelfCheckingPhoenixMotor implements SelfChecking {
   public List<SubsystemFault> checkForFaults() {
     faults.clear();
 
+    // faults
     if (motor.getFault_BootDuringEnable().getValue() == Boolean.TRUE) {
       faults.add(new SubsystemFault(String.format("[%s]: Device booted while enabled", label)));
     }
@@ -93,9 +94,90 @@ public class SelfCheckingPhoenixMotor implements SelfChecking {
       faults.add(new SubsystemFault(String.format("[%s]: Supply voltage is unstable", label)));
     }
 
+    // sticky faults
+    if (motor.getStickyFault_BootDuringEnable().getValue() == Boolean.TRUE) {
+      faults.add(
+          new SubsystemFault(String.format("[%s]: [STICKY] Device booted while enabled", label)));
+    }
+    if (motor.getStickyFault_BridgeBrownout().getValue() == Boolean.TRUE) {
+      faults.add(
+          new SubsystemFault(
+              String.format(
+                  "[%s]: [STICKY] Bridge was disabled most likely due to supply voltage dropping too low",
+                  label)));
+    }
+    if (motor.getStickyFault_DeviceTemp().getValue() == Boolean.TRUE) {
+      faults.add(
+          new SubsystemFault(
+              String.format("[%s]: [STICKY] Device temperature exceeded limit", label), true));
+    }
+    if (motor.getStickyFault_FusedSensorOutOfSync().getValue() == Boolean.TRUE) {
+      faults.add(
+          new SubsystemFault(String.format("[%s]: [STICKY] Remote sensor is out of sync", label)));
+    }
+    if (motor.getStickyFault_Hardware().getValue() == Boolean.TRUE) {
+      faults.add(
+          new SubsystemFault(String.format("[%s]: [STICKY] Hardware failure detected", label)));
+    }
+    if (motor.getStickyFault_MissingDifferentialFX().getValue() == Boolean.TRUE) {
+      faults.add(
+          new SubsystemFault(
+              String.format(
+                  "[%s]: [STICKY] The remote Talon used for differential control is not present",
+                  label)));
+    }
+    if (motor.getStickyFault_MissingHardLimitRemote().getValue() == Boolean.TRUE) {
+      faults.add(
+          new SubsystemFault(
+              String.format(
+                  "[%s]: [STICKY] The remote limit switch device is not present", label)));
+    }
+    if (motor.getStickyFault_MissingSoftLimitRemote().getValue() == Boolean.TRUE) {
+      faults.add(
+          new SubsystemFault(
+              String.format("[%s]: [STICKY] The remote soft limit device is not present", label)));
+    }
+    if (motor.getStickyFault_OverSupplyV().getValue() == Boolean.TRUE) {
+      faults.add(
+          new SubsystemFault(String.format("[%s]: [STICKY] Supply voltage exceeded limit", label)));
+    }
+    if (motor.getStickyFault_ProcTemp().getValue() == Boolean.TRUE) {
+      faults.add(
+          new SubsystemFault(
+              String.format("[%s]: [STICKY] Processor temperature exceeded limit", label)));
+    }
+    if (motor.getStickyFault_RemoteSensorDataInvalid().getValue() == Boolean.TRUE) {
+      faults.add(
+          new SubsystemFault(
+              String.format(
+                  "[%s]: [STICKY] The remote sensor's data is no longer trusted", label)));
+    }
+    if (motor.getStickyFault_RemoteSensorPosOverflow().getValue() == Boolean.TRUE) {
+      faults.add(
+          new SubsystemFault(
+              String.format("[%s]: [STICKY] The remote sensor position has overflowed", label)));
+    }
+    if (motor.getStickyFault_RemoteSensorReset().getValue() == Boolean.TRUE) {
+      faults.add(
+          new SubsystemFault(String.format("[%s]: [STICKY] The remote sensor has reset", label)));
+    }
+    if (motor.getStickyFault_Undervoltage().getValue() == Boolean.TRUE) {
+      faults.add(
+          new SubsystemFault(
+              String.format("[%s]: [STICKY] Device supply voltage near brownout", label)));
+    }
+    if (motor.getStickyFault_UnlicensedFeatureInUse().getValue() == Boolean.TRUE) {
+      faults.add(
+          new SubsystemFault(String.format("[%s]: [STICKY] Unlicensed feature in use", label)));
+    }
+    if (motor.getStickyFault_UnstableSupplyV().getValue() == Boolean.TRUE) {
+      faults.add(
+          new SubsystemFault(String.format("[%s]: [STICKY] Supply voltage is unstable", label)));
+    }
+
     this.statusSignal.refresh();
     if (!connectedDebounce.calculate(this.statusSignal.getStatus().isOK())) {
-      faults.add(new SubsystemFault(String.format("[%s]: device is unreachable", label)));
+      faults.add(new SubsystemFault(String.format("[%s]: [STICKY] device is unreachable", label)));
     }
 
     return faults;
