@@ -69,6 +69,7 @@ public abstract class LEDs extends SubsystemBase {
     AUTO((leds, section) -> leds.orangePulse(section, PULSE_DURATION)),
     ENDGAME_ALERT((leds, section) -> leds.strobe(section, Color.kYellow, STROBE_SLOW_DURATION)),
     UNTILTING_ROBOT((leds, section) -> leds.strobe(section, Color.kRed, STROBE_SLOW_DURATION)),
+    ELEVATOR_JAMMED((leds, section) -> leds.strobe(section, Color.kBlue, STROBE_SLOW_DURATION)),
     DRIVE_TO_POSE_CANCELED(
         (leds, section) -> leds.strobe(section, Color.kPink, STROBE_SLOW_DURATION)),
     AUTO_DRIVING_TO_POSE((leds, section) -> leds.orangePulse(section, PULSE_DURATION)),
