@@ -63,8 +63,6 @@ public class ElevatorIOTalonFX implements ElevatorIO {
   private final Debouncer connectedLeadDebouncer = new Debouncer(0.5);
   private final Debouncer connectedFollowerDebouncer = new Debouncer(0.5);
 
-  private double localPosition = 0.0;
-
   // Tunable constants
   private final LoggedTunableNumber kPslot0 =
       new LoggedTunableNumber("Elevator/kPslot0", ElevatorConstants.KP_SLOT0);
@@ -259,8 +257,6 @@ public class ElevatorIOTalonFX implements ElevatorIO {
     inputs.positionRotations = elevatorPositionStatusSignal.getValueAsDouble();
 
     inputs.positionInches = inputs.positionRotations * PULLEY_CIRCUMFERENCE_INCHES;
-
-    localPosition = inputs.positionInches;
 
     LoggedTunableNumber.ifChanged(
         hashCode(),

@@ -72,8 +72,22 @@ public abstract class LEDs extends SubsystemBase {
     ELEVATOR_JAMMED((leds, section) -> leds.strobe(section, Color.kBlue, STROBE_SLOW_DURATION)),
     DRIVE_TO_POSE_CANCELED(
         (leds, section) -> leds.strobe(section, Color.kPink, STROBE_SLOW_DURATION)),
+    EJECTING_GAME_PIECE(
+        (leds, section) -> leds.strobe(section, new Color(255, 20, 0), STROBE_SLOW_DURATION)),
+    RELEASING_GAME_PIECE(
+        (leds, section) -> leds.strobe(section, Color.kGreen, STROBE_SLOW_DURATION)),
     AUTO_DRIVING_TO_POSE((leds, section) -> leds.orangePulse(section, PULSE_DURATION)),
     AT_POSE((leds, section) -> leds.solid(section, Color.kGreen)),
+    HAS_GAME_PIECE((leds, section) -> leds.solid(section, Color.kBlue)),
+    INDEXING_GAME_PIECE((leds, section) -> leds.strobe(section, Color.kBlue, STROBE_SLOW_DURATION)),
+    WAITING_FOR_GAME_PIECE(
+        (leds, section) ->
+            leds.wave(
+                section,
+                Color.kBlue,
+                new Color(255, 20, 0),
+                WAVE_FAST_CYCLE_LENGTH,
+                WAVE_SLOW_DURATION)),
     DEFAULT((leds, section) -> leds.solid(section, Color.kBlack));
 
     public final BiConsumer<LEDs, Section> setter;
