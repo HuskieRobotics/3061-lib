@@ -25,6 +25,7 @@ import frc.lib.team3061.vision.VisionIO;
 import frc.lib.team3061.vision.VisionIOPhotonVision;
 import frc.lib.team3061.vision.VisionIOSim;
 import frc.robot.Constants.Mode;
+import frc.robot.commands.ArmCommandFactory;
 import frc.robot.commands.AutonomousCommandFactory;
 import frc.robot.commands.CrossSubsystemsCommandsFactory;
 import frc.robot.commands.DifferentialDrivetrainCommandFactory;
@@ -299,6 +300,7 @@ public class RobotContainer {
 
     // register commands for other subsystems
     SubsystemCommandFactory.registerCommands(oi, subsystem);
+    ArmCommandFactory.registerCommands(oi, arm);
 
     CrossSubsystemsCommandsFactory.registerCommands(oi, swerveDrivetrain, vision, subsystem);
 

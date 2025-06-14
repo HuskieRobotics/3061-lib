@@ -7,6 +7,7 @@ import com.pathplanner.lib.config.ModuleConfig;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
@@ -292,6 +293,16 @@ public abstract class RobotConfig {
    */
   public SwerveDriveKinematics getSwerveDriveKinematics() {
     return new SwerveDriveKinematics(getSwerveModulePositions());
+  }
+
+  /**
+   * Returns the differential drive kinematics object for the robot. This is used for differential
+   * drive robots.
+   *
+   * @return the differential drive kinematics object for the robot
+   */
+  public DifferentialDriveKinematics getDifferentialDriveKinematics() {
+    return new DifferentialDriveKinematics(getTrackwidth());
   }
 
   /**

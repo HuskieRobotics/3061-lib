@@ -14,8 +14,11 @@ public interface DifferentialDrivetrainIO {
     double leftEncoderCount = 0.0;
     double rightEncoderCount = 0.0;
 
-    double leftMotorPositionInches = 0.0;
-    double rightMotorPositionInches = 0.0;
+    double leftPositionMeters = 0.0;
+    double rightPositionMeters = 0.0;
+
+    double leftVelocityMetersPerSecond = 0.0;
+    double rightVelocityMetersPerSecond = 0.0;
 
     double headingDeg = 0.0;
     double pitchDeg = 0.0;

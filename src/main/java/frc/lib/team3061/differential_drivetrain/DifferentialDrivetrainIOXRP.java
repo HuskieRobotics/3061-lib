@@ -2,6 +2,8 @@ package frc.lib.team3061.differential_drivetrain;
 
 import static frc.lib.team3061.differential_drivetrain.DifferentialDrivetrainConstants.*;
 
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.units.measure.Force;
 import edu.wpi.first.wpilibj.BuiltInAccelerometer;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -36,9 +38,9 @@ public class DifferentialDrivetrainIOXRP implements DifferentialDrivetrainIO {
     // gearbox is constructed, you might have to invert the left side instead.
     rightMotor.setInverted(true);
 
-    // Use inches as unit for encoder distances
-    leftEncoder.setDistancePerPulse((Math.PI * kWheelDiameterInch) / kCountsPerRevolution);
-    rightEncoder.setDistancePerPulse((Math.PI * kWheelDiameterInch) / kCountsPerRevolution);
+    // Use meters as unit for encoder distances
+    leftEncoder.setDistancePerPulse((Math.PI * kWheelDiameterMeters) / kCountsPerRevolution);
+    rightEncoder.setDistancePerPulse((Math.PI * kWheelDiameterMeters) / kCountsPerRevolution);
     resetEncoders();
   }
 
@@ -50,8 +52,8 @@ public class DifferentialDrivetrainIOXRP implements DifferentialDrivetrainIO {
     inputs.leftEncoderCount = leftEncoder.get();
     inputs.rightEncoderCount = rightEncoder.get();
 
-    inputs.leftMotorPositionInches = leftEncoder.getDistance();
-    inputs.rightMotorPositionInches = rightEncoder.getDistance();
+    inputs.leftPositionMeters = leftEncoder.getDistance();
+    inputs.rightPositionMeters = rightEncoder.getDistance();
 
     inputs.headingDeg = gyro.getAngleZ();
     inputs.pitchDeg = gyro.getAngleX();
@@ -76,6 +78,24 @@ public class DifferentialDrivetrainIOXRP implements DifferentialDrivetrainIO {
   @Override
   public void driveRobotRelative(double xVelocity, double rotationalVelocity, boolean isOpenLoop) {
     diffDrive.arcadeDrive(xVelocity, rotationalVelocity);
+  }
+
+  /**
+   * Controls the drivetrain to move the robot with the desired velocities in the x, y, and
+   * rotational directions. The velocities are specified from the robot's frame of reference. In the
+   * robot frame of reference, The origin of the robot is always the center of the robot. The
+   * positive x direction is forward; the positive y direction, left. Zero degrees is aligned to the
+   * positive x axis and increases in the CCW direction.
+   *
+   * @param speeds the desired chassis speeds
+   * @param forcesX the robot-centric wheel forces in the x direction
+   * @param forcesY the robot-centric wheel forces in the y direction
+   * @param isOpenLoop true for open-loop control; false for closed-loop control
+   */
+  @Override
+  public void applyRobotSpeeds(
+      ChassisSpeeds speeds, Force[] forcesX, Force[] forcesY, boolean isOpenLoop) {
+    diffDrive.arcadeDrive(speeds.vxMetersPerSecond, speeds.omegaRadiansPerSecond);
   }
 
   private void resetEncoders() {

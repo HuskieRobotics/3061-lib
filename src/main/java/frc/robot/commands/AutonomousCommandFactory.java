@@ -120,6 +120,8 @@ public class AutonomousCommandFactory {
   public void configureAutoCommands(DifferentialDrivetrain drivetrain, Vision vision) {
     // add commands to the auto chooser
     autoChooser.addDefaultOption("Do Nothing", new InstantCommand());
+
+    autoChooser.addOption("Differential Example", new PathPlannerAuto("Differential Auto"));
   }
 
   private Command getDriveVelocityTuningCommand(SwerveDrivetrain drivetrain) {

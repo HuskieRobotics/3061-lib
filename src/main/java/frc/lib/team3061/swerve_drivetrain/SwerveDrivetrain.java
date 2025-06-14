@@ -42,6 +42,7 @@ import frc.lib.team3061.leds.LEDs;
 import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrainConstants.SysIDCharacterizationMode;
 import frc.lib.team3061.util.CustomPoseEstimator;
 import frc.lib.team3061.util.RobotOdometry;
+import frc.lib.team3061.util.SwerveRobotOdometry;
 import frc.lib.team3061.util.SysIdRoutineChooser;
 import frc.lib.team6328.util.FieldConstants;
 import frc.lib.team6328.util.LoggedTracer;
@@ -115,7 +116,7 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
   private static final String SYSTEM_CHECK_PREFIX = "[System Check] Swerve module ";
   private static final String IS_LITERAL = " is: ";
 
-  private final RobotOdometry odometry;
+  private final SwerveRobotOdometry odometry;
   private Pose2d prevRobotPose = new Pose2d();
   private int teleportedCount = 0;
   private int constrainPoseToFieldCount = 0;
@@ -273,7 +274,8 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
         this // Reference to this subsystem to set requirements
         );
 
-    this.odometry = RobotOdometry.getInstance();
+    this.odometry = new SwerveRobotOdometry();
+    RobotOdometry.setInstance(this.odometry);
     this.odometry.setCustomEstimator(this);
 
     this.xFilter.reset(0.0);
