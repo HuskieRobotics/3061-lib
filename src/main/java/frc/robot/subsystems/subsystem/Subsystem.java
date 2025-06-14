@@ -231,7 +231,6 @@ public class Subsystem extends SubsystemBase {
 
   private Command getSystemCheckCommand() {
     return Commands.sequence(
-            Commands.runOnce(() -> FaultReporter.getInstance().clearFaults(SUBSYSTEM_NAME)),
             Commands.run(() -> io.setMotorVoltage(3.6)).withTimeout(1.0),
             Commands.runOnce(
                 () -> {
@@ -240,8 +239,7 @@ public class Subsystem extends SubsystemBase {
                         .addFault(
                             SUBSYSTEM_NAME,
                             "[System Check] Subsystem motor not moving as fast as expected",
-                            false,
-                            true);
+                            false);
                   }
                 }),
             Commands.run(() -> io.setMotorVoltage(-2.4)).withTimeout(1.0),
@@ -252,8 +250,7 @@ public class Subsystem extends SubsystemBase {
                         .addFault(
                             SUBSYSTEM_NAME,
                             "[System Check] Subsystem motor moving too slow or in the wrong direction",
-                            false,
-                            true);
+                            false);
                   }
                 }))
         .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())

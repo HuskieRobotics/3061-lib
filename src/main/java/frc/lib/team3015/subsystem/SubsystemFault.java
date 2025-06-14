@@ -7,22 +7,15 @@ public class SubsystemFault {
   public final String description;
   public final double timestamp;
   public final boolean isWarning;
-  public final boolean sticky;
-
-  public SubsystemFault(String description, boolean isWarning) {
-    // default sticky to true
-    this(description, isWarning, true);
-  }
 
   public SubsystemFault(String description) {
     this(description, false);
   }
 
-  public SubsystemFault(String description, boolean isWarning, boolean sticky) {
+  public SubsystemFault(String description, boolean isWarning) {
     this.description = description;
     this.timestamp = Timer.getTimestamp();
     this.isWarning = isWarning;
-    this.sticky = sticky;
   }
 
   @Override
@@ -47,6 +40,6 @@ public class SubsystemFault {
 
   @Override
   public int hashCode() {
-    return Objects.hash(description, timestamp, isWarning, sticky);
+    return Objects.hash(description, timestamp, isWarning);
   }
 }
