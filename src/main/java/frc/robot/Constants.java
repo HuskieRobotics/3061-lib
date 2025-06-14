@@ -38,6 +38,7 @@ public final class Constants {
   public enum RobotType {
     ROBOT_DEFAULT,
     ROBOT_SIMBOT,
+    ROBOT_XRP,
     ROBOT_PRACTICE,
     ROBOT_COMPETITION,
     ROBOT_PRACTICE_BOARD,
@@ -47,7 +48,8 @@ public final class Constants {
   // FIXME: update for various robots
   public static RobotType getRobot() {
     if (RobotBase.isReal()) {
-      if (ROBOT == RobotType.ROBOT_SIMBOT) { // Invalid robot selected
+      if (ROBOT == RobotType.ROBOT_SIMBOT
+          || ROBOT == RobotType.ROBOT_XRP) { // Invalid robot selected
         invalidRobotAlert.set(true);
         return RobotType.ROBOT_COMPETITION;
       } else {
@@ -64,7 +66,7 @@ public final class Constants {
       case ROBOT_DEFAULT, ROBOT_PRACTICE, ROBOT_PRACTICE_BOARD, ROBOT_COMPETITION:
         return RobotBase.isReal() ? Mode.REAL : Mode.REPLAY;
 
-      case ROBOT_SIMBOT, ROBOT_VISION_TEST_PLATFORM:
+      case ROBOT_SIMBOT, ROBOT_VISION_TEST_PLATFORM, ROBOT_XRP:
         return Mode.SIM;
 
       default:
