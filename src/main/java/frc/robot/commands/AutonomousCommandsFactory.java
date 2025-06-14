@@ -11,9 +11,9 @@ import frc.lib.team3061.drivetrain.Drivetrain;
 import frc.lib.team3061.vision.Vision;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
-public class AutonomousCommandFactory {
+public class AutonomousCommandsFactory {
 
-  private static AutonomousCommandFactory autonomousCommandFactory = null;
+  private static AutonomousCommandsFactory autonomousCommandFactory = null;
 
   // use AdvantageKit's LoggedDashboardChooser instead of SendableChooser to ensure accurate logging
   private final LoggedDashboardChooser<Command> autoChooser =
@@ -27,14 +27,14 @@ public class AutonomousCommandFactory {
    *
    * @return the singleton instance of this class
    */
-  public static AutonomousCommandFactory getInstance() {
+  public static AutonomousCommandsFactory getInstance() {
     if (autonomousCommandFactory == null) {
-      autonomousCommandFactory = new AutonomousCommandFactory();
+      autonomousCommandFactory = new AutonomousCommandsFactory();
     }
     return autonomousCommandFactory;
   }
 
-  private AutonomousCommandFactory() {}
+  private AutonomousCommandsFactory() {}
 
   public Command getAutonomousCommand() {
     return autoChooser.get();
