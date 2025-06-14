@@ -48,6 +48,11 @@ public class XRPRobotConfig extends RobotConfig {
   private static final double AUTO_TURN_D_CONTROLLER = 0.0;
 
   @Override
+  public DRIVETRAIN_TYPE getDrivetrainType() {
+    return DRIVETRAIN_TYPE.DIFFERENTIAL;
+  }
+
+  @Override
   public double getDriveKS() {
     return DRIVE_KS;
   }

@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import frc.lib.team3061.differential_drivetrain.DifferentialDrivetrain;
 import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
 import frc.lib.team3061.vision.Vision;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
@@ -114,6 +115,11 @@ public class AutonomousCommandFactory {
     autoChooser.addOption( // start by driving slowing in a circle to align wheels
         "Drive Wheel Radius Characterization",
         this.getDriveWheelRadiusCharacterizationCommand(drivetrain));
+  }
+
+  public void configureAutoCommands(DifferentialDrivetrain drivetrain, Vision vision) {
+    // add commands to the auto chooser
+    autoChooser.addDefaultOption("Do Nothing", new InstantCommand());
   }
 
   private Command getDriveVelocityTuningCommand(SwerveDrivetrain drivetrain) {

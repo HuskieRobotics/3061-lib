@@ -115,8 +115,6 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
   private static final String SYSTEM_CHECK_PREFIX = "[System Check] Swerve module ";
   private static final String IS_LITERAL = " is: ";
 
-  private DriverStation.Alliance alliance = Field2d.getInstance().getAlliance();
-
   private final RobotOdometry odometry;
   private Pose2d prevRobotPose = new Pose2d();
   private int teleportedCount = 0;
@@ -447,7 +445,7 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
 
     // should we give it the actual current velocity or the desired velocity?
     // always calculate whenever we are driving so that we maintain a history of recent values
-    // find the other method that the autobuilder uses to drive
+    // find the other method that the auto-builder uses to drive
     this.xFilter.calculate(xVelocity);
     this.yFilter.calculate(yVelocity);
     // this.thetaFilter.calculate(rotationalVelocity);
@@ -490,7 +488,7 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
       // station. As a result, "forward" from a field-relative perspective when on the red
       // alliance, is in the negative x direction. Similarly, "left" from a field-relative
       // perspective when on the red alliance is in the negative y direction.
-      int allianceMultiplier = this.alliance == Alliance.Blue ? 1 : -1;
+      int allianceMultiplier = Field2d.getInstance().getAlliance() == Alliance.Blue ? 1 : -1;
       this.io.driveFieldRelative(
           allianceMultiplier * xVelocity,
           allianceMultiplier * yVelocity,
@@ -540,7 +538,7 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
       }
     }
 
-    int allianceMultiplier = this.alliance == Alliance.Blue ? 1 : -1;
+    int allianceMultiplier = Field2d.getInstance().getAlliance() == Alliance.Blue ? 1 : -1;
     this.io.driveFieldRelativeFacingAngle(
         xVelocity * allianceMultiplier,
         yVelocity * allianceMultiplier,
@@ -832,25 +830,13 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
   }
 
   /**
-   * This method should be invoked once the alliance color is known. Refer to the RobotContainer's
-   * checkAllianceColor method for best practices on when to check the alliance's color. The
-   * alliance color is needed when running auto paths as those paths are always defined for
-   * blue-alliance robots and need to be flipped for red-alliance robots.
-   *
-   * @param newAlliance the new alliance color
-   */
-  public void updateAlliance(DriverStation.Alliance newAlliance) {
-    this.alliance = newAlliance;
-  }
-
-  /**
    * Returns true if the auto path, which is always defined for a blue alliance robot, should be
    * flipped to the red alliance side of the field.
    *
    * @return true if the auto path should be flipped to the red alliance side of the field
    */
   public boolean shouldFlipAutoPath() {
-    return this.alliance == Alliance.Red;
+    return Field2d.getInstance().getAlliance() == Alliance.Red;
   }
 
   /**

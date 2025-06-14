@@ -51,6 +51,16 @@ public abstract class RobotConfig {
   }
 
   /**
+   * Returns the type of drivetrain for this robot. This is used to determine which drivetrain
+   * subsystem to expect. Defaults to {@link DRIVETRAIN_TYPE#SWERVE}.
+   *
+   * @return the type of drivetrain for this robot
+   */
+  public DRIVETRAIN_TYPE getDrivetrainType() {
+    return DRIVETRAIN_TYPE.SWERVE;
+  }
+
+  /**
    * Returns the proportional constant for the PID controller for the angle motor on the swerve
    * module. Defaults to 0.
    *
@@ -839,6 +849,11 @@ public abstract class RobotConfig {
    */
   public double getAzimuthSteerCouplingRatio() {
     return 0.0;
+  }
+
+  public enum DRIVETRAIN_TYPE {
+    DIFFERENTIAL,
+    SWERVE
   }
 
   public enum SWERVE_CONTROL_MODE {
