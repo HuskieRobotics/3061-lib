@@ -38,7 +38,6 @@ public class XRPRobotConfig extends RobotConfig {
 
   // FIXME: determine maximum velocities empirically
   private static final LinearVelocity MAX_VELOCITY = MetersPerSecond.of(3.5);
-  private static final LinearVelocity MAX_COAST_VELOCITY = MetersPerSecond.of(0.05);
 
   // FIXME: specify maximum velocity and acceleration and tune PID values for auto paths
   private static final double AUTO_DRIVE_P_CONTROLLER = 5.0;
@@ -47,14 +46,6 @@ public class XRPRobotConfig extends RobotConfig {
   private static final double AUTO_TURN_P_CONTROLLER = 5.0;
   private static final double AUTO_TURN_I_CONTROLLER = 0.0;
   private static final double AUTO_TURN_D_CONTROLLER = 0.0;
-
-  // FIXME: tune PID values for drive to pose
-  // Drive to Pose constants
-  private static final double DRIVE_TO_POSE_DRIVE_KP = 2.5;
-  private static final double DRIVE_TO_POSE_DRIVE_KD = 0.0;
-  private static final double DRIVE_TO_POSE_THETA_KP = 18.0;
-  private static final double DRIVE_TO_POSE_THETA_KI = 10.0;
-  private static final double DRIVE_TO_POSE_THETA_KD = 0.0;
 
   @Override
   public double getDriveKS() {
