@@ -38,6 +38,8 @@ import frc.robot.configs.VisionTestPlatformConfig;
 import frc.robot.configs.XRPRobotConfig;
 import frc.robot.operator_interface.OISelector;
 import frc.robot.operator_interface.OperatorInterface;
+import frc.robot.subsystems.arm.Arm;
+import frc.robot.subsystems.arm.ArmIOXRP;
 import frc.robot.subsystems.subsystem.Subsystem;
 import frc.robot.subsystems.subsystem.SubsystemIO;
 import frc.robot.subsystems.subsystem.SubsystemIOTalonFX;
@@ -59,6 +61,7 @@ public class RobotContainer {
   private DifferentialDrivetrain differentialDrivetrain;
   private Alliance lastAlliance = Field2d.getInstance().getAlliance();
   private Vision vision;
+  private Arm arm;
   private Subsystem subsystem;
 
   private final LoggedNetworkNumber endgameAlert1 =
@@ -229,8 +232,7 @@ public class RobotContainer {
     differentialDrivetrain = new DifferentialDrivetrain(new DifferentialDrivetrainIOXRP());
     vision = new Vision(new VisionIO[] {new VisionIO() {}});
 
-    // FIXME: initialize other subsystems
-    subsystem = new Subsystem(new SubsystemIO() {});
+    arm = new Arm(new ArmIOXRP());
   }
 
   private void createPracticeBoardSubsystems() {
