@@ -15,7 +15,7 @@ import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Mass;
 import edu.wpi.first.units.measure.MomentOfInertia;
 import frc.lib.team3061.RobotConfig;
-import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
+import frc.lib.team3061.swerve_drivetrain.swerve.SwerveConstants;
 
 public class NewPracticeRobotConfig extends RobotConfig {
   // 2 mk4n's on the front, 2 mk4is on the back

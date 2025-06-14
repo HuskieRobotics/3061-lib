@@ -12,6 +12,18 @@
       "window": {
         "visible": true
       }
+    },
+    "Other Devices": {
+      "BuiltInAccel": {
+        "header": {
+          "open": true
+        }
+      },
+      "XRPGyro": {
+        "header": {
+          "open": true
+        }
+      }
     }
   },
   "NTProvider": {

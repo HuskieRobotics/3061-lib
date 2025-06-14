@@ -9,8 +9,8 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.lib.team3061.RobotConfig;
-import frc.lib.team3061.drivetrain.Drivetrain;
 import frc.lib.team3061.leds.LEDs;
+import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
 import frc.lib.team3061.vision.Vision;
 import frc.lib.team6328.util.LoggedTunableNumber;
 import frc.robot.operator_interface.OperatorInterface;
@@ -47,7 +47,7 @@ public class CrossSubsystemsCommandsFactory {
   private CrossSubsystemsCommandsFactory() {}
 
   public static void registerCommands(
-      OperatorInterface oi, Drivetrain drivetrain, Vision vision, Subsystem subsystem) {
+      OperatorInterface oi, SwerveDrivetrain drivetrain, Vision vision, Subsystem subsystem) {
 
     oi.getInterruptAll().onTrue(getInterruptAllCommand(drivetrain, vision, subsystem, oi));
 
@@ -57,7 +57,7 @@ public class CrossSubsystemsCommandsFactory {
   }
 
   private static Command getInterruptAllCommand(
-      Drivetrain drivetrain, Vision vision, Subsystem subsystem, OperatorInterface oi) {
+      SwerveDrivetrain drivetrain, Vision vision, Subsystem subsystem, OperatorInterface oi) {
     return Commands.parallel(
             new TeleopSwerve(drivetrain, oi::getTranslateX, oi::getTranslateY, oi::getRotate),
             Commands.runOnce(() -> vision.specifyCamerasToConsider(List.of(0, 1, 2, 3))))
@@ -65,7 +65,7 @@ public class CrossSubsystemsCommandsFactory {
   }
 
   private static Command getDriveToPoseCommand(
-      Drivetrain drivetrain, Subsystem subsystem, OperatorInterface oi) {
+      SwerveDrivetrain drivetrain, Subsystem subsystem, OperatorInterface oi) {
     thetaController.enableContinuousInput(-Math.PI, Math.PI);
 
     return new DriveToPose(
@@ -87,7 +87,7 @@ public class CrossSubsystemsCommandsFactory {
   }
 
   private static Command getDriveToPoseOverrideCommand(
-      Drivetrain drivetrain, OperatorInterface oi) {
+      SwerveDrivetrain drivetrain, OperatorInterface oi) {
     return new TeleopSwerve(drivetrain, oi::getTranslateX, oi::getTranslateY, oi::getRotate)
         .withName("Override driveToPose");
   }

@@ -101,4 +101,13 @@ public interface OperatorInterface {
   public default Trigger getEnableAutoScoringTrigger() {
     return new Trigger(() -> false);
   }
+
+  // XRP EXAMPLE TRIGGERS
+  public default Trigger getMoveArmMiddlePositionTrigger() {
+    return new Trigger(() -> false);
+  }
+
+  public default Trigger getMoveArmHighPositionTrigger() {
+    return new Trigger(() -> false);
+  }
 }

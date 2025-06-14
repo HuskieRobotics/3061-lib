@@ -1,7 +1,7 @@
-package frc.lib.team3061.drivetrain;
+package frc.lib.team3061.swerve_drivetrain;
 
 import static edu.wpi.first.units.Units.*;
-import static frc.lib.team3061.drivetrain.DrivetrainConstants.*;
+import static frc.lib.team3061.swerve_drivetrain.SwerveDrivetrainConstants.*;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
@@ -35,8 +35,8 @@ import edu.wpi.first.wpilibj.Timer;
 import frc.lib.team254.Phoenix6Util;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
-import frc.lib.team3061.drivetrain.DrivetrainConstants.SysIDCharacterizationMode;
-import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
+import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrainConstants.SysIDCharacterizationMode;
+import frc.lib.team3061.swerve_drivetrain.swerve.SwerveConstants;
 import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team6328.util.LoggedTunableNumber;
 import frc.robot.Constants;
@@ -50,8 +50,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 @java.lang.SuppressWarnings({"java:S1450"})
-public class DrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, CANcoder>
-    implements DrivetrainIO {
+public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, CANcoder>
+    implements SwerveDrivetrainIO {
 
   static class CustomSlotGains extends Slot0Configs {
     public CustomSlotGains(double kP, double kI, double kD, double kA, double kV, double kS) {
@@ -332,7 +332,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, CANcode
   private double lastSimTime;
 
   /** Creates a new Drivetrain subsystem. */
-  public DrivetrainIOCTRE() {
+  public SwerveDrivetrainIOCTRE() {
     super(
         TalonFX::new,
         TalonFX::new,
@@ -431,7 +431,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, CANcode
   }
 
   @Override
-  public void updateInputs(DrivetrainIOInputsCollection inputs) {
+  public void updateInputs(SwerveDrivetrainIOInputsCollection inputs) {
 
     // update and log the swerve modules inputs
     for (int i = 0; i < this.getModules().length; i++) {
@@ -736,7 +736,7 @@ public class DrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, CANcode
    *
    * @return the average current of the swerve module drive motors in amps
    */
-  private double getAverageDriveCurrent(DrivetrainIOInputsCollection inputs) {
+  private double getAverageDriveCurrent(SwerveDrivetrainIOInputsCollection inputs) {
     double totalCurrent = 0.0;
     for (SwerveIOInputs swerveInputs : inputs.swerve) {
       totalCurrent += Math.abs(swerveInputs.driveStatorCurrentAmps);

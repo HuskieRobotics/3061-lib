@@ -5,7 +5,7 @@ import static edu.wpi.first.units.Units.*;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.lib.team3061.RobotConfig;
-import frc.lib.team3061.drivetrain.Drivetrain;
+import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
 import frc.lib.team6328.util.LoggedTunableNumber;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
@@ -26,7 +26,7 @@ import org.littletonrobotics.junction.Logger;
  */
 public class TeleopSwerve extends Command {
 
-  private final Drivetrain drivetrain;
+  private final SwerveDrivetrain drivetrain;
   private final DoubleSupplier translationXSupplier;
   private final DoubleSupplier translationYSupplier;
   private final DoubleSupplier rotationSupplier;
@@ -54,7 +54,7 @@ public class TeleopSwerve extends Command {
    *     rotational velocity as defined by the standard field or robot coordinate system
    */
   public TeleopSwerve(
-      Drivetrain drivetrain,
+      SwerveDrivetrain drivetrain,
       DoubleSupplier translationXSupplier,
       DoubleSupplier translationYSupplier,
       DoubleSupplier rotationSupplier) {
@@ -80,7 +80,7 @@ public class TeleopSwerve extends Command {
    *     rotational velocity as defined by the standard field or robot coordinate system
    */
   public TeleopSwerve(
-      Drivetrain drivetrain,
+      SwerveDrivetrain drivetrain,
       DoubleSupplier translationXSupplier,
       DoubleSupplier translationYSupplier,
       Supplier<Rotation2d> angleSupplier) {

@@ -1,14 +1,14 @@
-package frc.lib.team3061.drivetrain;
+package frc.lib.team3061.swerve_drivetrain;
 
-public class DrivetrainConstants {
+public class SwerveDrivetrainConstants {
 
   private static final String CONSTRUCTOR_EXCEPTION = "constant class";
 
-  private DrivetrainConstants() {
+  private SwerveDrivetrainConstants() {
     throw new IllegalStateException(CONSTRUCTOR_EXCEPTION);
   }
 
-  public static final String SUBSYSTEM_NAME = "Drivetrain";
+  public static final String SUBSYSTEM_NAME = "SwerveDrivetrain";
 
   public static final boolean ENABLE_TELEPORT_DETECTION = false;
   public static final double TELEPORT_DETECTION_THRESHOLD_METERS = 0.4;
