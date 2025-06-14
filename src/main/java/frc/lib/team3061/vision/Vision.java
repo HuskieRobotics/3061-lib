@@ -55,7 +55,8 @@ public class Vision extends SubsystemBase {
 
   private boolean isEnabled = true;
   private boolean isVisionUpdating = false;
-  private final Debouncer isVisionUpdatingDebounce = new Debouncer(0.1);
+  private final Debouncer isVisionUpdatingDebounce =
+      new Debouncer(0.1, Debouncer.DebounceType.kFalling);
 
   private RobotOdometry odometry;
 
@@ -360,7 +361,7 @@ public class Vision extends SubsystemBase {
 
     Logger.recordOutput(SUBSYSTEM_NAME + "/IsEnabled", isEnabled);
     Logger.recordOutput(
-        SUBSYSTEM_NAME + "/IsUpdating", !isVisionUpdatingDebounce.calculate(!isVisionUpdating));
+        SUBSYSTEM_NAME + "/IsUpdating", isVisionUpdatingDebounce.calculate(isVisionUpdating));
 
     Logger.recordOutput(SUBSYSTEM_NAME + "/CamerasToConsider", camerasToConsider.toString());
 
