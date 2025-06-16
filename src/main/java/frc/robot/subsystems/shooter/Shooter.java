@@ -92,18 +92,17 @@ public class Shooter extends SubsystemBase {
 
   private Command getSystemCheckCommand() {
     return Commands.sequence(
-        getPresetCheckCommand(7.0),
-        getPresetCheckCommand(9.0),
-        getPresetCheckCommand(11.0),
-        getPresetCheckCommand(13.0)
-            .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
-            .andThen(
-                Commands.runOnce(
-                    () -> {
-                      io.setShooterWheelBottomVelocity(0.0);
-                      io.setShooterWheelTopVelocity(0.0);
-                    }))
-            .withName(SUBSYSTEM_NAME + "SystemCheck"));
+            getPresetCheckCommand(7.0),
+            getPresetCheckCommand(9.0),
+            getPresetCheckCommand(11.0),
+            getPresetCheckCommand(13.0))
+        .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
+        .andThen(
+            Commands.runOnce(
+                () -> {
+                  io.setShooterWheelBottomVelocity(0.0);
+                  io.setShooterWheelTopVelocity(0.0);
+                }));
   }
 
   private Command getPresetCheckCommand(double distance) {
