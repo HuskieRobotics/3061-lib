@@ -30,6 +30,7 @@ import frc.lib.team6328.util.LoggedTunableNumber;
 
 public class ArmIOTalonFX implements ArmIO {
 
+  // We usually use MotionMagic Expo voltage to control the position of a mechanism.
   private MotionMagicExpoVoltage angleMotorPositionRequest;
   private VoltageOut angleMotorVoltageRequest;
 
@@ -43,7 +44,8 @@ public class ArmIOTalonFX implements ArmIO {
 
   private Alert configAlert = new Alert("Failed to apply configuration for arm.", AlertType.kError);
 
-  // Angle PID Tunable Numbers
+  // The following enables tuning of the PID and feedforward values for the arm by changing values
+  // via AdvantageScope and not needing to change values in code, compile, and re-deploy.
   private final LoggedTunableNumber rotationMotorKP =
       new LoggedTunableNumber("Arm/ROTATION_KP", ArmConstants.ROTATION_KP);
   private final LoggedTunableNumber rotationMotorKI =
@@ -62,14 +64,11 @@ public class ArmIOTalonFX implements ArmIO {
       new LoggedTunableNumber("Arm/ROTATION_EXPO_KV", ArmConstants.ROTATION_EXPO_KV);
   private final LoggedTunableNumber rotationMotorExpoKA =
       new LoggedTunableNumber("Arm/ROTATION_EXPO_KA", ArmConstants.ROTATION_EXPO_KA);
-
   private final LoggedTunableNumber rotationEncoderMagnetOffset =
       new LoggedTunableNumber("Arm/ROTATION_MAGNET_OFFSET", ArmConstants.MAGNET_OFFSET);
 
   private TalonFX angleMotor;
   private CANcoder angleEncoder;
-
-  private double angleSetpoint;
 
   public ArmIOTalonFX() {
 
@@ -85,6 +84,9 @@ public class ArmIOTalonFX implements ArmIO {
     angleMotorTemperatureStatusSignal = angleMotor.getDeviceTemp();
     angleMotorVoltageStatusSignal = angleMotor.getMotorVoltage();
 
+    // To improve performance, subsystems register all their signals with Phoenix6Util. All signals
+    // on the entire CAN bus will be refreshed at the same time by Phoenix6Util; so, there is no
+    // need to refresh any StatusSignals in this class.
     Phoenix6Util.registerSignals(
         true,
         angleMotorPositionStatusSignal,
@@ -95,6 +97,10 @@ public class ArmIOTalonFX implements ArmIO {
 
     configAngleMotor(angleMotor, angleEncoder);
 
+    // Create a simulation object for the arm. The specific parameters for the simulation
+    // are determined based on the mechanical design of the arm. The ArmSystemSim class creates a
+    // Mechanism2d that can be visualized in AdvantageScope to test code in simulation when the
+    // physical mechanism is not available.
     this.angleMotorSim =
         new ArmSystemSim(
             angleMotor,
@@ -116,20 +122,18 @@ public class ArmIOTalonFX implements ArmIO {
     // Retrieve the closed loop reference status signals directly from the motor in this method
     // instead of retrieving in advance because the status signal returned depends on the current
     // control mode.
-
-    // Updates Angle Motor Inputs
     armInputs.angleMotorStatorCurrentAmps = angleMotorStatorCurrentStatusSignal.getValueAsDouble();
     armInputs.angleMotorSupplyCurrentAmps = angleMotorSupplyCurrentStatusSignal.getValueAsDouble();
     armInputs.angleMotorVoltage = angleMotorVoltageStatusSignal.getValueAsDouble();
-    armInputs.angleEncoderAngleDegrees =
+    armInputs.angleDegrees =
         Units.rotationsToDegrees(angleMotorPositionStatusSignal.getValueAsDouble());
-    armInputs.angleMotorReferenceAngleDegrees = this.angleSetpoint;
-    armInputs.angleMotorClosedLoopReferenceDegrees =
+    armInputs.angleMotorReferenceAngleDegrees =
         Units.rotationsToDegrees(angleMotor.getClosedLoopReference().getValueAsDouble());
     armInputs.angleMotorTemperatureCelsius = angleMotorTemperatureStatusSignal.getValueAsDouble();
-    armInputs.angleMotorClosedLoopReferenceSlope =
-        angleMotor.getClosedLoopReferenceSlope().getValueAsDouble();
 
+    // In order for a tunable to be useful, there must be code that checks if its value has changed.
+    // When a subsystem has multiple tunables that are related, the ifChanged method is a convenient
+    // to check and apply changes from multiple tunables at once.
     LoggedTunableNumber.ifChanged(
         hashCode(),
         motionMagic -> {
@@ -144,8 +148,6 @@ public class ArmIOTalonFX implements ArmIO {
           config.Slot0.kV = motionMagic[6];
           config.MotionMagic.MotionMagicExpo_kV = motionMagic[7];
           config.MotionMagic.MotionMagicExpo_kA = motionMagic[8];
-          config.MotionMagic.MotionMagicCruiseVelocity = ArmConstants.MOTION_MAGIC_CRUISE_VELOCITY;
-
           this.angleMotor.getConfigurator().apply(config);
         },
         rotationMotorKP,
@@ -158,6 +160,7 @@ public class ArmIOTalonFX implements ArmIO {
         rotationMotorExpoKV,
         rotationMotorExpoKA);
 
+    // If a tunable is unrelated to others, it can be checked and applied individually.
     if (rotationEncoderMagnetOffset.hasChanged(hashCode())) {
       CANcoderConfiguration angleCANCoderConfig = new CANcoderConfiguration();
       angleEncoder.getConfigurator().refresh(angleCANCoderConfig);
@@ -165,13 +168,13 @@ public class ArmIOTalonFX implements ArmIO {
       angleEncoder.getConfigurator().apply(angleCANCoderConfig);
     }
 
+    // The last step in the updateInputs method is to update the simulation.
     this.angleMotorSim.updateSim();
   }
 
   @Override
   public void setAngle(double angle) {
     angleMotor.setControl(angleMotorPositionRequest.withPosition(Units.degreesToRotations(angle)));
-    this.angleSetpoint = angle;
   }
 
   @Override
@@ -180,11 +183,11 @@ public class ArmIOTalonFX implements ArmIO {
   }
 
   private void configAngleMotor(TalonFX angleMotor, CANcoder angleEncoder) {
+
     CANcoderConfiguration angleCANCoderConfig = new CANcoderConfiguration();
     angleCANCoderConfig.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 1.0;
     angleCANCoderConfig.MagnetSensor.SensorDirection = SensorDirectionValue.Clockwise_Positive;
     angleCANCoderConfig.MagnetSensor.MagnetOffset = rotationEncoderMagnetOffset.get();
-
     Phoenix6Util.applyAndCheckConfiguration(angleEncoder, angleCANCoderConfig, configAlert);
 
     TalonFXConfiguration angleMotorConfig = new TalonFXConfiguration();
@@ -218,6 +221,7 @@ public class ArmIOTalonFX implements ArmIO {
             ? InvertedValue.Clockwise_Positive
             : InvertedValue.CounterClockwise_Positive;
 
+    // Software limit switches are used to prevent the arm from moving beyond its physical limits.
     SoftwareLimitSwitchConfigs angleMotorLimitSwitches = angleMotorConfig.SoftwareLimitSwitch;
     angleMotorLimitSwitches.ForwardSoftLimitEnable = true;
     angleMotorLimitSwitches.ForwardSoftLimitThreshold =
@@ -226,13 +230,21 @@ public class ArmIOTalonFX implements ArmIO {
     angleMotorLimitSwitches.ReverseSoftLimitThreshold =
         Units.degreesToRotations(ArmConstants.LOWER_ANGLE_LIMIT);
 
+    // For the most accurate measurement of the arm's position, fuse the CANcoder with the encoder
+    // in the TalonFX.
     angleMotorConfig.Feedback.FeedbackRemoteSensorID = angleEncoder.getDeviceID();
     angleMotorConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
     angleMotorConfig.Feedback.SensorToMechanismRatio = ArmConstants.SENSOR_TO_MECHANISM_RATIO;
     angleMotorConfig.Feedback.RotorToSensorRatio = ArmConstants.ANGLE_MOTOR_GEAR_RATIO;
 
+    // It is critical that devices are successfully configured. The applyAndCheckConfiguration
+    // method will apply the configuration, read back the configuration, and ensure that it is
+    // correct. If not, it will reattempt five times and eventually, generate an alert.
     Phoenix6Util.applyAndCheckConfiguration(angleMotor, angleMotorConfig, configAlert);
 
+    // A subsystem needs to register each device with FaultReporter. FaultReporter will check
+    // devices for faults periodically when the robot is disabled and generate alerts if any faults
+    // are found.
     FaultReporter.getInstance().registerHardware(SUBSYSTEM_NAME, "AngleMotor", angleMotor);
     FaultReporter.getInstance().registerHardware(SUBSYSTEM_NAME, "AngleCANcoder", angleEncoder);
   }
