@@ -25,6 +25,7 @@ public class SelfCheckingCANCoder implements SelfChecking {
   public List<SubsystemFault> checkForFaults() {
     faults.clear();
 
+    // faults
     if (canCoder.getFault_Hardware().getValue() == Boolean.TRUE) {
       faults.add(new SubsystemFault(String.format("[%s]: Hardware fault detected", label)));
     }
@@ -40,6 +41,28 @@ public class SelfCheckingCANCoder implements SelfChecking {
     }
     if (canCoder.getFault_UnlicensedFeatureInUse().getValue() == Boolean.TRUE) {
       faults.add(new SubsystemFault(String.format("[%s]: Unlicensed feature in use", label)));
+    }
+
+    // sticky faults
+    if (canCoder.getStickyFault_Hardware().getValue() == Boolean.TRUE) {
+      faults.add(
+          new SubsystemFault(String.format("[%s]: [STICKY] Hardware fault detected", label)));
+    }
+    if (canCoder.getStickyFault_BootDuringEnable().getValue() == Boolean.TRUE) {
+      faults.add(
+          new SubsystemFault(String.format("[%s]: [STICKY] Device booted while enabled", label)));
+    }
+    if (canCoder.getStickyFault_BadMagnet().getValue() == Boolean.TRUE) {
+      faults.add(new SubsystemFault(String.format("[%s]: [STICKY] Bad magnet", label)));
+    }
+    if (canCoder.getStickyFault_Undervoltage().getValue() == Boolean.TRUE) {
+      faults.add(
+          new SubsystemFault(
+              String.format("[%s]: [STICKY] Device supply voltage near brownout", label)));
+    }
+    if (canCoder.getStickyFault_UnlicensedFeatureInUse().getValue() == Boolean.TRUE) {
+      faults.add(
+          new SubsystemFault(String.format("[%s]: [STICKY] Unlicensed feature in use", label)));
     }
 
     this.statusSignal.refresh();

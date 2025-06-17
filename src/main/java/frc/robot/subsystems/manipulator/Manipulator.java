@@ -365,8 +365,7 @@ public class Manipulator extends SubsystemBase {
                         .addFault(
                             SUBSYSTEM_NAME,
                             "[System Check] Manipulator motor not moving as fast as expected",
-                            false,
-                            true);
+                            false);
                   }
                 }),
             Commands.runOnce(() -> io.setManipulatorVoltage(Volts.of(-2.4))),
@@ -378,8 +377,7 @@ public class Manipulator extends SubsystemBase {
                         .addFault(
                             SUBSYSTEM_NAME,
                             "[System Check] Manipulator motor moving too slow or in the wrong direction",
-                            false,
-                            true);
+                            false);
                   }
                 }))
         .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())

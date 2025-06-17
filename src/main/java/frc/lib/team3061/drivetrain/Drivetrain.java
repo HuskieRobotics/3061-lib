@@ -957,7 +957,6 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
   private Command getSystemCheckCommand() {
     return Commands.sequence(
             Commands.runOnce(this::disableFieldRelative, this),
-            Commands.runOnce(() -> FaultReporter.getInstance().clearFaults(SUBSYSTEM_NAME)),
             getSwerveCheckCommand(SwerveCheckTypes.LEFT),
             getSwerveCheckCommand(SwerveCheckTypes.RIGHT),
             getSwerveCheckCommand(SwerveCheckTypes.FORWARD),
