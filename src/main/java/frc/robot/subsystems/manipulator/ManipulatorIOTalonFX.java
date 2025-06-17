@@ -20,37 +20,17 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DigitalInput; // imported this class for the sensors
 import frc.lib.team254.Phoenix6Util;
 import frc.lib.team3015.subsystem.FaultReporter;
-import frc.lib.team6328.util.LoggedTunableNumber;
-import frc.robot.operator_interface.OISelector;
 
-/** TalonFX implementation of the generic SubsystemIO */
 public class ManipulatorIOTalonFX implements ManipulatorIO {
-  private TalonFX manipulatorMotor;
+  // This mechanism has no close loop control; we just set the voltage directly.
+  private VoltageOut indexerVoltageRequest;
 
-  // ir sensors
+  private TalonFX manipulatorMotor;
   private DigitalInput manipulatorIRSensor;
   private DigitalInput backupManipulatorIRSensor;
 
-  private VoltageOut indexerVoltageRequest;
-
   private Alert manipulatorConfigAlert =
       new Alert("Failed to apply configuration for manipulator.", AlertType.kError);
-
-  private final LoggedTunableNumber manipulatorKp =
-      new LoggedTunableNumber("Manipulator/kP", MANIPULATOR_KP);
-  private final LoggedTunableNumber manipulatorKi =
-      new LoggedTunableNumber("Manipulator/kI", MANIPULATOR_KI);
-  private final LoggedTunableNumber manipulatorKd =
-      new LoggedTunableNumber("Manipulator/kD", MANIPULATOR_KD);
-  private final LoggedTunableNumber manipulatorKs =
-      new LoggedTunableNumber("Manipulator/kS", MANIPULATOR_KS);
-  private final LoggedTunableNumber manipulatorKv =
-      new LoggedTunableNumber("Manipulator/kV", MANIPULATOR_KV);
-  private final LoggedTunableNumber manipulatorKa =
-      new LoggedTunableNumber("Manipulator/kA", MANIPULATOR_KA);
-
-  // Create StatusSignal objects for each loggable input from the ManipulatorIO class in the
-  // updateInputs method
 
   private StatusSignal<Current> manipulatorMotorStatorCurrent;
   private StatusSignal<Current> manipulatorMotorSupplyCurrent;
@@ -60,7 +40,6 @@ public class ManipulatorIOTalonFX implements ManipulatorIO {
 
   private final Debouncer manipulatorConnectedDebouncer = new Debouncer(0.5);
 
-  /** Create a TalonFX-specific generic SubsystemIO */
   public ManipulatorIOTalonFX() {
 
     manipulatorMotor = new TalonFX(MANIPULATOR_MOTOR_ID);
@@ -75,6 +54,9 @@ public class ManipulatorIOTalonFX implements ManipulatorIO {
     manipulatorMotorVoltage = manipulatorMotor.getMotorVoltage();
     manipulatorMotorVelocity = manipulatorMotor.getVelocity();
 
+    // To improve performance, subsystems register all their signals with Phoenix6Util. All signals
+    // on the entire CAN bus will be refreshed at the same time by Phoenix6Util; so, there is no
+    // need to refresh any StatusSignals in this class.
     Phoenix6Util.registerSignals(
         false,
         manipulatorMotorStatorCurrent,
@@ -93,7 +75,8 @@ public class ManipulatorIOTalonFX implements ManipulatorIO {
    */
   @Override
   public void updateInputs(ManipulatorIOInputs inputs) {
-
+    // Determine if the motor for the manipulator is still connected (i.e., reachable on the CAN
+    // bus). We do this by verifying that none of the status signals for the device report an error.
     inputs.manipulatorConnected =
         manipulatorConnectedDebouncer.calculate(
             BaseStatusSignal.isAllGood(
@@ -108,45 +91,19 @@ public class ManipulatorIOTalonFX implements ManipulatorIO {
     inputs.manipulatorTempCelsius = manipulatorMotorTemp.getValueAsDouble();
     inputs.manipulatorVelocityRPS = manipulatorMotorVelocity.getValue().in(RotationsPerSecond);
     inputs.manipulatorMotorVoltage = manipulatorMotorVoltage.getValueAsDouble();
-
-    if (OISelector.getOperatorInterface().getEnablePrimaryIRSensorsTrigger().getAsBoolean()) {
-      inputs.isManipulatorIRBlocked = !manipulatorIRSensor.get();
-    } else {
-      inputs.isManipulatorIRBlocked = !backupManipulatorIRSensor.get();
-    }
-
-    LoggedTunableNumber.ifChanged(
-        hashCode(),
-        pid -> {
-          TalonFXConfiguration config = new TalonFXConfiguration();
-          this.manipulatorMotor.getConfigurator().refresh(config);
-          config.Slot0.kP = pid[0];
-          config.Slot0.kI = pid[1];
-          config.Slot0.kD = pid[2];
-          config.Slot0.kS = pid[3];
-          config.Slot0.kV = pid[4];
-          config.Slot0.kA = pid[5];
-          this.manipulatorMotor.getConfigurator().apply(config);
-        },
-        manipulatorKp,
-        manipulatorKi,
-        manipulatorKd,
-        manipulatorKs,
-        manipulatorKv,
-        manipulatorKa);
+    inputs.isManipulatorPrimaryIRBlocked = !manipulatorIRSensor.get();
+    inputs.isManipulatorSecondaryIRBlocked = !backupManipulatorIRSensor.get();
   }
 
+  // While we cannot use subtypes of Measure in the inputs class due to logging limitations, we do
+  // strive to use them (e.g., Voltage) throughout the rest of the code to mitigate bugs due to unit
+  // mismatches.
   @Override
-  public void setManipulatorVoltage(double volts) {
-    this.manipulatorMotor.setControl(
-        indexerVoltageRequest.withLimitForwardMotion(false).withOutput(volts));
+  public void setManipulatorVoltage(Voltage volts) {
+    this.manipulatorMotor.setControl(indexerVoltageRequest.withOutput(volts));
   }
 
-  /*
-   * This method configures the Indexer motor.
-   */
   private void configManipulatorMotor(TalonFX motor) {
-
     TalonFXConfiguration config = new TalonFXConfiguration();
 
     config.CurrentLimits.SupplyCurrentLimit = MANIPULATOR_MOTOR_PEAK_CURRENT_LIMIT;
@@ -163,15 +120,15 @@ public class ManipulatorIOTalonFX implements ManipulatorIO {
             ? InvertedValue.Clockwise_Positive
             : InvertedValue.CounterClockwise_Positive;
     config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-    config.Slot0.kP = manipulatorKp.get();
-    config.Slot0.kI = manipulatorKi.get();
-    config.Slot0.kD = manipulatorKd.get();
-    config.Slot0.kS = manipulatorKs.get();
-    config.Slot0.kV = manipulatorKv.get();
-    config.Slot0.kA = manipulatorKa.get();
 
+    // It is critical that devices are successfully configured. The applyAndCheckConfiguration
+    // method will apply the configuration, read back the configuration, and ensure that it is
+    // correct. If not, it will reattempt five times and eventually, generate an alert.
     Phoenix6Util.applyAndCheckConfiguration(motor, config, manipulatorConfigAlert);
 
+    // A subsystem needs to register each device with FaultReporter. FaultReporter will check
+    // devices for faults periodically when the robot is disabled and generate alerts if any faults
+    // are found.
     FaultReporter.getInstance().registerHardware(SUBSYSTEM_NAME, "manipulator motor", motor);
   }
 }

@@ -5,12 +5,14 @@ import static frc.robot.subsystems.arm.ArmConstants.*;
 
 import com.ctre.phoenix6.SignalLogger;
 import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.util.SysIdRoutineChooser;
+import frc.lib.team6328.util.LoggedTracer;
 import frc.lib.team6328.util.LoggedTunableNumber;
 import org.littletonrobotics.junction.Logger;
 
@@ -29,6 +31,8 @@ import org.littletonrobotics.junction.Logger;
  *   <li>Use of an InterpolatingDoubleTreeMap to map distances to angles
  *   <li>Use of a debouncer to determine if the arm is at a setpoint
  *   <li>Use of logged tunable numbers for manual control and testing
+ *   <li>Use of a simulation class to model the arm's behavior in simulation and provide
+ *       visualization
  *   <li>Use of a SysIdRoutine to perform system identification
  *   <li>Use of a system check command to verify the arm's functionality
  *   <li>Use of a fault reporter to report issues with the arm's angle
@@ -50,8 +54,8 @@ public class Arm extends SubsystemBase {
   private final LoggedTunableNumber testingMode = new LoggedTunableNumber("Arm/TestingMode", 0);
   private final LoggedTunableNumber angleManualControlVoltage =
       new LoggedTunableNumber("Arm/ManualControlVoltage", ANGLE_MOTOR_MANUAL_CONTROL_VOLTAGE);
-  private final LoggedTunableNumber pivotAngle =
-      new LoggedTunableNumber("Arm/Angle", LOWER_ANGLE_LIMIT);
+  private final LoggedTunableNumber pivotAngleDegrees =
+      new LoggedTunableNumber("Arm/AngleDegrees", LOWER_ANGLE_LIMIT);
 
   private final Debouncer atSetpointDebouncer = new Debouncer(0.1);
 
@@ -89,18 +93,25 @@ public class Arm extends SubsystemBase {
     // the next step is to log the inputs to the AdvantageKit logger.
     Logger.processInputs(SUBSYSTEM_NAME, inputs);
 
-    // If the testing mode is enabled, set either the pivot angle (if not zero) or the apply the
+    // If the testing mode is enabled, set either the pivot angle (if not zero) or apply the
     // specified voltage (if not zero).
     if (testingMode.get() == 1) {
-      if (pivotAngle.get() != 0) {
-        io.setAngle(pivotAngle.get());
+      if (pivotAngleDegrees.get() != 0) {
+        io.setAngle(Degrees.of(pivotAngleDegrees.get()));
       } else if (angleManualControlVoltage.get() != 0) {
         io.setAngleMotorVoltage(angleManualControlVoltage.get());
       }
     }
+
+    // Log how long this subsystem takes to execute its periodic method.
+    // This is useful for debugging performance issues.
+    LoggedTracer.record("Arm");
   }
 
-  public void setAngle(double angle) {
+  // While we cannot use subtypes of Measure in the inputs class due to logging limitations, we do
+  // strive to use them (e.g., Angle) throughout the rest of the code to mitigate bugs due to unit
+  // mismatches.
+  public void setAngle(Angle angle) {
     io.setAngle(angle);
   }
 
@@ -125,14 +136,14 @@ public class Arm extends SubsystemBase {
             getPresetCheckCommand(50.0),
             getPresetCheckCommand(70.0))
         .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
-        .andThen(Commands.runOnce(() -> io.setAngle(LOWER_ANGLE_LIMIT)));
+        .andThen(Commands.runOnce(() -> io.setAngle(Degrees.of(LOWER_ANGLE_LIMIT))));
   }
 
-  private Command getPresetCheckCommand(double angle) {
+  private Command getPresetCheckCommand(double angleDegrees) {
     return Commands.sequence(
-        Commands.runOnce(() -> this.setAngle(angle)),
+        Commands.runOnce(() -> this.setAngle(Degrees.of(angleDegrees))),
         Commands.waitSeconds(2.0),
-        Commands.runOnce(() -> this.checkAngle(angle)));
+        Commands.runOnce(() -> this.checkAngle(angleDegrees)));
   }
 
   private void checkAngle(double degrees) {

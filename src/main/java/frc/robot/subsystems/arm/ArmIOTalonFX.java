@@ -1,7 +1,9 @@
 package frc.robot.subsystems.arm;
 
+import static edu.wpi.first.units.Units.*;
 import static frc.robot.subsystems.arm.ArmConstants.*;
 
+import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
@@ -15,6 +17,7 @@ import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Current;
@@ -27,6 +30,7 @@ import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.sim.ArmSystemSim;
 import frc.lib.team6328.util.LoggedTunableNumber;
+import frc.robot.Constants;
 
 public class ArmIOTalonFX implements ArmIO {
 
@@ -39,6 +43,10 @@ public class ArmIOTalonFX implements ArmIO {
   private StatusSignal<Angle> angleMotorPositionStatusSignal;
   private StatusSignal<Temperature> angleMotorTemperatureStatusSignal;
   private StatusSignal<Voltage> angleMotorVoltageStatusSignal;
+
+  private double angleMotorReferenceAngleDegrees = 0.0;
+
+  private final Debouncer connectedDebouncer = new Debouncer(0.5);
 
   private ArmSystemSim angleMotorSim;
 
@@ -117,19 +125,39 @@ public class ArmIOTalonFX implements ArmIO {
   }
 
   @Override
-  public void updateInputs(ArmIOInputs armInputs) {
+  public void updateInputs(ArmIOInputs inputs) {
+    // Determine if the motor for the arm is still connected (i.e., reachable on the CAN bus). We do
+    // this by verifying that none of the status signals for the device report an error.
+    inputs.connected =
+        connectedDebouncer.calculate(
+            BaseStatusSignal.isAllGood(
+                angleMotorPositionStatusSignal,
+                angleMotorStatorCurrentStatusSignal,
+                angleMotorSupplyCurrentStatusSignal,
+                angleMotorTemperatureStatusSignal,
+                angleMotorVoltageStatusSignal));
+
+    inputs.angleMotorStatorCurrentAmps = angleMotorStatorCurrentStatusSignal.getValueAsDouble();
+    inputs.angleMotorSupplyCurrentAmps = angleMotorSupplyCurrentStatusSignal.getValueAsDouble();
+    inputs.angleMotorVoltage = angleMotorVoltageStatusSignal.getValueAsDouble();
+    inputs.angleDegrees =
+        Units.rotationsToDegrees(angleMotorPositionStatusSignal.getValueAsDouble());
+    inputs.angleMotorTemperatureCelsius = angleMotorTemperatureStatusSignal.getValueAsDouble();
+    inputs.angleMotorReferenceAngleDegrees = this.angleMotorReferenceAngleDegrees;
 
     // Retrieve the closed loop reference status signals directly from the motor in this method
     // instead of retrieving in advance because the status signal returned depends on the current
-    // control mode.
-    armInputs.angleMotorStatorCurrentAmps = angleMotorStatorCurrentStatusSignal.getValueAsDouble();
-    armInputs.angleMotorSupplyCurrentAmps = angleMotorSupplyCurrentStatusSignal.getValueAsDouble();
-    armInputs.angleMotorVoltage = angleMotorVoltageStatusSignal.getValueAsDouble();
-    armInputs.angleDegrees =
-        Units.rotationsToDegrees(angleMotorPositionStatusSignal.getValueAsDouble());
-    armInputs.angleMotorReferenceAngleDegrees =
-        Units.rotationsToDegrees(angleMotor.getClosedLoopReference().getValueAsDouble());
-    armInputs.angleMotorTemperatureCelsius = angleMotorTemperatureStatusSignal.getValueAsDouble();
+    // control mode. To eliminate the performance hit, only retrieve the closed loop reference
+    // signals if the tuning mode is enabled. It is critical that these input values are only used
+    // for tuning and not used elsewhere in the subsystem. For example, the
+    // angleMotorReferenceAngleDegrees property should be used throughout the subsystem since it
+    // will always be populated.
+    if (Constants.TUNING_MODE) {
+      inputs.angleMotorClosedLoopReferenceAngleDegrees =
+          Units.rotationsToDegrees(angleMotor.getClosedLoopReference().getValueAsDouble());
+      inputs.angleMotorClosedLoopErrorAngleDegrees =
+          Units.rotationsToDegrees(angleMotor.getClosedLoopError().getValueAsDouble());
+    }
 
     // In order for a tunable to be useful, there must be code that checks if its value has changed.
     // When a subsystem has multiple tunables that are related, the ifChanged method is a convenient
@@ -172,9 +200,17 @@ public class ArmIOTalonFX implements ArmIO {
     this.angleMotorSim.updateSim();
   }
 
+  // While we cannot use subtypes of Measure in the inputs class due to logging limitations, we do
+  // strive to use them (e.g., Angle) throughout the rest of the code to mitigate bugs due to unit
+  // mismatches. When calling into the Phoenix API, we may need to convert from Measure types to
+  // doubles of the expected unit (e.g., rotations).
   @Override
-  public void setAngle(double angle) {
-    angleMotor.setControl(angleMotorPositionRequest.withPosition(Units.degreesToRotations(angle)));
+  public void setAngle(Angle angle) {
+    angleMotor.setControl(angleMotorPositionRequest.withPosition(angle.in(Rotations)));
+
+    // To improve performance, we store the reference angle as an instance variable to avoid having
+    // to retrieve the status signal object from the device in the updateInputs method.
+    this.angleMotorReferenceAngleDegrees = angle.in(Degrees);
   }
 
   @Override

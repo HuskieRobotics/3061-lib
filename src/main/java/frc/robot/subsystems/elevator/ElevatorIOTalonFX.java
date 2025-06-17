@@ -5,7 +5,6 @@ import static frc.robot.subsystems.elevator.ElevatorConstants.*;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
-import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicExpoVoltage;
@@ -36,6 +35,7 @@ public class ElevatorIOTalonFX implements ElevatorIO {
   private TalonFX elevatorMotorLead;
   private TalonFX elevatorMotorFollower;
 
+  // We usually use MotionMagic Expo voltage to control the position of a mechanism.
   private MotionMagicExpoVoltage leadPositionRequest;
   private VoltageOut leadVoltageRequest;
 
@@ -63,27 +63,26 @@ public class ElevatorIOTalonFX implements ElevatorIO {
   private final Debouncer connectedLeadDebouncer = new Debouncer(0.5);
   private final Debouncer connectedFollowerDebouncer = new Debouncer(0.5);
 
-  // Tunable constants
-  private final LoggedTunableNumber kPslot0 =
-      new LoggedTunableNumber("Elevator/kPslot0", ElevatorConstants.KP_SLOT0);
-  private final LoggedTunableNumber kIslot0 =
-      new LoggedTunableNumber("Elevator/kIslot0", ElevatorConstants.KI_SLOT0);
-  private final LoggedTunableNumber kDslot0 =
-      new LoggedTunableNumber("Elevator/kDslot0", ElevatorConstants.KD_SLOT0);
-  private final LoggedTunableNumber kSslot0 =
-      new LoggedTunableNumber("Elevator/kSslot0", ElevatorConstants.KS_SLOT0);
-  private final LoggedTunableNumber kVslot0 =
-      new LoggedTunableNumber("Elevator/kVslot0", ElevatorConstants.KV_SLOT0);
-  private final LoggedTunableNumber kAslot0 =
-      new LoggedTunableNumber("Elevator/kAslot0", ElevatorConstants.KA_SLOT0);
-  private final LoggedTunableNumber kGslot0 =
-      new LoggedTunableNumber("Elevator/kGslot0", ElevatorConstants.KG_SLOT0);
-
+  // The following enables tuning of the PID and feedforward values for the arm by changing values
+  // via AdvantageScope and not needing to change values in code, compile, and re-deploy.
+  private final LoggedTunableNumber kP =
+      new LoggedTunableNumber("Elevator/kP", ElevatorConstants.KP_SLOT0);
+  private final LoggedTunableNumber kI =
+      new LoggedTunableNumber("Elevator/kI", ElevatorConstants.KI_SLOT0);
+  private final LoggedTunableNumber kD =
+      new LoggedTunableNumber("Elevator/kD", ElevatorConstants.KD_SLOT0);
+  private final LoggedTunableNumber kS =
+      new LoggedTunableNumber("Elevator/kS", ElevatorConstants.KS_SLOT0);
+  private final LoggedTunableNumber kV =
+      new LoggedTunableNumber("Elevator/kV", ElevatorConstants.KV_SLOT0);
+  private final LoggedTunableNumber kA =
+      new LoggedTunableNumber("Elevator/kA", ElevatorConstants.KA_SLOT0);
+  private final LoggedTunableNumber kG =
+      new LoggedTunableNumber("Elevator/kG", ElevatorConstants.KG_SLOT0);
   private final LoggedTunableNumber kVExpo =
       new LoggedTunableNumber("Elevator/kVExpo", ElevatorConstants.KV_EXPO);
   private final LoggedTunableNumber kAExpo =
       new LoggedTunableNumber("Elevator/kAExpo", ElevatorConstants.KA_EXPO);
-
   private final LoggedTunableNumber cruiseVelocity =
       new LoggedTunableNumber("Elevator/Cruise Velocity", 0);
 
@@ -112,6 +111,9 @@ public class ElevatorIOTalonFX implements ElevatorIO {
 
     elevatorVelocityStatusSignal = elevatorMotorLead.getVelocity();
 
+    // To improve performance, subsystems register all their signals with Phoenix6Util. All signals
+    // on the entire CAN bus will be refreshed at the same time by Phoenix6Util; so, there is no
+    // need to refresh any StatusSignals in this class.
     Phoenix6Util.registerSignals(
         true,
         leadStatorCurrent,
@@ -131,8 +133,14 @@ public class ElevatorIOTalonFX implements ElevatorIO {
     configElevatorMotorLead(elevatorMotorLead);
     configElevatorMotorFollower(elevatorMotorFollower);
 
+    // Set the control for the follower motor to follow the lead motor. Whether the follower opposes
+    // the direction of the lead depends on the mechanical design of the elevator.
     elevatorMotorFollower.setControl(new Follower(elevatorMotorLead.getDeviceID(), true));
 
+    // Create a simulation object for the elevator. The specific parameters for the simulation
+    // are determined based on the mechanical design of the elevator. The ElevatorSystemSim class
+    // creates a Mechanism2d that can be visualized in AdvantageScope to test code in simulation
+    // when the physical mechanism is not available.
     elevatorSystemSim =
         new ElevatorSystemSim(
             elevatorMotorLead,
@@ -146,74 +154,10 @@ public class ElevatorIOTalonFX implements ElevatorIO {
             ElevatorConstants.SUBSYSTEM_NAME);
   }
 
-  private void configElevatorMotorLead(TalonFX motor) {
-
-    TalonFXConfiguration config = new TalonFXConfiguration();
-
-    MotionMagicConfigs leadMotorConfig = config.MotionMagic;
-
-    config.Feedback.SensorToMechanismRatio = GEAR_RATIO;
-
-    config.CurrentLimits.SupplyCurrentLimit = ELEVATOR_PEAK_CURRENT_LIMIT;
-    config.CurrentLimits.SupplyCurrentLowerLimit = ELEVATOR_PEAK_CURRENT_LIMIT;
-    config.CurrentLimits.SupplyCurrentLowerTime = 0;
-    config.CurrentLimits.SupplyCurrentLimitEnable = true;
-    config.CurrentLimits.StatorCurrentLimit = ELEVATOR_PEAK_CURRENT_LIMIT;
-    config.CurrentLimits.StatorCurrentLimitEnable = true;
-
-    config.MotorOutput.Inverted =
-        IS_INVERTED ? InvertedValue.Clockwise_Positive : InvertedValue.CounterClockwise_Positive;
-
-    config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-
-    config.Slot0.kP = kPslot0.get();
-    config.Slot0.kI = kIslot0.get();
-    config.Slot0.kD = kDslot0.get();
-    config.Slot0.kS = kSslot0.get();
-    config.Slot0.kV = kVslot0.get();
-    config.Slot0.kA = kAslot0.get();
-    config.Slot0.kG = kGslot0.get();
-
-    config.Slot0.withGravityType(GravityTypeValue.Elevator_Static);
-
-    leadMotorConfig.MotionMagicExpo_kA = kAExpo.get();
-    leadMotorConfig.MotionMagicExpo_kV = kVExpo.get();
-
-    leadMotorConfig.MotionMagicCruiseVelocity = cruiseVelocity.get();
-
-    // configure a hardware limit switch that zeros the elevator when lowered; there is no hardware
-    // limit switch, but we will set it using a control request
-    config.HardwareLimitSwitch.ReverseLimitAutosetPositionEnable = true;
-    config.HardwareLimitSwitch.ReverseLimitAutosetPositionValue = 0.0;
-    config.HardwareLimitSwitch.ReverseLimitEnable = true;
-
-    Phoenix6Util.applyAndCheckConfiguration(elevatorMotorLead, config, leadConfigAlert);
-
-    FaultReporter.getInstance()
-        .registerHardware(ElevatorConstants.SUBSYSTEM_NAME, "Elevator Motor Lead", motor);
-  }
-
-  public void configElevatorMotorFollower(TalonFX motor) {
-
-    TalonFXConfiguration config = new TalonFXConfiguration();
-
-    config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-
-    config.CurrentLimits.SupplyCurrentLimit = ELEVATOR_PEAK_CURRENT_LIMIT;
-    config.CurrentLimits.SupplyCurrentLowerLimit = ELEVATOR_PEAK_CURRENT_LIMIT;
-    config.CurrentLimits.SupplyCurrentLowerTime = 0;
-    config.CurrentLimits.SupplyCurrentLimitEnable = true;
-    config.CurrentLimits.StatorCurrentLimit = ELEVATOR_PEAK_CURRENT_LIMIT;
-    config.CurrentLimits.StatorCurrentLimitEnable = true;
-
-    Phoenix6Util.applyAndCheckConfiguration(elevatorMotorFollower, config, followerConfigAlert);
-
-    FaultReporter.getInstance()
-        .registerHardware(ElevatorConstants.SUBSYSTEM_NAME, "Elevator Motor Follower", motor);
-  }
-
   @Override
   public void updateInputs(ElevatorIOInputs inputs) {
+    // Determine if the motors for the elevator are still connected (i.e., reachable on the CAN
+    // bus). We do this by verifying that none of the status signals for the device report an error.
     inputs.connectedLead =
         connectedLeadDebouncer.calculate(
             BaseStatusSignal.isAllGood(
@@ -245,19 +189,22 @@ public class ElevatorIOTalonFX implements ElevatorIO {
 
     inputs.velocityRPS = elevatorVelocityStatusSignal.getValueAsDouble();
 
-    // Getting the signal from the TalonFX is more time consuming than having the signal already
-    // available. However, if we attempt to get the signal earlier, it won't be bound to the correct
-    // control type. So, we only take the hit when tuning which is when this information is needed
-    // more.
+    // Retrieve the closed loop reference status signals directly from the motor in this method
+    // instead of retrieving in advance because the status signal returned depends on the current
+    // control mode. To eliminate the performance hit, only retrieve the closed loop reference
+    // signals if the tuning mode is enabled. It is critical that these input values are only used
+    // for tuning and not used elsewhere in the subsystem.
     if (Constants.TUNING_MODE) {
       inputs.closedLoopError = elevatorMotorLead.getClosedLoopError().getValueAsDouble();
       inputs.closedLoopReference = elevatorMotorLead.getClosedLoopReference().getValueAsDouble();
     }
 
     inputs.positionRotations = elevatorPositionStatusSignal.getValueAsDouble();
-
     inputs.positionInches = inputs.positionRotations * PULLEY_CIRCUMFERENCE_INCHES;
 
+    // In order for a tunable to be useful, there must be code that checks if its value has changed.
+    // When a subsystem has multiple tunables that are related, the ifChanged method is a convenient
+    // to check and apply changes from multiple tunables at once.
     LoggedTunableNumber.ifChanged(
         hashCode(),
         motionMagic -> {
@@ -278,21 +225,21 @@ public class ElevatorIOTalonFX implements ElevatorIO {
 
           this.elevatorMotorLead.getConfigurator().apply(config);
         },
-        kPslot0,
-        kIslot0,
-        kDslot0,
-        kSslot0,
-        kVslot0,
-        kAslot0,
-        kGslot0,
+        kP,
+        kI,
+        kD,
+        kS,
+        kV,
+        kA,
+        kG,
         kVExpo,
         kAExpo,
         cruiseVelocity);
 
+    // The last step in the updateInputs method is to update the simulation.
     elevatorSystemSim.updateSim();
   }
 
-  // Set motor voltage
   @Override
   public void setMotorVoltage(double voltage) {
     elevatorMotorLead.setControl(
@@ -301,16 +248,93 @@ public class ElevatorIOTalonFX implements ElevatorIO {
 
   @Override
   public void zeroPosition() {
-    // we set the reverse limit instead of directly setting the position to avoid the overhead of a
-    // config call
+    // Invoking the setPosition method results in a configuration call, which may take significant
+    // time. As a workaround, we the withLimitReverseMotion decorator that is intended to be used
+    // with external hardware limit switches to reset the position.
     elevatorMotorLead.setControl(leadVoltageRequest.withLimitReverseMotion(true).withOutput(0.0));
   }
 
   @Override
   public void setPosition(Distance position) {
     elevatorMotorLead.setControl(
-        leadPositionRequest
-            .withPosition(position.in(Inches) / PULLEY_CIRCUMFERENCE_INCHES)
-            .withSlot(0));
+        leadPositionRequest.withPosition(position.in(Inches) / PULLEY_CIRCUMFERENCE_INCHES));
+  }
+
+  private void configElevatorMotorLead(TalonFX motor) {
+
+    TalonFXConfiguration config = new TalonFXConfiguration();
+
+    config.CurrentLimits.SupplyCurrentLimit = ELEVATOR_PEAK_CURRENT_LIMIT;
+    config.CurrentLimits.SupplyCurrentLowerLimit = ELEVATOR_PEAK_CURRENT_LIMIT;
+    config.CurrentLimits.SupplyCurrentLowerTime = 0;
+    config.CurrentLimits.SupplyCurrentLimitEnable = true;
+    config.CurrentLimits.StatorCurrentLimit = ELEVATOR_PEAK_CURRENT_LIMIT;
+    config.CurrentLimits.StatorCurrentLimitEnable = true;
+
+    config.Feedback.SensorToMechanismRatio = GEAR_RATIO;
+
+    config.MotorOutput.Inverted =
+        IS_INVERTED ? InvertedValue.Clockwise_Positive : InvertedValue.CounterClockwise_Positive;
+    config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+
+    config.Slot0.kP = kP.get();
+    config.Slot0.kI = kI.get();
+    config.Slot0.kD = kD.get();
+    config.Slot0.kS = kS.get();
+    config.Slot0.kV = kV.get();
+    config.Slot0.kA = kA.get();
+    config.Slot0.kG = kG.get();
+    config.Slot0.withGravityType(GravityTypeValue.Elevator_Static);
+
+    config.MotionMagic.MotionMagicExpo_kA = kAExpo.get();
+    config.MotionMagic.MotionMagicExpo_kV = kVExpo.get();
+    config.MotionMagic.MotionMagicCruiseVelocity = cruiseVelocity.get();
+
+    // Invoking the setPosition method results in a configuration call, which may take significant
+    // time. As a workaround, we will configure an external hardware limit switch. There is no
+    // physical switch, but we will trigger it in a control call when we want to zero the elevator's
+    // position.
+    config.HardwareLimitSwitch.ReverseLimitAutosetPositionEnable = true;
+    config.HardwareLimitSwitch.ReverseLimitAutosetPositionValue = 0.0;
+    config.HardwareLimitSwitch.ReverseLimitEnable = true;
+
+    // It is critical that devices are successfully configured. The applyAndCheckConfiguration
+    // method will apply the configuration, read back the configuration, and ensure that it is
+    // correct. If not, it will reattempt five times and eventually, generate an alert.
+    Phoenix6Util.applyAndCheckConfiguration(elevatorMotorLead, config, leadConfigAlert);
+
+    // A subsystem needs to register each device with FaultReporter. FaultReporter will check
+    // devices for faults periodically when the robot is disabled and generate alerts if any faults
+    // are found.
+    FaultReporter.getInstance()
+        .registerHardware(ElevatorConstants.SUBSYSTEM_NAME, "Elevator Motor Lead", motor);
+  }
+
+  public void configElevatorMotorFollower(TalonFX motor) {
+
+    TalonFXConfiguration config = new TalonFXConfiguration();
+
+    config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+
+    // While the follower motor should be driven with the same voltage as the lead and draw the same
+    // current, due to mechanical differences it may not. Therefore, we want to protect the
+    // mechanism by configuring current limits on the follower as well.
+    config.CurrentLimits.SupplyCurrentLimit = ELEVATOR_PEAK_CURRENT_LIMIT;
+    config.CurrentLimits.SupplyCurrentLowerLimit = ELEVATOR_PEAK_CURRENT_LIMIT;
+    config.CurrentLimits.SupplyCurrentLowerTime = 0;
+    config.CurrentLimits.SupplyCurrentLimitEnable = true;
+    config.CurrentLimits.StatorCurrentLimit = ELEVATOR_PEAK_CURRENT_LIMIT;
+    config.CurrentLimits.StatorCurrentLimitEnable = true;
+
+    // It is critical that devices are successfully configured. The applyAndCheckConfiguration
+    // method will apply the configuration, read back the configuration, and ensure that it is
+    // correct. If not, it will reattempt five times and eventually, generate an alert.
+    Phoenix6Util.applyAndCheckConfiguration(elevatorMotorFollower, config, followerConfigAlert);
+
+    // A subsystem needs to register each device with FaultReporter. FaultReporter will check
+    // devices for faults periodically when the robot is disabled and generate alerts if any faults
+    // are found.
+    FaultReporter.getInstance()
+        .registerHardware(ElevatorConstants.SUBSYSTEM_NAME, "Elevator Motor Follower", motor);
   }
 }
