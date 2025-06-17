@@ -9,7 +9,6 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.revrobotics.spark.SparkMax;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.motorcontrol.PWMMotorController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -24,20 +23,18 @@ import org.littletonrobotics.junction.Logger;
 
 /**
  * The FaultReporter class is a singleton that is used to check for and publish faults related to
- * registered subsystems and registered devices. It checks for faults every 0.25 seconds and
- * publishes faults for all registered devices every second. Subsystems can register their
- * associated system check command via the registerSystemCheck method. Hardware-specific classes can
- * register their devices via the registerHardware method. Everything is published to NetworkTables
- * under "SystemStatus".
+ * registered subsystems and registered devices. It checks for faults only when the robot is
+ * disabled at 1 second intervals. Subsystems can register their associated system check command via
+ * the registerSystemCheck method. Hardware-specific classes can register their devices via the
+ * registerHardware method. All faults are reported via the Alert class. The result of system checks
+ * are published to NetworkTables under the "SystemStatus/[subsystemName]" key.
  *
  * <p>For each registered subsystem, the following keys are published under
  * "SystemStatus/[subsystemName]": <br>
  * - SystemCheck: The system check command that was registered with the FaultReporter <br>
  * - CheckRan: A boolean that indicates whether the system check command has been run <br>
  * - Status: The status of the subsystem, which is either OK, WARNING, or ERROR <br>
- * - SystemOK: A boolean that indicates whether the subsystem is OK <br>
- * - Faults: An array of strings that describe the faults that have occurred <br>
- * - LastFault: The last fault that occurred
+ * - SystemOK: A boolean that indicates whether the subsystem is OK
  */
 public class FaultReporter {
   public enum SystemStatus {
@@ -106,8 +103,11 @@ public class FaultReporter {
 
   /**
    * Registers a command that clears all sticky faults for all devices registered with the
-   * FaultReporter. The command is located at "SystemStatus/ClearAllFaults" in Network Tables. This
-   * command is registered with the FaultReporter is instantiated.
+   * FaultReporter. The command is located at "SystemStatus/ClearAllFaults" in Network Tables. Also
+   * registers a command that checks for faults in all registered devices even when the robot is
+   * enabled. The command is located at "SystemStatus/CheckForFaults" in Network Tables. These
+   * commands can be executed via a dashboard such as Shuffleboard or Elastic to help troubleshoot
+   * when the robot is encountering problems during a match.
    */
   private void registerDashboardCommands() {
     SmartDashboard.putData(
@@ -142,12 +142,14 @@ public class FaultReporter {
             () -> {
               Logger.recordOutput(statusTable + CHECK_RAN, false);
               clearFaults(subsystemName);
-              publishStatus();
             }),
         systemCheckCommand,
         Commands.runOnce(
             () -> {
-              publishStatus();
+              SubsystemFaults subsystemFaults = subsystemsFaults.get(subsystemName);
+              SystemStatus status = getSystemStatus(subsystemFaults.faults);
+              Logger.recordOutput(statusTable + "/Status", status.name());
+              Logger.recordOutput(statusTable + "/SystemOK", status == SystemStatus.OK);
               Logger.recordOutput(statusTable + CHECK_RAN, true);
             }));
   }
@@ -159,47 +161,12 @@ public class FaultReporter {
                     Commands.runOnce(this::checkForFaultsWhenDisabled), Commands.waitSeconds(1.0))
                 .ignoringDisable(true)
                 .withName("check for faults when disabled"));
-
-    CommandScheduler.getInstance()
-        .schedule(
-            Commands.repeatingSequence(
-                    Commands.runOnce(this::publishStatus), Commands.waitSeconds(2.0))
-                .ignoringDisable(true)
-                .withName("publish faults"));
-  }
-
-  private void publishStatus() {
-    if (DriverStation.isDisabled()) {
-      for (Map.Entry<String, SubsystemFaults> entry : subsystemsFaults.entrySet()) {
-        String subsystemName = entry.getKey();
-        SubsystemFaults subsystemFaults = entry.getValue();
-
-        SystemStatus status = getSystemStatus(subsystemFaults.faults);
-
-        String statusTable = SYSTEM_STATUS + subsystemName;
-        Logger.recordOutput(statusTable + "/Status", status.name());
-        Logger.recordOutput(statusTable + "/SystemOK", status == SystemStatus.OK);
-
-        String[] faultStrings = new String[subsystemFaults.faults.size()];
-        for (int i = 0; i < subsystemFaults.faults.size(); i++) {
-          SubsystemFault fault = subsystemFaults.faults.get(i);
-          faultStrings[i] = String.format("[%.2f] %s", fault.timestamp, fault.description);
-        }
-        Logger.recordOutput(statusTable + "/Faults", faultStrings);
-
-        if (faultStrings.length > 0) {
-          Logger.recordOutput(statusTable + "/LastFault", faultStrings[faultStrings.length - 1]);
-        } else {
-          Logger.recordOutput(statusTable + "/LastFault", "");
-        }
-      }
-    }
   }
 
   /**
-   * Adds a fault to the FaultReporter for the specified subsystem. This method should be invoked by
-   * the system check command for the specified subsystem when it detects a failure during the
-   * system check. The fault will be published to NetworkTables and an alert will be generated.
+   * Adds a fault to the FaultReporter for the specified subsystem. This method is invoked by the
+   * various SelfChecking subclasses when they detect a failure. An alert will be generated for the
+   * fault.
    *
    * @param subsystemName the name of the subsystem that the fault is associated with
    * @param fault the fault to add
@@ -223,8 +190,7 @@ public class FaultReporter {
   /**
    * Adds a fault to the FaultReporter for the specified subsystem. This method should be invoked by
    * the system check command for the specified subsystem when it detects a failure during the
-   * system check. The fault will be published to NetworkTables and an alert will be generated.
-   * Defaults to a sticky fault.
+   * system check. An alert will be generated for the fault.
    *
    * @param subsystemName the name of the subsystem that the fault is associated with
    * @param description the description of the fault
@@ -237,23 +203,7 @@ public class FaultReporter {
   /**
    * Adds a fault to the FaultReporter for the specified subsystem. This method should be invoked by
    * the system check command for the specified subsystem when it detects a failure during the
-   * system check. The fault will be published to NetworkTables and an alert will be generated.
-   *
-   * @param subsystemName the name of the subsystem that the fault is associated with
-   * @param description the description of the fault
-   * @param isWarning true if the fault is a warning, false if the fault is an error
-   * @param sticky true if the fault is sticky, false if the fault is transient
-   */
-  public void addFault(
-      String subsystemName, String description, boolean isWarning, boolean sticky) {
-    this.addFault(subsystemName, new SubsystemFault(description, isWarning, sticky));
-  }
-
-  /**
-   * Adds a fault to the FaultReporter for the specified subsystem. This method should be invoked by
-   * the system check command for the specified subsystem when it detects a failure during the
-   * system check. The fault will be published to NetworkTables and an alert will be generated.
-   * Defaults to a sticky, error fault.
+   * system check. An alert will be generated for the fault. Defaults to an error fault.
    *
    * @param subsystemName the name of the subsystem that the fault is associated with
    * @param description the description of the fault
@@ -275,28 +225,38 @@ public class FaultReporter {
   }
 
   /**
-   * Clears all faults for the specified subsystem. This method is usually invoked at the start of
-   * the subsystem's system check command to clear all faults before starting the system check.
-   * Refer to the getSystemCheckCommand method in the Subsystem class for an example.
+   * Clears all faults for the specified subsystem. This method is invoked at the start of the
+   * subsystem's wrapped system check command to clear all faults before starting the system check.
    *
    * @param subsystemName the name of the subsystem to clear faults for
    */
-  public void clearFaults(String subsystemName) {
-    subsystemsFaults.get(subsystemName).faults.clear();
+  private void clearFaults(String subsystemName) {
+    SubsystemFaults subsystemFaults = subsystemsFaults.get(subsystemName);
+    for (Alert alert : subsystemFaults.faultAlerts) {
+      alert.set(false);
+    }
+    subsystemFaults.faultAlerts.clear();
+    subsystemFaults.faults.clear();
   }
 
+  /**
+   * Returns the system status for the specified subsystem. The system status is determined by the
+   * worst fault in the subsystem. If there are no faults, the status is OK. If there are only
+   * warnings, the status is WARNING. If there are any errors, the status is ERROR.
+   *
+   * @param subsystemFaults the list of faults for the subsystem
+   * @return the system status for the subsystem
+   */
   private SystemStatus getSystemStatus(List<SubsystemFault> subsystemFaults) {
     SystemStatus worstStatus = SystemStatus.OK;
 
     for (SubsystemFault f : subsystemFaults) {
-      if (f.sticky || f.timestamp > Timer.getTimestamp() - 10) {
-        if (f.isWarning) {
-          if (worstStatus != SystemStatus.ERROR) {
-            worstStatus = SystemStatus.WARNING;
-          }
-        } else {
-          worstStatus = SystemStatus.ERROR;
+      if (f.isWarning) {
+        if (worstStatus != SystemStatus.ERROR) {
+          worstStatus = SystemStatus.WARNING;
         }
+      } else {
+        worstStatus = SystemStatus.ERROR;
       }
     }
     return worstStatus;
@@ -305,8 +265,7 @@ public class FaultReporter {
   /**
    * Registers a hardware device with the FaultReporter. This method should be invoked by the
    * hardware-specific subsystem class to register all hardware devices associated with the
-   * subsystem. The hardware device will be checked for faults every 0.25 seconds. Refer to the
-   * configMotor method in the Subsystem class for an example.
+   * subsystem. Refer to the configMotor method in the Subsystem class for an example.
    *
    * @param subsystemName the name of the subsystem that the hardware device is associated with
    * @param label the label of the hardware device
@@ -331,8 +290,7 @@ public class FaultReporter {
   /**
    * Registers a hardware device with the FaultReporter. This method should be invoked by the
    * hardware-specific subsystem class to register all hardware devices associated with the
-   * subsystem. The hardware device will be checked for faults every 0.25 seconds. Refer to the
-   * configMotor method in the Subsystem class for an example.
+   * subsystem. Refer to the configMotor method in the Subsystem class for an example.
    *
    * @param subsystemName the name of the subsystem that the hardware device is associated with
    * @param label the label of the hardware device
@@ -348,8 +306,7 @@ public class FaultReporter {
   /**
    * Registers a hardware device with the FaultReporter. This method should be invoked by the
    * hardware-specific subsystem class to register all hardware devices associated with the
-   * subsystem. The hardware device will be checked for faults every 0.25 seconds. Refer to the
-   * configMotor method in the Subsystem class for an example.
+   * subsystem. Refer to the configMotor method in the Subsystem class for an example.
    *
    * @param subsystemName the name of the subsystem that the hardware device is associated with
    * @param label the label of the hardware device
@@ -365,8 +322,7 @@ public class FaultReporter {
   /**
    * Registers a hardware device with the FaultReporter. This method should be invoked by the
    * hardware-specific subsystem class to register all hardware devices associated with the
-   * subsystem. The hardware device will be checked for faults every 0.25 seconds. Refer to the
-   * configMotor method in the Subsystem class for an example.
+   * subsystem. Refer to the configMotor method in the Subsystem class for an example.
    *
    * @param subsystemName the name of the subsystem that the hardware device is associated with
    * @param label the label of the hardware device
@@ -382,8 +338,7 @@ public class FaultReporter {
   /**
    * Registers a hardware device with the FaultReporter. This method should be invoked by the
    * hardware-specific subsystem class to register all hardware devices associated with the
-   * subsystem. The hardware device will be checked for faults every 0.25 seconds. Refer to the
-   * configMotor method in the Subsystem class for an example.
+   * subsystem. Refer to the configMotor method in the Subsystem class for an example.
    *
    * @param subsystemName the name of the subsystem that the hardware device is associated with
    * @param label the label of the hardware device
@@ -396,13 +351,22 @@ public class FaultReporter {
     subsystemsFaults.put(subsystemName, subsystemFaults);
   }
 
+  /**
+   * Checks for faults in all registered devices when the robot is disabled. This method is
+   * scheduled to run at 1 second intervals when the robot is disabled. It checks for faults in all
+   * registered devices.
+   */
   private void checkForFaultsWhenDisabled() {
     if (DriverStation.isDisabled()) {
       checkForFaults();
     }
   }
 
-  // Method to check for faults while the robot is operating normally
+  /**
+   * Checks for faults in all registered devices. This method is invoked by the
+   * checkForFaultsWhenDisabled method when the robot is disabled. It iterates through all
+   * registered devices and checks for faults.
+   */
   public void checkForFaults() {
     for (Map.Entry<String, SubsystemFaults> entry : subsystemsFaults.entrySet()) {
       String subsystemName = entry.getKey();

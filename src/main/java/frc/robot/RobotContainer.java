@@ -25,9 +25,9 @@ import frc.lib.team3061.vision.VisionIO;
 import frc.lib.team3061.vision.VisionIOPhotonVision;
 import frc.lib.team3061.vision.VisionIOSim;
 import frc.robot.Constants.Mode;
-import frc.robot.commands.AutonomousCommandFactory;
+import frc.robot.commands.AutonomousCommandsFactory;
 import frc.robot.commands.CrossSubsystemsCommandsFactory;
-import frc.robot.commands.SubsystemCommandFactory;
+import frc.robot.commands.ElevatorCommandsFactory;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.configs.CalypsoRobotConfig;
 import frc.robot.configs.DefaultRobotConfig;
@@ -36,9 +36,12 @@ import frc.robot.configs.PracticeBoardConfig;
 import frc.robot.configs.VisionTestPlatformConfig;
 import frc.robot.operator_interface.OISelector;
 import frc.robot.operator_interface.OperatorInterface;
-import frc.robot.subsystems.subsystem.Subsystem;
-import frc.robot.subsystems.subsystem.SubsystemIO;
-import frc.robot.subsystems.subsystem.SubsystemIOTalonFX;
+import frc.robot.subsystems.elevator.Elevator;
+import frc.robot.subsystems.elevator.ElevatorIO;
+import frc.robot.subsystems.elevator.ElevatorIOTalonFX;
+import frc.robot.subsystems.manipulator.Manipulator;
+import frc.robot.subsystems.manipulator.ManipulatorIO;
+import frc.robot.subsystems.manipulator.ManipulatorIOTalonFX;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -56,7 +59,8 @@ public class RobotContainer {
   private Drivetrain drivetrain;
   private Alliance lastAlliance = Field2d.getInstance().getAlliance();
   private Vision vision;
-  private Subsystem subsystem;
+  private Elevator elevator;
+  private Manipulator manipulator;
 
   private Trigger driveToPoseCanceledTrigger;
 
@@ -121,7 +125,8 @@ public class RobotContainer {
       vision = new Vision(visionIOs);
 
       // FIXME: initialize other subsystems
-      subsystem = new Subsystem(new SubsystemIO() {});
+      elevator = new Elevator(new ElevatorIO() {});
+      manipulator = new Manipulator(new ManipulatorIO() {});
     }
 
     // disable all telemetry in the LiveWindow to reduce the processing during each iteration
@@ -131,7 +136,7 @@ public class RobotContainer {
 
     updateOI();
 
-    AutonomousCommandFactory.getInstance().configureAutoCommands(drivetrain, vision);
+    AutonomousCommandsFactory.getInstance().configureAutoCommands(drivetrain, vision);
 
     // Alert when tuning
     if (Constants.TUNING_MODE) {
@@ -186,7 +191,8 @@ public class RobotContainer {
     vision = new Vision(visionIOs);
 
     // FIXME: initialize other subsystems
-    subsystem = new Subsystem(new SubsystemIOTalonFX());
+    elevator = new Elevator(new ElevatorIOTalonFX());
+    manipulator = new Manipulator(new ManipulatorIOTalonFX());
   }
 
   private void createCTRESimSubsystems() {
@@ -215,7 +221,8 @@ public class RobotContainer {
     vision = new Vision(visionIOs);
 
     // FIXME: initialize other subsystems
-    subsystem = new Subsystem(new SubsystemIOTalonFX());
+    elevator = new Elevator(new ElevatorIOTalonFX());
+    manipulator = new Manipulator(new ManipulatorIOTalonFX());
   }
 
   private void createPracticeBoardSubsystems() {
@@ -224,7 +231,8 @@ public class RobotContainer {
     vision = new Vision(new VisionIO[] {new VisionIO() {}});
 
     // FIXME: initialize other subsystems
-    subsystem = new Subsystem(new SubsystemIO() {});
+    elevator = new Elevator(new ElevatorIO() {});
+    manipulator = new Manipulator(new ManipulatorIO() {});
   }
 
   private void createVisionTestPlatformSubsystems() {
@@ -249,7 +257,8 @@ public class RobotContainer {
     vision = new Vision(visionIOs);
 
     // FIXME: initialize other subsystems
-    subsystem = new Subsystem(new SubsystemIO() {});
+    elevator = new Elevator(new ElevatorIO() {});
+    manipulator = new Manipulator(new ManipulatorIO() {});
   }
 
   /**
@@ -281,9 +290,9 @@ public class RobotContainer {
     configureVisionCommands();
 
     // register commands for other subsystems
-    SubsystemCommandFactory.registerCommands(oi, subsystem);
+    ElevatorCommandsFactory.registerCommands(oi, elevator);
 
-    CrossSubsystemsCommandsFactory.registerCommands(oi, drivetrain, vision, subsystem);
+    CrossSubsystemsCommandsFactory.registerCommands(oi, drivetrain, vision, elevator, manipulator);
 
     // Endgame alerts
     new Trigger(

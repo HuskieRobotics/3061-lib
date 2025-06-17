@@ -954,10 +954,9 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
     this.io.applySysIdCharacterization(mode, value);
   }
 
-  public Command getSystemCheckCommand() {
+  private Command getSystemCheckCommand() {
     return Commands.sequence(
             Commands.runOnce(this::disableFieldRelative, this),
-            Commands.runOnce(() -> FaultReporter.getInstance().clearFaults(SUBSYSTEM_NAME)),
             getSwerveCheckCommand(SwerveCheckTypes.LEFT),
             getSwerveCheckCommand(SwerveCheckTypes.RIGHT),
             getSwerveCheckCommand(SwerveCheckTypes.FORWARD),
@@ -965,8 +964,7 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
             getSwerveCheckCommand(SwerveCheckTypes.CLOCKWISE),
             getSwerveCheckCommand(SwerveCheckTypes.COUNTERCLOCKWISE))
         .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
-        .andThen(Commands.runOnce(() -> this.drive(0, 0, 0, true, false), this))
-        .withName(SUBSYSTEM_NAME + "SystemCheck");
+        .andThen(Commands.runOnce(() -> this.drive(0, 0, 0, true, false), this));
   }
 
   public void setDriveToPoseCanceled(boolean canceled) {
