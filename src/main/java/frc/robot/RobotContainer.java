@@ -31,6 +31,10 @@ import frc.robot.commands.CrossSubsystemsCommandsFactory;
 import frc.robot.commands.DifferentialDrivetrainCommandFactory;
 import frc.robot.commands.SubsystemCommandFactory;
 import frc.robot.commands.SwerveDrivetrainCommandFactory;
+import frc.robot.commands.AutonomousCommandsFactory;
+import frc.robot.commands.CrossSubsystemsCommandsFactory;
+import frc.robot.commands.ElevatorCommandsFactory;
+import frc.robot.commands.TeleopSwerve;
 import frc.robot.configs.CalypsoRobotConfig;
 import frc.robot.configs.DefaultRobotConfig;
 import frc.robot.configs.NewPracticeRobotConfig;
@@ -44,6 +48,12 @@ import frc.robot.subsystems.arm.ArmIOXRP;
 import frc.robot.subsystems.subsystem.Subsystem;
 import frc.robot.subsystems.subsystem.SubsystemIO;
 import frc.robot.subsystems.subsystem.SubsystemIOTalonFX;
+import frc.robot.subsystems.elevator.Elevator;
+import frc.robot.subsystems.elevator.ElevatorIO;
+import frc.robot.subsystems.elevator.ElevatorIOTalonFX;
+import frc.robot.subsystems.manipulator.Manipulator;
+import frc.robot.subsystems.manipulator.ManipulatorIO;
+import frc.robot.subsystems.manipulator.ManipulatorIOTalonFX;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -62,8 +72,8 @@ public class RobotContainer {
   private DifferentialDrivetrain differentialDrivetrain;
   private Alliance lastAlliance = Field2d.getInstance().getAlliance();
   private Vision vision;
-  private Arm arm;
-  private Subsystem subsystem;
+  private Elevator elevator;
+  private Manipulator manipulator;
 
   private final LoggedNetworkNumber endgameAlert1 =
       new LoggedNetworkNumber("/Tuning/Endgame Alert #1", 20.0);
@@ -131,7 +141,8 @@ public class RobotContainer {
       vision = new Vision(visionIOs);
 
       // FIXME: initialize other subsystems
-      subsystem = new Subsystem(new SubsystemIO() {});
+      elevator = new Elevator(new ElevatorIO() {});
+      manipulator = new Manipulator(new ManipulatorIO() {});
     }
 
     // disable all telemetry in the LiveWindow to reduce the processing during each iteration
@@ -140,6 +151,8 @@ public class RobotContainer {
     constructField();
 
     updateOI();
+
+    AutonomousCommandsFactory.getInstance().configureAutoCommands(drivetrain, vision);
 
     // Alert when tuning
     if (Constants.TUNING_MODE) {
@@ -197,7 +210,8 @@ public class RobotContainer {
     vision = new Vision(visionIOs);
 
     // FIXME: initialize other subsystems
-    subsystem = new Subsystem(new SubsystemIOTalonFX());
+    elevator = new Elevator(new ElevatorIOTalonFX());
+    manipulator = new Manipulator(new ManipulatorIOTalonFX());
   }
 
   private void createCTRESimSubsystems() {
@@ -226,7 +240,8 @@ public class RobotContainer {
     vision = new Vision(visionIOs);
 
     // FIXME: initialize other subsystems
-    subsystem = new Subsystem(new SubsystemIOTalonFX());
+    elevator = new Elevator(new ElevatorIOTalonFX());
+    manipulator = new Manipulator(new ManipulatorIOTalonFX());
   }
 
   private void createXRPSubsystems() {
@@ -242,7 +257,8 @@ public class RobotContainer {
     vision = new Vision(new VisionIO[] {new VisionIO() {}});
 
     // FIXME: initialize other subsystems
-    subsystem = new Subsystem(new SubsystemIO() {});
+    elevator = new Elevator(new ElevatorIO() {});
+    manipulator = new Manipulator(new ManipulatorIO() {});
   }
 
   private void createVisionTestPlatformSubsystems() {
@@ -267,7 +283,8 @@ public class RobotContainer {
     vision = new Vision(visionIOs);
 
     // FIXME: initialize other subsystems
-    subsystem = new Subsystem(new SubsystemIO() {});
+    elevator = new Elevator(new ElevatorIO() {});
+    manipulator = new Manipulator(new ManipulatorIO() {});
   }
 
   /**
@@ -299,10 +316,10 @@ public class RobotContainer {
     configureVisionCommands();
 
     // register commands for other subsystems
-    SubsystemCommandFactory.registerCommands(oi, subsystem);
     ArmCommandFactory.registerCommands(oi, arm);
+ElevatorCommandsFactory.registerCommands(oi, elevator);
 
-    CrossSubsystemsCommandsFactory.registerCommands(oi, swerveDrivetrain, vision, subsystem);
+    CrossSubsystemsCommandsFactory.registerCommands(oi, drivetrain, vision, elevator, manipulator);
 
     // Endgame alerts
     new Trigger(

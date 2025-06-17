@@ -29,6 +29,7 @@
   "NTProvider": {
     "types": {
       "/AdvantageKit/RealOutputs/Alerts": "Alerts",
+      "/AdvantageKit/RealOutputs/Elevator/ElevatorSim": "Mechanism2d",
       "/AdvantageKit/RealOutputs/PathPlanner": "Alerts",
       "/FMSInfo": "FMSInfo",
       "/SmartDashboard/Alerts": "Alerts",
@@ -38,6 +39,8 @@
       "/SmartDashboard/SystemStatus/CheckForFaults": "Command",
       "/SmartDashboard/SystemStatus/ClearAllFaults": "Command",
       "/SmartDashboard/SystemStatus/Drivetrain/SystemCheck": "Command",
+      "/SmartDashboard/SystemStatus/Elevator/SystemCheck": "Command",
+      "/SmartDashboard/SystemStatus/Manipulator/SystemCheck": "Command",
       "/SmartDashboard/SystemStatus/Subsystem/SystemCheck": "Command",
       "/SmartDashboard/SystemStatus/SwerveModule0/SystemCheck": "Command",
       "/SmartDashboard/SystemStatus/SwerveModule1/SystemCheck": "Command",
