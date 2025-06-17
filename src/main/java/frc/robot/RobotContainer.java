@@ -26,15 +26,11 @@ import frc.lib.team3061.vision.VisionIOPhotonVision;
 import frc.lib.team3061.vision.VisionIOSim;
 import frc.robot.Constants.Mode;
 import frc.robot.commands.ArmCommandFactory;
-import frc.robot.commands.AutonomousCommandFactory;
-import frc.robot.commands.CrossSubsystemsCommandsFactory;
-import frc.robot.commands.DifferentialDrivetrainCommandFactory;
-import frc.robot.commands.SubsystemCommandFactory;
-import frc.robot.commands.SwerveDrivetrainCommandFactory;
 import frc.robot.commands.AutonomousCommandsFactory;
 import frc.robot.commands.CrossSubsystemsCommandsFactory;
+import frc.robot.commands.DifferentialDrivetrainCommandFactory;
 import frc.robot.commands.ElevatorCommandsFactory;
-import frc.robot.commands.TeleopSwerve;
+import frc.robot.commands.SwerveDrivetrainCommandFactory;
 import frc.robot.configs.CalypsoRobotConfig;
 import frc.robot.configs.DefaultRobotConfig;
 import frc.robot.configs.NewPracticeRobotConfig;
@@ -44,16 +40,18 @@ import frc.robot.configs.XRPRobotConfig;
 import frc.robot.operator_interface.OISelector;
 import frc.robot.operator_interface.OperatorInterface;
 import frc.robot.subsystems.arm.Arm;
+import frc.robot.subsystems.arm.ArmIO;
+import frc.robot.subsystems.arm.ArmIOTalonFX;
 import frc.robot.subsystems.arm.ArmIOXRP;
-import frc.robot.subsystems.subsystem.Subsystem;
-import frc.robot.subsystems.subsystem.SubsystemIO;
-import frc.robot.subsystems.subsystem.SubsystemIOTalonFX;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.ElevatorIO;
 import frc.robot.subsystems.elevator.ElevatorIOTalonFX;
 import frc.robot.subsystems.manipulator.Manipulator;
 import frc.robot.subsystems.manipulator.ManipulatorIO;
 import frc.robot.subsystems.manipulator.ManipulatorIOTalonFX;
+import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.shooter.ShooterIO;
+import frc.robot.subsystems.shooter.ShooterIOTalonFX;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -72,8 +70,10 @@ public class RobotContainer {
   private DifferentialDrivetrain differentialDrivetrain;
   private Alliance lastAlliance = Field2d.getInstance().getAlliance();
   private Vision vision;
+  private Arm arm;
   private Elevator elevator;
   private Manipulator manipulator;
+  private Shooter shooter;
 
   private final LoggedNetworkNumber endgameAlert1 =
       new LoggedNetworkNumber("/Tuning/Endgame Alert #1", 20.0);
@@ -141,8 +141,10 @@ public class RobotContainer {
       vision = new Vision(visionIOs);
 
       // FIXME: initialize other subsystems
+      arm = new Arm(new ArmIO() {});
       elevator = new Elevator(new ElevatorIO() {});
       manipulator = new Manipulator(new ManipulatorIO() {});
+      shooter = new Shooter(new ShooterIO() {});
     }
 
     // disable all telemetry in the LiveWindow to reduce the processing during each iteration
@@ -151,8 +153,6 @@ public class RobotContainer {
     constructField();
 
     updateOI();
-
-    AutonomousCommandsFactory.getInstance().configureAutoCommands(drivetrain, vision);
 
     // Alert when tuning
     if (Constants.TUNING_MODE) {
@@ -210,8 +210,10 @@ public class RobotContainer {
     vision = new Vision(visionIOs);
 
     // FIXME: initialize other subsystems
+    arm = new Arm(new ArmIOTalonFX());
     elevator = new Elevator(new ElevatorIOTalonFX());
     manipulator = new Manipulator(new ManipulatorIOTalonFX());
+    shooter = new Shooter(new ShooterIOTalonFX());
   }
 
   private void createCTRESimSubsystems() {
@@ -240,8 +242,10 @@ public class RobotContainer {
     vision = new Vision(visionIOs);
 
     // FIXME: initialize other subsystems
+    arm = new Arm(new ArmIOTalonFX());
     elevator = new Elevator(new ElevatorIOTalonFX());
     manipulator = new Manipulator(new ManipulatorIOTalonFX());
+    shooter = new Shooter(new ShooterIOTalonFX());
   }
 
   private void createXRPSubsystems() {
@@ -257,8 +261,10 @@ public class RobotContainer {
     vision = new Vision(new VisionIO[] {new VisionIO() {}});
 
     // FIXME: initialize other subsystems
+    arm = new Arm(new ArmIOXRP());
     elevator = new Elevator(new ElevatorIO() {});
     manipulator = new Manipulator(new ManipulatorIO() {});
+    shooter = new Shooter(new ShooterIO() {});
   }
 
   private void createVisionTestPlatformSubsystems() {
@@ -283,8 +289,10 @@ public class RobotContainer {
     vision = new Vision(visionIOs);
 
     // FIXME: initialize other subsystems
+    arm = new Arm(new ArmIO() {});
     elevator = new Elevator(new ElevatorIO() {});
     manipulator = new Manipulator(new ManipulatorIO() {});
+    shooter = new Shooter(new ShooterIO() {});
   }
 
   /**
@@ -317,9 +325,15 @@ public class RobotContainer {
 
     // register commands for other subsystems
     ArmCommandFactory.registerCommands(oi, arm);
-ElevatorCommandsFactory.registerCommands(oi, elevator);
+    ElevatorCommandsFactory.registerCommands(oi, elevator);
 
-    CrossSubsystemsCommandsFactory.registerCommands(oi, drivetrain, vision, elevator, manipulator);
+    if (RobotConfig.getInstance().getDrivetrainType() == RobotConfig.DRIVETRAIN_TYPE.DIFFERENTIAL) {
+      CrossSubsystemsCommandsFactory.registerCommands(oi, differentialDrivetrain, vision, arm);
+    } else if (RobotConfig.getInstance().getDrivetrainType()
+        == RobotConfig.DRIVETRAIN_TYPE.SWERVE) {
+      CrossSubsystemsCommandsFactory.registerCommands(
+          oi, swerveDrivetrain, vision, arm, elevator, manipulator, shooter);
+    }
 
     // Endgame alerts
     new Trigger(
@@ -346,11 +360,11 @@ ElevatorCommandsFactory.registerCommands(oi, elevator);
 
   private void configureDrivetrainCommands() {
     if (RobotConfig.getInstance().getDrivetrainType() == RobotConfig.DRIVETRAIN_TYPE.DIFFERENTIAL) {
-      AutonomousCommandFactory.getInstance().configureAutoCommands(differentialDrivetrain, vision);
+      AutonomousCommandsFactory.getInstance().configureAutoCommands(differentialDrivetrain, vision);
       DifferentialDrivetrainCommandFactory.registerCommands(oi, differentialDrivetrain);
     } else if (RobotConfig.getInstance().getDrivetrainType()
         == RobotConfig.DRIVETRAIN_TYPE.SWERVE) {
-      AutonomousCommandFactory.getInstance().configureAutoCommands(swerveDrivetrain, vision);
+      AutonomousCommandsFactory.getInstance().configureAutoCommands(swerveDrivetrain, vision);
       SwerveDrivetrainCommandFactory.registerCommands(oi, swerveDrivetrain, vision);
     }
   }

@@ -8,7 +8,7 @@ public class DifferentialDrivetrainConstants {
     throw new IllegalStateException(CONSTRUCTOR_EXCEPTION);
   }
 
-  public static final String SUBSYSTEM_NAME = "DifferentialDrivetrain";
+  public static final String SUBSYSTEM_NAME = "Drivetrain";
 
   public static final double kGearRatio =
       (30.0 / 14.0) * (28.0 / 16.0) * (36.0 / 9.0) * (26.0 / 8.0); // 48.75:1

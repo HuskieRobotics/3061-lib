@@ -110,7 +110,7 @@ public interface OperatorInterface {
   public default Trigger getMoveArmHighPositionTrigger() {
     return new Trigger(() -> false);
   }
-  
+
   // ELEVATOR EXAMPLE TRIGGERS
   public default Trigger getRaiseElevatorSlowButton() {
     return new Trigger(() -> false);

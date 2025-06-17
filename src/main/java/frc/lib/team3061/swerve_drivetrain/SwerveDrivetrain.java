@@ -100,11 +100,8 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
   private Timer brakeModeTimer = new Timer();
   private static final double BREAK_MODE_DELAY_SEC = 10.0;
 
-  private boolean isMoveToPoseEnabled = true;
-
   private SlewRateLimiter xFilter = new SlewRateLimiter(8);
   private SlewRateLimiter yFilter = new SlewRateLimiter(8);
-  // private SlewRateLimiter thetaFilter = new SlewRateLimiter(Units.degreesToRadians(360));
 
   private boolean accelerationLimiting = false;
   private boolean driveToPoseCanceled = false;
@@ -113,13 +110,11 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
       new Alert("Attempted to reset pose from vision, but no pose was found.", AlertType.kWarning);
   private Alert pathFileMissingAlert =
       new Alert("Could not find the specified path file.", AlertType.kError);
-  private static final String SYSTEM_CHECK_PREFIX = "[System Check] Swerve module ";
-  private static final String IS_LITERAL = " is: ";
 
   private final SwerveRobotOdometry odometry;
+  private int constrainPoseToFieldCount = 0;
   private Pose2d prevRobotPose = new Pose2d();
   private int teleportedCount = 0;
-  private int constrainPoseToFieldCount = 0;
 
   private Pose2d customPose = new Pose2d();
 
@@ -769,25 +764,6 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
   }
 
   /**
-   * Enables or disables the move-to-pose feature. Refer to the MoveToPose command class for more
-   * information.
-   *
-   * @param state true to enable, false to disable
-   */
-  public void enableMoveToPose(boolean state) {
-    this.isMoveToPoseEnabled = state;
-  }
-
-  /**
-   * Returns true if the move-to-pose feature is enabled; false otherwise.
-   *
-   * @return true if the move-to-pose feature is enabled; false otherwise
-   */
-  public boolean isMoveToPoseEnabled() {
-    return this.isMoveToPoseEnabled;
-  }
-
-  /**
    * Captures the initial positions of the drive wheels. This method is intended to be invoked at
    * the start of an autonomous path to measure the distance traveled by the robot.
    */
@@ -1040,11 +1016,11 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
       FaultReporter.getInstance()
           .addFault(
               SUBSYSTEM_NAME,
-              SYSTEM_CHECK_PREFIX
+              "[System Check] Swerve module "
                   + getSwerveLocation(swerveModuleNumber)
                   + " not rotating in the threshold as expected. Should be: "
                   + angleTarget
-                  + IS_LITERAL
+                  + " is: "
                   + inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg);
     }
 
@@ -1058,11 +1034,11 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
         FaultReporter.getInstance()
             .addFault(
                 SUBSYSTEM_NAME,
-                SYSTEM_CHECK_PREFIX
+                "[System Check] Swerve module "
                     + getSwerveLocation(swerveModuleNumber)
                     + " not moving as fast as expected. Should be: "
                     + velocityTarget
-                    + IS_LITERAL
+                    + " is: "
                     + inputs
                         .drivetrain
                         .swerveMeasuredStates[swerveModuleNumber]
@@ -1076,11 +1052,11 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
         FaultReporter.getInstance()
             .addFault(
                 SUBSYSTEM_NAME,
-                SYSTEM_CHECK_PREFIX
+                "[System Check] Swerve module "
                     + getSwerveLocation(swerveModuleNumber)
                     + " not moving as fast as expected. REVERSED Should be: "
                     + velocityTarget
-                    + IS_LITERAL
+                    + " is: "
                     + inputs
                         .drivetrain
                         .swerveMeasuredStates[swerveModuleNumber]

@@ -42,8 +42,8 @@ public class ShooterIOTalonFX implements ShooterIO {
   private StatusSignal<Voltage> shootMotorTopVoltageStatusSignal;
   private StatusSignal<Voltage> shootMotorBottomVoltageStatusSignal;
 
-  private AngularVelocity shootTopMotorReferenceVelocity;
-  private AngularVelocity shootBottomMotorReferenceVelocity;
+  private AngularVelocity shootTopMotorReferenceVelocity = RotationsPerSecond.of(0.0);
+  private AngularVelocity shootBottomMotorReferenceVelocity = RotationsPerSecond.of(0.0);
 
   private final Debouncer topMotorConnectedDebouncer = new Debouncer(0.5);
   private final Debouncer bottomMotorConnectedDebouncer = new Debouncer(0.5);

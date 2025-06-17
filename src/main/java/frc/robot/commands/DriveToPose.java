@@ -204,9 +204,8 @@ public class DriveToPose extends Command {
    * specialized behavior to determine if the robot can physically reach the target pose (e.g., a
    * field element is in its path). This command is considered finished when one of the following is
    * true: it is specified that this command finishes when the the robot is at the target pose and
-   * the robot is at the target pose (within the specified tolerances), when the timeout occurs,
-   * when it is determined that the robot cannot reach the target pose, or when the move-to-pose
-   * feature is disabled on the drivetrain subsystem.
+   * the robot is at the target pose (within the specified tolerances), when the timeout occurs, or
+   * when it is determined that the robot cannot reach the target pose.
    *
    * @return true if the command has finished
    */
@@ -231,7 +230,6 @@ public class DriveToPose extends Command {
 
     return (finishesWhenAtTarget && withinTolerance)
         || !canReachTargetPose
-        || !drivetrain.isMoveToPoseEnabled()
         || this.timer.hasElapsed(timeout);
   }
 
