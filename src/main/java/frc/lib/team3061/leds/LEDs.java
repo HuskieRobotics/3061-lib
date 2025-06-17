@@ -24,7 +24,7 @@ import java.util.TreeSet;
 import java.util.function.BiConsumer;
 import org.littletonrobotics.junction.Logger;
 
-@java.lang.SuppressWarnings({"java:S6548"})
+@SuppressWarnings("unused")
 public abstract class LEDs extends SubsystemBase {
 
   private static LEDs instance;
@@ -123,24 +123,12 @@ public abstract class LEDs extends SubsystemBase {
   private static final double STROBE_SLOW_DURATION = 0.2;
   private static final double BREATH_DURATION = 1.0;
   private static final double PULSE_DURATION = 0.5;
-
-  @SuppressWarnings("unused")
   private static final double RAINBOW_CYCLE_LENGTH = 30.0;
-
-  @SuppressWarnings("unused")
   private static final double RAINBOW_DURATION = .25;
-
   private static final double WAVE_EXPONENT = 0.4;
-
-  @SuppressWarnings("unused")
   private static final double WAVE_FAST_CYCLE_LENGTH = 25.0;
-
-  @SuppressWarnings("unused")
   private static final double WAVE_FAST_DURATION = 0.5;
-
-  @SuppressWarnings("unused")
   private static final double WAVE_MEDIUM_DURATION = 0.75;
-
   private static final double WAVE_SLOW_CYCLE_LENGTH = 25.0;
   private static final double WAVE_SLOW_DURATION = 3.0;
   private static final double WAVE_ALLIANCE_CYCLE_LENGTH = 15.0;
@@ -316,7 +304,6 @@ public abstract class LEDs extends SubsystemBase {
     }
   }
 
-  @SuppressWarnings("unused")
   private void updateInternalState() {
     // check for alliance assignment when connected to FMS
     if (DriverStation.isFMSAttached()) {
@@ -376,7 +363,6 @@ public abstract class LEDs extends SubsystemBase {
     solid(section, on ? color : Color.kBlack);
   }
 
-  @SuppressWarnings("unused")
   private void breath(Section section, Color c1, Color c2) {
     breath(section, c1, c2, Timer.getFPGATimestamp());
   }
@@ -390,7 +376,6 @@ public abstract class LEDs extends SubsystemBase {
     solid(section, new Color(red, green, blue));
   }
 
-  @SuppressWarnings("unused")
   private void rainbow(Section section, double cycleLength, double duration) {
     double x = (1 - ((Timer.getFPGATimestamp() / duration) % 1.0)) * 180.0;
     double xDiffPerLed = 180.0 / cycleLength;
@@ -424,7 +409,6 @@ public abstract class LEDs extends SubsystemBase {
     }
   }
 
-  @SuppressWarnings("unused")
   private void fire(Section section, double duration) {
     double x = (1 - ((Timer.getFPGATimestamp() % duration) / duration)) * 2.0 * Math.PI;
     double[] heat = new double[section.end() - section.start()];

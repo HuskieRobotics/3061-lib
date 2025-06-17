@@ -5,7 +5,6 @@
 package frc.lib.team3061.gyro;
 
 import static edu.wpi.first.units.Units.*;
-import static frc.lib.team3061.drivetrain.DrivetrainConstants.SUBSYSTEM_NAME;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
@@ -14,8 +13,6 @@ import com.ctre.phoenix6.sim.Pigeon2SimState;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.wpilibj.Alert;
-import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.RobotController;
 import frc.lib.team254.Phoenix6Util;
 import frc.lib.team3061.RobotConfig;
@@ -36,9 +33,6 @@ public class GyroIOPigeon2Phoenix6 implements GyroIO {
   private final Debouncer connectedDebouncer = new Debouncer(0.5);
 
   private final Pigeon2SimState gyroSim;
-
-  private final Alert refreshAlert =
-      new Alert("Failed to refresh signals in " + SUBSYSTEM_NAME, AlertType.kError);
 
   public GyroIOPigeon2Phoenix6(int id) {
     gyro = new Pigeon2(id, RobotConfig.getInstance().getCANBusName());

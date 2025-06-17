@@ -1,5 +1,6 @@
 package frc.robot.subsystems.shooter;
 
+import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static frc.robot.subsystems.shooter.ShooterConstants.*;
 
 import com.ctre.phoenix6.BaseStatusSignal;
@@ -163,7 +164,7 @@ public class ShooterIOTalonFX implements ShooterIO {
         shootMotorTopTemperatureStatusSignal.getValueAsDouble();
     inputs.shootMotorTopVoltage = shootMotorTopVoltageStatusSignal.getValueAsDouble();
     inputs.shootMotorTopReferenceVelocityRPS =
-        shootMotorTop.getClosedLoopReference().getValueAsDouble();
+        this.shootTopMotorReferenceVelocity.in(RotationsPerSecond);
 
     // Updates Bottom Shooter Motor Inputs
     inputs.shootMotorBottomStatorCurrentAmps =
@@ -175,7 +176,7 @@ public class ShooterIOTalonFX implements ShooterIO {
         shootMotorBottomTemperatureStatusSignal.getValueAsDouble();
     inputs.shootMotorBottomVoltage = shootMotorBottomVoltageStatusSignal.getValueAsDouble();
     inputs.shootMotorBottomReferenceVelocityRPS =
-        shootMotorBottom.getClosedLoopReference().getValueAsDouble();
+        this.shootBottomMotorReferenceVelocity.in(RotationsPerSecond);
 
     // Retrieve the closed loop reference status signals directly from the motor in this method
     // instead of retrieving in advance because the status signal returned depends on the current
