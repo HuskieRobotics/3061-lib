@@ -11,7 +11,9 @@ package frc.lib.team254;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.wpilibj.Alert;
 import java.util.function.Supplier;
@@ -172,7 +174,7 @@ public class Phoenix6Util {
   }
 
   /**
-   * Applies the specified configuration to the specified TalonFX and checks that the configuration
+   * Applies the specified configuration to the specified CANcoder and checks that the configuration
    * was applied successfully. If not, retries five times; eventually, setting the specified alert
    * if the number of tries is exceeded.
    *
@@ -184,6 +186,96 @@ public class Phoenix6Util {
   public static boolean applyAndCheckConfiguration(
       TalonFX talon, TalonFXConfiguration config, Alert alert) {
     return applyAndCheckConfiguration(talon, config, alert, 5);
+  }
+
+  /**
+   * Applies the specified configuration to the specified TalonFX and checks that the configuration
+   * was applied successfully. If not, retries the specified number of tries; eventually, setting
+   * the specified alert if the number of tries is exceeded.
+   *
+   * @param canCoder CANcoder to which to apply the configuration
+   * @param config CANcoder configuration to apply
+   * @param alert alert to set if the configuration is not applied successfully
+   * @param numTries number of times to try to apply the configuration
+   * @return true if the configuration was applied successfully, false otherwise
+   */
+  public static boolean applyAndCheckConfiguration(
+      CANcoder canCoder, CANcoderConfiguration config, Alert alert, int numTries) {
+    for (int i = 0; i < numTries; i++) {
+      if (checkErrorAndRetry(() -> canCoder.getConfigurator().apply(config), alert)) {
+        // API says we applied config, lets make sure it's right
+        if (readAndVerifyConfiguration(canCoder, config, alert)) {
+          return true;
+        } else {
+          alert.setText(
+              "Failed to verify config for CANcoder ["
+                  + canCoder.getDeviceID()
+                  + "] (attempt "
+                  + (i + 1)
+                  + " of "
+                  + numTries
+                  + ")");
+          alert.set(true);
+        }
+      } else {
+        alert.setText(
+            "Failed to apply config for CANcoder ["
+                + canCoder.getDeviceID()
+                + "] (attempt "
+                + (i + 1)
+                + " of "
+                + numTries
+                + ")");
+        alert.set(true);
+      }
+    }
+    alert.setText("Failed to apply config for CANcoder after " + numTries + " attempts");
+    alert.set(true);
+    return false;
+  }
+
+  /**
+   * Reads the configuration from the specified CANcoder and verifies that it matches the specified
+   * configuration. If the configuration does not match, sets the specified alert.
+   *
+   * @param canCoder CANcoder to which to apply the configuration
+   * @param config CANcoder configuration to apply
+   * @param alert alert to set if the configuration does not match
+   * @return true if the configuration was read and matched, false otherwise
+   */
+  public static boolean readAndVerifyConfiguration(
+      CANcoder canCoder, CANcoderConfiguration config, Alert alert) {
+    CANcoderConfiguration readConfig = new CANcoderConfiguration();
+    if (!checkErrorAndRetry(() -> canCoder.getConfigurator().refresh(readConfig), alert)) {
+      // could not get config!
+      alert.setText("Failed to read config for CANcoder [" + canCoder.getDeviceID() + "]");
+      alert.set(true);
+      return false;
+    } else if (!CANcoderConfigEquality.isEqual(config, readConfig)) {
+      // configs did not match
+      alert.setText(
+          "Configuration verification failed for CANcoder [" + canCoder.getDeviceID() + "]");
+      alert.set(true);
+      return false;
+    } else {
+      // configs read and match, Talon OK
+      return true;
+    }
+  }
+
+  /**
+   * Applies the specified configuration to the specified CANcoder and checks that the configuration
+   * was applied successfully. If not, retries five times; eventually, setting the specified alert
+   * if the number of tries is exceeded.
+   *
+   * @param canCoder CANcoder to which to apply the configuration
+   * @param config CANcoder configuration to apply
+   * @param alert alert to set if the configuration is not applied successfully
+   * @return true if the configuration was applied successfully, false otherwise
+   */
+  public static boolean applyAndCheckConfiguration(
+      CANcoder canCoder, CANcoderConfiguration config, Alert alert) {
+    return applyAndCheckConfiguration(canCoder, config, alert, 5);
   }
 
   // Copyright (c) 2025 FRC 6328

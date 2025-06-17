@@ -23,7 +23,7 @@ public class ElevatorSystemSim {
   private double pulleyRadiusMeters;
   private String subsystemName;
 
-  // Create a Mechanism2d display of an Arm with a fixed ArmTower and moving Arm.
+  // Create a Mechanism2d display of an elevator with a fixed stage and a single extending stage.
   private LoggedMechanism2d mech2d;
   private LoggedMechanismRoot2d elevatorBase;
   private LoggedMechanismLigament2d elevatorExtension;
@@ -98,7 +98,7 @@ public class ElevatorSystemSim {
     this.motorSimState.setRawRotorPosition(motorRotations);
     this.motorSimState.setRotorVelocity(motorRPS);
 
-    // Update the Mechanism Arm angle based on the simulated arm angle
+    // Update the Mechanism Arm angle based on the simulated elevator position
     this.elevatorExtension.setLength(mechanismLength);
     Logger.recordOutput(subsystemName + "/ElevatorSim", mech2d);
   }

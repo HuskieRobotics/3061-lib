@@ -138,18 +138,19 @@ public class FaultReporter {
   private Command wrapSystemCheckCommand(String subsystemName, Command systemCheckCommand) {
     String statusTable = SYSTEM_STATUS + subsystemName;
     return Commands.sequence(
-        Commands.runOnce(
-            () -> {
-              Logger.recordOutput(statusTable + CHECK_RAN, false);
-              clearFaults(subsystemName);
-              publishStatus();
-            }),
-        systemCheckCommand,
-        Commands.runOnce(
-            () -> {
-              publishStatus();
-              Logger.recordOutput(statusTable + CHECK_RAN, true);
-            }));
+            Commands.runOnce(
+                () -> {
+                  Logger.recordOutput(statusTable + CHECK_RAN, false);
+                  clearFaults(subsystemName);
+                  publishStatus();
+                }),
+            systemCheckCommand,
+            Commands.runOnce(
+                () -> {
+                  publishStatus();
+                  Logger.recordOutput(statusTable + CHECK_RAN, true);
+                }))
+        .withName(subsystemName + " System Check");
   }
 
   private void setupCallbacks() {

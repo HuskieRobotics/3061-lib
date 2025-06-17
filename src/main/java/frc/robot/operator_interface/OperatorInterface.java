@@ -101,4 +101,13 @@ public interface OperatorInterface {
   public default Trigger getEnableAutoScoringTrigger() {
     return new Trigger(() -> false);
   }
+
+  // ELEVATOR EXAMPLE TRIGGERS
+  public default Trigger getRaiseElevatorSlowButton() {
+    return new Trigger(() -> false);
+  }
+
+  public default Trigger getLowerElevatorSlowButton() {
+    return new Trigger(() -> false);
+  }
 }
