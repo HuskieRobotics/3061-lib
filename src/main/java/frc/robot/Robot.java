@@ -31,7 +31,7 @@ import frc.lib.team3061.leds.LEDs;
 import frc.lib.team6328.util.LoggedTracer;
 import frc.lib.team6328.util.NTClientLogger;
 import frc.robot.Constants.Mode;
-import frc.robot.commands.AutonomousCommandFactory;
+import frc.robot.commands.AutonomousCommandsFactory;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
@@ -312,7 +312,7 @@ public class Robot extends LoggedRobot {
     robotContainer.checkAllianceColor();
 
     // get the autochooser auto selected and if the default is selected then do solid red leds
-    if (AutonomousCommandFactory.getInstance()
+    if (AutonomousCommandsFactory.getInstance()
         .getAutonomousCommand()
         .getName()
         .equals("Do Nothing")) {
@@ -335,7 +335,7 @@ public class Robot extends LoggedRobot {
 
     autoStart = Timer.getTimestamp();
     autoMessagePrinted = false;
-    autonomousCommand = AutonomousCommandFactory.getInstance().getAutonomousCommand();
+    autonomousCommand = AutonomousCommandsFactory.getInstance().getAutonomousCommand();
 
     // schedule the autonomous command
     if (autonomousCommand != null) {

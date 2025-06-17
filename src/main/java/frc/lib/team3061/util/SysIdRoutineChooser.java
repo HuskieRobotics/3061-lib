@@ -8,6 +8,12 @@ import java.util.HashMap;
 import java.util.Map;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
+/**
+ * Singleton class to manage SysId routines for dynamic and quasistatic testing. Each subsystem that
+ * needs to be characterized registers its SysId routines with this class. It uses a
+ * LoggedDashboardChooser to allow users to select the desired subsystem's SysId routine from the
+ * dashboard.
+ */
 public class SysIdRoutineChooser {
 
   private static final SysIdRoutineChooser instance = new SysIdRoutineChooser();
