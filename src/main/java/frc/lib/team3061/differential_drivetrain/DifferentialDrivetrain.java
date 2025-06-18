@@ -14,10 +14,12 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.util.DifferentialRobotOdometry;
 import frc.lib.team3061.util.RobotOdometry;
+import frc.lib.team6328.util.LoggedTracer;
 import frc.robot.Field2d;
 import org.littletonrobotics.junction.Logger;
 
@@ -75,7 +77,7 @@ public class DifferentialDrivetrain extends SubsystemBase {
    *
    * @param pose the specified pose to which is set the odometry
    */
-  private void resetPose(Pose2d pose) {
+  public void resetPose(Pose2d pose) {
     this.odometry.resetPose(
         Rotation2d.fromDegrees(this.inputs.headingDeg),
         this.inputs.leftPositionMeters,
@@ -125,5 +127,18 @@ public class DifferentialDrivetrain extends SubsystemBase {
   public void periodic() {
     this.io.updateInputs(this.inputs);
     Logger.processInputs(SUBSYSTEM_NAME, this.inputs);
+
+    // update odometry
+    this.odometry.updateWithTime(
+        Timer.getFPGATimestamp(),
+        Rotation2d.fromDegrees(inputs.headingDeg),
+        inputs.leftPositionMeters,
+        inputs.rightPositionMeters);
+
+    Pose2d pose = this.odometry.getEstimatedPose();
+    Logger.recordOutput(SUBSYSTEM_NAME + "/Pose", pose);
+
+    // Record cycle time
+    LoggedTracer.record("Drivetrain");
   }
 }

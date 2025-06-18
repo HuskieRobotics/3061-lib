@@ -215,7 +215,6 @@ public class Field2d {
 
   public enum Side {
     LEFT,
-    RIGHT,
-    REMOVE_ALGAE
+    RIGHT
   }
 }

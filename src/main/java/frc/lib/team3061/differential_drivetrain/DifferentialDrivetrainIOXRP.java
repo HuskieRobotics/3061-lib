@@ -1,7 +1,9 @@
 package frc.lib.team3061.differential_drivetrain;
 
 import static frc.lib.team3061.differential_drivetrain.DifferentialDrivetrainConstants.*;
+import static frc.robot.Constants.LOOP_PERIOD_SECS;
 
+import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Force;
 import edu.wpi.first.wpilibj.BuiltInAccelerometer;
@@ -32,6 +34,11 @@ public class DifferentialDrivetrainIOXRP implements DifferentialDrivetrainIO {
   // Set up the BuiltInAccelerometer
   private final BuiltInAccelerometer accelerometer = new BuiltInAccelerometer();
 
+  private double prevLeftPositionMeters = 0;
+  private double prevRightPositionMeters = 0;
+  private LinearFilter leftVelocity = LinearFilter.movingAverage(10);
+  private LinearFilter rightVelocity = LinearFilter.movingAverage(10);
+
   public DifferentialDrivetrainIOXRP() {
     // We need to invert one side of the drivetrain so that positive voltages
     // result in both sides moving forward. Depending on how your robot's
@@ -55,6 +62,13 @@ public class DifferentialDrivetrainIOXRP implements DifferentialDrivetrainIO {
     inputs.leftPositionMeters = leftEncoder.getDistance();
     inputs.rightPositionMeters = rightEncoder.getDistance();
 
+    inputs.leftVelocityMetersPerSecond =
+        leftVelocity.calculate(
+            (inputs.leftPositionMeters - this.prevLeftPositionMeters) / LOOP_PERIOD_SECS);
+    inputs.rightVelocityMetersPerSecond =
+        rightVelocity.calculate(
+            (inputs.rightPositionMeters - this.prevRightPositionMeters) / LOOP_PERIOD_SECS);
+
     inputs.headingDeg = gyro.getAngleZ();
     inputs.pitchDeg = gyro.getAngleX();
     inputs.rollDeg = gyro.getAngleY();
@@ -62,6 +76,9 @@ public class DifferentialDrivetrainIOXRP implements DifferentialDrivetrainIO {
     inputs.xAccelerationG = accelerometer.getX();
     inputs.yAccelerationG = accelerometer.getY();
     inputs.zAccelerationG = accelerometer.getZ();
+
+    this.prevLeftPositionMeters = inputs.leftPositionMeters;
+    this.prevRightPositionMeters = inputs.rightPositionMeters;
   }
 
   /**

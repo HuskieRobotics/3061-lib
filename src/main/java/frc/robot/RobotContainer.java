@@ -152,6 +152,14 @@ public class RobotContainer {
 
     constructField();
 
+    // register autonomous commands
+    if (RobotConfig.getInstance().getDrivetrainType() == RobotConfig.DRIVETRAIN_TYPE.DIFFERENTIAL) {
+      AutonomousCommandsFactory.getInstance().configureAutoCommands(differentialDrivetrain, vision);
+    } else if (RobotConfig.getInstance().getDrivetrainType()
+        == RobotConfig.DRIVETRAIN_TYPE.SWERVE) {
+      AutonomousCommandsFactory.getInstance().configureAutoCommands(swerveDrivetrain, vision);
+    }
+
     updateOI();
 
     // Alert when tuning
@@ -250,9 +258,12 @@ public class RobotContainer {
 
   private void createXRPSubsystems() {
     differentialDrivetrain = new DifferentialDrivetrain(new DifferentialDrivetrainIOXRP());
-    vision = new Vision(new VisionIO[] {new VisionIO() {}});
+    vision = new Vision(new VisionIO[] {});
 
     arm = new Arm(new ArmIOXRP());
+    elevator = new Elevator(new ElevatorIO() {});
+    manipulator = new Manipulator(new ManipulatorIO() {});
+    shooter = new Shooter(new ShooterIO() {});
   }
 
   private void createPracticeBoardSubsystems() {
@@ -261,7 +272,7 @@ public class RobotContainer {
     vision = new Vision(new VisionIO[] {new VisionIO() {}});
 
     // FIXME: initialize other subsystems
-    arm = new Arm(new ArmIOXRP());
+    arm = new Arm(new ArmIO() {});
     elevator = new Elevator(new ElevatorIO() {});
     manipulator = new Manipulator(new ManipulatorIO() {});
     shooter = new Shooter(new ShooterIO() {});
@@ -360,11 +371,9 @@ public class RobotContainer {
 
   private void configureDrivetrainCommands() {
     if (RobotConfig.getInstance().getDrivetrainType() == RobotConfig.DRIVETRAIN_TYPE.DIFFERENTIAL) {
-      AutonomousCommandsFactory.getInstance().configureAutoCommands(differentialDrivetrain, vision);
       DifferentialDrivetrainCommandFactory.registerCommands(oi, differentialDrivetrain);
     } else if (RobotConfig.getInstance().getDrivetrainType()
         == RobotConfig.DRIVETRAIN_TYPE.SWERVE) {
-      AutonomousCommandsFactory.getInstance().configureAutoCommands(swerveDrivetrain, vision);
       SwerveDrivetrainCommandFactory.registerCommands(oi, swerveDrivetrain, vision);
     }
   }

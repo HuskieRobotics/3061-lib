@@ -7,6 +7,7 @@ package frc.robot.commands;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.lib.team3061.differential_drivetrain.DifferentialDrivetrain;
 import java.util.function.Supplier;
+import org.littletonrobotics.junction.Logger;
 
 public class ArcadeDrive extends Command {
   private final DifferentialDrivetrain drivetrain;
@@ -38,7 +39,14 @@ public class ArcadeDrive extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    drivetrain.arcadeDrive(xVelocitySupplier.get(), rotationVelocitySupplier.get());
+
+    double xVelocity = xVelocitySupplier.get();
+    double rotationalVelocity = rotationVelocitySupplier.get();
+
+    drivetrain.arcadeDrive(xVelocity, rotationalVelocity);
+
+    Logger.recordOutput("ArcadeDrive/xVelocity", xVelocity);
+    Logger.recordOutput("ArcadeDrive/rotationalVelocity", rotationalVelocity);
   }
 
   // Called once the command ends or is interrupted.

@@ -2,7 +2,9 @@ package frc.robot.configs;
 
 import static edu.wpi.first.units.Units.*;
 
+import com.pathplanner.lib.config.ModuleConfig;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
@@ -18,53 +20,31 @@ import frc.lib.team3061.swerve_drivetrain.swerve.SwerveConstants;
 public class XRPRobotConfig extends RobotConfig {
 
   // FIXME: update robot dimensions
-  private static final Mass MASS =
-      Kilograms.of(
-          51.862); // FIXME: update based on measured mass of robot with battery and bumpers
-  private static final MomentOfInertia MOI = KilogramSquareMeters.of(6.0); // FIXME: measure
-  private static final Distance TRACKWIDTH = Meters.of(0.523875);
-  private static final Distance WHEELBASE = Meters.of(0.52705);
-  private static final Distance WHEEL_RADIUS = Meters.of(0.09845567409 / 2.0);
+  private static final Mass MASS = Kilograms.of(0.418);
+  private static final MomentOfInertia MOI = KilogramSquareMeters.of(0.0025149667);
+  private static final Distance TRACKWIDTH = Meters.of(0.16);
+  private static final Distance WHEELBASE = Meters.of(0.13);
+  private static final Distance WHEEL_RADIUS = Meters.of(0.028575);
   private static final double WHEEL_COEFFICIENT_OF_FRICTION =
       1.2; // FIXME: update based on wheel coefficient of friction
-  private static final Translation2d FRONT_RIGHT_CORNER_POSITION = new Translation2d(0.36, -0.36);
-  private static final Distance ROBOT_WIDTH_WITH_BUMPERS = Meters.of(0.8382);
-  private static final Distance ROBOT_LENGTH_WITH_BUMPERS = Meters.of(0.8382);
-
-  // FIXME: characterize the drivetrain and update these constants
-  private static final double DRIVE_KS = 5.0;
-  private static final double DRIVE_KV = 0.0;
-  private static final double DRIVE_KA = 0.0;
+  private static final Translation2d FRONT_RIGHT_CORNER_POSITION = new Translation2d(0.095, -0.095);
+  private static final Distance ROBOT_WIDTH_WITH_BUMPERS = Meters.of(0.19);
+  private static final Distance ROBOT_LENGTH_WITH_BUMPERS = Meters.of(0.19);
 
   // FIXME: determine maximum velocities empirically
-  private static final LinearVelocity MAX_VELOCITY = MetersPerSecond.of(3.5);
+  private static final LinearVelocity MAX_VELOCITY = MetersPerSecond.of(0.5);
 
   // FIXME: specify maximum velocity and acceleration and tune PID values for auto paths
-  private static final double AUTO_DRIVE_P_CONTROLLER = 5.0;
+  private static final double AUTO_DRIVE_P_CONTROLLER = 1.0;
   private static final double AUTO_DRIVE_I_CONTROLLER = 0.0;
   private static final double AUTO_DRIVE_D_CONTROLLER = 0.0;
-  private static final double AUTO_TURN_P_CONTROLLER = 5.0;
+  private static final double AUTO_TURN_P_CONTROLLER = 1.0;
   private static final double AUTO_TURN_I_CONTROLLER = 0.0;
   private static final double AUTO_TURN_D_CONTROLLER = 0.0;
 
   @Override
   public DRIVETRAIN_TYPE getDrivetrainType() {
     return DRIVETRAIN_TYPE.DIFFERENTIAL;
-  }
-
-  @Override
-  public double getDriveKS() {
-    return DRIVE_KS;
-  }
-
-  @Override
-  public double getDriveKV() {
-    return DRIVE_KV;
-  }
-
-  @Override
-  public double getDriveKA() {
-    return DRIVE_KA;
   }
 
   @Override
@@ -166,6 +146,21 @@ public class XRPRobotConfig extends RobotConfig {
   @Override
   public double getAutoTurnKD() {
     return AUTO_TURN_D_CONTROLLER;
+  }
+
+  @Override
+  public com.pathplanner.lib.config.RobotConfig getPathPlannerRobotConfig() {
+    return new com.pathplanner.lib.config.RobotConfig(
+        getMass(),
+        getMomentOfInertia(),
+        new ModuleConfig(
+            getWheelRadius(),
+            MetersPerSecond.of(2.0),
+            getWheelCOF(),
+            DCMotor.getKrakenX60(1).withReduction(10.0),
+            Amps.of(40.0),
+            1),
+        getTrackwidth());
   }
 
   @Override

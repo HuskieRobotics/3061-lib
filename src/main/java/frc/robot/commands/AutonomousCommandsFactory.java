@@ -121,6 +121,32 @@ public class AutonomousCommandsFactory {
     // add commands to the auto chooser
     autoChooser.addDefaultOption("Do Nothing", new InstantCommand());
 
+    /************ Start Point ************
+     *
+     * useful for initializing the pose of the robot to a known location
+     *
+     */
+
+    Command startPoint =
+        Commands.runOnce(
+            () -> {
+              try {
+                drivetrain.resetPose(
+                    PathPlannerPath.fromPathFile("Start Point").getStartingDifferentialPose());
+              } catch (Exception e) {
+                pathFileMissingAlert.setText("Could not find the specified path file: Start Point");
+                pathFileMissingAlert.set(true);
+              }
+            },
+            drivetrain);
+    autoChooser.addOption("Start Point", startPoint);
+
+    /************ Differential Auto ************
+     *
+     * example PathPlanner auto for XRP
+     *
+     */
+
     autoChooser.addOption("Differential Example", new PathPlannerAuto("Differential Auto"));
   }
 

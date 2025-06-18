@@ -81,6 +81,7 @@ public class OISelector {
     }
 
     if (Constants.getRobot() == RobotType.ROBOT_SIMBOT
+        || Constants.getRobot() == RobotType.ROBOT_XRP
         || Constants.getRobot() == RobotType.ROBOT_VISION_TEST_PLATFORM) {
       nonCompetitionOperatorInterfaceWarning.set(false);
       return new SimDualJoysticksOI(0, 1);
