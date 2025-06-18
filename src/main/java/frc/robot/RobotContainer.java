@@ -5,7 +5,6 @@
 package frc.robot;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -14,34 +13,45 @@ import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.team3061.RobotConfig;
-import frc.lib.team3061.drivetrain.Drivetrain;
-import frc.lib.team3061.drivetrain.DrivetrainIO;
-import frc.lib.team3061.drivetrain.DrivetrainIOCTRE;
+import frc.lib.team3061.differential_drivetrain.DifferentialDrivetrain;
+import frc.lib.team3061.differential_drivetrain.DifferentialDrivetrainIOXRP;
 import frc.lib.team3061.leds.LEDs;
-import frc.lib.team3061.util.SysIdRoutineChooser;
+import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
+import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrainIO;
+import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrainIOCTRE;
 import frc.lib.team3061.vision.Vision;
 import frc.lib.team3061.vision.VisionConstants;
 import frc.lib.team3061.vision.VisionIO;
 import frc.lib.team3061.vision.VisionIOPhotonVision;
 import frc.lib.team3061.vision.VisionIOSim;
 import frc.robot.Constants.Mode;
+import frc.robot.commands.ArmCommandFactory;
 import frc.robot.commands.AutonomousCommandsFactory;
 import frc.robot.commands.CrossSubsystemsCommandsFactory;
+import frc.robot.commands.DifferentialDrivetrainCommandFactory;
 import frc.robot.commands.ElevatorCommandsFactory;
-import frc.robot.commands.TeleopSwerve;
+import frc.robot.commands.SwerveDrivetrainCommandFactory;
 import frc.robot.configs.CalypsoRobotConfig;
 import frc.robot.configs.DefaultRobotConfig;
 import frc.robot.configs.NewPracticeRobotConfig;
 import frc.robot.configs.PracticeBoardConfig;
 import frc.robot.configs.VisionTestPlatformConfig;
+import frc.robot.configs.XRPRobotConfig;
 import frc.robot.operator_interface.OISelector;
 import frc.robot.operator_interface.OperatorInterface;
+import frc.robot.subsystems.arm.Arm;
+import frc.robot.subsystems.arm.ArmIO;
+import frc.robot.subsystems.arm.ArmIOTalonFX;
+import frc.robot.subsystems.arm.ArmIOXRP;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.ElevatorIO;
 import frc.robot.subsystems.elevator.ElevatorIOTalonFX;
 import frc.robot.subsystems.manipulator.Manipulator;
 import frc.robot.subsystems.manipulator.ManipulatorIO;
 import frc.robot.subsystems.manipulator.ManipulatorIOTalonFX;
+import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.shooter.ShooterIO;
+import frc.robot.subsystems.shooter.ShooterIOTalonFX;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -56,13 +66,14 @@ import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 public class RobotContainer {
   private OperatorInterface oi = new OperatorInterface() {};
   private RobotConfig config;
-  private Drivetrain drivetrain;
+  private SwerveDrivetrain swerveDrivetrain;
+  private DifferentialDrivetrain differentialDrivetrain;
   private Alliance lastAlliance = Field2d.getInstance().getAlliance();
   private Vision vision;
+  private Arm arm;
   private Elevator elevator;
   private Manipulator manipulator;
-
-  private Trigger driveToPoseCanceledTrigger;
+  private Shooter shooter;
 
   private final LoggedNetworkNumber endgameAlert1 =
       new LoggedNetworkNumber("/Tuning/Endgame Alert #1", 20.0);
@@ -110,12 +121,17 @@ public class RobotContainer {
             createVisionTestPlatformSubsystems();
             break;
           }
+        case ROBOT_XRP:
+          {
+            createXRPSubsystems();
+            break;
+          }
         default:
           break;
       }
 
     } else {
-      drivetrain = new Drivetrain(new DrivetrainIO() {});
+      swerveDrivetrain = new SwerveDrivetrain(new SwerveDrivetrainIO() {});
 
       String[] cameraNames = config.getCameraNames();
       VisionIO[] visionIOs = new VisionIO[cameraNames.length];
@@ -125,8 +141,10 @@ public class RobotContainer {
       vision = new Vision(visionIOs);
 
       // FIXME: initialize other subsystems
+      arm = new Arm(new ArmIO() {});
       elevator = new Elevator(new ElevatorIO() {});
       manipulator = new Manipulator(new ManipulatorIO() {});
+      shooter = new Shooter(new ShooterIO() {});
     }
 
     // disable all telemetry in the LiveWindow to reduce the processing during each iteration
@@ -136,7 +154,13 @@ public class RobotContainer {
 
     updateOI();
 
-    AutonomousCommandsFactory.getInstance().configureAutoCommands(drivetrain, vision);
+    // register autonomous commands
+    if (RobotConfig.getInstance().getDrivetrainType() == RobotConfig.DRIVETRAIN_TYPE.DIFFERENTIAL) {
+      AutonomousCommandsFactory.getInstance().configureAutoCommands(differentialDrivetrain, vision);
+    } else if (RobotConfig.getInstance().getDrivetrainType()
+        == RobotConfig.DRIVETRAIN_TYPE.SWERVE) {
+      AutonomousCommandsFactory.getInstance().configureAutoCommands(swerveDrivetrain, vision);
+    }
 
     // Alert when tuning
     if (Constants.TUNING_MODE) {
@@ -165,13 +189,16 @@ public class RobotContainer {
       case ROBOT_VISION_TEST_PLATFORM:
         config = new VisionTestPlatformConfig();
         break;
+      case ROBOT_XRP:
+        config = new XRPRobotConfig();
+        break;
       default:
         break;
     }
   }
 
   private void createCTRESubsystems() {
-    drivetrain = new Drivetrain(new DrivetrainIOCTRE());
+    swerveDrivetrain = new SwerveDrivetrain(new SwerveDrivetrainIOCTRE());
 
     String[] cameraNames = config.getCameraNames();
     VisionIO[] visionIOs = new VisionIO[cameraNames.length];
@@ -191,12 +218,14 @@ public class RobotContainer {
     vision = new Vision(visionIOs);
 
     // FIXME: initialize other subsystems
+    arm = new Arm(new ArmIOTalonFX());
     elevator = new Elevator(new ElevatorIOTalonFX());
     manipulator = new Manipulator(new ManipulatorIOTalonFX());
+    shooter = new Shooter(new ShooterIOTalonFX());
   }
 
   private void createCTRESimSubsystems() {
-    drivetrain = new Drivetrain(new DrivetrainIOCTRE());
+    swerveDrivetrain = new SwerveDrivetrain(new SwerveDrivetrainIOCTRE());
 
     String[] cameraNames = config.getCameraNames();
     VisionIO[] visionIOs = new VisionIO[cameraNames.length];
@@ -215,29 +244,43 @@ public class RobotContainer {
           new VisionIOSim(
               cameraNames[i],
               layout,
-              drivetrain::getPose,
+              swerveDrivetrain::getPose,
               RobotConfig.getInstance().getRobotToCameraTransforms()[i]);
     }
     vision = new Vision(visionIOs);
 
     // FIXME: initialize other subsystems
+    arm = new Arm(new ArmIOTalonFX());
     elevator = new Elevator(new ElevatorIOTalonFX());
     manipulator = new Manipulator(new ManipulatorIOTalonFX());
+    shooter = new Shooter(new ShooterIOTalonFX());
+  }
+
+  private void createXRPSubsystems() {
+    differentialDrivetrain = new DifferentialDrivetrain(new DifferentialDrivetrainIOXRP());
+    vision = new Vision(new VisionIO[] {});
+
+    arm = new Arm(new ArmIOXRP());
+    elevator = new Elevator(new ElevatorIO() {});
+    manipulator = new Manipulator(new ManipulatorIO() {});
+    shooter = new Shooter(new ShooterIO() {});
   }
 
   private void createPracticeBoardSubsystems() {
     // change the following to connect the subsystem being tested to actual hardware
-    drivetrain = new Drivetrain(new DrivetrainIO() {});
+    swerveDrivetrain = new SwerveDrivetrain(new SwerveDrivetrainIO() {});
     vision = new Vision(new VisionIO[] {new VisionIO() {}});
 
     // FIXME: initialize other subsystems
+    arm = new Arm(new ArmIO() {});
     elevator = new Elevator(new ElevatorIO() {});
     manipulator = new Manipulator(new ManipulatorIO() {});
+    shooter = new Shooter(new ShooterIO() {});
   }
 
   private void createVisionTestPlatformSubsystems() {
     // change the following to connect the subsystem being tested to actual hardware
-    drivetrain = new Drivetrain(new DrivetrainIO() {});
+    swerveDrivetrain = new SwerveDrivetrain(new SwerveDrivetrainIO() {});
 
     String[] cameraNames = config.getCameraNames();
     VisionIO[] visionIOs = new VisionIO[cameraNames.length];
@@ -257,8 +300,10 @@ public class RobotContainer {
     vision = new Vision(visionIOs);
 
     // FIXME: initialize other subsystems
+    arm = new Arm(new ArmIO() {});
     elevator = new Elevator(new ElevatorIO() {});
     manipulator = new Manipulator(new ManipulatorIO() {});
+    shooter = new Shooter(new ShooterIO() {});
   }
 
   /**
@@ -290,9 +335,16 @@ public class RobotContainer {
     configureVisionCommands();
 
     // register commands for other subsystems
+    ArmCommandFactory.registerCommands(oi, arm);
     ElevatorCommandsFactory.registerCommands(oi, elevator);
 
-    CrossSubsystemsCommandsFactory.registerCommands(oi, drivetrain, vision, elevator, manipulator);
+    if (RobotConfig.getInstance().getDrivetrainType() == RobotConfig.DRIVETRAIN_TYPE.DIFFERENTIAL) {
+      CrossSubsystemsCommandsFactory.registerCommands(oi, differentialDrivetrain, vision, arm);
+    } else if (RobotConfig.getInstance().getDrivetrainType()
+        == RobotConfig.DRIVETRAIN_TYPE.SWERVE) {
+      CrossSubsystemsCommandsFactory.registerCommands(
+          oi, swerveDrivetrain, vision, arm, elevator, manipulator, shooter);
+    }
 
     // Endgame alerts
     new Trigger(
@@ -318,119 +370,12 @@ public class RobotContainer {
   }
 
   private void configureDrivetrainCommands() {
-    /*
-     * Set up the default command for the drivetrain. The joysticks' values map to percentage of the
-     * maximum velocities. The velocities may be specified from either the robot's frame of
-     * reference or the field's frame of reference. In the robot's frame of reference, the positive
-     * x direction is forward; the positive y direction, left; position rotation, CCW. In the field
-     * frame of reference, the origin of the field to the lower left corner (i.e., the corner of the
-     * field to the driver's right). Zero degrees is away from the driver and increases in the CCW
-     * direction. This is why the left joystick's y axis specifies the velocity in the x direction
-     * and the left joystick's x axis specifies the velocity in the y direction.
-     */
-    drivetrain.setDefaultCommand(
-        new TeleopSwerve(drivetrain, oi::getTranslateX, oi::getTranslateY, oi::getRotate));
-
-    driveToPoseCanceledTrigger = new Trigger(drivetrain::getDriveToPoseCanceled);
-    driveToPoseCanceledTrigger.onTrue(
-        Commands.sequence(
-                Commands.run(
-                        () -> LEDs.getInstance().requestState(LEDs.States.DRIVE_TO_POSE_CANCELED),
-                        drivetrain)
-                    .withTimeout(0.5),
-                Commands.runOnce(() -> drivetrain.setDriveToPoseCanceled(false)))
-            .withName("cancel drive to pose"));
-
-    // lock rotation to the nearest 180° while driving
-    oi.getLock180Button()
-        .whileTrue(
-            new TeleopSwerve(
-                    drivetrain,
-                    oi::getTranslateX,
-                    oi::getTranslateY,
-                    () ->
-                        (drivetrain.getPose().getRotation().getDegrees() > -90
-                                && drivetrain.getPose().getRotation().getDegrees() < 90)
-                            ? Rotation2d.fromDegrees(0.0)
-                            : Rotation2d.fromDegrees(180.0))
-                .withName("lock 180"));
-
-    // field-relative toggle
-    oi.getFieldRelativeButton()
-        .toggleOnTrue(
-            Commands.either(
-                    Commands.runOnce(drivetrain::disableFieldRelative, drivetrain),
-                    Commands.runOnce(drivetrain::enableFieldRelative, drivetrain),
-                    drivetrain::getFieldRelative)
-                .withName("toggle field relative"));
-
-    // slow-mode toggle
-    oi.getTranslationSlowModeButton()
-        .onTrue(
-            Commands.runOnce(drivetrain::enableTranslationSlowMode, drivetrain)
-                .withName("enable translation slow mode"));
-    oi.getTranslationSlowModeButton()
-        .onFalse(
-            Commands.runOnce(drivetrain::disableTranslationSlowMode, drivetrain)
-                .withName("disable translation slow mode"));
-    oi.getRotationSlowModeButton()
-        .onTrue(
-            Commands.runOnce(drivetrain::enableRotationSlowMode, drivetrain)
-                .withName("enable rotation slow mode"));
-    oi.getRotationSlowModeButton()
-        .onFalse(
-            Commands.runOnce(drivetrain::disableRotationSlowMode, drivetrain)
-                .withName("disable rotation slow mode"));
-
-    // reset gyro to 0 degrees
-    oi.getResetGyroButton()
-        .onTrue(Commands.runOnce(drivetrain::zeroGyroscope, drivetrain).withName("zero gyro"));
-
-    // reset pose based on vision
-    oi.getResetPoseToVisionButton()
-        .onTrue(
-            Commands.repeatingSequence(Commands.none())
-                .until(() -> vision.getBestRobotPose() != null)
-                .andThen(
-                    Commands.runOnce(
-                        () -> drivetrain.resetPoseToVision(() -> vision.getBestRobotPose())))
-                .ignoringDisable(true)
-                .withName("reset pose to vision"));
-
-    // x-stance
-    oi.getXStanceButton()
-        .whileTrue(Commands.run(drivetrain::holdXstance, drivetrain).withName("hold x-stance"));
-
-    // print pose to console for field calibration
-    // format the string so that it shows how to make the pose2d object given our current x
-    // (double), current y (double), and current rotation (Rotation2d)
-    oi.getCurrentPoseButton()
-        .onTrue(
-            Commands.runOnce(
-                    () ->
-                        System.out.println(
-                            "new Pose2d("
-                                + drivetrain.getPose().getTranslation().getX()
-                                + ", "
-                                + drivetrain.getPose().getTranslation().getY()
-                                + ", Rotation2d.fromDegrees("
-                                + drivetrain.getPose().getRotation().getDegrees()
-                                + "));"))
-                .ignoringDisable(true)
-                .withName("print current pose"));
-
-    // new Trigger(
-    //         () -> {
-    //           return drivetrain.isTilted() && !climber.isClimbing();
-    //         })
-    //     .whileTrue(Commands.run(() -> drivetrain.untilt(), drivetrain).withName("untilt"));
-
-    oi.getSysIdDynamicForward().whileTrue(SysIdRoutineChooser.getInstance().getDynamicForward());
-    oi.getSysIdDynamicReverse().whileTrue(SysIdRoutineChooser.getInstance().getDynamicReverse());
-    oi.getSysIdQuasistaticForward()
-        .whileTrue(SysIdRoutineChooser.getInstance().getQuasistaticForward());
-    oi.getSysIdQuasistaticReverse()
-        .whileTrue(SysIdRoutineChooser.getInstance().getQuasistaticReverse());
+    if (RobotConfig.getInstance().getDrivetrainType() == RobotConfig.DRIVETRAIN_TYPE.DIFFERENTIAL) {
+      DifferentialDrivetrainCommandFactory.registerCommands(oi, differentialDrivetrain);
+    } else if (RobotConfig.getInstance().getDrivetrainType()
+        == RobotConfig.DRIVETRAIN_TYPE.SWERVE) {
+      SwerveDrivetrainCommandFactory.registerCommands(oi, swerveDrivetrain, vision);
+    }
   }
 
   private void configureVisionCommands() {
@@ -455,7 +400,6 @@ public class RobotContainer {
     Optional<Alliance> alliance = DriverStation.getAlliance();
     if (alliance.isPresent() && alliance.get() != lastAlliance) {
       this.lastAlliance = alliance.get();
-      this.drivetrain.updateAlliance(this.lastAlliance);
       Field2d.getInstance().updateAlliance(this.lastAlliance);
     }
   }

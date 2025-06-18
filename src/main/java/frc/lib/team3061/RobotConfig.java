@@ -7,6 +7,7 @@ import com.pathplanner.lib.config.ModuleConfig;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
@@ -17,7 +18,7 @@ import edu.wpi.first.units.measure.LinearAcceleration;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Mass;
 import edu.wpi.first.units.measure.MomentOfInertia;
-import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
+import frc.lib.team3061.swerve_drivetrain.swerve.SwerveConstants;
 import java.io.IOException;
 import org.json.simple.parser.ParseException;
 
@@ -48,6 +49,16 @@ public abstract class RobotConfig {
    */
   public boolean getPhoenix6Licensed() {
     return false;
+  }
+
+  /**
+   * Returns the type of drivetrain for this robot. This is used to determine which drivetrain
+   * subsystem to expect. Defaults to {@link DRIVETRAIN_TYPE#SWERVE}.
+   *
+   * @return the type of drivetrain for this robot
+   */
+  public DRIVETRAIN_TYPE getDrivetrainType() {
+    return DRIVETRAIN_TYPE.SWERVE;
   }
 
   /**
@@ -282,6 +293,16 @@ public abstract class RobotConfig {
    */
   public SwerveDriveKinematics getSwerveDriveKinematics() {
     return new SwerveDriveKinematics(getSwerveModulePositions());
+  }
+
+  /**
+   * Returns the differential drive kinematics object for the robot. This is used for differential
+   * drive robots.
+   *
+   * @return the differential drive kinematics object for the robot
+   */
+  public DifferentialDriveKinematics getDifferentialDriveKinematics() {
+    return new DifferentialDriveKinematics(getTrackwidth());
   }
 
   /**
@@ -839,6 +860,11 @@ public abstract class RobotConfig {
    */
   public double getAzimuthSteerCouplingRatio() {
     return 0.0;
+  }
+
+  public enum DRIVETRAIN_TYPE {
+    DIFFERENTIAL,
+    SWERVE
   }
 
   public enum SWERVE_CONTROL_MODE {

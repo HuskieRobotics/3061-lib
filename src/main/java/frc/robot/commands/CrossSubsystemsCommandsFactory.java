@@ -1,5 +1,6 @@
 package frc.robot.commands;
 
+import static edu.wpi.first.units.Units.*;
 import static frc.robot.Constants.*;
 
 import edu.wpi.first.math.controller.PIDController;
@@ -9,14 +10,17 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.lib.team3061.RobotConfig;
-import frc.lib.team3061.drivetrain.Drivetrain;
+import frc.lib.team3061.differential_drivetrain.DifferentialDrivetrain;
 import frc.lib.team3061.leds.LEDs;
+import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
 import frc.lib.team3061.vision.Vision;
 import frc.lib.team6328.util.LoggedTunableNumber;
 import frc.robot.operator_interface.OperatorInterface;
+import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.ElevatorConstants;
 import frc.robot.subsystems.manipulator.Manipulator;
+import frc.robot.subsystems.shooter.Shooter;
 import java.util.List;
 
 public class CrossSubsystemsCommandsFactory {
@@ -50,40 +54,61 @@ public class CrossSubsystemsCommandsFactory {
 
   public static void registerCommands(
       OperatorInterface oi,
-      Drivetrain drivetrain,
+      SwerveDrivetrain swerveDrivetrain,
       Vision vision,
+      Arm arm,
       Elevator elevator,
-      Manipulator manipulator) {
+      Manipulator manipulator,
+      Shooter shooter) {
 
     oi.getInterruptAll()
-        .onTrue(getInterruptAllCommand(drivetrain, vision, elevator, manipulator, oi));
+        .onTrue(
+            getInterruptAllCommand(
+                swerveDrivetrain, vision, arm, elevator, manipulator, shooter, oi));
 
-    oi.getDriveToPoseButton().onTrue(getDriveToPoseCommand(drivetrain, elevator, oi));
+    oi.getDriveToPoseButton().onTrue(getDriveToPoseCommand(swerveDrivetrain, elevator, oi));
 
-    oi.getOverrideDriveToPoseButton().onTrue(getDriveToPoseOverrideCommand(drivetrain, oi));
+    oi.getOverrideDriveToPoseButton().onTrue(getDriveToPoseOverrideCommand(swerveDrivetrain, oi));
+  }
+
+  public static void registerCommands(
+      OperatorInterface oi, DifferentialDrivetrain differentialDrivetrain, Vision vision, Arm arm) {
+
+    oi.getInterruptAll().onTrue(getInterruptAllCommand(differentialDrivetrain, vision, arm, oi));
   }
 
   private static Command getInterruptAllCommand(
-      Drivetrain drivetrain,
+      SwerveDrivetrain swerveDrivetrain,
       Vision vision,
+      Arm arm,
       Elevator elevator,
       Manipulator manipulator,
+      Shooter shooter,
       OperatorInterface oi) {
     return Commands.parallel(
-            new TeleopSwerve(drivetrain, oi::getTranslateX, oi::getTranslateY, oi::getRotate),
+            new TeleopSwerve(swerveDrivetrain, oi::getTranslateX, oi::getTranslateY, oi::getRotate),
             Commands.runOnce(() -> vision.specifyCamerasToConsider(List.of(0, 1, 2, 3))),
+            Commands.runOnce(() -> arm.setAngle(Degrees.of(0.0)), arm),
             Commands.runOnce(
                 () -> elevator.goToPosition(ElevatorConstants.Positions.BOTTOM), elevator),
-            Commands.runOnce(() -> manipulator.resetStateMachine(), manipulator))
+            Commands.runOnce(() -> manipulator.resetStateMachine(), manipulator),
+            Commands.runOnce(() -> shooter.setIdleVelocity(), shooter))
+        .withName("interrupt all");
+  }
+
+  private static Command getInterruptAllCommand(
+      DifferentialDrivetrain differentialDrivetrain, Vision vision, Arm arm, OperatorInterface oi) {
+    return Commands.parallel(
+            new ArcadeDrive(differentialDrivetrain, oi::getTranslateX, oi::getRotate),
+            Commands.runOnce(() -> vision.specifyCamerasToConsider(List.of(0, 1, 2, 3))),
+            Commands.runOnce(() -> arm.setAngle(Degrees.of(0.0)), arm))
         .withName("interrupt all");
   }
 
   private static Command getDriveToPoseCommand(
-      Drivetrain drivetrain, Elevator elevator, OperatorInterface oi) {
-    thetaController.enableContinuousInput(-Math.PI, Math.PI);
-
+      SwerveDrivetrain swerveDrivetrain, Elevator elevator, OperatorInterface oi) {
     return new DriveToPose(
-            drivetrain,
+            swerveDrivetrain,
             CrossSubsystemsCommandsFactory::getTargetPose,
             CrossSubsystemsCommandsFactory::calculateXVelocity,
             CrossSubsystemsCommandsFactory::calculateYVelocity,
@@ -101,7 +126,7 @@ public class CrossSubsystemsCommandsFactory {
   }
 
   private static Command getDriveToPoseOverrideCommand(
-      Drivetrain drivetrain, OperatorInterface oi) {
+      SwerveDrivetrain drivetrain, OperatorInterface oi) {
     return new TeleopSwerve(drivetrain, oi::getTranslateX, oi::getTranslateY, oi::getRotate)
         .withName("Override driveToPose");
   }

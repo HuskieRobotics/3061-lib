@@ -12,11 +12,24 @@
       "window": {
         "visible": true
       }
+    },
+    "Other Devices": {
+      "BuiltInAccel": {
+        "header": {
+          "open": true
+        }
+      },
+      "XRPGyro": {
+        "header": {
+          "open": true
+        }
+      }
     }
   },
   "NTProvider": {
     "types": {
       "/AdvantageKit/RealOutputs/Alerts": "Alerts",
+      "/AdvantageKit/RealOutputs/Arm/ArmSim": "Mechanism2d",
       "/AdvantageKit/RealOutputs/Elevator/ElevatorSim": "Mechanism2d",
       "/AdvantageKit/RealOutputs/PathPlanner": "Alerts",
       "/FMSInfo": "FMSInfo",
@@ -24,11 +37,13 @@
       "/SmartDashboard/Auto Routine": "String Chooser",
       "/SmartDashboard/PathPlanner": "Alerts",
       "/SmartDashboard/SysId Chooser": "String Chooser",
+      "/SmartDashboard/SystemStatus/Arm/SystemCheck": "Command",
       "/SmartDashboard/SystemStatus/CheckForFaults": "Command",
       "/SmartDashboard/SystemStatus/ClearAllFaults": "Command",
       "/SmartDashboard/SystemStatus/Drivetrain/SystemCheck": "Command",
       "/SmartDashboard/SystemStatus/Elevator/SystemCheck": "Command",
       "/SmartDashboard/SystemStatus/Manipulator/SystemCheck": "Command",
+      "/SmartDashboard/SystemStatus/Shooter/SystemCheck": "Command",
       "/SmartDashboard/SystemStatus/Subsystem/SystemCheck": "Command",
       "/SmartDashboard/SystemStatus/SwerveModule0/SystemCheck": "Command",
       "/SmartDashboard/SystemStatus/SwerveModule1/SystemCheck": "Command",

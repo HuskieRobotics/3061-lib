@@ -2,10 +2,10 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.lib.team3061.drivetrain;
+package frc.lib.team3061.swerve_drivetrain;
 
 import static edu.wpi.first.units.Units.*;
-import static frc.lib.team3061.drivetrain.DrivetrainConstants.*;
+import static frc.lib.team3061.swerve_drivetrain.SwerveDrivetrainConstants.*;
 
 import com.ctre.phoenix6.SignalLogger;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -38,10 +38,11 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
-import frc.lib.team3061.drivetrain.DrivetrainConstants.SysIDCharacterizationMode;
 import frc.lib.team3061.leds.LEDs;
+import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrainConstants.SysIDCharacterizationMode;
 import frc.lib.team3061.util.CustomPoseEstimator;
 import frc.lib.team3061.util.RobotOdometry;
+import frc.lib.team3061.util.SwerveRobotOdometry;
 import frc.lib.team3061.util.SysIdRoutineChooser;
 import frc.lib.team6328.util.FieldConstants;
 import frc.lib.team6328.util.LoggedTracer;
@@ -60,11 +61,11 @@ import org.littletonrobotics.junction.Logger;
  * 3061-lib supports hardware abstraction via the standard AdvantageKit architecture, 3061-lib only
  * supports CTRE devices at this time.
  */
-public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
+public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimator {
 
-  private final DrivetrainIO io;
-  private final DrivetrainIO.DrivetrainIOInputsCollection inputs =
-      new DrivetrainIO.DrivetrainIOInputsCollection();
+  private final SwerveDrivetrainIO io;
+  private final SwerveDrivetrainIO.SwerveDrivetrainIOInputsCollection inputs =
+      new SwerveDrivetrainIO.SwerveDrivetrainIOInputsCollection();
 
   /*
    * If TUNING is set to true in Constants.java, the following tunables will be available in
@@ -99,11 +100,8 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
   private Timer brakeModeTimer = new Timer();
   private static final double BREAK_MODE_DELAY_SEC = 10.0;
 
-  private boolean isMoveToPoseEnabled = true;
-
   private SlewRateLimiter xFilter = new SlewRateLimiter(8);
   private SlewRateLimiter yFilter = new SlewRateLimiter(8);
-  // private SlewRateLimiter thetaFilter = new SlewRateLimiter(Units.degreesToRadians(360));
 
   private boolean accelerationLimiting = false;
   private boolean driveToPoseCanceled = false;
@@ -112,15 +110,11 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
       new Alert("Attempted to reset pose from vision, but no pose was found.", AlertType.kWarning);
   private Alert pathFileMissingAlert =
       new Alert("Could not find the specified path file.", AlertType.kError);
-  private static final String SYSTEM_CHECK_PREFIX = "[System Check] Swerve module ";
-  private static final String IS_LITERAL = " is: ";
 
-  private DriverStation.Alliance alliance = Field2d.getInstance().getAlliance();
-
-  private final RobotOdometry odometry;
+  private final SwerveRobotOdometry odometry;
+  private int constrainPoseToFieldCount = 0;
   private Pose2d prevRobotPose = new Pose2d();
   private int teleportedCount = 0;
-  private int constrainPoseToFieldCount = 0;
 
   private Pose2d customPose = new Pose2d();
 
@@ -245,7 +239,7 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
    *
    * @param io the abstracted interface for the drivetrain
    */
-  public Drivetrain(DrivetrainIO io) {
+  public SwerveDrivetrain(SwerveDrivetrainIO io) {
     this.io = io;
 
     this.autoThetaController.enableContinuousInput(-Math.PI, Math.PI);
@@ -275,7 +269,8 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
         this // Reference to this subsystem to set requirements
         );
 
-    this.odometry = RobotOdometry.getInstance();
+    this.odometry = new SwerveRobotOdometry();
+    RobotOdometry.setInstance(this.odometry);
     this.odometry.setCustomEstimator(this);
 
     this.xFilter.reset(0.0);
@@ -447,7 +442,7 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
 
     // should we give it the actual current velocity or the desired velocity?
     // always calculate whenever we are driving so that we maintain a history of recent values
-    // find the other method that the autobuilder uses to drive
+    // find the other method that the auto-builder uses to drive
     this.xFilter.calculate(xVelocity);
     this.yFilter.calculate(yVelocity);
     // this.thetaFilter.calculate(rotationalVelocity);
@@ -490,7 +485,7 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
       // station. As a result, "forward" from a field-relative perspective when on the red
       // alliance, is in the negative x direction. Similarly, "left" from a field-relative
       // perspective when on the red alliance is in the negative y direction.
-      int allianceMultiplier = this.alliance == Alliance.Blue ? 1 : -1;
+      int allianceMultiplier = Field2d.getInstance().getAlliance() == Alliance.Blue ? 1 : -1;
       this.io.driveFieldRelative(
           allianceMultiplier * xVelocity,
           allianceMultiplier * yVelocity,
@@ -540,7 +535,7 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
       }
     }
 
-    int allianceMultiplier = this.alliance == Alliance.Blue ? 1 : -1;
+    int allianceMultiplier = Field2d.getInstance().getAlliance() == Alliance.Blue ? 1 : -1;
     this.io.driveFieldRelativeFacingAngle(
         xVelocity * allianceMultiplier,
         yVelocity * allianceMultiplier,
@@ -769,25 +764,6 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
   }
 
   /**
-   * Enables or disables the move-to-pose feature. Refer to the MoveToPose command class for more
-   * information.
-   *
-   * @param state true to enable, false to disable
-   */
-  public void enableMoveToPose(boolean state) {
-    this.isMoveToPoseEnabled = state;
-  }
-
-  /**
-   * Returns true if the move-to-pose feature is enabled; false otherwise.
-   *
-   * @return true if the move-to-pose feature is enabled; false otherwise
-   */
-  public boolean isMoveToPoseEnabled() {
-    return this.isMoveToPoseEnabled;
-  }
-
-  /**
    * Captures the initial positions of the drive wheels. This method is intended to be invoked at
    * the start of an autonomous path to measure the distance traveled by the robot.
    */
@@ -832,25 +808,13 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
   }
 
   /**
-   * This method should be invoked once the alliance color is known. Refer to the RobotContainer's
-   * checkAllianceColor method for best practices on when to check the alliance's color. The
-   * alliance color is needed when running auto paths as those paths are always defined for
-   * blue-alliance robots and need to be flipped for red-alliance robots.
-   *
-   * @param newAlliance the new alliance color
-   */
-  public void updateAlliance(DriverStation.Alliance newAlliance) {
-    this.alliance = newAlliance;
-  }
-
-  /**
    * Returns true if the auto path, which is always defined for a blue alliance robot, should be
    * flipped to the red alliance side of the field.
    *
    * @return true if the auto path should be flipped to the red alliance side of the field
    */
   public boolean shouldFlipAutoPath() {
-    return this.alliance == Alliance.Red;
+    return Field2d.getInstance().getAlliance() == Alliance.Red;
   }
 
   /**
@@ -1052,11 +1016,11 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
       FaultReporter.getInstance()
           .addFault(
               SUBSYSTEM_NAME,
-              SYSTEM_CHECK_PREFIX
+              "[System Check] Swerve module "
                   + getSwerveLocation(swerveModuleNumber)
                   + " not rotating in the threshold as expected. Should be: "
                   + angleTarget
-                  + IS_LITERAL
+                  + " is: "
                   + inputs.swerve[swerveModuleNumber].steerAbsolutePositionDeg);
     }
 
@@ -1070,11 +1034,11 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
         FaultReporter.getInstance()
             .addFault(
                 SUBSYSTEM_NAME,
-                SYSTEM_CHECK_PREFIX
+                "[System Check] Swerve module "
                     + getSwerveLocation(swerveModuleNumber)
                     + " not moving as fast as expected. Should be: "
                     + velocityTarget
-                    + IS_LITERAL
+                    + " is: "
                     + inputs
                         .drivetrain
                         .swerveMeasuredStates[swerveModuleNumber]
@@ -1088,11 +1052,11 @@ public class Drivetrain extends SubsystemBase implements CustomPoseEstimator {
         FaultReporter.getInstance()
             .addFault(
                 SUBSYSTEM_NAME,
-                SYSTEM_CHECK_PREFIX
+                "[System Check] Swerve module "
                     + getSwerveLocation(swerveModuleNumber)
                     + " not moving as fast as expected. REVERSED Should be: "
                     + velocityTarget
-                    + IS_LITERAL
+                    + " is: "
                     + inputs
                         .drivetrain
                         .swerveMeasuredStates[swerveModuleNumber]

@@ -12,7 +12,7 @@ import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Mass;
 import edu.wpi.first.units.measure.MomentOfInertia;
 import frc.lib.team3061.RobotConfig;
-import frc.lib.team3061.drivetrain.swerve.SwerveConstants;
+import frc.lib.team3061.swerve_drivetrain.swerve.SwerveConstants;
 
 /*
  * Refer to the README for how to represent your robot's configuration. For more information on
@@ -136,7 +136,7 @@ public class DefaultRobotConfig extends RobotConfig {
 
   @Override
   public boolean getPhoenix6Licensed() {
-    // FIXME: return false if you have Phoenix 6 Pro license
+    // FIXME: return true if you have Phoenix 6 Pro license
     return false;
   }
 
@@ -202,7 +202,7 @@ public class DefaultRobotConfig extends RobotConfig {
 
   @Override
   public SwerveConstants getSwerveConstants() {
-    // FIXME: specify the type of swerve module (MK4 and MK4i are supported)
+    // FIXME: specify the type of swerve module (MK4, MK4i, MK4n are supported)
     return SwerveConstants.MK4I_L2_CONSTANTS;
   }
 

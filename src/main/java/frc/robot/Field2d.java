@@ -10,7 +10,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.lib.team3061.RobotConfig;
-import frc.lib.team3061.drivetrain.Drivetrain;
+import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -67,7 +67,7 @@ public class Field2d {
    * @return the path from the starting pose to the ending pose; null if no path exists
    */
   public PathPlannerPath makePath(
-      Pose2d start, Pose2d end, PathConstraints pathConstants, Drivetrain subsystem) {
+      Pose2d start, Pose2d end, PathConstraints pathConstants, SwerveDrivetrain subsystem) {
     Region2d startRegion = null;
     Region2d endRegion = null;
 
@@ -215,7 +215,6 @@ public class Field2d {
 
   public enum Side {
     LEFT,
-    RIGHT,
-    REMOVE_ALGAE
+    RIGHT
   }
 }

@@ -102,6 +102,15 @@ public interface OperatorInterface {
     return new Trigger(() -> false);
   }
 
+  // XRP EXAMPLE TRIGGERS
+  public default Trigger getMoveArmMiddlePositionTrigger() {
+    return new Trigger(() -> false);
+  }
+
+  public default Trigger getMoveArmHighPositionTrigger() {
+    return new Trigger(() -> false);
+  }
+
   // ELEVATOR EXAMPLE TRIGGERS
   public default Trigger getRaiseElevatorSlowButton() {
     return new Trigger(() -> false);

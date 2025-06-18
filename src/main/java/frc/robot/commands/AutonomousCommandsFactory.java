@@ -7,7 +7,8 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import frc.lib.team3061.drivetrain.Drivetrain;
+import frc.lib.team3061.differential_drivetrain.DifferentialDrivetrain;
+import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
 import frc.lib.team3061.vision.Vision;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -40,7 +41,7 @@ public class AutonomousCommandsFactory {
     return autoChooser.get();
   }
 
-  public void configureAutoCommands(Drivetrain drivetrain, Vision vision) {
+  public void configureAutoCommands(SwerveDrivetrain drivetrain, Vision vision) {
     // add commands to the auto chooser
     autoChooser.addDefaultOption("Do Nothing", new InstantCommand());
 
@@ -116,7 +117,40 @@ public class AutonomousCommandsFactory {
         this.getDriveWheelRadiusCharacterizationCommand(drivetrain));
   }
 
-  private Command getDriveVelocityTuningCommand(Drivetrain drivetrain) {
+  public void configureAutoCommands(DifferentialDrivetrain drivetrain, Vision vision) {
+    // add commands to the auto chooser
+    autoChooser.addDefaultOption("Do Nothing", new InstantCommand());
+
+    /************ Start Point ************
+     *
+     * useful for initializing the pose of the robot to a known location
+     *
+     */
+
+    Command startPoint =
+        Commands.runOnce(
+            () -> {
+              try {
+                drivetrain.resetPose(
+                    PathPlannerPath.fromPathFile("Start Point").getStartingDifferentialPose());
+              } catch (Exception e) {
+                pathFileMissingAlert.setText("Could not find the specified path file: Start Point");
+                pathFileMissingAlert.set(true);
+              }
+            },
+            drivetrain);
+    autoChooser.addOption("Start Point", startPoint);
+
+    /************ Differential Auto ************
+     *
+     * example PathPlanner auto for XRP
+     *
+     */
+
+    autoChooser.addOption("Differential Example", new PathPlannerAuto("Differential Auto"));
+  }
+
+  private Command getDriveVelocityTuningCommand(SwerveDrivetrain drivetrain) {
     return Commands.sequence(
         Commands.runOnce(drivetrain::disableFieldRelative, drivetrain),
         Commands.repeatingSequence(
@@ -146,7 +180,7 @@ public class AutonomousCommandsFactory {
                 Commands.run(() -> drivetrain.drive(-1.0, 0.0, 0.0, false, false), drivetrain))));
   }
 
-  private Command getSwerveRotationTuningCommand(Drivetrain drivetrain) {
+  private Command getSwerveRotationTuningCommand(SwerveDrivetrain drivetrain) {
     return Commands.sequence(
         Commands.runOnce(drivetrain::enableFieldRelative, drivetrain),
         Commands.repeatingSequence(
@@ -164,12 +198,12 @@ public class AutonomousCommandsFactory {
                 Commands.run(() -> drivetrain.drive(0.1, -0.1, 0.0, true, false), drivetrain))));
   }
 
-  private Command getDriveWheelRadiusCharacterizationCommand(Drivetrain drivetrain) {
+  private Command getDriveWheelRadiusCharacterizationCommand(SwerveDrivetrain drivetrain) {
     return CharacterizationCommands.wheelRadiusCharacterization(drivetrain);
   }
 
   private Command createTuningAutoPath(
-      String autoName, boolean measureDistance, Drivetrain drivetrain) {
+      String autoName, boolean measureDistance, SwerveDrivetrain drivetrain) {
     return Commands.sequence(
         Commands.runOnce(drivetrain::captureInitialConditions),
         new PathPlannerAuto(autoName),

@@ -8,7 +8,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 /** Class for controlling the robot with a single Xbox controller. */
-public class SingleHandheldOI implements OperatorInterface {
+public class SingleHandheldOI extends OperatorDashboard {
   private final CommandXboxController controller;
 
   public SingleHandheldOI(int port) {

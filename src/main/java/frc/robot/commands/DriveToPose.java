@@ -7,7 +7,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.lib.team3061.drivetrain.Drivetrain;
+import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
 import frc.robot.Field2d;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -33,7 +33,7 @@ import org.littletonrobotics.junction.Logger;
  * <p>At End: stops the drivetrain, disables acceleration limiting
  */
 public class DriveToPose extends Command {
-  private final Drivetrain drivetrain;
+  private final SwerveDrivetrain drivetrain;
   private final Supplier<Pose2d> targetPoseSupplier;
   private final BiFunction<Double, Double, Double> xSupplier;
   private final BiFunction<Double, Double, Double> ySupplier;
@@ -89,7 +89,7 @@ public class DriveToPose extends Command {
    *     production code to prevent the robot from driving indefinitely.
    */
   public DriveToPose(
-      Drivetrain drivetrain,
+      SwerveDrivetrain drivetrain,
       Supplier<Pose2d> targetPoseSupplier,
       BiFunction<Double, Double, Double> xSupplier,
       BiFunction<Double, Double, Double> ySupplier,
@@ -204,9 +204,8 @@ public class DriveToPose extends Command {
    * specialized behavior to determine if the robot can physically reach the target pose (e.g., a
    * field element is in its path). This command is considered finished when one of the following is
    * true: it is specified that this command finishes when the the robot is at the target pose and
-   * the robot is at the target pose (within the specified tolerances), when the timeout occurs,
-   * when it is determined that the robot cannot reach the target pose, or when the move-to-pose
-   * feature is disabled on the drivetrain subsystem.
+   * the robot is at the target pose (within the specified tolerances), when the timeout occurs, or
+   * when it is determined that the robot cannot reach the target pose.
    *
    * @return true if the command has finished
    */
@@ -231,7 +230,6 @@ public class DriveToPose extends Command {
 
     return (finishesWhenAtTarget && withinTolerance)
         || !canReachTargetPose
-        || !drivetrain.isMoveToPoseEnabled()
         || this.timer.hasElapsed(timeout);
   }
 

@@ -58,8 +58,6 @@ public class Vision extends SubsystemBase {
   private final Debouncer isVisionUpdatingDebounce =
       new Debouncer(0.1, Debouncer.DebounceType.kFalling);
 
-  private RobotOdometry odometry;
-
   private Pose3d mostRecentBestPose = new Pose3d();
   private double mostRecentBestPoseTimestamp = 0.0;
   private double mostRecentBestPoseStdDev = 0.0;
@@ -127,9 +125,6 @@ public class Vision extends SubsystemBase {
       robotPosesAccepted.add(new ArrayList<>());
       robotPosesRejected.add(new ArrayList<>());
     }
-
-    // retrieve a reference to the pose estimator singleton
-    this.odometry = RobotOdometry.getInstance();
 
     // load and log all of the AprilTags in the field layout file
     try {
@@ -247,11 +242,12 @@ public class Vision extends SubsystemBase {
             }
 
             Matrix<N3, N1> stdDev = getStandardDeviations(cameraIndex, observation);
-            odometry.addVisionMeasurement(
-                estimatedRobotPose2d,
-                observation.timestamp(),
-                latencyAdjustmentSeconds.get(),
-                stdDev);
+            RobotOdometry.getInstance()
+                .addVisionMeasurement(
+                    estimatedRobotPose2d,
+                    observation.timestamp(),
+                    latencyAdjustmentSeconds.get(),
+                    stdDev);
 
             // if the most-recent "best pose" is too old, capture a new one regardless of its
             // standard deviation values; otherwise, only capture a new one if its standard

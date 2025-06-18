@@ -1,4 +1,4 @@
-package frc.lib.team3061.drivetrain;
+package frc.lib.team3061.swerve_drivetrain;
 
 import com.ctre.phoenix6.Utils;
 import edu.wpi.first.math.Matrix;
@@ -11,12 +11,12 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.units.measure.Force;
-import frc.lib.team3061.drivetrain.DrivetrainConstants.SysIDCharacterizationMode;
+import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrainConstants.SysIDCharacterizationMode;
 import java.util.Optional;
 import org.littletonrobotics.junction.AutoLog;
 
 @java.lang.SuppressWarnings({"java:S1104"})
-public interface DrivetrainIO {
+public interface SwerveDrivetrainIO {
   @AutoLog
   public static class SwerveIOInputs {
     public boolean driveEnabled = false;
@@ -38,7 +38,7 @@ public interface DrivetrainIO {
 
   /** Contains all of the input data received from hardware. */
   @AutoLog
-  public static class DrivetrainIOInputs {
+  public static class SwerveDrivetrainIOInputs {
     ChassisSpeeds referenceChassisSpeeds = new ChassisSpeeds();
     ChassisSpeeds measuredChassisSpeeds = new ChassisSpeeds();
 
@@ -74,7 +74,7 @@ public interface DrivetrainIO {
     Rotation2d[] odometryYawPositions = new Rotation2d[] {};
   }
 
-  public static class DrivetrainIOInputsCollection {
+  public static class SwerveDrivetrainIOInputsCollection {
     SwerveIOInputsAutoLogged[] swerve = {
       new SwerveIOInputsAutoLogged(),
       new SwerveIOInputsAutoLogged(),
@@ -82,11 +82,11 @@ public interface DrivetrainIO {
       new SwerveIOInputsAutoLogged()
     }; // FL, FR, BL, BR
 
-    DrivetrainIOInputsAutoLogged drivetrain = new DrivetrainIOInputsAutoLogged();
+    SwerveDrivetrainIOInputsAutoLogged drivetrain = new SwerveDrivetrainIOInputsAutoLogged();
   }
 
   /** Updates the set of loggable inputs. */
-  public default void updateInputs(DrivetrainIOInputsCollection inputs) {}
+  public default void updateInputs(SwerveDrivetrainIOInputsCollection inputs) {}
 
   /**
    * Sets the swerve modules in the x-stance orientation. In this orientation the wheels are aligned
