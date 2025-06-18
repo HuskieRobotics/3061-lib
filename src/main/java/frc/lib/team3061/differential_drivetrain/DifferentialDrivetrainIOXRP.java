@@ -1,5 +1,6 @@
 package frc.lib.team3061.differential_drivetrain;
 
+import static edu.wpi.first.units.Units.*;
 import static frc.lib.team3061.differential_drivetrain.DifferentialDrivetrainConstants.*;
 import static frc.robot.Constants.LOOP_PERIOD_SECS;
 
@@ -11,6 +12,7 @@ import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.xrp.XRPGyro;
 import edu.wpi.first.wpilibj.xrp.XRPMotor;
+import frc.lib.team3061.RobotConfig;
 
 public class DifferentialDrivetrainIOXRP implements DifferentialDrivetrainIO {
 
@@ -46,8 +48,12 @@ public class DifferentialDrivetrainIOXRP implements DifferentialDrivetrainIO {
     rightMotor.setInverted(true);
 
     // Use meters as unit for encoder distances
-    leftEncoder.setDistancePerPulse((Math.PI * kWheelDiameterMeters) / kCountsPerRevolution);
-    rightEncoder.setDistancePerPulse((Math.PI * kWheelDiameterMeters) / kCountsPerRevolution);
+    leftEncoder.setDistancePerPulse(
+        (2 * Math.PI * RobotConfig.getInstance().getWheelRadius().in(Meters))
+            / XRP_COUNTS_PER_REVOLUTION);
+    rightEncoder.setDistancePerPulse(
+        (2 * Math.PI * RobotConfig.getInstance().getWheelRadius().in(Meters))
+            / XRP_COUNTS_PER_REVOLUTION);
     resetEncoders();
   }
 
