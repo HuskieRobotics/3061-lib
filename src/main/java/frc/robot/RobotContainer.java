@@ -152,6 +152,8 @@ public class RobotContainer {
 
     constructField();
 
+    updateOI();
+
     // register autonomous commands
     if (RobotConfig.getInstance().getDrivetrainType() == RobotConfig.DRIVETRAIN_TYPE.DIFFERENTIAL) {
       AutonomousCommandsFactory.getInstance().configureAutoCommands(differentialDrivetrain, vision);
@@ -159,8 +161,6 @@ public class RobotContainer {
         == RobotConfig.DRIVETRAIN_TYPE.SWERVE) {
       AutonomousCommandsFactory.getInstance().configureAutoCommands(swerveDrivetrain, vision);
     }
-
-    updateOI();
 
     // Alert when tuning
     if (Constants.TUNING_MODE) {
