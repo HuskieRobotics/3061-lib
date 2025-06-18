@@ -12,7 +12,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  * Class for controlling the robot with two joysticks, 1 Xbox controller, and 1 operator button
  * panel.
  */
-public class FullOperatorConsoleOI implements OperatorInterface {
+public class FullOperatorConsoleOI extends OperatorDashboard {
   private final CommandJoystick translateJoystick;
   private final Trigger[] translateJoystickButtons;
 
