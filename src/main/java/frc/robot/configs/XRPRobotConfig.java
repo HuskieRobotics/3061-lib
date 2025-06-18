@@ -155,10 +155,11 @@ public class XRPRobotConfig extends RobotConfig {
         getMomentOfInertia(),
         new ModuleConfig(
             getWheelRadius(),
-            MetersPerSecond.of(2.0),
+            MetersPerSecond.of(
+                2.0), // this is greater than the true value, but makes PathPlanner generate paths
             getWheelCOF(),
-            DCMotor.getKrakenX60(1).withReduction(10.0),
-            Amps.of(40.0),
+            DCMotor.getKrakenX60(1).withReduction(10.0), // completely fictitious
+            Amps.of(40.0), // completely fictitious
             1),
         getTrackwidth());
   }
