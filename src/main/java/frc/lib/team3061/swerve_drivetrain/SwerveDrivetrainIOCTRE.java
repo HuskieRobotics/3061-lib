@@ -461,6 +461,10 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
 
     inputs.drivetrain.customPose = this.getState().Pose;
 
+    inputs.drivetrain.odometryPeriod = this.getState().OdometryPeriod;
+    inputs.drivetrain.successfulDAQs = this.getState().SuccessfulDaqs;
+    inputs.drivetrain.failedDAQs = this.getState().FailedDaqs;
+
     this.odometryLock.lock();
 
     inputs.drivetrain.odometryTimestamps =
