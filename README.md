@@ -8,6 +8,11 @@ Huskie Robotics, FRC Team 3061's, starter project and library focused on a swerv
 * While 3061-lib has the potential to support Rev motors and sensors, that requires some work on your part. You may find AdvantageKit's [Swerve Drive Projects](https://docs.advantagekit.org/getting-started/template-projects/spark-swerve-template) more helpful.
 * If your team is interested in incorporating the following features, 3061-lib may be a good fit for your team.
 
+**Is Your Team Using 3061-lib?**
+----
+* Due to the nature of 3061-lib, we only know who is using this code when we hear from you. If you are using 3061-lib, we would appreciate it if you would complete [this form](https://forms.gle/NCVDfZ41bY9gz25S8) and let us know more about you and how you use 3061-lib.
+* Do you have feedback on 3061-lib? Please feel free to leave feedback when completing the form or [open a GitHub issue](https://github.com/HuskieRobotics/3061-lib/issues/new/choose).
+
 **External Dependencies**
 ----
 * git must be installed as the GVersion plugin depends upon it
