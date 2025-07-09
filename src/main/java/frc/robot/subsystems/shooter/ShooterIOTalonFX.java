@@ -7,6 +7,7 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -30,6 +31,8 @@ public class ShooterIOTalonFX implements ShooterIO {
   // We usually use VelocityTorqueCurrentFOC to control the velocity of a wheel.
   private VelocityTorqueCurrentFOC shootMotorTopVelocityRequest;
   private VelocityTorqueCurrentFOC shootMotorBottomVelocityRequest;
+  private TorqueCurrentFOC shootMotorTopCurrentRequest;
+  private TorqueCurrentFOC shootMotorBottomCurrentRequest;
 
   private StatusSignal<Current> shootMotorTopStatorCurrentStatusSignal;
   private StatusSignal<Current> shootMotorBottomStatorCurrentStatusSignal;
@@ -84,6 +87,8 @@ public class ShooterIOTalonFX implements ShooterIO {
 
     shootMotorTopVelocityRequest = new VelocityTorqueCurrentFOC(0);
     shootMotorBottomVelocityRequest = new VelocityTorqueCurrentFOC(0);
+    shootMotorTopCurrentRequest = new TorqueCurrentFOC(0);
+    shootMotorBottomCurrentRequest = new TorqueCurrentFOC(0);
 
     shootMotorTopVelocityStatusSignal = shootMotorTop.getVelocity();
     shootMotorBottomVelocityStatusSignal = shootMotorBottom.getVelocity();
@@ -256,6 +261,16 @@ public class ShooterIOTalonFX implements ShooterIO {
     // To improve performance, we store the reference velocity as an instance variable to avoid
     // having to retrieve the status signal object from the device in the updateInputs method.
     this.shootBottomMotorReferenceVelocity = velocity;
+  }
+
+  @Override
+  public void setShooterWheelTopCurrent(Current amps) {
+    shootMotorTop.setControl(shootMotorTopCurrentRequest.withOutput(amps));
+  }
+
+  @Override
+  public void setShooterWheelBottomCurrent(Current amps) {
+    shootMotorBottom.setControl(shootMotorBottomCurrentRequest.withOutput(amps));
   }
 
   private void configShootMotor(TalonFX shootMotor, boolean isInverted, boolean isTopMotor) {
