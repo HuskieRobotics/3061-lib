@@ -13,6 +13,7 @@ import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.differential_drivetrain.DifferentialDrivetrain;
 import frc.lib.team3061.leds.LEDs;
 import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
+import frc.lib.team3061.util.SysIdRoutineChooser;
 import frc.lib.team3061.vision.Vision;
 import frc.lib.team6328.util.LoggedTunableNumber;
 import frc.robot.operator_interface.OperatorInterface;
@@ -69,12 +70,25 @@ public class CrossSubsystemsCommandsFactory {
     oi.getDriveToPoseButton().onTrue(getDriveToPoseCommand(swerveDrivetrain, elevator, oi));
 
     oi.getOverrideDriveToPoseButton().onTrue(getDriveToPoseOverrideCommand(swerveDrivetrain, oi));
+
+    registerSysIdCommands(oi);
   }
 
   public static void registerCommands(
       OperatorInterface oi, DifferentialDrivetrain differentialDrivetrain, Vision vision, Arm arm) {
 
     oi.getInterruptAll().onTrue(getInterruptAllCommand(differentialDrivetrain, vision, arm, oi));
+
+    registerSysIdCommands(oi);
+  }
+
+  private static void registerSysIdCommands(OperatorInterface oi) {
+    oi.getSysIdDynamicForward().whileTrue(SysIdRoutineChooser.getInstance().getDynamicForward());
+    oi.getSysIdDynamicReverse().whileTrue(SysIdRoutineChooser.getInstance().getDynamicReverse());
+    oi.getSysIdQuasistaticForward()
+        .whileTrue(SysIdRoutineChooser.getInstance().getQuasistaticForward());
+    oi.getSysIdQuasistaticReverse()
+        .whileTrue(SysIdRoutineChooser.getInstance().getQuasistaticReverse());
   }
 
   private static Command getInterruptAllCommand(

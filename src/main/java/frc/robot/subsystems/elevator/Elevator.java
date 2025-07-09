@@ -4,6 +4,7 @@ import static edu.wpi.first.units.Units.*;
 import static frc.robot.subsystems.elevator.ElevatorConstants.*;
 
 import com.ctre.phoenix6.SignalLogger;
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.Alert;
@@ -58,6 +59,8 @@ public class Elevator extends SubsystemBase {
   // filter's impulse response, and the second value is the time-period, how often
   // the calculate() method will be called
   private LinearFilter jamFilter = LinearFilter.singlePoleIIR(0.4, 0.02);
+
+  private final Debouncer atSetpointDebouncer = new Debouncer(0.1);
 
   // When initially testing a mechanism, it is best to manually provide a voltage or current to
   // verify the mechanical functionality. At times, this can be done via Phoenix Tuner. However,
@@ -176,7 +179,8 @@ public class Elevator extends SubsystemBase {
   }
 
   public boolean isAtPosition(Positions position) {
-    return getPosition().minus(positionToDistance(position)).abs(Inches) < TOLERANCE_INCHES;
+    return atSetpointDebouncer.calculate(
+        getPosition().minus(positionToDistance(position)).abs(Inches) < TOLERANCE_INCHES);
   }
 
   public Command getElevatorSystemCheckCommand() {
