@@ -161,6 +161,10 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
 * Joystick 0's button 4 zeroes the gyro, useful when testing teleop, just rotate the robot forwards, and press the button to rezero.
 * Joystick 1's button 4 enables x-stance while pressed.
 
+**Videos**
+----
+* [3061-lib Detailed Walkthrough Playlist](https://www.youtube.com/playlist?list=PLf5b4wwITZuy8Nx9a5lknND6lI_reLA3x)
+
 **Additional References**
 ----
 * [AdvantageScope Network Tables](https://docs.google.com/document/d/e/2PACX-1vRfNyTbYLsrKsvsglYrfjzFeAX9NwzxujVFkiw6YNhY4q8llXNcvPmTmMpet0ZBr3SQXdCxkkm_XV_E/pub): describes how we configure AdvantageScope and many of the useful values that are logged and where to view them in the provided AdvantageScope layout.
