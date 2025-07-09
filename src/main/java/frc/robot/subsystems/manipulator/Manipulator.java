@@ -109,7 +109,7 @@ public class Manipulator extends SubsystemBase {
    * previous states and the associated states of these devices.
    *
    * <p>This example state machine models a manipulator that collects a game piece. The game piece
-   * is first detected by a sensor. However, it is not considered indexed (i.e., fully connected)
+   * is first detected by a sensor. However, it is not considered indexed (i.e., fully collected)
    * until the game piece stalls against the hard stop. This example also models detecting if the
    * game piece becomes jammed while collecting and attempts to unjam the game piece or eject it.
    * The game piece is released in response to a button press.

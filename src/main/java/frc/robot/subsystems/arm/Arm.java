@@ -28,7 +28,6 @@ import org.littletonrobotics.junction.Logger;
  * <ul>
  *   <li>Use of a remote sensor (CANCoder) to measure the angle of the arm
  *   <li>AdvantageKit support for logging and replay
- *   <li>Use of an InterpolatingDoubleTreeMap to map distances to angles
  *   <li>Use of a debouncer to determine if the arm is at a setpoint
  *   <li>Use of logged tunable numbers for manual control and testing
  *   <li>Use of a simulation class to model the arm's behavior in simulation and provide

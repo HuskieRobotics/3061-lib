@@ -31,6 +31,7 @@ import org.littletonrobotics.junction.Logger;
  * <p>This example illustrates the following features:
  *
  * <ul>
+ *   <li>Configuring a lead and follower motor
  *   <li>AdvantageKit support for logging and replay
  *   <li>Use of logged tunable numbers for manual control and testing
  *   <li>Use of filtering current values to detect if the elevator is jammed
