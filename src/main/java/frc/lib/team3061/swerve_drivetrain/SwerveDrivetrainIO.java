@@ -69,6 +69,10 @@ public interface SwerveDrivetrainIO {
 
     Pose2d customPose = new Pose2d();
 
+    double odometryPeriod;
+    int successfulDAQs;
+    int failedDAQs;
+
     double[] odometryTimestamps = new double[] {};
     double[] odometryCTRETimestamps = new double[] {};
     Rotation2d[] odometryYawPositions = new Rotation2d[] {};
