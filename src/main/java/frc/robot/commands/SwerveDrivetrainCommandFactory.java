@@ -5,7 +5,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.team3061.leds.LEDs;
 import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
-import frc.lib.team3061.util.SysIdRoutineChooser;
 import frc.lib.team3061.vision.Vision;
 import frc.robot.operator_interface.OperatorInterface;
 
@@ -124,15 +123,8 @@ public class SwerveDrivetrainCommandFactory {
 
     // new Trigger(
     //         () -> {
-    //           return drivetrain.isTilted() && !climber.isClimbing();
+    //           return drivetrain.isTilted();
     //         })
     //     .whileTrue(Commands.run(() -> drivetrain.untilt(), drivetrain).withName("untilt"));
-
-    oi.getSysIdDynamicForward().whileTrue(SysIdRoutineChooser.getInstance().getDynamicForward());
-    oi.getSysIdDynamicReverse().whileTrue(SysIdRoutineChooser.getInstance().getDynamicReverse());
-    oi.getSysIdQuasistaticForward()
-        .whileTrue(SysIdRoutineChooser.getInstance().getQuasistaticForward());
-    oi.getSysIdQuasistaticReverse()
-        .whileTrue(SysIdRoutineChooser.getInstance().getQuasistaticReverse());
   }
 }
