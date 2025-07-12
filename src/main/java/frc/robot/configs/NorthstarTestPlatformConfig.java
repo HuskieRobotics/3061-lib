@@ -2,6 +2,7 @@ package frc.robot.configs;
 
 import static edu.wpi.first.units.Units.*;
 
+import edu.wpi.first.math.geometry.Quaternion;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -20,7 +21,9 @@ public class NorthstarTestPlatformConfig extends RobotConfig {
 
   // Front right camera
   private static final Transform3d ROBOT_TO_CAMERA_0 =
-      new Transform3d(new Translation3d(), new Rotation3d());
+      new Transform3d(
+          new Translation3d(0.178, -0.268, 0.236),
+          new Rotation3d(new Quaternion(-0.977, -0.032, 0.115, -0.177)));
 
   @Override
   public boolean getPhoenix6Licensed() {

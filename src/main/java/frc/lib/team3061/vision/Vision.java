@@ -9,6 +9,7 @@ import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
@@ -78,6 +79,7 @@ public class Vision extends SubsystemBase {
   private List<Pose3d> allRobotPosesAccepted = new ArrayList<>();
   private List<Pose3d> allRobotPosesRejected = new ArrayList<>();
   private List<Pose3d> allTagPoses = new ArrayList<>();
+  private List<Pose3d> allCoralPoses = new ArrayList<>();
 
   private List<List<Pose3d>> tagPoses;
   private List<List<Pose3d>> cameraPoses;
@@ -194,6 +196,7 @@ public class Vision extends SubsystemBase {
     this.allRobotPosesAccepted.clear();
     this.allRobotPosesRejected.clear();
     this.allTagPoses.clear();
+    this.allCoralPoses.clear();
 
     for (int cameraIndex = 0; cameraIndex < visionIOs.length; cameraIndex++) {
 
@@ -300,6 +303,38 @@ public class Vision extends SubsystemBase {
         }
       }
 
+      // Record coral observations
+      for (int frameIndex = 0;
+          frameIndex < objDetectInputs[cameraIndex].timestamps.length;
+          frameIndex++) {
+        double[] frame = objDetectInputs[cameraIndex].frames[frameIndex];
+        for (int i = 0; i < frame.length; i += 10) {
+          if (frame[i + 1] > coralDetectConfidenceThreshold) {
+            double[] tx = new double[4];
+            double[] ty = new double[4];
+            for (int z = 0; z < 4; z++) {
+              tx[z] = frame[i + 2 + (2 * z)];
+              ty[z] = frame[i + 2 + (2 * z) + 1];
+            }
+            Pose3d currentRobotPose = new Pose3d(RobotOdometry.getInstance().getEstimatedPose());
+            Pose3d cameraPose =
+                currentRobotPose.plus(
+                    RobotConfig.getInstance().getRobotToCameraTransforms()[cameraIndex]);
+            Translation2d coralOffsetFromCamera = new Translation2d(1.0, tx[0]);
+            // convert the offset in the frame of the camera pose back into the field frame
+            Translation2d fieldRelativeCoralOffset =
+                coralOffsetFromCamera.rotateBy(cameraPose.toPose2d().getRotation());
+            allCoralPoses.add(
+                cameraPose.plus(
+                    new Transform3d(
+                        fieldRelativeCoralOffset.getX(),
+                        fieldRelativeCoralOffset.getY(),
+                        0.0,
+                        cameraPose.getRotation())));
+          }
+        }
+      }
+
       // Log data for this camera
       Logger.recordOutput(
           SUBSYSTEM_NAME + "/" + cameraIndex + "/LatencySecs",
@@ -365,6 +400,10 @@ public class Vision extends SubsystemBase {
     allRobotPoses.addAll(allRobotPosesRejected);
     Logger.recordOutput(
         SUBSYSTEM_NAME + "/RobotPoses", allRobotPoses.toArray(new Pose3d[allRobotPoses.size()]));
+
+    // Log coral poses
+    Logger.recordOutput(
+        SUBSYSTEM_NAME + "/CoralPoses", allCoralPoses.toArray(new Pose3d[allCoralPoses.size()]));
 
     // Log tag poses
     if (ENABLE_DETAILED_LOGGING) {
