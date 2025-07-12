@@ -81,6 +81,7 @@
     "javac",
     "Kalman",
     "leds",
+    "northstar",
     "Nivore",
     "odometry",
     "openloop",
