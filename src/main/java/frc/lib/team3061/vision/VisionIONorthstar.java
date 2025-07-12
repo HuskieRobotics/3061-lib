@@ -7,21 +7,17 @@
 
 package frc.lib.team3061.vision;
 
-import static org.littletonrobotics.frc2025.subsystems.vision.VisionConstants.*;
+import static frc.lib.team3061.vision.VisionConstants.*;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.networktables.*;
 import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
-import java.util.function.Supplier;
-import org.littletonrobotics.frc2025.FieldConstants;
-import org.littletonrobotics.frc2025.FieldConstants.AprilTagLayoutType;
-import org.littletonrobotics.frc2025.util.SystemTimeValidReader;
+import frc.lib.team6328.util.FieldConstants;
+import frc.lib.team6328.util.SystemTimeValidReader;
 
 public class VisionIONorthstar implements VisionIO {
-  private final Supplier<AprilTagLayoutType> aprilTagLayoutSupplier;
-  private AprilTagLayoutType lastAprilTagLayout = null;
-
   private final String deviceId;
   private final DoubleArraySubscriber observationSubscriber;
   private final DoubleArraySubscriber objDetectObservationSubscriber;
@@ -32,12 +28,10 @@ public class VisionIONorthstar implements VisionIO {
   private final IntegerPublisher matchNumberPublisher;
   private final IntegerPublisher timestampPublisher;
   private final BooleanPublisher isRecordingPublisher;
-  private final StringPublisher tagLayoutPublisher;
 
   private final Timer slowPeriodicTimer = new Timer();
 
-  public VisionIONorthstar(Supplier<AprilTagLayoutType> aprilTagLayoutSupplier, int index) {
-    this.aprilTagLayoutSupplier = aprilTagLayoutSupplier;
+  public VisionIONorthstar(int index, AprilTagFieldLayout layout) {
     this.deviceId = "northstar_" + index;
     var northstarTable = NetworkTableInstance.getDefault().getTable(this.deviceId);
     var configTable = northstarTable.getSubTable("config");
@@ -51,10 +45,10 @@ public class VisionIONorthstar implements VisionIO {
     configTable.getDoubleTopic("camera_gain").publish().set(camera.gain());
     configTable.getDoubleTopic("camera_denoise").publish().set(camera.denoise());
     configTable.getDoubleTopic("fiducial_size_m").publish().set(FieldConstants.aprilTagWidth);
+    configTable.getStringTopic("tag_layout").publish().set(layout.toString());
     isRecordingPublisher = configTable.getBooleanTopic("is_recording").publish();
     isRecordingPublisher.set(false);
     timestampPublisher = configTable.getIntegerTopic("timestamp").publish();
-    tagLayoutPublisher = configTable.getStringTopic("tag_layout").publish();
     eventNamePublisher = configTable.getStringTopic("event_name").publish();
     matchTypePublisher = configTable.getIntegerTopic("match_type").publish();
     matchNumberPublisher = configTable.getIntegerTopic("match_number").publish();
@@ -91,10 +85,10 @@ public class VisionIONorthstar implements VisionIO {
     boolean slowPeriodic = slowPeriodicTimer.advanceIfElapsed(1.0);
 
     // Update NT connection status
-    inputs.ntConnected = false;
+    inputs.connected = false;
     for (var client : NetworkTableInstance.getDefault().getConnections()) {
       if (client.remote_id.startsWith(this.deviceId)) {
-        inputs.ntConnected = true;
+        inputs.connected = true;
         break;
       }
     }
@@ -108,13 +102,6 @@ public class VisionIONorthstar implements VisionIO {
       eventNamePublisher.set(DriverStation.getEventName());
       matchTypePublisher.set(DriverStation.getMatchType().ordinal());
       matchNumberPublisher.set(DriverStation.getMatchNumber());
-    }
-
-    // Publish tag layout
-    var aprilTagType = aprilTagLayoutSupplier.get();
-    if (aprilTagType != lastAprilTagLayout) {
-      lastAprilTagLayout = aprilTagType;
-      tagLayoutPublisher.set(aprilTagType.getLayoutString());
     }
 
     // Get AprilTag data

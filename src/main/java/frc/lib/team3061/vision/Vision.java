@@ -39,6 +39,8 @@ import org.littletonrobotics.junction.Logger;
 public class Vision extends SubsystemBase {
   private VisionIO[] visionIOs;
   private final VisionIOInputsAutoLogged[] inputs;
+  private final AprilTagVisionIOInputsAutoLogged[] aprilTagInputs;
+  private final ObjDetectVisionIOInputsAutoLogged[] objDetectInputs;
   private double[] lastTimestamps;
   private int[] cyclesWithNoResults;
   private int[] updatePoseCount;
@@ -105,6 +107,8 @@ public class Vision extends SubsystemBase {
     this.cyclesWithNoResults = new int[visionIOs.length];
     this.updatePoseCount = new int[visionIOs.length];
     this.inputs = new VisionIOInputsAutoLogged[visionIOs.length];
+    this.aprilTagInputs = new AprilTagVisionIOInputsAutoLogged[visionIOs.length];
+    this.objDetectInputs = new ObjDetectVisionIOInputsAutoLogged[visionIOs.length];
     this.disconnectedAlerts = new Alert[visionIOs.length];
     this.camerasToConsider = new ArrayList<>();
 
@@ -116,6 +120,8 @@ public class Vision extends SubsystemBase {
 
     for (int i = 0; i < visionIOs.length; i++) {
       this.inputs[i] = new VisionIOInputsAutoLogged();
+      this.aprilTagInputs[i] = new AprilTagVisionIOInputsAutoLogged();
+      this.objDetectInputs[i] = new ObjDetectVisionIOInputsAutoLogged();
       this.disconnectedAlerts[i] = new Alert("camera" + i + " is disconnected", AlertType.kError);
       this.camerasToConsider.add(i);
 
@@ -165,7 +171,8 @@ public class Vision extends SubsystemBase {
     isVisionUpdating = false;
 
     for (int cameraIndex = 0; cameraIndex < visionIOs.length; cameraIndex++) {
-      visionIOs[cameraIndex].updateInputs(inputs[cameraIndex]);
+      visionIOs[cameraIndex].updateInputs(
+          inputs[cameraIndex], aprilTagInputs[cameraIndex], objDetectInputs[cameraIndex]);
       Logger.processInputs(SUBSYSTEM_NAME + "/" + cameraIndex, inputs[cameraIndex]);
     }
 

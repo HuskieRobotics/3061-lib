@@ -2,11 +2,15 @@ package frc.lib.team3061.vision;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Filesystem;
 import frc.lib.team6328.util.LoggedTunableNumber;
+import frc.robot.Constants;
+import frc.robot.Constants.Mode;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.function.Supplier;
+import lombok.Builder;
 
 public final class VisionConstants {
   private static final String CONSTRUCTOR_EXCEPTION = "constant class";
@@ -99,11 +103,11 @@ public final class VisionConstants {
 
   public static LoggedTunableNumber[] pitchAdjustments =
       switch (Constants.getRobot()) {
-        case DEVBOT -> new LoggedTunableNumber[] {
+        case ROBOT_PRACTICE -> new LoggedTunableNumber[] {
           new LoggedTunableNumber("Vision/PitchAdjust0", 0.0),
           new LoggedTunableNumber("Vision/PitchAdjust1", 0.0)
         };
-        case COMPBOT -> new LoggedTunableNumber[] {
+        case ROBOT_COMPETITION -> new LoggedTunableNumber[] {
           new LoggedTunableNumber("Vision/PitchAdjust0", 0.0),
           new LoggedTunableNumber("Vision/PitchAdjust1", 0.0),
           new LoggedTunableNumber("Vision/PitchAdjust2", 0.0),
@@ -112,7 +116,7 @@ public final class VisionConstants {
       };
   public static CameraConfig[] cameras =
       switch (Constants.getRobot()) {
-        case DEVBOT -> new CameraConfig[] {
+        case ROBOT_PRACTICE -> new CameraConfig[] {
           CameraConfig.builder()
               .pose(
                   () ->
@@ -150,7 +154,7 @@ public final class VisionConstants {
               .stdDevFactor(1.0)
               .build()
         };
-        case COMPBOT -> new CameraConfig[] {
+        case ROBOT_COMPETITION -> new CameraConfig[] {
           // Front Left
           CameraConfig.builder()
               .pose(
