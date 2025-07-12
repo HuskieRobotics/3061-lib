@@ -246,6 +246,53 @@
           }
         ]
       }
+    },
+    {
+      "name": "Vision",
+      "grid_layout": {
+        "layouts": [],
+        "containers": [
+          {
+            "title": "active",
+            "x": 16.0,
+            "y": 32.0,
+            "width": 240.0,
+            "height": 128.0,
+            "type": "Toggle Switch",
+            "properties": {
+              "topic": "/northstar_0/calibration/active",
+              "period": 0.06,
+              "data_type": "boolean"
+            }
+          },
+          {
+            "title": "capture_flag",
+            "x": 272.0,
+            "y": 32.0,
+            "width": 240.0,
+            "height": 128.0,
+            "type": "Toggle Button",
+            "properties": {
+              "topic": "/northstar_0/calibration/capture_flag",
+              "period": 0.06,
+              "data_type": "boolean"
+            }
+          },
+          {
+            "title": "Enable Recording",
+            "x": 16.0,
+            "y": 176.0,
+            "width": 240.0,
+            "height": 128.0,
+            "type": "Toggle Switch",
+            "properties": {
+              "topic": "/SmartDashboard/Enable Recording",
+              "period": 0.06,
+              "data_type": "boolean"
+            }
+          }
+        ]
+      }
     }
   ]
 }
