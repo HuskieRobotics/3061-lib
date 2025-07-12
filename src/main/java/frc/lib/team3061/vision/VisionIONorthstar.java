@@ -12,12 +12,22 @@ import static frc.lib.team3061.vision.VisionConstants.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Quaternion;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.networktables.*;
 import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
+import frc.lib.team3061.RobotConfig;
+import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team6328.util.FieldConstants;
 import frc.lib.team6328.util.SystemTimeValidReader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 public class VisionIONorthstar implements VisionIO {
   private final String deviceId;
@@ -33,8 +43,14 @@ public class VisionIONorthstar implements VisionIO {
 
   private final Timer slowPeriodicTimer = new Timer();
 
+  private final List<VisionIO.PoseObservation> observations = new ArrayList<>();
+  private final AprilTagFieldLayout aprilTagFieldLayout;
+  private final int cameraIndex;
+
   public VisionIONorthstar(int index, AprilTagFieldLayout layout) {
     this.deviceId = "northstar_" + index;
+    this.cameraIndex = index;
+    this.aprilTagFieldLayout = layout;
     String layoutString = "";
     var northstarTable = NetworkTableInstance.getDefault().getTable(this.deviceId);
     var configTable = northstarTable.getSubTable("config");
@@ -94,6 +110,8 @@ public class VisionIONorthstar implements VisionIO {
       ObjDetectVisionIOInputs objDetectInputs) {
     boolean slowPeriodic = slowPeriodicTimer.advanceIfElapsed(1.0);
 
+    observations.clear();
+
     // Update NT connection status
     inputs.connected = false;
     for (var client : NetworkTableInstance.getDefault().getConnections()) {
@@ -121,7 +139,10 @@ public class VisionIONorthstar implements VisionIO {
     for (int i = 0; i < aprilTagQueue.length; i++) {
       aprilTagInputs.timestamps[i] = aprilTagQueue[i].timestamp / 1000000.0;
       aprilTagInputs.frames[i] = aprilTagQueue[i].value;
+
+      processAprilTagFrame(aprilTagInputs.timestamps[i], aprilTagInputs.frames[i], observations);
     }
+    inputs.poseObservations = observations.toArray(new PoseObservation[0]);
     if (slowPeriodic) {
       aprilTagInputs.fps = fpsAprilTagsSubscriber.get();
     }
@@ -141,5 +162,105 @@ public class VisionIONorthstar implements VisionIO {
 
   public void setRecording(boolean active) {
     isRecordingPublisher.set(active);
+  }
+
+  private void processAprilTagFrame(
+      double timestamp, double[] values, List<PoseObservation> observations) {
+
+    // Exit if blank frame
+    if (values.length == 0 || values[0] == 0) {
+      return;
+    }
+
+    // Switch based on number of poses
+    Pose3d cameraPose = null;
+    PoseObservationType observationType = PoseObservationType.SINGLE_TAG;
+    double ambiguity = 0.0;
+    double reprojectionError = 0.0;
+    long tagsSeenBitMap = 0;
+
+    switch ((int) values[0]) {
+      case 1:
+        reprojectionError = values[1];
+        // One pose (multi-tag), use directly
+        cameraPose =
+            new Pose3d(
+                values[2],
+                values[3],
+                values[4],
+                new Rotation3d(new Quaternion(values[5], values[6], values[7], values[8])));
+        observationType = PoseObservationType.MULTI_TAG;
+        break;
+      case 2:
+        // Two poses (one tag), disambiguate
+        double error0 = values[1];
+        double error1 = values[9];
+        Pose3d cameraPose0 =
+            new Pose3d(
+                values[2],
+                values[3],
+                values[4],
+                new Rotation3d(new Quaternion(values[5], values[6], values[7], values[8])));
+        Pose3d cameraPose1 =
+            new Pose3d(
+                values[10],
+                values[11],
+                values[12],
+                new Rotation3d(new Quaternion(values[13], values[14], values[15], values[16])));
+
+        Transform3d cameraToRobot =
+            RobotConfig.getInstance().getRobotToCameraTransforms()[cameraIndex].inverse();
+        Pose3d robotPose0 = cameraPose0.plus(cameraToRobot);
+        Pose3d robotPose1 = cameraPose1.plus(cameraToRobot);
+
+        // Check for ambiguity and select based on estimated rotation
+        if (error0 < error1 * ambiguityThreshold || error1 < error0 * ambiguityThreshold) {
+          Rotation2d currentRotation = RobotOdometry.getInstance().getEstimatedPose().getRotation();
+          Rotation2d visionRotation0 = robotPose0.toPose2d().getRotation();
+          Rotation2d visionRotation1 = robotPose1.toPose2d().getRotation();
+          if (Math.abs(currentRotation.minus(visionRotation0).getRadians())
+              < Math.abs(currentRotation.minus(visionRotation1).getRadians())) {
+            cameraPose = cameraPose0;
+            ambiguity = error0;
+          } else {
+            cameraPose = cameraPose1;
+            ambiguity = error1;
+          }
+        }
+        break;
+    }
+
+    // Exit if no data
+    if (cameraPose == null) {
+      return;
+    }
+
+    List<Pose3d> tagPoses = new ArrayList<>();
+    for (int i = (values[0] == 1 ? 9 : 17); i < values.length; i += 10) {
+      int tagId = (int) values[i];
+      tagsSeenBitMap |= 1L << tagId;
+      Optional<Pose3d> tagPose = aprilTagFieldLayout.getTagPose(tagId);
+      tagPose.ifPresent(tagPoses::add);
+    }
+    if (tagPoses.isEmpty()) return;
+
+    // Calculate average distance to tag
+    double totalDistance = 0.0;
+    for (Pose3d tagPose : tagPoses) {
+      totalDistance += tagPose.getTranslation().getDistance(cameraPose.getTranslation());
+    }
+    double avgDistance = totalDistance / tagPoses.size();
+
+    observations.add(
+        new PoseObservation(
+            timestamp,
+            cameraPose,
+            Timer.getFPGATimestamp() - timestamp,
+            ambiguity,
+            reprojectionError,
+            tagsSeenBitMap,
+            tagPoses.size(),
+            avgDistance,
+            observationType));
   }
 }
