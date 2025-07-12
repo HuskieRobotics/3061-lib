@@ -13,6 +13,7 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.team3061.RobotConfig;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
 /**
  * The Vision subsystem is responsible for updating the robot's estimated pose based on a collection
@@ -41,6 +43,10 @@ public class Vision extends SubsystemBase {
   private final VisionIOInputsAutoLogged[] inputs;
   private final AprilTagVisionIOInputsAutoLogged[] aprilTagInputs;
   private final ObjDetectVisionIOInputsAutoLogged[] objDetectInputs;
+
+  private final LoggedNetworkBoolean recordingRequest =
+      new LoggedNetworkBoolean("/SmartDashboard/Enable Recording", false);
+
   private double[] lastTimestamps;
   private int[] cyclesWithNoResults;
   private int[] updatePoseCount;
@@ -176,6 +182,12 @@ public class Vision extends SubsystemBase {
       Logger.processInputs(SUBSYSTEM_NAME + "/" + cameraIndex, inputs[cameraIndex]);
       Logger.processInputs(SUBSYSTEM_NAME + "/" + cameraIndex, aprilTagInputs[cameraIndex]);
       Logger.processInputs(SUBSYSTEM_NAME + "/" + cameraIndex, objDetectInputs[cameraIndex]);
+    }
+
+    // Update recording state
+    boolean shouldRecord = DriverStation.isFMSAttached() || recordingRequest.get();
+    for (VisionIO io : this.visionIOs) {
+      io.setRecording(shouldRecord);
     }
 
     this.allRobotPoses.clear();

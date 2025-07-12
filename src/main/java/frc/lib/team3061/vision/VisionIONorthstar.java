@@ -24,7 +24,6 @@ import edu.wpi.first.wpilibj.Timer;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team6328.util.FieldConstants;
-import frc.lib.team6328.util.SystemTimeValidReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -122,7 +121,7 @@ public class VisionIONorthstar implements VisionIO {
     }
 
     // Publish timestamp
-    if (slowPeriodic && SystemTimeValidReader.isValid()) {
+    if (slowPeriodic) { // FIXME: && SystemTimeValidReader.isValid()) {
       timestampPublisher.set(WPIUtilJNI.getSystemTime() / 1000000);
     }
 

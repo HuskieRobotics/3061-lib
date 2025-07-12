@@ -125,7 +125,7 @@ public final class VisionConstants {
               .id("0x110000:0c45:6366")
               .width(1600)
               .height(1200)
-              .autoExposure(1)
+              .autoExposure(0)
               .exposure(monoExposure)
               .gain(monoGain)
               .stdDevFactor(1.0)

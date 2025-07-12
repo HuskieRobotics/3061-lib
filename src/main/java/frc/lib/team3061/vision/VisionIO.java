@@ -60,4 +60,6 @@ public interface VisionIO {
       VisionIOInputs inputs,
       AprilTagVisionIOInputs aprilTagInputs,
       ObjDetectVisionIOInputs objDetectInputs) {}
+
+  default void setRecording(boolean active) {}
 }
