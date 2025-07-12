@@ -103,6 +103,9 @@ public final class VisionConstants {
 
   public static LoggedTunableNumber[] pitchAdjustments =
       switch (Constants.getRobot()) {
+        case ROBOT_NORTHSTAR_TEST_PLATFORM -> new LoggedTunableNumber[] {
+          new LoggedTunableNumber("Vision/PitchAdjust1", 0.0)
+        };
         case ROBOT_PRACTICE -> new LoggedTunableNumber[] {
           new LoggedTunableNumber("Vision/PitchAdjust0", 0.0),
           new LoggedTunableNumber("Vision/PitchAdjust1", 0.0)
@@ -116,6 +119,18 @@ public final class VisionConstants {
       };
   public static CameraConfig[] cameras =
       switch (Constants.getRobot()) {
+        case ROBOT_NORTHSTAR_TEST_PLATFORM -> new CameraConfig[] {
+          CameraConfig.builder()
+              .pose(() -> new Pose3d(0.0, 0.0, 0.0, new Rotation3d(0.0, 0.0, 0.0)))
+              .id("1200")
+              .width(1600)
+              .height(1200)
+              .autoExposure(1)
+              .exposure(monoExposure)
+              .gain(monoGain)
+              .stdDevFactor(1.0)
+              .build()
+        };
         case ROBOT_PRACTICE -> new CameraConfig[] {
           CameraConfig.builder()
               .pose(

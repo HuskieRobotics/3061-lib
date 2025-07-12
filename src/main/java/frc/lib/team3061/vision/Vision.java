@@ -174,6 +174,8 @@ public class Vision extends SubsystemBase {
       visionIOs[cameraIndex].updateInputs(
           inputs[cameraIndex], aprilTagInputs[cameraIndex], objDetectInputs[cameraIndex]);
       Logger.processInputs(SUBSYSTEM_NAME + "/" + cameraIndex, inputs[cameraIndex]);
+      Logger.processInputs(SUBSYSTEM_NAME + "/" + cameraIndex, aprilTagInputs[cameraIndex]);
+      Logger.processInputs(SUBSYSTEM_NAME + "/" + cameraIndex, objDetectInputs[cameraIndex]);
     }
 
     this.allRobotPoses.clear();

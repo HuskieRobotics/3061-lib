@@ -9,6 +9,8 @@ package frc.lib.team3061.vision;
 
 import static frc.lib.team3061.vision.VisionConstants.*;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.networktables.*;
 import edu.wpi.first.util.WPIUtilJNI;
@@ -33,9 +35,17 @@ public class VisionIONorthstar implements VisionIO {
 
   public VisionIONorthstar(int index, AprilTagFieldLayout layout) {
     this.deviceId = "northstar_" + index;
+    String layoutString = "";
     var northstarTable = NetworkTableInstance.getDefault().getTable(this.deviceId);
     var configTable = northstarTable.getSubTable("config");
     var camera = cameras[index];
+
+    try {
+      layoutString = new ObjectMapper().writeValueAsString(layout);
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(
+          "Failed to serialize AprilTag layout JSON " + toString() + "for Northstar");
+    }
 
     configTable.getStringTopic("camera_id").publish().set(camera.id());
     configTable.getIntegerTopic("camera_resolution_width").publish().set(camera.width());
@@ -45,7 +55,7 @@ public class VisionIONorthstar implements VisionIO {
     configTable.getDoubleTopic("camera_gain").publish().set(camera.gain());
     configTable.getDoubleTopic("camera_denoise").publish().set(camera.denoise());
     configTable.getDoubleTopic("fiducial_size_m").publish().set(FieldConstants.aprilTagWidth);
-    configTable.getStringTopic("tag_layout").publish().set(layout.toString());
+    configTable.getStringTopic("tag_layout").publish().set(layoutString);
     isRecordingPublisher = configTable.getBooleanTopic("is_recording").publish();
     isRecordingPublisher.set(false);
     timestampPublisher = configTable.getIntegerTopic("timestamp").publish();
