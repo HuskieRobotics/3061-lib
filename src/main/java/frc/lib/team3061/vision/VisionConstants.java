@@ -129,6 +129,16 @@ public final class VisionConstants {
               .exposure(monoExposure)
               .gain(monoGain)
               .stdDevFactor(1.0)
+              .build(),
+          CameraConfig.builder()
+              .pose(() -> new Pose3d(0.0, 0.0, 0.0, new Rotation3d(0.0, 0.0, 0.0)))
+              .id("0x1100000:0c45:6366")
+              .width(1600)
+              .height(1200)
+              .autoExposure(0)
+              .exposure(monoExposure)
+              .gain(monoGain)
+              .stdDevFactor(1.0)
               .build()
         };
         case ROBOT_PRACTICE -> new CameraConfig[] {
