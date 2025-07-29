@@ -42,6 +42,9 @@ public class DifferentialDrivetrainIOXRP implements DifferentialDrivetrainIO {
   private LinearFilter rightVelocity = LinearFilter.movingAverage(10);
 
   public DifferentialDrivetrainIOXRP() {
+    // disable motor safety since the corresponding thread overwhelms the XRP with value changes
+    this.diffDrive.setSafetyEnabled(false);
+
     // We need to invert one side of the drivetrain so that positive voltages
     // result in both sides moving forward. Depending on how your robot's
     // gearbox is constructed, you might have to invert the left side instead.
