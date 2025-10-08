@@ -39,10 +39,6 @@ import frc.robot.configs.VisionTestPlatformConfig;
 import frc.robot.configs.XRPRobotConfig;
 import frc.robot.operator_interface.OISelector;
 import frc.robot.operator_interface.OperatorInterface;
-import frc.robot.subsystems.arm.Arm;
-import frc.robot.subsystems.arm.ArmIO;
-import frc.robot.subsystems.arm.ArmIOTalonFX;
-import frc.robot.subsystems.arm.ArmIOXRP;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.ElevatorIO;
 import frc.robot.subsystems.elevator.ElevatorIOTalonFX;
@@ -70,7 +66,6 @@ public class RobotContainer {
   private DifferentialDrivetrain differentialDrivetrain;
   private Alliance lastAlliance = Field2d.getInstance().getAlliance();
   private Vision vision;
-  private Arm arm;
   private Elevator elevator;
   private Manipulator manipulator;
   private Shooter shooter;
@@ -141,7 +136,6 @@ public class RobotContainer {
       vision = new Vision(visionIOs);
 
       // FIXME: initialize other subsystems
-      arm = new Arm(new ArmIO() {});
       elevator = new Elevator(new ElevatorIO() {});
       manipulator = new Manipulator(new ManipulatorIO() {});
       shooter = new Shooter(new ShooterIO() {});
@@ -218,7 +212,6 @@ public class RobotContainer {
     vision = new Vision(visionIOs);
 
     // FIXME: initialize other subsystems
-    arm = new Arm(new ArmIOTalonFX());
     elevator = new Elevator(new ElevatorIOTalonFX());
     manipulator = new Manipulator(new ManipulatorIOTalonFX());
     shooter = new Shooter(new ShooterIOTalonFX());
@@ -250,7 +243,6 @@ public class RobotContainer {
     vision = new Vision(visionIOs);
 
     // FIXME: initialize other subsystems
-    arm = new Arm(new ArmIOTalonFX());
     elevator = new Elevator(new ElevatorIOTalonFX());
     manipulator = new Manipulator(new ManipulatorIOTalonFX());
     shooter = new Shooter(new ShooterIOTalonFX());
@@ -260,7 +252,6 @@ public class RobotContainer {
     differentialDrivetrain = new DifferentialDrivetrain(new DifferentialDrivetrainIOXRP());
     vision = new Vision(new VisionIO[] {});
 
-    arm = new Arm(new ArmIOXRP());
     elevator = new Elevator(new ElevatorIO() {});
     manipulator = new Manipulator(new ManipulatorIO() {});
     shooter = new Shooter(new ShooterIO() {});
@@ -272,7 +263,6 @@ public class RobotContainer {
     vision = new Vision(new VisionIO[] {new VisionIO() {}});
 
     // FIXME: initialize other subsystems
-    arm = new Arm(new ArmIO() {});
     elevator = new Elevator(new ElevatorIO() {});
     manipulator = new Manipulator(new ManipulatorIO() {});
     shooter = new Shooter(new ShooterIO() {});
@@ -300,7 +290,6 @@ public class RobotContainer {
     vision = new Vision(visionIOs);
 
     // FIXME: initialize other subsystems
-    arm = new Arm(new ArmIO() {});
     elevator = new Elevator(new ElevatorIO() {});
     manipulator = new Manipulator(new ManipulatorIO() {});
     shooter = new Shooter(new ShooterIO() {});
@@ -335,15 +324,17 @@ public class RobotContainer {
     configureVisionCommands();
 
     // register commands for other subsystems
-    ArmCommandFactory.registerCommands(oi, arm);
+    
     ElevatorCommandsFactory.registerCommands(oi, elevator);
 
     if (RobotConfig.getInstance().getDrivetrainType() == RobotConfig.DRIVETRAIN_TYPE.DIFFERENTIAL) {
-      CrossSubsystemsCommandsFactory.registerCommands(oi, differentialDrivetrain, vision, arm);
+      // FIXME: UNCOMMENT WHEN ARM SUBSYTEM IS DONE
+      //CrossSubsystemsCommandsFactory.registerCommands(oi, differentialDrivetrain, vision, arm);
     } else if (RobotConfig.getInstance().getDrivetrainType()
         == RobotConfig.DRIVETRAIN_TYPE.SWERVE) {
-      CrossSubsystemsCommandsFactory.registerCommands(
-          oi, swerveDrivetrain, vision, arm, elevator, manipulator, shooter);
+          //FIXME: UNCOMMENT AFTER ARM SUBSYTEM IS CREATED
+      //CrossSubsystemsCommandsFactory.registerCommands(
+          //oi, swerveDrivetrain, vision, arm, elevator, manipulator, shooter);
     }
 
     // Endgame alerts
