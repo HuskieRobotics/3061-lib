@@ -122,7 +122,7 @@ public final class VisionConstants {
         case ROBOT_NORTHSTAR_TEST_PLATFORM -> new CameraConfig[] {
           CameraConfig.builder()
               .pose(() -> new Pose3d(0.0, 0.0, 0.0, new Rotation3d(0.0, 0.0, 0.0)))
-              .id("0x110000:0c45:6366")
+              .id("40686739")
               .width(1600)
               .height(1200)
               .autoExposure(0)
@@ -132,7 +132,7 @@ public final class VisionConstants {
               .build(),
           CameraConfig.builder()
               .pose(() -> new Pose3d(0.0, 0.0, 0.0, new Rotation3d(0.0, 0.0, 0.0)))
-              .id("0x1100000:0c45:6366")
+              .id("25249734")
               .width(1600)
               .height(1200)
               .autoExposure(0)
