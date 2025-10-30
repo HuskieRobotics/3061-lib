@@ -17,7 +17,7 @@ import frc.lib.team3061.util.SysIdRoutineChooser;
 import frc.lib.team3061.vision.Vision;
 import frc.lib.team6328.util.LoggedTunableNumber;
 import frc.robot.operator_interface.OperatorInterface;
-import frc.robot.subsystems.arm.Arm;
+import frc.robot.subsystems.Arm.arm.Arm;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.ElevatorConstants;
 import frc.robot.subsystems.manipulator.Manipulator;
@@ -102,7 +102,7 @@ public class CrossSubsystemsCommandsFactory {
     return Commands.parallel(
             new TeleopSwerve(swerveDrivetrain, oi::getTranslateX, oi::getTranslateY, oi::getRotate),
             Commands.runOnce(() -> vision.specifyCamerasToConsider(List.of(0, 1, 2, 3))),
-            Commands.runOnce(() -> arm.setAngle(Degrees.of(0.0)), arm),
+            Commands.runOnce(() -> Arm.setAngle(Degrees.of(0.0)), arm),
             Commands.runOnce(
                 () -> elevator.goToPosition(ElevatorConstants.Positions.BOTTOM), elevator),
             Commands.runOnce(() -> manipulator.resetStateMachine(), manipulator),
@@ -115,7 +115,7 @@ public class CrossSubsystemsCommandsFactory {
     return Commands.parallel(
             new ArcadeDrive(differentialDrivetrain, oi::getTranslateX, oi::getRotate),
             Commands.runOnce(() -> vision.specifyCamerasToConsider(List.of(0, 1, 2, 3))),
-            Commands.runOnce(() -> arm.setAngle(Degrees.of(0.0)), arm))
+            Commands.runOnce(() -> Arm.setAngle(Degrees.of(0.0)), arm))
         .withName("interrupt all");
   }
 
