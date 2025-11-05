@@ -15,22 +15,13 @@ public class ArmIOServo implements ArmIO
         armMotor.setAngle(angleDegrees);
     }
 
-    public double getAngle()
-    {
-        return armMotor.getAngle();
-    }
-
     public void setPosition(double position)
     {
         armMotor.setPosition(position);
-    }
+    } 
 
-    public double getPosition()
+    public void updateInputs(ArmIOInputs inputs)
     {
-        return armMotor.getPosition();
+        ar
     }
-
-
-
-    
 }

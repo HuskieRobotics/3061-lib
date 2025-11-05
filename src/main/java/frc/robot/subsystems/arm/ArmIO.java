@@ -3,7 +3,6 @@ import edu.wpi.first.wpilibj.xrp.XRPServo;
 
 public interface ArmIO {
     
-    @AutoLog
     public class ArmIOInputs
     {
         boolean connected = false;
@@ -13,10 +12,8 @@ public interface ArmIO {
 
     public void setAngle(double angleDegrees);
 
-    public double getAngle();
-
     public void setPosition(double position);
 
-    public double getPosition();
+    public void updateInputs(ArmIOInputs inputs);
 
 }

@@ -4,7 +4,7 @@ import static edu.wpi.first.units.Units.*;
 
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.operator_interface.OperatorInterface;
-import frc.robot.subsystems.Arm.arm.Arm;
+import frc.robot.subsystems.arm.Arm;
 
 public class ArmCommandFactory {
 
