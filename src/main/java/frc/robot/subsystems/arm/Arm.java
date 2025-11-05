@@ -6,7 +6,7 @@ import frc.robot.subsystems.arm.ArmIO;
 
 public class Arm extends SubsystemBase {
     private ArmIOServo io;
-    private final ArmIOInputs inputs = new ArmIOInputs();
+    private final ArmIOInputs inputs = new ArmIOInputs(); 
 
     public Arm(ArmIOServo armIO)
     {

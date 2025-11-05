@@ -5,7 +5,7 @@ public interface ArmIO {
     
     public class ArmIOInputs
     {
-        boolean connected = false;
+        //boolean connected = false;
         double angleDegrees = 0.0;
         double servoMotorPosition = 0.0;
     }

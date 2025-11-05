@@ -20,8 +20,11 @@ public class ArmIOServo implements ArmIO
         armMotor.setPosition(position);
     } 
 
+    @Override
     public void updateInputs(ArmIOInputs inputs)
     {
-        ar
+        inputs.angleDegrees = armMotor.getAngle();
+        inputs.servoMotorPosition = armMotor.getPosition();
     }
+
 }
