@@ -25,9 +25,7 @@ import frc.lib.team3061.vision.VisionIO;
 import frc.lib.team3061.vision.VisionIOPhotonVision;
 import frc.lib.team3061.vision.VisionIOSim;
 import frc.robot.Constants.Mode;
-import frc.robot.commands.ArmCommandFactory;
 import frc.robot.commands.AutonomousCommandsFactory;
-import frc.robot.commands.CrossSubsystemsCommandsFactory;
 import frc.robot.commands.DifferentialDrivetrainCommandFactory;
 import frc.robot.commands.ElevatorCommandsFactory;
 import frc.robot.commands.SwerveDrivetrainCommandFactory;
@@ -52,6 +50,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Optional;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
+import frc.robot.subsystems.arm.Arm;
+import frc.robot.subsystems.arm.ArmIO;
+import frc.robot.subsystems.arm.ArmIOServo;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -69,6 +70,7 @@ public class RobotContainer {
   private Elevator elevator;
   private Manipulator manipulator;
   private Shooter shooter;
+  private Arm arm;
 
   private final LoggedNetworkNumber endgameAlert1 =
       new LoggedNetworkNumber("/Tuning/Endgame Alert #1", 20.0);
@@ -139,6 +141,7 @@ public class RobotContainer {
       elevator = new Elevator(new ElevatorIO() {});
       manipulator = new Manipulator(new ManipulatorIO() {});
       shooter = new Shooter(new ShooterIO() {});
+      arm = new Arm(new ArmIO() {});
     }
 
     // disable all telemetry in the LiveWindow to reduce the processing during each iteration
@@ -215,6 +218,7 @@ public class RobotContainer {
     elevator = new Elevator(new ElevatorIOTalonFX());
     manipulator = new Manipulator(new ManipulatorIOTalonFX());
     shooter = new Shooter(new ShooterIOTalonFX());
+    arm = new Arm(new ArmIOServo());
   }
 
   private void createCTRESimSubsystems() {
@@ -324,17 +328,17 @@ public class RobotContainer {
     configureVisionCommands();
 
     // register commands for other subsystems
-    
+
     ElevatorCommandsFactory.registerCommands(oi, elevator);
 
     if (RobotConfig.getInstance().getDrivetrainType() == RobotConfig.DRIVETRAIN_TYPE.DIFFERENTIAL) {
       // FIXME: UNCOMMENT WHEN ARM SUBSYTEM IS DONE
-      //CrossSubsystemsCommandsFactory.registerCommands(oi, differentialDrivetrain, vision, arm);
+      // CrossSubsystemsCommandsFactory.registerCommands(oi, differentialDrivetrain, vision, arm);
     } else if (RobotConfig.getInstance().getDrivetrainType()
         == RobotConfig.DRIVETRAIN_TYPE.SWERVE) {
-          //FIXME: UNCOMMENT AFTER ARM SUBSYTEM IS CREATED
-      //CrossSubsystemsCommandsFactory.registerCommands(
-          //oi, swerveDrivetrain, vision, arm, elevator, manipulator, shooter);
+      // FIXME: UNCOMMENT AFTER ARM SUBSYTEM IS CREATED
+      // CrossSubsystemsCommandsFactory.registerCommands(
+      // oi, swerveDrivetrain, vision, arm, elevator, manipulator, shooter);
     }
 
     // Endgame alerts
