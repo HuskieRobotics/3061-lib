@@ -4,6 +4,7 @@ import static edu.wpi.first.units.Units.*;
 import static frc.robot.Constants.*;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -133,6 +134,9 @@ public class CrossSubsystemsCommandsFactory {
             CrossSubsystemsCommandsFactory::calculateXVelocity,
             CrossSubsystemsCommandsFactory::calculateYVelocity,
             CrossSubsystemsCommandsFactory::calculateThetaVelocity,
+            new SlewRateLimiter(16.0),
+            new SlewRateLimiter(16.0),
+            new SlewRateLimiter(4.0),
             new Transform2d(0.10, 0.05, Rotation2d.fromDegrees(5.0)),
             true,
             (atPose) ->
