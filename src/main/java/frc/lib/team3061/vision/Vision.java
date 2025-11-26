@@ -422,7 +422,7 @@ public class Vision extends SubsystemBase {
                 .getEstimatedPose()
                 .getRotation()
                 .minus(pose.getRotation().toRotation2d())
-                .getRadians())
+                .getDegrees())
         < ROTATION_THRESHOLD_DEGREES;
   }
 
