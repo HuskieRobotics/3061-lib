@@ -5,7 +5,6 @@ import static frc.robot.subsystems.elevator.ElevatorConstants.*;
 
 import com.ctre.phoenix6.SignalLogger;
 import edu.wpi.first.math.filter.Debouncer;
-import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
@@ -14,6 +13,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.lib.team254.CurrentSpikeDetector;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.leds.LEDs;
 import frc.lib.team3061.util.SysIdRoutineChooser;
@@ -55,10 +55,8 @@ public class Elevator extends SubsystemBase {
   private Alert jammedAlert =
       new Alert("Elevator jam detected. Use manual control.", AlertType.kError);
 
-  // the first value is the time constant, the characteristic timescale of the
-  // filter's impulse response, and the second value is the time-period, how often
-  // the calculate() method will be called
-  private LinearFilter jamFilter = LinearFilter.singlePoleIIR(0.4, 0.02);
+  private CurrentSpikeDetector jamDetector =
+      new CurrentSpikeDetector(JAMMED_CURRENT, JAMMED_TIME_THRESHOLD_SECONDS);
 
   private final Debouncer atSetpointDebouncer = new Debouncer(0.1);
 
@@ -123,7 +121,7 @@ public class Elevator extends SubsystemBase {
     // elevator, request a jammed state on the LEDs, and generate an alert. We don't directly stop
     // the elevator using the io object as that won't interrupt commands that are currently using
     // the elevator.
-    if (jamFilter.calculate(Math.abs(inputs.statorCurrentAmpsLead)) > JAMMED_CURRENT) {
+    if (jamDetector.update(Math.abs(inputs.statorCurrentAmpsLead))) {
       CommandScheduler.getInstance()
           .schedule(
               Commands.sequence(

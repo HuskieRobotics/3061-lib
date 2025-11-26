@@ -42,6 +42,7 @@ public class ElevatorConstants {
 
   // This is the current we watch for to detect that the elevator is jammed and needs to be stopped.
   public static final double JAMMED_CURRENT = 59.0;
+  public static final double JAMMED_TIME_THRESHOLD_SECONDS = 0.1;
 
   // Supply current limits are determined based on current budget for the robot and stator current
   // limits are determined based on protecting the mechanism (e.g., don't break the elevator belt).
