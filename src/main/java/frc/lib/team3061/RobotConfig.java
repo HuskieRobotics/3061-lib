@@ -604,35 +604,68 @@ public abstract class RobotConfig {
   }
 
   /**
-   * Returns the the proportional constant for the PID controller for translational motion when
-   * driving to a specific pose. Defaults to 0.
+   * Returns the the proportional constant for the PID controller for translational motion in the x
+   * direction in the frame of the target pose when driving to a specific pose. Defaults to 0.
    *
    * @return the proportional constant for the PID controller for translational motion when driving
    *     to a specific pose
    */
-  public double getDriveToPoseDriveKP() {
+  public double getDriveToPoseDriveXKP() {
     return 0.0;
   }
 
   /**
-   * Returns the integral constant for the PID controller for translational motion when driving to a
-   * specific pose. Defaults to 0.
+   * Returns the the proportional constant for the PID controller for translational motion in the y
+   * direction in the frame of the target pose when driving to a specific pose. Defaults to 0.
+   *
+   * @return the proportional constant for the PID controller for translational motion when driving
+   *     to a specific pose
+   */
+  public double getDriveToPoseDriveYKP() {
+    return 0.0;
+  }
+
+  /**
+   * Returns the integral constant for the PID controller for translational motion in the x
+   * direction in the frame of the target pose when driving to a specific pose. Defaults to 0.
    *
    * @return the integral constant for the PID controller for translational motion when driving to a
    *     specific pose
    */
-  public double getDriveToPoseDriveKI() {
+  public double getDriveToPoseDriveXKI() {
     return 0.0;
   }
 
   /**
-   * Returns the derivative constant for the PID controller for translational motion when driving to
-   * a specific pose. Defaults to 0.
+   * Returns the integral constant for the PID controller for translational motion in the x
+   * direction in the frame of the target pose when driving to a specific pose. Defaults to 0.
+   *
+   * @return the integral constant for the PID controller for translational motion when driving to a
+   *     specific pose
+   */
+  public double getDriveToPoseDriveYKI() {
+    return 0.0;
+  }
+
+  /**
+   * Returns the derivative constant for the PID controller for translational motion in the x
+   * direction in the frame of the target pose when driving to a specific pose. Defaults to 0.
    *
    * @return the derivative constant for the PID controller for translational motion when driving to
    *     a specific pose
    */
-  public double getDriveToPoseDriveKD() {
+  public double getDriveToPoseDriveXKD() {
+    return 0.0;
+  }
+
+  /**
+   * Returns the derivative constant for the PID controller for translational motion in the x
+   * direction in the frame of the target pose when driving to a specific pose. Defaults to 0.
+   *
+   * @return the derivative constant for the PID controller for translational motion when driving to
+   *     a specific pose
+   */
+  public double getDriveToPoseDriveYKD() {
     return 0.0;
   }
 

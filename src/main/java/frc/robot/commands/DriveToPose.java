@@ -1,15 +1,16 @@
 package frc.robot.commands;
 
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
 import frc.robot.Field2d;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
@@ -35,9 +36,9 @@ import org.littletonrobotics.junction.Logger;
 public class DriveToPose extends Command {
   private final SwerveDrivetrain drivetrain;
   private final Supplier<Pose2d> targetPoseSupplier;
-  private final BiFunction<Double, Double, Double> xSupplier;
-  private final BiFunction<Double, Double, Double> ySupplier;
-  private final BiFunction<Double, Double, Double> thetaSupplier;
+  private final ProfiledPIDController xController;
+  private final ProfiledPIDController yController;
+  private final ProfiledPIDController thetaController;
   private Transform2d targetTolerance;
   private final boolean finishesWhenAtTarget;
   private final Consumer<Boolean> atTargetConsumer;
@@ -57,17 +58,11 @@ public class DriveToPose extends Command {
    *     specified instead of a pose since the target pose may not be known when this command is
    *     created. In addition, for more complex applications, this provides the opportunity for the
    *     target pose to change while this command executes.
-   * @param xSupplier a function that takes the current and target x positions in the field frame
-   *     and returns the x velocity in the field frame to drive at. The function should return a
-   *     value in meters per second. Most commonly, this will be be calculated by a PID controller.
-   * @param ySupplier a function that takes the current and target y positions in the field frame
-   *     and returns the y velocity in the field frame to drive at. The function should return a
-   *     value in meters per second. Most commonly, this will be be calculated by a PID controller.
-   *     However, this enables other approaches such as fusing driver input (like was done in 2025
-   *     when aligning to the barge).
-   * @param thetaSupplier a function that takes the current and target theta positions and returns
-   *     the theta velocity to drive at. The function should return a value in radians per second.
-   *     Most commonly, this will be be calculated by a PID controller.
+   * @param xController the profiled PID controller for controlling the x position in the frame of
+   *     the target pose
+   * @param yController the profiled PID controller for controlling the y position in the frame of
+   *     the target pose
+   * @param thetaController the profiled PID controller for controlling the theta position
    * @param targetTolerance the tolerance for determining if the robot has reached the target pose
    *     specified in meters. This tolerance is specified in the frame of the target pose, not in
    *     the field frame. If more complex logic is needed, the isPoseWithinTolerance method can be
@@ -91,9 +86,9 @@ public class DriveToPose extends Command {
   public DriveToPose(
       SwerveDrivetrain drivetrain,
       Supplier<Pose2d> targetPoseSupplier,
-      BiFunction<Double, Double, Double> xSupplier,
-      BiFunction<Double, Double, Double> ySupplier,
-      BiFunction<Double, Double, Double> thetaSupplier,
+      ProfiledPIDController xController,
+      ProfiledPIDController yController,
+      ProfiledPIDController thetaController,
       Transform2d targetTolerance,
       boolean finishesWhenAtTarget,
       Consumer<Boolean> atTargetConsumer,
@@ -101,9 +96,9 @@ public class DriveToPose extends Command {
       double timeout) {
     this.drivetrain = drivetrain;
     this.targetPoseSupplier = targetPoseSupplier;
-    this.xSupplier = xSupplier;
-    this.ySupplier = ySupplier;
-    this.thetaSupplier = thetaSupplier;
+    this.xController = xController;
+    this.yController = yController;
+    this.thetaController = thetaController;
     this.targetTolerance = targetTolerance;
     this.finishesWhenAtTarget = finishesWhenAtTarget;
     this.atTargetConsumer = atTargetConsumer;
@@ -122,8 +117,6 @@ public class DriveToPose extends Command {
    */
   @Override
   public void initialize() {
-    drivetrain.enableAccelerationLimiting();
-
     Logger.recordOutput("DriveToPose/isFinished", false);
     Logger.recordOutput("DriveToPose/withinTolerance", false);
 
@@ -145,13 +138,6 @@ public class DriveToPose extends Command {
     Pose2d targetPose = targetPoseSupplier.get();
     Pose2d currentPose = drivetrain.getPose();
 
-    // calculate new velocities in the field frame
-    double xVelocity = xSupplier.apply(currentPose.getX(), targetPose.getX());
-    double yVelocity = ySupplier.apply(currentPose.getY(), targetPose.getY());
-    double thetaVelocity =
-        thetaSupplier.apply(
-            currentPose.getRotation().getRadians(), targetPose.getRotation().getRadians());
-
     // calculate the pose difference in the frame of the field
     Transform2d fieldRelativeDifference =
         new Transform2d(
@@ -160,16 +146,39 @@ public class DriveToPose extends Command {
             Rotation2d.fromRadians(
                 targetPose.getRotation().getRadians() - currentPose.getRotation().getRadians()));
 
-    // calculate the pose difference in the frame of the target pose
+    // transform the current pose into the frame of the target pose
     this.poseDifferenceInTargetFrame = new Transform2d(targetPose, currentPose);
+    Pose2d currentPoseInTargetFrame =
+        new Pose2d(
+            this.poseDifferenceInTargetFrame.getX(),
+            this.poseDifferenceInTargetFrame.getY(),
+            this.poseDifferenceInTargetFrame.getRotation());
 
-    // convert the velocities in the field frame to the frame of the target pose
-    Translation2d velocitiesInTargetFrame =
-        new Translation2d(xVelocity, yVelocity).rotateBy(targetPose.getRotation().unaryMinus());
+    if (firstRun) {
+      // reset the profiled PID controllers on the first run
+      ChassisSpeeds currentSpeeds = drivetrain.getRobotRelativeSpeeds();
+      Translation2d velocitiesInTargetFrame =
+          new Translation2d(currentSpeeds.vxMetersPerSecond, currentSpeeds.vyMetersPerSecond)
+              .rotateBy(targetPose.getRotation().unaryMinus());
+
+      xController.reset(this.poseDifferenceInTargetFrame.getX(), velocitiesInTargetFrame.getX());
+      yController.reset(this.poseDifferenceInTargetFrame.getY(), velocitiesInTargetFrame.getY());
+      thetaController.reset(
+          this.poseDifferenceInTargetFrame.getRotation().getRadians(),
+          currentSpeeds.omegaRadiansPerSecond);
+    }
+
+    // calculate new velocities in the frame of the target pose
+    double xVelocityInTargetFrame = xController.calculate(currentPoseInTargetFrame.getX(), 0.0);
+    double yVelocityInTargetFrame = yController.calculate(currentPoseInTargetFrame.getY(), 0.0);
+    double thetaVelocity =
+        thetaController.calculate(currentPoseInTargetFrame.getRotation().getRadians(), 0.0);
 
     // opportunity to adjust velocities in the robot frame
-    velocitiesInTargetFrame =
-        adjustVelocities(velocitiesInTargetFrame, this.poseDifferenceInTargetFrame);
+    Translation2d velocitiesInTargetFrame =
+        adjustVelocities(
+            new Translation2d(xVelocityInTargetFrame, yVelocityInTargetFrame),
+            this.poseDifferenceInTargetFrame);
 
     // convert the velocities in the frame of the target pose back into the field frame
     Translation2d fieldRelativeVelocities =
@@ -186,8 +195,8 @@ public class DriveToPose extends Command {
         true);
 
     Logger.recordOutput("DriveToPose/targetPose", targetPose);
-    Logger.recordOutput("DriveToPose/x velocity (field frame)", xVelocity);
-    Logger.recordOutput("DriveToPose/y velocity (field frame)", yVelocity);
+    Logger.recordOutput("DriveToPose/x velocity (field frame)", fieldRelativeVelocities.getX());
+    Logger.recordOutput("DriveToPose/y velocity (field frame)", fieldRelativeVelocities.getY());
     Logger.recordOutput("DriveToPose/theta velocity (field frame)", thetaVelocity);
     Logger.recordOutput("DriveToPose/pose difference (field frame)", fieldRelativeDifference);
     Logger.recordOutput(
@@ -241,7 +250,6 @@ public class DriveToPose extends Command {
    */
   @Override
   public void end(boolean interrupted) {
-    drivetrain.disableAccelerationLimiting();
     drivetrain.stop();
     Logger.recordOutput("DriveToPose/isFinished", true);
   }
