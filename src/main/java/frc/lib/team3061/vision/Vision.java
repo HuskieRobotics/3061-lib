@@ -187,8 +187,11 @@ public class Vision extends SubsystemBase {
       robotPosesRejected.get(cameraIndex).clear();
 
       for (PoseObservation observation : inputs[cameraIndex].poseObservations) {
-        // only process the vision data if the timestamp is newer than the last one
-        if (this.lastTimestamps[cameraIndex] < observation.timestamp()) {
+        // only process the vision data if the timestamp is newer than the last one and if the
+        // timestamp is in the past (rarely an observation can report a timestamp in the future if
+        // the code has restarted and receives older data)
+        if (observation.timestamp() < Timer.getTimestamp()
+            && this.lastTimestamps[cameraIndex] < observation.timestamp()) {
 
           if (CALIBRATE_CAMERA_TRANSFORMS) {
             logCameraTransforms(cameraIndex, observation);
@@ -211,15 +214,32 @@ public class Vision extends SubsystemBase {
           // estimated pose is on (or very close to) the field
           // for multi-tag strategies, ensure the reprojection error is less than the threshold; for
           // single-tag, ensure the ambiguity is less than the threshold.
-          boolean acceptPose =
+          // when deciding whether to accept a pose for pose reset, don't check if the gyro and
+          // vision pose estimate rotates are aligned
+          boolean acceptPoseForPoseReset =
               isEnabled
                   && this.camerasToConsider.contains(cameraIndex)
                   && (observation.type() == PoseObservationType.MULTI_TAG
                       || observation.averageAmbiguity() < AMBIGUITY_THRESHOLD)
                   && (observation.type() == PoseObservationType.SINGLE_TAG
                       || Math.abs(observation.reprojectionError()) < REPROJECTION_ERROR_THRESHOLD)
-                  && poseIsOnField(estimatedRobotPose3d)
-                  && arePoseRotationsReasonable(estimatedRobotPose3d);
+                  && poseIsOnField(estimatedRobotPose3d);
+          boolean acceptPose =
+              acceptPoseForPoseReset && arePoseRotationsReasonable(estimatedRobotPose3d);
+
+          Matrix<N3, N1> stdDev = null;
+          if (acceptPoseForPoseReset) {
+            stdDev = getStandardDeviations(cameraIndex, observation);
+            // if the most-recent "best pose" is too old, capture a new one regardless of its
+            // standard deviation values; otherwise, only capture a new one if its standard
+            // deviation is lower than the current best pose
+            if (mostRecentBestPoseTimestamp < Timer.getTimestamp() - BEST_POSE_TIME_THRESHOLD_SECS
+                || mostRecentBestPoseStdDev > stdDev.get(0, 0)) {
+              mostRecentBestPose = estimatedRobotPose3d;
+              mostRecentBestPoseTimestamp = observation.timestamp();
+              mostRecentBestPoseStdDev = stdDev.get(0, 0);
+            }
+          }
 
           if (acceptPose) {
             // get tag poses and update last detection times
@@ -241,23 +261,12 @@ public class Vision extends SubsystemBase {
               lastPoseEstimationAcceptedTimes.put(estimatedRobotPose3d, Timer.getTimestamp());
             }
 
-            Matrix<N3, N1> stdDev = getStandardDeviations(cameraIndex, observation);
             RobotOdometry.getInstance()
                 .addVisionMeasurement(
                     estimatedRobotPose2d,
                     observation.timestamp(),
                     latencyAdjustmentSeconds.get(),
                     stdDev);
-
-            // if the most-recent "best pose" is too old, capture a new one regardless of its
-            // standard deviation values; otherwise, only capture a new one if its standard
-            // deviation is lower than the current best pose
-            if (mostRecentBestPoseTimestamp < Timer.getTimestamp() - BEST_POSE_TIME_THRESHOLD_SECS
-                || mostRecentBestPoseStdDev > stdDev.get(0, 0)) {
-              mostRecentBestPose = estimatedRobotPose3d;
-              mostRecentBestPoseTimestamp = observation.timestamp();
-              mostRecentBestPoseStdDev = stdDev.get(0, 0);
-            }
 
             this.updatePoseCount[cameraIndex]++;
 
@@ -380,7 +389,8 @@ public class Vision extends SubsystemBase {
 
   /**
    * Returns the estimated robot pose based on the most recent vision data. This method is used to
-   * reset the robot's odometry based solely on the vision data.
+   * reset the robot's odometry based solely on the vision data. As a result, it doesn't check for
+   * alignment between the robot's gyro and the vision pose estimate.
    *
    * @return the estimated robot pose based on the most recent vision data
    */
@@ -422,7 +432,7 @@ public class Vision extends SubsystemBase {
                 .getEstimatedPose()
                 .getRotation()
                 .minus(pose.getRotation().toRotation2d())
-                .getRadians())
+                .getDegrees())
         < ROTATION_THRESHOLD_DEGREES;
   }
 
