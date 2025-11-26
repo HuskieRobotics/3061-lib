@@ -151,6 +151,7 @@ public class CrossSubsystemsCommandsFactory {
 
   private static Command getDriveToPoseCommand(
       SwerveDrivetrain swerveDrivetrain, Elevator elevator, OperatorInterface oi) {
+    thetaController.enableContinuousInput(-Math.PI, Math.PI);
     return new DriveToPose(
             swerveDrivetrain,
             CrossSubsystemsCommandsFactory::getTargetPose,
