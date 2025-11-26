@@ -187,8 +187,11 @@ public class Vision extends SubsystemBase {
       robotPosesRejected.get(cameraIndex).clear();
 
       for (PoseObservation observation : inputs[cameraIndex].poseObservations) {
-        // only process the vision data if the timestamp is newer than the last one
-        if (this.lastTimestamps[cameraIndex] < observation.timestamp()) {
+        // only process the vision data if the timestamp is newer than the last one and if the
+        // timestamp is in the past (rarely an observation can report a timestamp in the future if
+        // the code has restarted and receives older data)
+        if (observation.timestamp() < Timer.getTimestamp()
+            && this.lastTimestamps[cameraIndex] < observation.timestamp()) {
 
           if (CALIBRATE_CAMERA_TRANSFORMS) {
             logCameraTransforms(cameraIndex, observation);
