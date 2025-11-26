@@ -1,6 +1,6 @@
 package frc.robot.commands;
 
-import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -11,7 +11,6 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
 import frc.robot.Field2d;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
@@ -37,12 +36,9 @@ import org.littletonrobotics.junction.Logger;
 public class DriveToPose extends Command {
   private final SwerveDrivetrain drivetrain;
   private final Supplier<Pose2d> targetPoseSupplier;
-  private final BiFunction<Double, Double, Double> xSupplier;
-  private final BiFunction<Double, Double, Double> ySupplier;
-  private final BiFunction<Double, Double, Double> thetaSupplier;
-  private final SlewRateLimiter xLimiter;
-  private final SlewRateLimiter yLimiter;
-  private final SlewRateLimiter thetaLimiter;
+  private final ProfiledPIDController xController;
+  private final ProfiledPIDController yController;
+  private final ProfiledPIDController thetaController;
   private Transform2d targetTolerance;
   private final boolean finishesWhenAtTarget;
   private final Consumer<Boolean> atTargetConsumer;
@@ -62,21 +58,11 @@ public class DriveToPose extends Command {
    *     specified instead of a pose since the target pose may not be known when this command is
    *     created. In addition, for more complex applications, this provides the opportunity for the
    *     target pose to change while this command executes.
-   * @param xSupplier a function that takes the current and target x positions in the frame of the
-   *     target pose and returns the x velocity in the frame of the target pose to drive at. The
-   *     function should return a value in meters per second. Most commonly, this will be be
-   *     calculated by a PID controller.
-   * @param ySupplier a function that takes the current and target y positions in the frame of the
-   *     target pose and returns the y velocity in the frame of the target pose to drive at. The
-   *     function should return a value in meters per second. Most commonly, this will be be
-   *     calculated by a PID controller. However, this enables other approaches such as fusing
-   *     driver input (like was done in 2025 when aligning to the barge).
-   * @param thetaSupplier a function that takes the current and target theta positions and returns
-   *     the theta velocity to drive at. The function should return a value in radians per second.
-   *     Most commonly, this will be be calculated by a PID controller.
-   * @param xLimiter the slew rate limiter for the x velocity in the frame of the target pose
-   * @param yLimiter the slew rate limiter for the y velocity in the frame of the target pose
-   * @param thetaLimiter the slew rate limiter for the theta velocity
+   * @param xController the profiled PID controller for controlling the x position in the frame of
+   *     the target pose
+   * @param yController the profiled PID controller for controlling the y position in the frame of
+   *     the target pose
+   * @param thetaController the profiled PID controller for controlling the theta position
    * @param targetTolerance the tolerance for determining if the robot has reached the target pose
    *     specified in meters. This tolerance is specified in the frame of the target pose, not in
    *     the field frame. If more complex logic is needed, the isPoseWithinTolerance method can be
@@ -100,12 +86,9 @@ public class DriveToPose extends Command {
   public DriveToPose(
       SwerveDrivetrain drivetrain,
       Supplier<Pose2d> targetPoseSupplier,
-      BiFunction<Double, Double, Double> xSupplier,
-      BiFunction<Double, Double, Double> ySupplier,
-      BiFunction<Double, Double, Double> thetaSupplier,
-      SlewRateLimiter xLimiter,
-      SlewRateLimiter yLimiter,
-      SlewRateLimiter thetaLimiter,
+      ProfiledPIDController xController,
+      ProfiledPIDController yController,
+      ProfiledPIDController thetaController,
       Transform2d targetTolerance,
       boolean finishesWhenAtTarget,
       Consumer<Boolean> atTargetConsumer,
@@ -113,12 +96,9 @@ public class DriveToPose extends Command {
       double timeout) {
     this.drivetrain = drivetrain;
     this.targetPoseSupplier = targetPoseSupplier;
-    this.xSupplier = xSupplier;
-    this.ySupplier = ySupplier;
-    this.thetaSupplier = thetaSupplier;
-    this.xLimiter = xLimiter;
-    this.yLimiter = yLimiter;
-    this.thetaLimiter = thetaLimiter;
+    this.xController = xController;
+    this.yController = yController;
+    this.thetaController = thetaController;
     this.targetTolerance = targetTolerance;
     this.finishesWhenAtTarget = finishesWhenAtTarget;
     this.atTargetConsumer = atTargetConsumer;
@@ -158,18 +138,6 @@ public class DriveToPose extends Command {
     Pose2d targetPose = targetPoseSupplier.get();
     Pose2d currentPose = drivetrain.getPose();
 
-    if (firstRun) {
-      // reset the limiters on the first run to prevent sudden jumps in velocity
-      ChassisSpeeds currentSpeeds = drivetrain.getRobotRelativeSpeeds();
-      Translation2d velocitiesInTargetFrame =
-          new Translation2d(currentSpeeds.vxMetersPerSecond, currentSpeeds.vyMetersPerSecond)
-              .rotateBy(targetPose.getRotation().unaryMinus());
-
-      xLimiter.reset(velocitiesInTargetFrame.getX());
-      yLimiter.reset(velocitiesInTargetFrame.getY());
-      thetaLimiter.reset(currentSpeeds.omegaRadiansPerSecond);
-    }
-
     // calculate the pose difference in the frame of the field
     Transform2d fieldRelativeDifference =
         new Transform2d(
@@ -186,16 +154,25 @@ public class DriveToPose extends Command {
             this.poseDifferenceInTargetFrame.getY(),
             this.poseDifferenceInTargetFrame.getRotation());
 
-    // calculate new velocities in the frame of the target pose
-    double xVelocityInTargetFrame = xSupplier.apply(currentPoseInTargetFrame.getX(), 0.0);
-    double yVelocityInTargetFrame = ySupplier.apply(currentPoseInTargetFrame.getY(), 0.0);
-    double thetaVelocity =
-        thetaSupplier.apply(currentPoseInTargetFrame.getRotation().getRadians(), 0.0);
+    if (firstRun) {
+      // reset the profiled PID controllers on the first run
+      ChassisSpeeds currentSpeeds = drivetrain.getRobotRelativeSpeeds();
+      Translation2d velocitiesInTargetFrame =
+          new Translation2d(currentSpeeds.vxMetersPerSecond, currentSpeeds.vyMetersPerSecond)
+              .rotateBy(targetPose.getRotation().unaryMinus());
 
-    // apply the slew rate limiters
-    xVelocityInTargetFrame = xLimiter.calculate(xVelocityInTargetFrame);
-    yVelocityInTargetFrame = yLimiter.calculate(yVelocityInTargetFrame);
-    thetaVelocity = thetaLimiter.calculate(thetaVelocity);
+      xController.reset(this.poseDifferenceInTargetFrame.getX(), velocitiesInTargetFrame.getX());
+      yController.reset(this.poseDifferenceInTargetFrame.getY(), velocitiesInTargetFrame.getY());
+      thetaController.reset(
+          this.poseDifferenceInTargetFrame.getRotation().getRadians(),
+          currentSpeeds.omegaRadiansPerSecond);
+    }
+
+    // calculate new velocities in the frame of the target pose
+    double xVelocityInTargetFrame = xController.calculate(currentPoseInTargetFrame.getX(), 0.0);
+    double yVelocityInTargetFrame = yController.calculate(currentPoseInTargetFrame.getY(), 0.0);
+    double thetaVelocity =
+        thetaController.calculate(currentPoseInTargetFrame.getRotation().getRadians(), 0.0);
 
     // opportunity to adjust velocities in the robot frame
     Translation2d velocitiesInTargetFrame =
