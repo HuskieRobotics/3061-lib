@@ -3,6 +3,7 @@ package frc.lib.team3061.leds;
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.util.Color;
+import edu.wpi.first.wpilibj.util.Color8Bit;
 import frc.robot.Constants;
 
 public class LEDsRIO extends LEDs {
@@ -57,6 +58,11 @@ public class LEDsRIO extends LEDs {
         buffer.setHSV(ACTUAL_LENGTH - index - 1, h, s, v);
       }
     }
+  }
+
+  @Override
+  public Color8Bit getColor(int index) {
+    return new Color8Bit(buffer.getLED(index));
   }
 
   static Color changeToGRB(Color color) {

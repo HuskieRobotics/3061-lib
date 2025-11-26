@@ -52,6 +52,7 @@ import frc.robot.subsystems.manipulator.ManipulatorIOTalonFX;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShooterIO;
 import frc.robot.subsystems.shooter.ShooterIOTalonFX;
+import frc.robot.visualizations.RobotVisualization;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -74,6 +75,7 @@ public class RobotContainer {
   private Elevator elevator;
   private Manipulator manipulator;
   private Shooter shooter;
+  private RobotVisualization visualization;
 
   private final LoggedNetworkNumber endgameAlert1 =
       new LoggedNetworkNumber("/Tuning/Endgame Alert #1", 20.0);
@@ -145,6 +147,7 @@ public class RobotContainer {
       elevator = new Elevator(new ElevatorIO() {});
       manipulator = new Manipulator(new ManipulatorIO() {});
       shooter = new Shooter(new ShooterIO() {});
+      visualization = new RobotVisualization(elevator);
     }
 
     // disable all telemetry in the LiveWindow to reduce the processing during each iteration
@@ -222,6 +225,7 @@ public class RobotContainer {
     elevator = new Elevator(new ElevatorIOTalonFX());
     manipulator = new Manipulator(new ManipulatorIOTalonFX());
     shooter = new Shooter(new ShooterIOTalonFX());
+    visualization = new RobotVisualization(elevator);
   }
 
   private void createCTRESimSubsystems() {
@@ -254,6 +258,7 @@ public class RobotContainer {
     elevator = new Elevator(new ElevatorIOTalonFX());
     manipulator = new Manipulator(new ManipulatorIOTalonFX());
     shooter = new Shooter(new ShooterIOTalonFX());
+    visualization = new RobotVisualization(elevator);
   }
 
   private void createXRPSubsystems() {
@@ -264,6 +269,7 @@ public class RobotContainer {
     elevator = new Elevator(new ElevatorIO() {});
     manipulator = new Manipulator(new ManipulatorIO() {});
     shooter = new Shooter(new ShooterIO() {});
+    visualization = new RobotVisualization(elevator);
   }
 
   private void createPracticeBoardSubsystems() {
@@ -276,6 +282,7 @@ public class RobotContainer {
     elevator = new Elevator(new ElevatorIO() {});
     manipulator = new Manipulator(new ManipulatorIO() {});
     shooter = new Shooter(new ShooterIO() {});
+    visualization = new RobotVisualization(elevator);
   }
 
   private void createVisionTestPlatformSubsystems() {
@@ -304,6 +311,7 @@ public class RobotContainer {
     elevator = new Elevator(new ElevatorIO() {});
     manipulator = new Manipulator(new ManipulatorIO() {});
     shooter = new Shooter(new ShooterIO() {});
+    visualization = new RobotVisualization(elevator);
   }
 
   /**
@@ -406,6 +414,7 @@ public class RobotContainer {
 
   public void periodic() {
     // add robot-wide periodic code here
+    visualization.updateViz();
   }
 
   public void autonomousInit() {
