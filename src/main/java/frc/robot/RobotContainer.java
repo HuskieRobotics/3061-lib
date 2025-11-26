@@ -414,7 +414,7 @@ public class RobotContainer {
 
   public void periodic() {
     // add robot-wide periodic code here
-    visualization.updateViz();
+    visualization.update();
   }
 
   public void autonomousInit() {
