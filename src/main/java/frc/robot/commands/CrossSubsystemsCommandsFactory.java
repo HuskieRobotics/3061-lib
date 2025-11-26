@@ -26,12 +26,18 @@ import java.util.List;
 
 public class CrossSubsystemsCommandsFactory {
 
-  private static final LoggedTunableNumber driveKp =
+  private static final LoggedTunableNumber driveXKp =
       new LoggedTunableNumber(
-          "DriveToPoseExample/DriveKp", RobotConfig.getInstance().getDriveToPoseDriveKP());
-  private static final LoggedTunableNumber driveKd =
+          "DriveToPoseExample/DriveXKp", RobotConfig.getInstance().getDriveToPoseDriveXKP());
+  private static final LoggedTunableNumber driveYKp =
       new LoggedTunableNumber(
-          "DriveToPoseExample/DriveKd", RobotConfig.getInstance().getDriveToPoseDriveKD());
+          "DriveToPoseExample/DriveYKp", RobotConfig.getInstance().getDriveToPoseDriveYKP());
+  private static final LoggedTunableNumber driveXKd =
+      new LoggedTunableNumber(
+          "DriveToPoseExample/DriveXKd", RobotConfig.getInstance().getDriveToPoseDriveXKD());
+  private static final LoggedTunableNumber driveYKd =
+      new LoggedTunableNumber(
+          "DriveToPoseExample/DriveYKd", RobotConfig.getInstance().getDriveToPoseDriveYKD());
   private static final LoggedTunableNumber driveKi =
       new LoggedTunableNumber("DriveToPoseExample/DriveKi", 0);
   private static final LoggedTunableNumber thetaKp =
@@ -45,9 +51,9 @@ public class CrossSubsystemsCommandsFactory {
           "DriveToPoseExample/ThetaKi", RobotConfig.getInstance().getDriveToPoseThetaKI());
 
   private static PIDController xController =
-      new PIDController(driveKp.get(), driveKi.get(), driveKd.get(), LOOP_PERIOD_SECS);
+      new PIDController(driveXKp.get(), driveKi.get(), driveXKd.get(), LOOP_PERIOD_SECS);
   private static PIDController yController =
-      new PIDController(driveKp.get(), driveKi.get(), driveKd.get(), LOOP_PERIOD_SECS);
+      new PIDController(driveYKp.get(), driveKi.get(), driveYKd.get(), LOOP_PERIOD_SECS);
   private static PIDController thetaController =
       new PIDController(thetaKp.get(), thetaKi.get(), thetaKd.get(), LOOP_PERIOD_SECS);
 
@@ -157,9 +163,9 @@ public class CrossSubsystemsCommandsFactory {
           xController.setPID(pid[0], pid[1], pid[2]);
           yController.setPID(pid[0], pid[1], pid[2]);
         },
-        driveKp,
+        driveXKp,
         driveKi,
-        driveKd);
+        driveXKd);
     return xController.calculate(currentX, targetX);
   }
 
@@ -170,9 +176,9 @@ public class CrossSubsystemsCommandsFactory {
           xController.setPID(pid[0], pid[1], pid[2]);
           yController.setPID(pid[0], pid[1], pid[2]);
         },
-        driveKp,
+        driveYKp,
         driveKi,
-        driveKd);
+        driveYKd);
     return yController.calculate(currentY, targetY);
   }
 
