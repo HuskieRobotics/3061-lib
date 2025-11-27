@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.util.Color;
+import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.team6328.util.LoggedTracer;
 import frc.robot.Constants;
@@ -341,6 +342,8 @@ public abstract class LEDs extends SubsystemBase {
   protected abstract void updateLEDs();
 
   protected abstract void setLEDBuffer(int index, Color color);
+
+  public abstract Color8Bit getColor(int index);
 
   private void solid(Section section, Color color) {
     if (color != null) {
