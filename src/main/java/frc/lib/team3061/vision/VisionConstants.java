@@ -96,7 +96,7 @@ public final class VisionConstants {
       new LoggedTunableNumber("AprilTagVision/TimestampOffset", 0.0);
 
   private static int monoExposure = 2200;
-  private static double monoGain = 0.0;
+  private static double monoGain = 17.5;
   private static double monoDenoise = 1.0;
   private static int colorExposure = 4500;
   private static double colorGain = 5.0;
@@ -122,22 +122,21 @@ public final class VisionConstants {
         case ROBOT_NORTHSTAR_TEST_PLATFORM -> new CameraConfig[] {
           CameraConfig.builder()
               .pose(() -> new Pose3d(0.0, 0.0, 0.0, new Rotation3d(0.0, 0.0, 0.0)))
-              .id("40686739")
-              .width(1600)
-              .height(1200)
-              .autoExposure(0)
-              .exposure(monoExposure)
-              .gain(monoGain)
+              .id("25249734")
+              .width(1280)
+              .height(960)
+              .exposure(colorExposure)
+              .gain(colorGain)
               .stdDevFactor(1.0)
               .build(),
           CameraConfig.builder()
               .pose(() -> new Pose3d(0.0, 0.0, 0.0, new Rotation3d(0.0, 0.0, 0.0)))
-              .id("25249734")
-              .width(1600)
+              .id("40686739")
+              .width(1920)
               .height(1200)
-              .autoExposure(0)
               .exposure(monoExposure)
               .gain(monoGain)
+              .denoise(monoDenoise)
               .stdDevFactor(1.0)
               .build()
         };
