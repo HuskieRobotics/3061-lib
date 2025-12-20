@@ -18,8 +18,6 @@ import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.swerve_drivetrain.swerve.SwerveConstants;
 
 public class NewPracticeRobotConfig extends RobotConfig {
-  // 2 mk4n's on the front, 2 mk4is on the back
-
   private static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 43;
   private static final int FRONT_LEFT_MODULE_STEER_MOTOR = 44;
   private static final int FRONT_LEFT_MODULE_STEER_ENCODER = 14;
@@ -234,17 +232,7 @@ public class NewPracticeRobotConfig extends RobotConfig {
 
   @Override
   public SwerveConstants getSwerveConstants() {
-    return SwerveConstants.MK4N_L3_PLUS_CONSTANTS;
-  }
-
-  @Override
-  public SwerveConstants getFrontSwerveConstants() {
-    return SwerveConstants.MK4N_L3_PLUS_CONSTANTS;
-  }
-
-  @Override
-  public SwerveConstants getBackSwerveConstants() {
-    return SwerveConstants.MK4I_L3_PLUS_CONSTANTS;
+    return SwerveConstants.MK5N_R2_CONSTANTS;
   }
 
   @Override

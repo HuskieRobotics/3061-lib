@@ -1,6 +1,6 @@
 # 3061-lib </br>
 
-Huskie Robotics, FRC Team 3061's, starter project and library focused on a swerve-based drivetrain. Supports Swerve Drive Specialties (SDS) MK4/MK4i/MK4n swerve modules using devices from Cross the Road Electronics (CTRE): 2 Falcon 500 / Kraken motors and a CTRE CANCoder, a CTRE Pigeon Gyro along with REV Robotics power distribution hub and pneumatics hub. While, due to the hardware abstraction layer, this code can be adapted to other motor controllers, encoders, and gyros as well as different swerve module designs, only CTRE devices and SDS swerve modules are supported "out of the box."
+Huskie Robotics, FRC Team 3061's, starter project and library focused on a swerve-based drivetrain. Supports Swerve Drive Specialties (SDS) MK4/MK4i/MK4n/MK5n swerve modules using devices from Cross the Road Electronics (CTRE): 2 Falcon 500 / Kraken motors and a CTRE CANCoder, a CTRE Pigeon Gyro along with REV Robotics power distribution hub and pneumatics hub. While, due to the hardware abstraction layer, this code can be adapted to other motor controllers, encoders, and gyros as well as different swerve module designs, only CTRE devices and SDS swerve modules are supported "out of the box."
 
 **Is 3061-lib a Good Fit for Your Team?**
 ----
