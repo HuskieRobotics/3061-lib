@@ -113,8 +113,6 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
 
   private final SwerveRobotOdometry odometry;
   private int constrainPoseToFieldCount = 0;
-  private Pose2d prevRobotPose = new Pose2d();
-  private int teleportedCount = 0;
 
   private Pose2d customPose = new Pose2d();
 
@@ -383,7 +381,6 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
   public void resetPose(Pose2d pose) {
     this.odometry.resetPose(
         Rotation2d.fromDegrees(this.inputs.drivetrain.rawHeadingDeg), this.modulePositions, pose);
-    this.prevRobotPose = pose;
   }
 
   /**
@@ -603,18 +600,6 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
         pose.transformBy(
             new Transform2d(
                 RobotConfig.getInstance().getFrontRightCornerPosition(), new Rotation2d())));
-
-    // check for teleportation
-    if (ENABLE_TELEPORT_DETECTION
-        && pose.minus(prevRobotPose).getTranslation().getNorm()
-            > TELEPORT_DETECTION_THRESHOLD_METERS) {
-      this.resetPose(prevRobotPose);
-      this.teleportedCount++;
-      Logger.recordOutput(SUBSYSTEM_NAME + "/TeleportedPose", pose);
-      Logger.recordOutput(SUBSYSTEM_NAME + "/TeleportCount", this.teleportedCount);
-    } else {
-      this.prevRobotPose = pose;
-    }
 
     // check for position outside the field due to slipping
     if (pose.getX() < 0) {

@@ -10,9 +10,6 @@ public class SwerveDrivetrainConstants {
 
   public static final String SUBSYSTEM_NAME = "Drivetrain";
 
-  public static final boolean ENABLE_TELEPORT_DETECTION = false;
-  public static final double TELEPORT_DETECTION_THRESHOLD_METERS = 0.4;
-
   public static final double DEMO_MODE_MAX_VELOCITY = 0.5;
 
   public static final double TILT_THRESHOLD_DEG = 5.0;
