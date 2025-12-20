@@ -2,6 +2,7 @@ package frc.lib.team3061;
 
 import static edu.wpi.first.units.Units.*;
 
+import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
 import com.pathplanner.lib.config.ModuleConfig;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -553,6 +554,16 @@ public abstract class RobotConfig {
    */
   public String getCANBusName() {
     return "";
+  }
+
+  /**
+   * Returns a reference to the CanBus object for the CAN bus. Defaults to the default CANbus which
+   * is for the default (non-FD) CAN bus)
+   *
+   * @return the reference to the CanBus object for the CAN bus
+   */
+  public CANBus getCANBus() {
+    return CANBus.roboRIO();
   }
 
   /**

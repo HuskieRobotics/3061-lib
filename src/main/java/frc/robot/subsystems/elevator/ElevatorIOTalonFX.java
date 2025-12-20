@@ -6,12 +6,13 @@ import static frc.robot.subsystems.elevator.ElevatorConstants.*;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.DynamicMotionMagicExpoVoltage;
 import com.ctre.phoenix6.controls.Follower;
-import com.ctre.phoenix6.controls.MotionMagicExpoVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.util.Units;
@@ -36,7 +37,7 @@ public class ElevatorIOTalonFX implements ElevatorIO {
   private TalonFX elevatorMotorFollower;
 
   // We usually use MotionMagic Expo voltage to control the position of a mechanism.
-  private MotionMagicExpoVoltage leadPositionRequest;
+  private DynamicMotionMagicExpoVoltage leadPositionRequest;
   private VoltageOut leadVoltageRequest;
 
   private Alert leadConfigAlert =
@@ -91,9 +92,9 @@ public class ElevatorIOTalonFX implements ElevatorIO {
   public ElevatorIOTalonFX() {
 
     elevatorMotorLead =
-        new TalonFX(ElevatorConstants.LEAD_MOTOR_ID, RobotConfig.getInstance().getCANBusName());
+        new TalonFX(ElevatorConstants.LEAD_MOTOR_ID, RobotConfig.getInstance().getCANBus());
     elevatorMotorFollower =
-        new TalonFX(ElevatorConstants.FOLLOWER_MOTOR_ID, RobotConfig.getInstance().getCANBusName());
+        new TalonFX(ElevatorConstants.FOLLOWER_MOTOR_ID, RobotConfig.getInstance().getCANBus());
 
     leadStatorCurrent = elevatorMotorLead.getStatorCurrent();
     followerStatorCurrent = elevatorMotorFollower.getStatorCurrent();
@@ -127,7 +128,7 @@ public class ElevatorIOTalonFX implements ElevatorIO {
         elevatorFollowerTempStatusSignal,
         elevatorVelocityStatusSignal);
 
-    leadPositionRequest = new MotionMagicExpoVoltage(0);
+    leadPositionRequest = new DynamicMotionMagicExpoVoltage(0, 0, kVExpo.get(), kAExpo.get());
     leadVoltageRequest = new VoltageOut(0);
 
     configElevatorMotorLead(elevatorMotorLead);
@@ -135,7 +136,8 @@ public class ElevatorIOTalonFX implements ElevatorIO {
 
     // Set the control for the follower motor to follow the lead motor. Whether the follower opposes
     // the direction of the lead depends on the mechanical design of the elevator.
-    elevatorMotorFollower.setControl(new Follower(elevatorMotorLead.getDeviceID(), true));
+    elevatorMotorFollower.setControl(
+        new Follower(elevatorMotorLead.getDeviceID(), MotorAlignmentValue.Opposed));
 
     // Create a simulation object for the elevator. The specific parameters for the simulation
     // are determined based on the mechanical design of the elevator. The ElevatorSystemSim class

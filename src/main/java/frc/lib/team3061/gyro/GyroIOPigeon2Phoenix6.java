@@ -35,7 +35,7 @@ public class GyroIOPigeon2Phoenix6 implements GyroIO {
   private final Pigeon2SimState gyroSim;
 
   public GyroIOPigeon2Phoenix6(int id) {
-    gyro = new Pigeon2(id, RobotConfig.getInstance().getCANBusName());
+    gyro = new Pigeon2(id, RobotConfig.getInstance().getCANBus());
     this.yawStatusSignal = this.gyro.getYaw();
     this.yawStatusSignal.setUpdateFrequency(SIGNAL_UPDATE_FREQUENCY_HZ);
     this.pitchStatusSignal = this.gyro.getPitch();

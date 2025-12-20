@@ -332,11 +332,6 @@ public class PracticeBoardConfig extends RobotConfig {
   }
 
   @Override
-  public String getCANBusName() {
-    return CAN_BUS_NAME;
-  }
-
-  @Override
   public String[] getCameraNames() {
     return new String[] {CAMERA_NAME_0, CAMERA_NAME_1};
   }
