@@ -2,6 +2,7 @@ package frc.lib.team3061.swerve_drivetrain;
 
 import static edu.wpi.first.units.Units.*;
 import static frc.lib.team3061.swerve_drivetrain.SwerveDrivetrainConstants.*;
+import static frc.robot.Constants.*;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
@@ -441,6 +442,58 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
     inputs.drivetrain.swerveModulePositions = this.getState().ModulePositions;
     inputs.drivetrain.swerveMeasuredStates = this.getState().ModuleStates;
     inputs.drivetrain.swerveReferenceStates = this.getState().ModuleTargets;
+
+    if (TUNING_MODE) {
+      double averageMeasuredRotations = 0.0;
+      double averageReferenceRotations = 0.0;
+      inputs.drivetrain.averageSwerveMeasuredSpeedMetersPerSecond = 0.0;
+      inputs.drivetrain.averageSwerveReferenceSpeedMetersPerSecond = 0.0;
+
+      // to facilitate tuning, coerce the measured swerve module states' positions to 0 to 0.5 so
+      // they can be compared to the reference positions; we coerce to 0.5 instead of 1.0 since the
+      // swerve module may run the drive motor backward to move to a closer position.
+      for (int i = 0; i < inputs.drivetrain.swerveMeasuredStates.length; i++) {
+        double measuredRotations = inputs.drivetrain.swerveMeasuredStates[i].angle.getRotations();
+        double referenceRotations = inputs.drivetrain.swerveReferenceStates[i].angle.getRotations();
+
+        // subtract the integer portion of the rotations
+        measuredRotations = measuredRotations - Math.floor(measuredRotations);
+        referenceRotations = referenceRotations - Math.floor(referenceRotations);
+
+        // if rotations is negative, add 1 to make it positive
+        if (measuredRotations < 0) {
+          measuredRotations += 1.0;
+        }
+        if (referenceRotations < 0) {
+          referenceRotations += 1.0;
+        }
+
+        // if rotations is greater than 0.5, subtract 0.5 to coerce it to the range [0, 0.5]
+        if (measuredRotations > 0.5) {
+          measuredRotations -= 0.5;
+        }
+        if (referenceRotations > 0.5) {
+          referenceRotations -= 0.5;
+        }
+
+        averageMeasuredRotations += measuredRotations;
+        averageReferenceRotations += referenceRotations;
+        inputs.drivetrain.averageSwerveMeasuredSpeedMetersPerSecond +=
+            Math.abs(inputs.drivetrain.swerveMeasuredStates[i].speedMetersPerSecond);
+        inputs.drivetrain.averageSwerveReferenceSpeedMetersPerSecond +=
+            Math.abs(inputs.drivetrain.swerveReferenceStates[i].speedMetersPerSecond);
+      }
+      inputs.drivetrain.averageSwerveMeasuredAngle =
+          Rotation2d.fromRotations(
+              averageMeasuredRotations / inputs.drivetrain.swerveMeasuredStates.length);
+      inputs.drivetrain.averageSwerveReferenceAngle =
+          Rotation2d.fromRotations(
+              averageReferenceRotations / inputs.drivetrain.swerveReferenceStates.length);
+      inputs.drivetrain.averageSwerveMeasuredSpeedMetersPerSecond /=
+          inputs.drivetrain.swerveMeasuredStates.length;
+      inputs.drivetrain.averageSwerveReferenceSpeedMetersPerSecond /=
+          inputs.drivetrain.swerveReferenceStates.length;
+    }
 
     inputs.drivetrain.referenceChassisSpeeds =
         new ChassisSpeeds(
