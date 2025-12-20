@@ -2,9 +2,9 @@
   "hubs": [
     {
       "x": 619,
-      "y": 25,
+      "y": 30,
       "width": 1343,
-      "height": 1127,
+      "height": 1122,
       "state": {
         "sidebar": {
           "width": 300,
@@ -98,11 +98,12 @@
             "/RealOutputs/DriveToPose/pose difference (target frame)",
             "/RealOutputs/DriveToPose/pose difference (target frame)/translation",
             "/RealOutputs/DriveToPose/pose difference (field frame)",
-            "/RealOutputs/DriveToPose/pose difference (field frame)/translation"
+            "/RealOutputs/DriveToPose/pose difference (field frame)/translation",
+            "/Drivetrain"
           ]
         },
         "tabs": {
-          "selected": 1,
+          "selected": 7,
           "tabs": [
             {
               "type": 0,
@@ -317,9 +318,9 @@
                 "cameraIndex": -1,
                 "orbitFov": 50,
                 "cameraPosition": [
-                  5.63949716376335,
+                  5.639497163763351,
                   1.1098085590481928,
-                  -2.2326330712457105
+                  -2.232633071245711
                 ],
                 "cameraTarget": [
                   5.7355498277028945,
@@ -625,19 +626,17 @@
                 "leftSources": [
                   {
                     "type": "stepped",
-                    "logKey": "/Drivetrain/SwerveMeasuredStates/0/angle/value",
+                    "logKey": "/Drivetrain/AverageSwerveMeasuredAngle/value",
                     "logType": "Number",
                     "visible": true,
                     "options": {
                       "color": "#2b66a2",
                       "size": "normal"
                     }
-                  }
-                ],
-                "rightSources": [
+                  },
                   {
                     "type": "stepped",
-                    "logKey": "/Drivetrain/SwerveReferenceStates/0/angle/value",
+                    "logKey": "/Drivetrain/AverageSwerveReferenceAngle/value",
                     "logType": "Number",
                     "visible": true,
                     "options": {
@@ -646,6 +645,7 @@
                     }
                   }
                 ],
+                "rightSources": [],
                 "discreteSources": [
                   {
                     "type": "stripes",
@@ -708,21 +708,21 @@
                 "leftSources": [
                   {
                     "type": "stepped",
-                    "logKey": "/Drivetrain/SwerveMeasuredStates/0/speed",
+                    "logKey": "/Drivetrain/AverageSwerveMeasuredSpeedMetersPerSecond",
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#2b66a2",
+                      "color": "#858584",
                       "size": "normal"
                     }
                   },
                   {
                     "type": "stepped",
-                    "logKey": "/Drivetrain/SwerveReferenceStates/0/speed",
+                    "logKey": "/Drivetrain/AverageSwerveReferenceSpeedMetersPerSecond",
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#e5b31b",
+                      "color": "#2b66a2",
                       "size": "normal"
                     }
                   }

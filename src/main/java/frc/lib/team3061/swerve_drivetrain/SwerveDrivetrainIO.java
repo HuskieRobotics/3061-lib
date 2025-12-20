@@ -76,6 +76,11 @@ public interface SwerveDrivetrainIO {
     double[] odometryTimestamps = new double[] {};
     double[] odometryCTRETimestamps = new double[] {};
     Rotation2d[] odometryYawPositions = new Rotation2d[] {};
+
+    Rotation2d averageSwerveReferenceAngle = new Rotation2d();
+    Rotation2d averageSwerveMeasuredAngle = new Rotation2d();
+    double averageSwerveMeasuredSpeedMetersPerSecond = 0.0;
+    double averageSwerveReferenceSpeedMetersPerSecond = 0.0;
   }
 
   public static class SwerveDrivetrainIOInputsCollection {
