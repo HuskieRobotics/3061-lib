@@ -56,7 +56,7 @@ public class Elevator extends SubsystemBase {
       new Alert("Elevator jam detected. Use manual control.", AlertType.kError);
 
   private CurrentSpikeDetector jamDetector =
-      new CurrentSpikeDetector(JAMMED_CURRENT, JAMMED_TIME_THRESHOLD_SECONDS);
+      new CurrentSpikeDetector(JAMMED_CURRENT_AMPS, JAMMED_TIME_THRESHOLD_SECONDS);
 
   private final Debouncer atSetpointDebouncer = new Debouncer(0.1);
 
@@ -84,8 +84,7 @@ public class Elevator extends SubsystemBase {
               Volts.of(2.0), // override default step voltage (7 V)
               null, // Use default timeout (10 s)
               state -> SignalLogger.writeString("SysId_State", state.toString())),
-          new SysIdRoutine.Mechanism(
-              output -> elevatorIO.setMotorVoltage(output.in(Volts)), null, this));
+          new SysIdRoutine.Mechanism(output -> elevatorIO.setMotorVoltage(output), null, this));
 
   public Elevator(ElevatorIO io) {
 
@@ -121,11 +120,11 @@ public class Elevator extends SubsystemBase {
     // elevator, request a jammed state on the LEDs, and generate an alert. We don't directly stop
     // the elevator using the io object as that won't interrupt commands that are currently using
     // the elevator.
-    if (jamDetector.update(Math.abs(inputs.statorCurrentAmpsLead))) {
+    if (jamDetector.update(Math.abs(inputs.statorCurrentLead.in(Amps)))) {
       CommandScheduler.getInstance()
           .schedule(
               Commands.sequence(
-                      Commands.runOnce(() -> elevatorIO.setMotorVoltage(0), this),
+                      Commands.runOnce(() -> elevatorIO.setMotorVoltage(Volts.of(0.0)), this),
                       Commands.run(
                               () -> LEDs.getInstance().requestState(LEDs.States.ELEVATOR_JAMMED))
                           .withTimeout(1.0))
@@ -139,7 +138,7 @@ public class Elevator extends SubsystemBase {
     // specified voltage (if not zero).
     if (testingMode.get() == 1) {
       if (elevatorVoltage.get() != 0) {
-        elevatorIO.setMotorVoltage(elevatorVoltage.get());
+        elevatorIO.setMotorVoltage(Volts.of(elevatorVoltage.get()));
       } else if (elevatorHeightInches.get() != 0) {
         elevatorIO.setPosition(Inches.of(elevatorHeightInches.get()));
       }
@@ -178,7 +177,7 @@ public class Elevator extends SubsystemBase {
 
   public boolean isAtPosition(Positions position) {
     return atSetpointDebouncer.calculate(
-        getPosition().minus(positionToDistance(position)).abs(Inches) < TOLERANCE_INCHES);
+        getPosition().isNear(positionToDistance(position), LINEAR_POSITION_TOLERANCE));
   }
 
   public Command getElevatorSystemCheckCommand() {
@@ -222,7 +221,7 @@ public class Elevator extends SubsystemBase {
   }
 
   public Distance getPosition() {
-    return Inches.of(inputs.positionInches);
+    return inputs.linearPosition;
   }
 
   public void raiseElevatorSlow() {
@@ -234,7 +233,7 @@ public class Elevator extends SubsystemBase {
   }
 
   public void stop() {
-    elevatorIO.setMotorVoltage(0);
+    elevatorIO.setMotorVoltage(Volts.of(0.0));
   }
 
   public void zero() {

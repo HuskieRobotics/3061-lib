@@ -3,6 +3,7 @@ package frc.robot.subsystems.elevator;
 import static edu.wpi.first.units.Units.*;
 
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.Voltage;
 
 public class ElevatorConstants {
 
@@ -30,18 +31,18 @@ public class ElevatorConstants {
 
   // the following are determined based on the mechanical design of the elevator
   public static final boolean IS_INVERTED = true;
-  public static final double PULLEY_CIRCUMFERENCE_INCHES = 5.9055;
+  public static final Distance PULLEY_CIRCUMFERENCE = Inches.of(5.9055);
   public static final int GEAR_RATIO = 5;
   public static final double ELEVATOR_MASS_KG = 4.5;
   public static final Distance MAX_HEIGHT = Inches.of(74);
   public static final Distance MIN_HEIGHT = Inches.of(0.0);
-  public static final double TOLERANCE_INCHES = 0.25;
+  public static final Distance LINEAR_POSITION_TOLERANCE = Inches.of(0.25);
 
-  public static final double ELEVATOR_RAISE_SLOW_VOLTAGE = 2.0;
-  public static final double ELEVATOR_LOWERING_SLOW_VOLTAGE = -2.0;
+  public static final Voltage ELEVATOR_RAISE_SLOW_VOLTAGE = Volts.of(2.0);
+  public static final Voltage ELEVATOR_LOWERING_SLOW_VOLTAGE = Volts.of(-2.0);
 
   // This is the current we watch for to detect that the elevator is jammed and needs to be stopped.
-  public static final double JAMMED_CURRENT = 59.0;
+  public static final double JAMMED_CURRENT_AMPS = 59.0;
   public static final double JAMMED_TIME_THRESHOLD_SECONDS = 0.1;
 
   // Supply current limits are determined based on current budget for the robot and stator current

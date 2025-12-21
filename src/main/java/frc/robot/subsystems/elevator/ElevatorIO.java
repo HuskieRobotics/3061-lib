@@ -1,6 +1,13 @@
 package frc.robot.subsystems.elevator;
 
+import static edu.wpi.first.units.Units.*;
+
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.Temperature;
+import edu.wpi.first.units.measure.Voltage;
 import org.littletonrobotics.junction.AutoLog;
 
 /** Generic subsystem hardware interface. */
@@ -18,25 +25,24 @@ public interface ElevatorIO {
     boolean connectedLead = false;
     boolean connectedFollower = false;
 
-    double voltageSuppliedLead = 0.0;
-    double voltageSuppliedFollower = 0.0;
+    Voltage voltageSuppliedLead = Volts.of(0.0);
+    Voltage voltageSuppliedFollower = Volts.of(0.0);
 
-    double statorCurrentAmpsLead = 0.0;
-    double statorCurrentAmpsFollower = 0.0;
+    Current statorCurrentLead = Amps.of(0.0);
+    Current statorCurrentFollower = Amps.of(0.0);
+    Current supplyCurrentLead = Amps.of(0.0);
+    Current supplyCurrentFollower = Amps.of(0.0);
 
-    double supplyCurrentAmpsLead = 0.0;
-    double supplyCurrentAmpsFollower = 0.0;
+    AngularVelocity velocity = RotationsPerSecond.of(0.0);
 
-    double velocityRPS = 0.0;
+    Angle closedLoopError = Rotations.of(0.0);
+    Angle closedLoopReference = Rotations.of(0.0);
 
-    double closedLoopError = 0.0;
-    double closedLoopReference = 0.0;
+    Distance linearPosition = Meters.of(0.0);
+    Angle angularPosition = Rotations.of(0.0);
 
-    double positionInches = 0.0;
-    double positionRotations = 0.0;
-
-    double leadTempCelsius = 0.0;
-    double followerTempCelsius = 0.0;
+    Temperature leadTemp = Celsius.of(0.0);
+    Temperature followerTemp = Celsius.of(0.0);
   }
 
   /** Updates the set of loggable inputs. */
@@ -51,5 +57,5 @@ public interface ElevatorIO {
 
   public default void zeroPosition() {}
 
-  public default void setMotorVoltage(double volts) {}
+  public default void setMotorVoltage(Voltage volts) {}
 }
