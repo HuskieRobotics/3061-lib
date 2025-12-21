@@ -29,7 +29,6 @@ import frc.lib.team254.Phoenix6Util;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.leds.LEDs;
 import frc.lib.team6328.util.LoggedTracer;
-import frc.lib.team6328.util.NTClientLogger;
 import frc.robot.Constants.Mode;
 import frc.robot.commands.AutonomousCommandsFactory;
 import java.lang.reflect.Field;
@@ -268,9 +267,6 @@ public class Robot extends LoggedRobot {
           !canivoreErrorTimer.hasElapsed(CANIVORE_ERROR_TIME_THRESHOLD)
               && canInitialErrorTimer.hasElapsed(CAN_ERROR_TIME_THRESHOLD));
     }
-
-    // Log NT client list
-    NTClientLogger.log();
 
     // Update low battery alert
     if (DriverStation.isEnabled()) {
