@@ -43,5 +43,5 @@ public class ShooterConstants {
   public static final boolean SHOOT_TOP_INVERTED = false;
   public static final boolean SHOOT_BOTTOM_INVERTED = false;
   public static final AngularVelocity SHOOTER_IDLE_VELOCITY = RotationsPerSecond.of(10.0);
-  public static final double VELOCITY_TOLERANCE_RPS = 5.0;
+  public static final AngularVelocity VELOCITY_TOLERANCE = RotationsPerSecond.of(5.0);
 }
