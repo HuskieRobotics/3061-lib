@@ -1,5 +1,10 @@
 package frc.robot.subsystems.manipulator;
 
+import static edu.wpi.first.units.Units.*;
+
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 import org.littletonrobotics.junction.AutoLog;
 
@@ -17,11 +22,11 @@ public interface ManipulatorIO {
     boolean manipulatorConnected = false;
     boolean isManipulatorPrimaryIRBlocked = false;
     boolean isManipulatorSecondaryIRBlocked = false;
-    double manipulatorStatorCurrentAmps = 0;
-    double manipulatorSupplyCurrentAmps = 0;
-    double manipulatorTempCelsius = 0;
-    double manipulatorMotorVoltage = 0;
-    double manipulatorVelocityRPS = 0;
+    Current manipulatorStatorCurrent = Amps.of(0.0);
+    Current manipulatorSupplyCurrent = Amps.of(0.0);
+    Temperature manipulatorTemp = Celsius.of(0.0);
+    Voltage manipulatorMotorVoltage = Volts.of(0.0);
+    AngularVelocity manipulatorVelocity = RotationsPerSecond.of(0.0);
   }
 
   public default void updateInputs(ManipulatorIOInputs inputs) {}

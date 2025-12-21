@@ -29,6 +29,6 @@ public class ManipulatorConstants {
 
   // current limits are determined based on current budget for the robot
   public static final double MANIPULATOR_MOTOR_PEAK_CURRENT_LIMIT = 40;
-  public static final double COLLECTION_CURRENT_SPIKE_THRESHOLD = 35.0;
+  public static final double COLLECTION_CURRENT_SPIKE_THRESHOLD_AMPS = 35.0;
   public static final double COLLECTION_CURRENT_TIME_THRESHOLD_SECONDS = 0.1;
 }
