@@ -4,6 +4,7 @@
 
 package frc.lib.team3061.differential_drivetrain;
 
+import static edu.wpi.first.units.Units.*;
 import static frc.lib.team3061.differential_drivetrain.DifferentialDrivetrainConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -13,6 +14,8 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -51,7 +54,7 @@ public class DifferentialDrivetrain extends SubsystemBase {
         );
   }
 
-  public void arcadeDrive(double xVelocity, double rotationalVelocity) {
+  public void arcadeDrive(LinearVelocity xVelocity, AngularVelocity rotationalVelocity) {
 
     io.driveRobotRelative(xVelocity, rotationalVelocity, true);
   }
@@ -79,9 +82,9 @@ public class DifferentialDrivetrain extends SubsystemBase {
    */
   public void resetPose(Pose2d pose) {
     this.odometry.resetPose(
-        Rotation2d.fromDegrees(this.inputs.headingDeg),
-        this.inputs.leftPositionMeters,
-        this.inputs.rightPositionMeters,
+        Rotation2d.fromDegrees(this.inputs.heading.in(Degrees)),
+        this.inputs.leftPosition.in(Meters),
+        this.inputs.rightPosition.in(Meters),
         pose);
   }
 
@@ -95,8 +98,7 @@ public class DifferentialDrivetrain extends SubsystemBase {
     return RobotConfig.getInstance()
         .getDifferentialDriveKinematics()
         .toChassisSpeeds(
-            new DifferentialDriveWheelSpeeds(
-                this.inputs.leftVelocityMetersPerSecond, this.inputs.rightVelocityMetersPerSecond));
+            new DifferentialDriveWheelSpeeds(this.inputs.leftVelocity, this.inputs.rightVelocity));
   }
   /**
    * Applies the specified robot-relative speeds to the drivetrain along with the specified feed
@@ -131,9 +133,9 @@ public class DifferentialDrivetrain extends SubsystemBase {
     // update odometry
     this.odometry.updateWithTime(
         Timer.getFPGATimestamp(),
-        Rotation2d.fromDegrees(inputs.headingDeg),
-        inputs.leftPositionMeters,
-        inputs.rightPositionMeters);
+        Rotation2d.fromDegrees(inputs.heading.in(Degrees)),
+        inputs.leftPosition.in(Meters),
+        inputs.rightPosition.in(Meters));
 
     Pose2d pose = this.odometry.getEstimatedPose();
     Logger.recordOutput(SUBSYSTEM_NAME + "/Pose", pose);

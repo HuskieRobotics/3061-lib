@@ -4,7 +4,10 @@
 
 package frc.robot.commands;
 
+import static frc.lib.team3061.differential_drivetrain.DifferentialDrivetrainConstants.*;
+
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.differential_drivetrain.DifferentialDrivetrain;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
@@ -19,8 +22,8 @@ public class ArcadeDrive extends Command {
    * lambdas. This command does not terminate.
    *
    * @param drivetrain The drivetrain subsystem on which this command will run
-   * @param xVelocitySupplier Lambda supplier of forward/backward speed
-   * @param rotationVelocitySupplier Lambda supplier of rotational speed
+   * @param xVelocitySupplier Lambda supplier of forward/backward speed [-1.0, 1.0]
+   * @param rotationVelocitySupplier Lambda supplier of rotational speed [-1.0, 1.0]
    */
   public ArcadeDrive(
       DifferentialDrivetrain drivetrain,
@@ -43,10 +46,15 @@ public class ArcadeDrive extends Command {
     double xVelocity = xVelocitySupplier.get();
     double rotationalVelocity = rotationVelocitySupplier.get();
 
-    drivetrain.arcadeDrive(xVelocity, rotationalVelocity);
+    drivetrain.arcadeDrive(
+        RobotConfig.getInstance().getRobotMaxVelocity().times(xVelocity),
+        RobotConfig.getInstance().getRobotMaxAngularVelocity().times(rotationalVelocity));
 
-    Logger.recordOutput("ArcadeDrive/xVelocity", xVelocity);
-    Logger.recordOutput("ArcadeDrive/rotationalVelocity", rotationalVelocity);
+    Logger.recordOutput(
+        "ArcadeDrive/xVelocity", RobotConfig.getInstance().getRobotMaxVelocity().times(xVelocity));
+    Logger.recordOutput(
+        "ArcadeDrive/rotationalVelocity",
+        RobotConfig.getInstance().getRobotMaxAngularVelocity().times(rotationalVelocity));
   }
 
   // Called once the command ends or is interrupted.
