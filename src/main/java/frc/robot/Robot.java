@@ -199,14 +199,14 @@ public class Robot extends LoggedRobot {
     robotContainer = new RobotContainer();
 
     // create the CANivore bus object
-    this.canivoreBus = new CANBus(RobotConfig.getInstance().getCANBusName());
+    this.canivoreBus = RobotConfig.getInstance().getCANBus();
 
     // Due to the nature of how Java works, the first run of a path following command could have a
     // significantly higher delay compared with subsequent runs, as all the classes involved will
     // need to be loaded. To help alleviate this issue, you can run a warmup command in the
     // background when code starts.
     // DO THIS AFTER CONFIGURATION OF YOUR DESIRED PATHFINDER
-    PathfindingCommand.warmupCommand().schedule();
+    CommandScheduler.getInstance().schedule(PathfindingCommand.warmupCommand());
 
     if (!TUNING_MODE) {
       Threads.setCurrentThreadPriority(true, 10);
@@ -339,7 +339,7 @@ public class Robot extends LoggedRobot {
 
     // schedule the autonomous command
     if (autonomousCommand != null) {
-      autonomousCommand.schedule();
+      CommandScheduler.getInstance().schedule(autonomousCommand);
     }
 
     robotContainer.autonomousInit();
