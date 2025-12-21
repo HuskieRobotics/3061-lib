@@ -9,12 +9,12 @@ public class ArmIOXRP implements ArmIO {
 
   private final XRPServo armMotor = new XRPServo(4);
 
-  private double referenceAngleDegrees = 0.0;
+  private Angle referenceAngle = Degrees.of(0.0);
 
   @Override
   public void updateInputs(ArmIOInputs inputs) {
-    inputs.angleDegrees = armMotor.getAngle();
-    inputs.angleMotorReferenceAngleDegrees = referenceAngleDegrees;
+    inputs.position = Degrees.of(armMotor.getAngle());
+    inputs.angleMotorReferenceAngle = referenceAngle;
   }
 
   @Override

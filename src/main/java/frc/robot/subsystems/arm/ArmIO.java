@@ -1,6 +1,11 @@
 package frc.robot.subsystems.arm;
 
+import static edu.wpi.first.units.Units.*;
+
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Temperature;
+import edu.wpi.first.units.measure.Voltage;
 import org.littletonrobotics.junction.AutoLog;
 
 public interface ArmIO {
@@ -14,20 +19,20 @@ public interface ArmIO {
   @AutoLog
   public static class ArmIOInputs {
     boolean connected = false;
-    double angleMotorStatorCurrentAmps = 0.0;
-    double angleMotorSupplyCurrentAmps = 0.0;
-    double angleMotorTemperatureCelsius = 0.0;
-    double angleMotorVoltage = 0.0;
-    double angleDegrees = 0.0;
-    double angleMotorReferenceAngleDegrees = 0.0;
-    double angleMotorClosedLoopReferenceAngleDegrees = 0.0;
-    double angleMotorClosedLoopErrorAngleDegrees = 0.0;
+    Current angleMotorStatorCurrent = Amps.of(0.0);
+    Current angleMotorSupplyCurrent = Amps.of(0.0);
+    Temperature angleMotorTemperature = Celsius.of(0.0);
+    Voltage angleMotorVoltage = Volts.of(0.0);
+    Angle position = Rotations.of(0.0);
+    Angle angleMotorReferenceAngle = Rotations.of(0.0);
+    Angle angleMotorClosedLoopReferenceAngle = Rotations.of(0.0);
+    Angle angleMotorClosedLoopErrorAngle = Rotations.of(0.0);
   }
 
   /** Updates the set of loggable inputs. */
   public default void updateInputs(ArmIOInputs inputs) {}
 
-  public default void setAngleMotorVoltage(double voltage) {}
+  public default void setAngleMotorVoltage(Voltage voltage) {}
 
   public default void setAngle(Angle angle) {}
 }

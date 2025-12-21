@@ -239,7 +239,7 @@ public class ShooterIOTalonFX implements ShooterIO {
 
     // To improve performance, we store the reference velocity as an instance variable to avoid
     // having to retrieve the status signal object from the device in the updateInputs method.
-    this.shootTopMotorReferenceVelocity = velocity;
+    this.shootTopMotorReferenceVelocity = velocity.copy();
   }
 
   // While we cannot use subtypes of Measure in the inputs class due to logging limitations, we do
@@ -251,7 +251,7 @@ public class ShooterIOTalonFX implements ShooterIO {
 
     // To improve performance, we store the reference velocity as an instance variable to avoid
     // having to retrieve the status signal object from the device in the updateInputs method.
-    this.shootBottomMotorReferenceVelocity = velocity;
+    this.shootBottomMotorReferenceVelocity = velocity.copy();
   }
 
   @Override
