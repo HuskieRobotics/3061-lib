@@ -80,8 +80,8 @@ public class ArmIOTalonFX implements ArmIO {
 
   public ArmIOTalonFX() {
 
-    angleMotor = new TalonFX(ANGLE_MOTOR_ID, RobotConfig.getInstance().getCANBusName());
-    angleEncoder = new CANcoder(ANGLE_ENCODER_ID, RobotConfig.getInstance().getCANBusName());
+    angleMotor = new TalonFX(ANGLE_MOTOR_ID, RobotConfig.getInstance().getCANBus());
+    angleEncoder = new CANcoder(ANGLE_ENCODER_ID, RobotConfig.getInstance().getCANBus());
 
     angleMotorPositionRequest = new MotionMagicExpoVoltage(0);
     angleMotorVoltageRequest = new VoltageOut(0);

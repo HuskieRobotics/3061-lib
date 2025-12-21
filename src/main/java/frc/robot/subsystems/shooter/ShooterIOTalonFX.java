@@ -1,6 +1,6 @@
 package frc.robot.subsystems.shooter;
 
-import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.*;
 import static frc.robot.subsystems.shooter.ShooterConstants.*;
 
 import com.ctre.phoenix6.BaseStatusSignal;
@@ -81,9 +81,8 @@ public class ShooterIOTalonFX implements ShooterIO {
 
   public ShooterIOTalonFX() {
 
-    shootMotorTop = new TalonFX(TOP_SHOOTER_MOTOR_ID, RobotConfig.getInstance().getCANBusName());
-    shootMotorBottom =
-        new TalonFX(BOTTOM_SHOOTER_MOTOR_ID, RobotConfig.getInstance().getCANBusName());
+    shootMotorTop = new TalonFX(TOP_SHOOTER_MOTOR_ID, RobotConfig.getInstance().getCANBus());
+    shootMotorBottom = new TalonFX(BOTTOM_SHOOTER_MOTOR_ID, RobotConfig.getInstance().getCANBus());
 
     shootMotorTopVelocityRequest = new VelocityTorqueCurrentFOC(0);
     shootMotorBottomVelocityRequest = new VelocityTorqueCurrentFOC(0);
@@ -160,28 +159,20 @@ public class ShooterIOTalonFX implements ShooterIO {
                 shootMotorBottomVoltageStatusSignal));
 
     // Updates Top Shooter Motor Inputs
-    inputs.shootMotorTopStatorCurrentAmps =
-        shootMotorTopStatorCurrentStatusSignal.getValueAsDouble();
-    inputs.shootMotorTopSupplyCurrentAmps =
-        shootMotorTopSupplyCurrentStatusSignal.getValueAsDouble();
-    inputs.shootMotorTopVelocityRPS = shootMotorTopVelocityStatusSignal.getValueAsDouble();
-    inputs.shootMotorTopTemperatureCelsius =
-        shootMotorTopTemperatureStatusSignal.getValueAsDouble();
-    inputs.shootMotorTopVoltage = shootMotorTopVoltageStatusSignal.getValueAsDouble();
-    inputs.shootMotorTopReferenceVelocityRPS =
-        this.shootTopMotorReferenceVelocity.in(RotationsPerSecond);
+    inputs.shootMotorTopStatorCurrent = shootMotorTopStatorCurrentStatusSignal.getValue();
+    inputs.shootMotorTopSupplyCurrent = shootMotorTopSupplyCurrentStatusSignal.getValue();
+    inputs.shootMotorTopVelocity = shootMotorTopVelocityStatusSignal.getValue();
+    inputs.shootMotorTopTemperature = shootMotorTopTemperatureStatusSignal.getValue();
+    inputs.shootMotorTopVoltage = shootMotorTopVoltageStatusSignal.getValue();
+    inputs.shootMotorTopReferenceVelocity = this.shootTopMotorReferenceVelocity.copy();
 
     // Updates Bottom Shooter Motor Inputs
-    inputs.shootMotorBottomStatorCurrentAmps =
-        shootMotorBottomStatorCurrentStatusSignal.getValueAsDouble();
-    inputs.shootMotorBottomSupplyCurrentAmps =
-        shootMotorBottomSupplyCurrentStatusSignal.getValueAsDouble();
-    inputs.shootMotorBottomVelocityRPS = shootMotorBottomVelocityStatusSignal.getValueAsDouble();
-    inputs.shootMotorBottomTemperatureCelsius =
-        shootMotorBottomTemperatureStatusSignal.getValueAsDouble();
-    inputs.shootMotorBottomVoltage = shootMotorBottomVoltageStatusSignal.getValueAsDouble();
-    inputs.shootMotorBottomReferenceVelocityRPS =
-        this.shootBottomMotorReferenceVelocity.in(RotationsPerSecond);
+    inputs.shootMotorBottomStatorCurrent = shootMotorBottomStatorCurrentStatusSignal.getValue();
+    inputs.shootMotorBottomSupplyCurrent = shootMotorBottomSupplyCurrentStatusSignal.getValue();
+    inputs.shootMotorBottomVelocity = shootMotorBottomVelocityStatusSignal.getValue();
+    inputs.shootMotorBottomTemperature = shootMotorBottomTemperatureStatusSignal.getValue();
+    inputs.shootMotorBottomVoltage = shootMotorBottomVoltageStatusSignal.getValue();
+    inputs.shootMotorBottomReferenceVelocity = this.shootBottomMotorReferenceVelocity.copy();
 
     // Retrieve the closed loop reference status signals directly from the motor in this method
     // instead of retrieving in advance because the status signal returned depends on the current
@@ -191,14 +182,14 @@ public class ShooterIOTalonFX implements ShooterIO {
     // shootMotorTopReferenceVelocityRPS property should be used throughout the subsystem since it
     // will always be populated.
     if (Constants.TUNING_MODE) {
-      inputs.shootMotorTopClosedLoopReferenceVelocityRPS =
-          shootMotorTop.getClosedLoopReference().getValue();
-      inputs.shootMotorTopClosedLoopErrorVelocityRPS =
-          shootMotorTop.getClosedLoopError().getValue();
-      inputs.shootMotorBottomClosedLoopReferenceVelocityRPS =
-          shootMotorBottom.getClosedLoopReference().getValue();
-      inputs.shootMotorBottomClosedLoopErrorVelocityRPS =
-          shootMotorBottom.getClosedLoopError().getValue();
+      inputs.shootMotorTopClosedLoopReferenceVelocity =
+          RotationsPerSecond.of(shootMotorTop.getClosedLoopReference().getValue());
+      inputs.shootMotorTopClosedLoopErrorVelocity =
+          RotationsPerSecond.of(shootMotorTop.getClosedLoopError().getValue());
+      inputs.shootMotorBottomClosedLoopReferenceVelocity =
+          RotationsPerSecond.of(shootMotorBottom.getClosedLoopReference().getValue());
+      inputs.shootMotorBottomClosedLoopErrorVelocity =
+          RotationsPerSecond.of(shootMotorBottom.getClosedLoopError().getValue());
     }
 
     // In order for a tunable to be useful, there must be code that checks if its value has changed.

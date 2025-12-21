@@ -564,7 +564,6 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
    * update the drivetrain inputs from the hardware-specific layer. In addition, the odometry of the
    * robot, brake mode, and controllers are updated.
    */
-  @SuppressWarnings("unused")
   @Override
   public void periodic() {
     this.io.updateInputs(this.inputs);

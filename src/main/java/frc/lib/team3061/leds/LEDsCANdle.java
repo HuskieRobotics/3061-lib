@@ -18,7 +18,7 @@ public class LEDsCANdle extends LEDs {
 
   protected LEDsCANdle() {
 
-    candle = new CANdle(22, RobotConfig.getInstance().getCANBusName());
+    candle = new CANdle(22, RobotConfig.getInstance().getCANBus());
 
     CANdleConfiguration configSettings = new CANdleConfiguration();
     configSettings.CANdleFeatures.StatusLedWhenActive = StatusLedWhenActiveValue.Enabled;
