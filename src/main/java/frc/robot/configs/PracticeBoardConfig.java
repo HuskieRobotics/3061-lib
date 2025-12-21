@@ -76,8 +76,6 @@ public class PracticeBoardConfig extends RobotConfig {
   private static final LinearVelocity MAX_COAST_VELOCITY = MetersPerSecond.of(0.05);
   private static final double SLOW_MODE_MULTIPLIER = 0.75;
 
-  private static final String CAN_BUS_NAME = "";
-
   private static final String CAMERA_NAME_0 = "OV2311L";
   private static final String CAMERA_NAME_1 = "OV2311F";
 

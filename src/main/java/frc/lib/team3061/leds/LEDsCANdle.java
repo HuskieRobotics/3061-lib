@@ -1,9 +1,13 @@
 package frc.lib.team3061.leds;
 
-import com.ctre.phoenix.led.CANdle;
-import com.ctre.phoenix.led.CANdle.LEDStripType;
-import com.ctre.phoenix.led.CANdle.VBatOutputMode;
-import com.ctre.phoenix.led.CANdleConfiguration;
+import com.ctre.phoenix6.configs.CANdleConfiguration;
+import com.ctre.phoenix6.controls.SolidColor;
+import com.ctre.phoenix6.hardware.CANdle;
+import com.ctre.phoenix6.signals.LossOfSignalBehaviorValue;
+import com.ctre.phoenix6.signals.RGBWColor;
+import com.ctre.phoenix6.signals.StatusLedWhenActiveValue;
+import com.ctre.phoenix6.signals.StripTypeValue;
+import com.ctre.phoenix6.signals.VBatOutputModeValue;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
 import frc.lib.team3061.RobotConfig;
@@ -17,12 +21,12 @@ public class LEDsCANdle extends LEDs {
     candle = new CANdle(22, RobotConfig.getInstance().getCANBusName());
 
     CANdleConfiguration configSettings = new CANdleConfiguration();
-    configSettings.statusLedOffWhenActive = true;
-    configSettings.disableWhenLOS = false;
-    configSettings.stripType = LEDStripType.GRB;
-    configSettings.brightnessScalar = .1;
-    configSettings.vBatOutputMode = VBatOutputMode.Modulated;
-    candle.configAllSettings(configSettings, 100);
+    configSettings.CANdleFeatures.StatusLedWhenActive = StatusLedWhenActiveValue.Enabled;
+    configSettings.CANdleFeatures.VBatOutputMode = VBatOutputModeValue.Modulated;
+    configSettings.LED.LossOfSignalBehavior = LossOfSignalBehaviorValue.DisableLEDs;
+    configSettings.LED.StripType = StripTypeValue.GRB;
+    configSettings.LED.BrightnessScalar = 0.1;
+    candle.getConfigurator().apply(configSettings, 100);
 
     ledBuffer = new Color8Bit[ACTUAL_LENGTH];
     for (int i = 0; i < ACTUAL_LENGTH; i++) {
@@ -37,7 +41,8 @@ public class LEDsCANdle extends LEDs {
       while (i + count < ACTUAL_LENGTH && ledBuffer[i] == ledBuffer[i + count]) {
         count++;
       }
-      candle.setLEDs(ledBuffer[i].red, ledBuffer[i].green, ledBuffer[i].blue, 0, i, count);
+      candle.setControl(new SolidColor(i, i + count - 1).withColor(new RGBWColor(ledBuffer[i])));
+      i += (count - 1);
     }
   }
 

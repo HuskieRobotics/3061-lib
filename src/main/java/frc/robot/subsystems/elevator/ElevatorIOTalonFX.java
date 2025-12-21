@@ -128,7 +128,7 @@ public class ElevatorIOTalonFX implements ElevatorIO {
         elevatorFollowerTempStatusSignal,
         elevatorVelocityStatusSignal);
 
-    leadPositionRequest = new DynamicMotionMagicExpoVoltage(0, 0, kVExpo.get(), kAExpo.get());
+    leadPositionRequest = new DynamicMotionMagicExpoVoltage(0, kVExpo.get(), kAExpo.get());
     leadVoltageRequest = new VoltageOut(0);
 
     configElevatorMotorLead(elevatorMotorLead);
