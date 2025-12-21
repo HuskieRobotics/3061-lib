@@ -82,7 +82,7 @@ public class DifferentialDrivetrain extends SubsystemBase {
    */
   public void resetPose(Pose2d pose) {
     this.odometry.resetPose(
-        Rotation2d.fromDegrees(this.inputs.heading.in(Degrees)),
+        Rotation2d.fromRadians(this.inputs.heading.in(Radians)),
         this.inputs.leftPosition.in(Meters),
         this.inputs.rightPosition.in(Meters),
         pose);
@@ -133,7 +133,7 @@ public class DifferentialDrivetrain extends SubsystemBase {
     // update odometry
     this.odometry.updateWithTime(
         Timer.getFPGATimestamp(),
-        Rotation2d.fromDegrees(inputs.heading.in(Degrees)),
+        Rotation2d.fromRadians(inputs.heading.in(Radians)),
         inputs.leftPosition.in(Meters),
         inputs.rightPosition.in(Meters));
 

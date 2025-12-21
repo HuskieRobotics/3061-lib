@@ -4,8 +4,6 @@
 
 package frc.robot.commands;
 
-import static frc.lib.team3061.differential_drivetrain.DifferentialDrivetrainConstants.*;
-
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.differential_drivetrain.DifferentialDrivetrain;

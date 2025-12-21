@@ -3,6 +3,8 @@ package frc.robot.commands;
 import static edu.wpi.first.units.Units.*;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
@@ -35,10 +37,9 @@ public class TeleopSwerve extends Command {
 
   private static final double DEADBAND = 0.1;
 
-  private final double maxVelocityMetersPerSecond =
-      RobotConfig.getInstance().getRobotMaxVelocity().in(MetersPerSecond);
-  private final double maxAngularVelocityRadiansPerSecond =
-      RobotConfig.getInstance().getRobotMaxAngularVelocity().in(RadiansPerSecond);
+  private final LinearVelocity maxVelocity = RobotConfig.getInstance().getRobotMaxVelocity();
+  private final AngularVelocity maxAngularVelocity =
+      RobotConfig.getInstance().getRobotMaxAngularVelocity();
   private final LoggedTunableNumber joystickPower =
       new LoggedTunableNumber("TeleopSwerve/joystickPower", 2.0);
 
@@ -107,13 +108,13 @@ public class TeleopSwerve extends Command {
     double xPercentage = modifyAxis(translationXSupplier.getAsDouble(), joystickPower.get());
     double yPercentage = modifyAxis(translationYSupplier.getAsDouble(), joystickPower.get());
 
-    double xVelocity = xPercentage * maxVelocityMetersPerSecond;
-    double yVelocity = yPercentage * maxVelocityMetersPerSecond;
-    double rotationalVelocity = 0.0;
+    LinearVelocity xVelocity = maxVelocity.times(xPercentage);
+    LinearVelocity yVelocity = maxVelocity.times(yPercentage);
+    AngularVelocity rotationalVelocity = RadiansPerSecond.of(0.0);
 
     if (!this.driveFacingAngle) {
       double rotationPercentage = modifyAxis(rotationSupplier.getAsDouble(), joystickPower.get());
-      rotationalVelocity = rotationPercentage * maxAngularVelocityRadiansPerSecond;
+      rotationalVelocity = maxAngularVelocity.times(rotationPercentage);
     }
 
     Logger.recordOutput("TeleopSwerve/xVelocity", xVelocity);

@@ -28,7 +28,10 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Force;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
@@ -446,8 +449,8 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
     if (TUNING_MODE) {
       double averageMeasuredRotations = 0.0;
       double averageReferenceRotations = 0.0;
-      inputs.drivetrain.averageSwerveMeasuredSpeedMetersPerSecond = 0.0;
-      inputs.drivetrain.averageSwerveReferenceSpeedMetersPerSecond = 0.0;
+      double averageMeasuredSpeedMetersPerSecond = 0.0;
+      double averageReferenceSpeedMetersPerSecond = 0.0;
 
       // to facilitate tuning, coerce the measured swerve module states' positions to 0 to 0.5 so
       // they can be compared to the reference positions; we coerce to 0.5 instead of 1.0 since the
@@ -478,9 +481,9 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
 
         averageMeasuredRotations += measuredRotations;
         averageReferenceRotations += referenceRotations;
-        inputs.drivetrain.averageSwerveMeasuredSpeedMetersPerSecond +=
+        averageMeasuredSpeedMetersPerSecond +=
             Math.abs(inputs.drivetrain.swerveMeasuredStates[i].speedMetersPerSecond);
-        inputs.drivetrain.averageSwerveReferenceSpeedMetersPerSecond +=
+        averageReferenceSpeedMetersPerSecond +=
             Math.abs(inputs.drivetrain.swerveReferenceStates[i].speedMetersPerSecond);
       }
       inputs.drivetrain.averageSwerveMeasuredAngle =
@@ -489,10 +492,13 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
       inputs.drivetrain.averageSwerveReferenceAngle =
           Rotation2d.fromRotations(
               averageReferenceRotations / inputs.drivetrain.swerveReferenceStates.length);
-      inputs.drivetrain.averageSwerveMeasuredSpeedMetersPerSecond /=
-          inputs.drivetrain.swerveMeasuredStates.length;
-      inputs.drivetrain.averageSwerveReferenceSpeedMetersPerSecond /=
-          inputs.drivetrain.swerveReferenceStates.length;
+      inputs.drivetrain.averageSwerveMeasuredSpeed =
+          MetersPerSecond.of(
+              averageMeasuredSpeedMetersPerSecond / inputs.drivetrain.swerveMeasuredStates.length);
+      inputs.drivetrain.averageSwerveReferenceSpeed =
+          MetersPerSecond.of(
+              averageReferenceSpeedMetersPerSecond
+                  / inputs.drivetrain.swerveReferenceStates.length);
     }
 
     inputs.drivetrain.referenceChassisSpeeds =
@@ -503,14 +509,14 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
     inputs.drivetrain.measuredChassisSpeeds = this.getState().Speeds;
 
     inputs.drivetrain.averageDriveCurrent = this.getAverageDriveCurrent(inputs);
-    inputs.drivetrain.rawHeadingDeg = this.getState().RawHeading.getDegrees();
+    inputs.drivetrain.rawHeading = Degrees.of(this.getState().RawHeading.getDegrees());
 
     inputs.drivetrain.gyroConnected =
         connectedDebouncer.calculate(
             BaseStatusSignal.isAllGood(pitchStatusSignal, rollStatusSignal));
 
-    inputs.drivetrain.pitchDeg = this.pitchStatusSignal.getValue().in(Degrees);
-    inputs.drivetrain.rollDeg = this.rollStatusSignal.getValue().in(Degrees);
+    inputs.drivetrain.pitch = this.pitchStatusSignal.getValue();
+    inputs.drivetrain.roll = this.rollStatusSignal.getValue();
 
     inputs.drivetrain.customPose = this.getState().Pose;
 
@@ -590,19 +596,18 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
       SwerveIOInputs inputs, SwerveModule<TalonFX, TalonFX, CANcoder> module) {
     inputs.driveEnabled =
         module.getDriveMotor().getDeviceEnable().getValue() == DeviceEnableValue.Enabled;
-    inputs.driveStatorCurrentAmps = module.getDriveMotor().getStatorCurrent().getValue().in(Amps);
-    inputs.driveSupplyCurrentAmps = module.getDriveMotor().getSupplyCurrent().getValue().in(Amps);
-    inputs.driveTempCelsius = module.getDriveMotor().getDeviceTemp().getValue().in(Celsius);
-    inputs.driveVoltage = module.getDriveMotor().getMotorVoltage().getValue().in(Volts);
+    inputs.driveStatorCurrent = module.getDriveMotor().getStatorCurrent().getValue();
+    inputs.driveSupplyCurrent = module.getDriveMotor().getSupplyCurrent().getValue();
+    inputs.driveTemp = module.getDriveMotor().getDeviceTemp().getValue();
+    inputs.driveVoltage = module.getDriveMotor().getMotorVoltage().getValue();
 
-    inputs.steerAbsolutePositionDeg =
-        module.getEncoder().getAbsolutePosition().getValue().in(Degrees);
+    inputs.steerAbsolutePosition = module.getEncoder().getAbsolutePosition().getValue();
 
     inputs.steerEnabled =
         module.getSteerMotor().getDeviceEnable().getValue() == DeviceEnableValue.Enabled;
-    inputs.steerStatorCurrentAmps = module.getSteerMotor().getStatorCurrent().getValue().in(Amps);
-    inputs.steerSupplyCurrentAmps = module.getSteerMotor().getSupplyCurrent().getValue().in(Amps);
-    inputs.steerTempCelsius = module.getSteerMotor().getDeviceTemp().getValue().in(Celsius);
+    inputs.steerStatorCurrent = module.getSteerMotor().getStatorCurrent().getValue();
+    inputs.steerSupplyCurrent = module.getSteerMotor().getSupplyCurrent().getValue();
+    inputs.steerTemp = module.getSteerMotor().getDeviceTemp().getValue();
   }
 
   @Override
@@ -616,7 +621,10 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
 
   @Override
   public void driveFieldRelative(
-      double xVelocity, double yVelocity, double rotationalVelocity, boolean isOpenLoop) {
+      LinearVelocity xVelocity,
+      LinearVelocity yVelocity,
+      AngularVelocity rotationalVelocity,
+      boolean isOpenLoop) {
 
     this.targetChassisSpeeds =
         ChassisSpeeds.discretize(
@@ -648,14 +656,17 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
 
   @Override
   public void driveFieldRelativeFacingAngle(
-      double xVelocity, double yVelocity, Rotation2d targetDirection, boolean isOpenLoop) {
+      LinearVelocity xVelocity,
+      LinearVelocity yVelocity,
+      Rotation2d targetDirection,
+      boolean isOpenLoop) {
 
     this.targetChassisSpeeds =
         ChassisSpeeds.discretize(
             ChassisSpeeds.fromFieldRelativeSpeeds(
                 xVelocity,
                 yVelocity,
-                0.0,
+                RadiansPerSecond.of(0.0),
                 RobotOdometry.getInstance().getEstimatedPose().getRotation()),
             Constants.LOOP_PERIOD_SECS);
 
@@ -689,7 +700,10 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
 
   @Override
   public void driveRobotRelative(
-      double xVelocity, double yVelocity, double rotationalVelocity, boolean isOpenLoop) {
+      LinearVelocity xVelocity,
+      LinearVelocity yVelocity,
+      AngularVelocity rotationalVelocity,
+      boolean isOpenLoop) {
 
     this.targetChassisSpeeds =
         ChassisSpeeds.discretize(
@@ -793,12 +807,12 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
    *
    * @return the average current of the swerve module drive motors in amps
    */
-  private double getAverageDriveCurrent(SwerveDrivetrainIOInputsCollection inputs) {
+  private Current getAverageDriveCurrent(SwerveDrivetrainIOInputsCollection inputs) {
     double totalCurrent = 0.0;
     for (SwerveIOInputs swerveInputs : inputs.swerve) {
-      totalCurrent += Math.abs(swerveInputs.driveStatorCurrentAmps);
+      totalCurrent += Math.abs(swerveInputs.driveStatorCurrent.in(Amps));
     }
-    return totalCurrent / inputs.swerve.length;
+    return Amps.of(totalCurrent / inputs.swerve.length);
   }
 
   private static ClosedLoopOutputType getSteerClosedLoopOutputType() {
