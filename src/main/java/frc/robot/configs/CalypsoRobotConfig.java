@@ -290,16 +290,7 @@ public class CalypsoRobotConfig extends RobotConfig {
   }
 
   @Override
-  public Transform3d[] getRobotToCameraTransforms() {
-    return new Transform3d[] {
-      ROBOT_TO_CAMERA_0, ROBOT_TO_CAMERA_1, ROBOT_TO_CAMERA_2, ROBOT_TO_CAMERA_3
-    };
-  }
-
-  @Override
-  public Pose3d[] getPosesForRobotToCameraTransformCalibration() {
-    // robot to camera transformation calibration
-    Pose3d[] robotPosesForCalibration = new Pose3d[getRobotToCameraTransforms().length];
+  public CameraConfig[] getCameraConfigs() {
 
     Pose2d tagPose =
         new Pose2d(
@@ -309,18 +300,17 @@ public class CalypsoRobotConfig extends RobotConfig {
 
     // FL and FR cameras are calibrated based on a centered AprilTag on the robot-to-camera
     // transform calibration jig
-    robotPosesForCalibration[0] =
+    Pose3d frontCenteredTagPose =
         new Pose3d(
             tagPose.transformBy(
                 new Transform2d(
                     RobotConfig.getInstance().getRobotLengthWithBumpers().in(Meters) / 2.0,
                     0,
                     Rotation2d.fromDegrees(180))));
-    robotPosesForCalibration[2] = robotPosesForCalibration[0];
 
     // the BR camera is calibrated based on an offset AprilTag on the robot-to-camera transform
     // calibration jig
-    robotPosesForCalibration[1] =
+    Pose3d backRightTagPose =
         new Pose3d(tagPose)
             .transformBy(
                 new Transform3d(
@@ -331,7 +321,7 @@ public class CalypsoRobotConfig extends RobotConfig {
 
     // the BL camera is calibrated based on an offset AprilTag on the robot-to-camera transform
     // calibration jig
-    robotPosesForCalibration[3] =
+    Pose3d backLeftTagPose =
         new Pose3d(tagPose)
             .transformBy(
                 new Transform3d(
@@ -340,7 +330,40 @@ public class CalypsoRobotConfig extends RobotConfig {
                     -Units.inchesToMeters(1.0),
                     new Rotation3d()));
 
-    return robotPosesForCalibration;
+    return new CameraConfig[] {
+      CameraConfig.builder()
+          .robotToCameraTransform(ROBOT_TO_CAMERA_0)
+          .poseForRobotToCameraTransformCalibration(frontCenteredTagPose)
+          .id(CAMERA_NAME_0)
+          .width(1600)
+          .height(1200)
+          .stdDevFactor(1.0)
+          .build(),
+      CameraConfig.builder()
+          .robotToCameraTransform(ROBOT_TO_CAMERA_1)
+          .poseForRobotToCameraTransformCalibration(backRightTagPose)
+          .id(CAMERA_NAME_1)
+          .width(1600)
+          .height(1200)
+          .stdDevFactor(1.0)
+          .build(),
+      CameraConfig.builder()
+          .robotToCameraTransform(ROBOT_TO_CAMERA_2)
+          .poseForRobotToCameraTransformCalibration(frontCenteredTagPose)
+          .id(CAMERA_NAME_2)
+          .width(1600)
+          .height(1200)
+          .stdDevFactor(1.0)
+          .build(),
+      CameraConfig.builder()
+          .robotToCameraTransform(ROBOT_TO_CAMERA_3)
+          .poseForRobotToCameraTransformCalibration(backLeftTagPose)
+          .id(CAMERA_NAME_3)
+          .width(1600)
+          .height(1200)
+          .stdDevFactor(1.0)
+          .build(),
+    };
   }
 
   @Override
@@ -406,16 +429,6 @@ public class CalypsoRobotConfig extends RobotConfig {
   @Override
   public String getCANBusName() {
     return CAN_BUS_NAME;
-  }
-
-  @Override
-  public String[] getCameraNames() {
-    return new String[] {CAMERA_NAME_0, CAMERA_NAME_1, CAMERA_NAME_2, CAMERA_NAME_3};
-  }
-
-  @Override
-  public double[] getCameraStdDevFactors() {
-    return new double[] {1.0, 1.0, 1.0, 1.0};
   }
 
   @Override

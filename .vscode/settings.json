@@ -50,6 +50,7 @@
   "cSpell.words": [
     "algs",
     "APRILTAG",
+    "apriltags",
     "autoset",
     "bezier",
     "brushless",
@@ -68,6 +69,7 @@
     "DEADBAND",
     "debouncer",
     "denoise",
+    "denoises",
     "Devs",
     "dtheta",
     "feedforward",
@@ -84,6 +86,7 @@
     "leds",
     "northstar",
     "Nivore",
+    "objdetect",
     "odometry",
     "openloop",
     "overriden",

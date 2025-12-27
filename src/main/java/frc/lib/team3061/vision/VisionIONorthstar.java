@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj.Timer;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team6328.util.FieldConstants;
+import frc.lib.team6328.util.SystemTimeValidReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -44,16 +45,15 @@ public class VisionIONorthstar implements VisionIO {
 
   private final List<VisionIO.PoseObservation> observations = new ArrayList<>();
   private final AprilTagFieldLayout aprilTagFieldLayout;
-  private final int cameraIndex;
+  private final Transform3d robotToCameraTransform;
 
-  public VisionIONorthstar(int index, AprilTagFieldLayout layout) {
-    this.deviceId = "northstar_" + index;
-    this.cameraIndex = index;
+  public VisionIONorthstar(AprilTagFieldLayout layout, RobotConfig.CameraConfig camera) {
+    this.deviceId = "northstar_" + camera.id();
+    this.robotToCameraTransform = camera.robotToCameraTransform();
     this.aprilTagFieldLayout = layout;
     String layoutString = "";
     var northstarTable = NetworkTableInstance.getDefault().getTable(this.deviceId);
     var configTable = northstarTable.getSubTable("config");
-    var camera = cameras[index];
 
     try {
       layoutString = new ObjectMapper().writeValueAsString(layout);
@@ -121,7 +121,7 @@ public class VisionIONorthstar implements VisionIO {
     }
 
     // Publish timestamp
-    if (slowPeriodic) { // FIXME: && SystemTimeValidReader.isValid()) {
+    if (slowPeriodic && SystemTimeValidReader.isValid()) {
       timestampPublisher.set(WPIUtilJNI.getSystemTime() / 1000000);
     }
 
@@ -207,13 +207,12 @@ public class VisionIONorthstar implements VisionIO {
                 values[12],
                 new Rotation3d(new Quaternion(values[13], values[14], values[15], values[16])));
 
-        Transform3d cameraToRobot =
-            RobotConfig.getInstance().getRobotToCameraTransforms()[cameraIndex].inverse();
+        Transform3d cameraToRobot = this.robotToCameraTransform.inverse();
         Pose3d robotPose0 = cameraPose0.plus(cameraToRobot);
         Pose3d robotPose1 = cameraPose1.plus(cameraToRobot);
 
         // Check for ambiguity and select based on estimated rotation
-        if (error0 < error1 * ambiguityThreshold || error1 < error0 * ambiguityThreshold) {
+        if (error0 < error1 * AMBIGUITY_THRESHOLD || error1 < error0 * AMBIGUITY_THRESHOLD) {
           Rotation2d currentRotation = RobotOdometry.getInstance().getEstimatedPose().getRotation();
           Rotation2d visionRotation0 = robotPose0.toPose2d().getRotation();
           Rotation2d visionRotation1 = robotPose1.toPose2d().getRotation();

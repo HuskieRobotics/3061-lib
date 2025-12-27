@@ -17,41 +17,43 @@ import frc.lib.team3061.swerve_drivetrain.swerve.SwerveConstants;
  * these methods, refer to the documentation in the RobotConfig class.
  */
 public class NorthstarTestPlatformConfig extends RobotConfig {
-  private static final String CAMERA_NAME_0 = "northstar_0";
-  private static final String CAMERA_NAME_1 = "northstar_1";
-  private static final String CAMERA_NAME_2 = "northstar_2";
-  private static final String CAMERA_NAME_3 = "northstar_3";
-  private static final String CAMERA_NAME_4 = "northstar_4";
+  private static final String CAMERA_NAME_0 = "40686739";
+  private static final String CAMERA_NAME_1 = "40708569";
+  private static final String CAMERA_NAME_2 = "40708542";
+  private static final String CAMERA_NAME_3 = "40708556";
+  private static final String CAMERA_NAME_4 = "25249734";
+
+  private static final int MONO_EXPOSURE = 2200;
+  private static final double MONO_GAIN = 17.5;
+  private static final double MONO_DENOISE = 1.0;
+
+  private static final int COLOR_EXPOSURE = 4500;
+  private static final double COLOR_GAIN = 5.0;
 
   // Front right camera
   private static final Transform3d ROBOT_TO_CAMERA_0 =
       new Transform3d(
-          new Translation3d(0.178, -0.268, 0.236),
-          new Rotation3d(new Quaternion(-0.977, -0.032, 0.115, -0.177)));
+          new Translation3d(0.0, 0.0, 0.0), new Rotation3d(new Quaternion(0.0, 0.0, 0.0, 0.0)));
 
   // Back right camera
   private static final Transform3d ROBOT_TO_CAMERA_1 =
       new Transform3d(
-          new Translation3d(-0.279, -0.273, 0.253),
-          new Rotation3d(new Quaternion(-0.149, 0.161, 0.027, 0.975)));
+          new Translation3d(0.0, 0.0, 0.0), new Rotation3d(new Quaternion(0.0, 0.0, 0.0, 0.0)));
 
   // Back right camera
   private static final Transform3d ROBOT_TO_CAMERA_2 =
       new Transform3d(
-          new Translation3d(-0.279, -0.273, 0.253),
-          new Rotation3d(new Quaternion(-0.149, 0.161, 0.027, 0.975)));
+          new Translation3d(0.0, 0.0, 0.0), new Rotation3d(new Quaternion(0.0, 0.0, 0.0, 0.0)));
 
   // Back right camera
   private static final Transform3d ROBOT_TO_CAMERA_3 =
       new Transform3d(
-          new Translation3d(-0.279, -0.273, 0.253),
-          new Rotation3d(new Quaternion(-0.149, 0.161, 0.027, 0.975)));
+          new Translation3d(0.0, 0.0, 0.0), new Rotation3d(new Quaternion(0.0, 0.0, 0.0, 0.0)));
 
-  // Back right camera
+  // color camera
   private static final Transform3d ROBOT_TO_CAMERA_4 =
       new Transform3d(
-          new Translation3d(-0.279, -0.273, 0.253),
-          new Rotation3d(new Quaternion(-0.149, 0.161, 0.027, 0.975)));
+          new Translation3d(0.0, 0.0, 0.0), new Rotation3d(new Quaternion(0.0, 0.0, 0.0, 0.0)));
 
   @Override
   public boolean getPhoenix6Licensed() {
@@ -59,20 +61,58 @@ public class NorthstarTestPlatformConfig extends RobotConfig {
   }
 
   @Override
-  public Transform3d[] getRobotToCameraTransforms() {
-    return new Transform3d[] {
-      ROBOT_TO_CAMERA_0, ROBOT_TO_CAMERA_1, ROBOT_TO_CAMERA_2, ROBOT_TO_CAMERA_3, ROBOT_TO_CAMERA_4
+  public CameraConfig[] getCameraConfigs() {
+    return new CameraConfig[] {
+      CameraConfig.builder()
+          .robotToCameraTransform(ROBOT_TO_CAMERA_0)
+          .id(CAMERA_NAME_0)
+          .width(1920)
+          .height(1200)
+          .exposure(MONO_EXPOSURE)
+          .gain(MONO_GAIN)
+          .denoise(MONO_DENOISE)
+          .stdDevFactor(1.0)
+          .build(),
+      CameraConfig.builder()
+          .robotToCameraTransform(ROBOT_TO_CAMERA_1)
+          .id(CAMERA_NAME_1)
+          .width(1920)
+          .height(1200)
+          .exposure(MONO_EXPOSURE)
+          .gain(MONO_GAIN)
+          .denoise(MONO_DENOISE)
+          .stdDevFactor(1.0)
+          .build(),
+      CameraConfig.builder()
+          .robotToCameraTransform(ROBOT_TO_CAMERA_2)
+          .id(CAMERA_NAME_2)
+          .width(1920)
+          .height(1200)
+          .exposure(MONO_EXPOSURE)
+          .gain(MONO_GAIN)
+          .denoise(MONO_DENOISE)
+          .stdDevFactor(1.0)
+          .build(),
+      CameraConfig.builder()
+          .robotToCameraTransform(ROBOT_TO_CAMERA_3)
+          .id(CAMERA_NAME_3)
+          .width(1920)
+          .height(1200)
+          .exposure(MONO_EXPOSURE)
+          .gain(MONO_GAIN)
+          .denoise(MONO_DENOISE)
+          .stdDevFactor(1.0)
+          .build(),
+      CameraConfig.builder()
+          .robotToCameraTransform(ROBOT_TO_CAMERA_4)
+          .id(CAMERA_NAME_4)
+          .width(1280)
+          .height(960)
+          .exposure(COLOR_EXPOSURE)
+          .gain(COLOR_GAIN)
+          .stdDevFactor(1.0)
+          .build(),
     };
-  }
-
-  @Override
-  public String[] getCameraNames() {
-    return new String[] {CAMERA_NAME_0, CAMERA_NAME_1, CAMERA_NAME_2, CAMERA_NAME_3, CAMERA_NAME_4};
-  }
-
-  @Override
-  public double[] getCameraStdDevFactors() {
-    return new double[] {1.0, 1.0, 1.0, 1.0, 1.0};
   }
 
   @Override
