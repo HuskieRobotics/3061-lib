@@ -841,6 +841,7 @@ public abstract class RobotConfig {
       Transform3d robotToCameraTransform,
       Pose3d poseForRobotToCameraTransformCalibration,
       String id,
+      String location,
       int width,
       int height,
       int autoExposure,

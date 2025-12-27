@@ -352,6 +352,7 @@ public class DefaultRobotConfig extends RobotConfig {
       CameraConfig.builder()
           .robotToCameraTransform(ROBOT_TO_CAMERA)
           .id(CAMERA_NAME)
+          .location("center")
           .width(1600)
           .height(1200)
           .stdDevFactor(1.0)

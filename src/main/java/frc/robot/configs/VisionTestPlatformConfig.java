@@ -33,6 +33,7 @@ public class VisionTestPlatformConfig extends RobotConfig {
       CameraConfig.builder()
           .robotToCameraTransform(ROBOT_TO_CAMERA_0)
           .id(CAMERA_NAME_0)
+          .location("")
           .width(1600)
           .height(1200)
           .stdDevFactor(1.0)

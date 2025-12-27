@@ -175,9 +175,21 @@ public class Vision extends SubsystemBase {
     for (int cameraIndex = 0; cameraIndex < visionIOs.length; cameraIndex++) {
       visionIOs[cameraIndex].updateInputs(
           inputs[cameraIndex], aprilTagInputs[cameraIndex], objDetectInputs[cameraIndex]);
-      Logger.processInputs(SUBSYSTEM_NAME + "/" + cameraIndex, inputs[cameraIndex]);
-      Logger.processInputs(SUBSYSTEM_NAME + "/" + cameraIndex, aprilTagInputs[cameraIndex]);
-      Logger.processInputs(SUBSYSTEM_NAME + "/" + cameraIndex, objDetectInputs[cameraIndex]);
+      Logger.processInputs(
+          SUBSYSTEM_NAME
+              + "/"
+              + RobotConfig.getInstance().getCameraConfigs()[cameraIndex].location(),
+          inputs[cameraIndex]);
+      Logger.processInputs(
+          SUBSYSTEM_NAME
+              + "/"
+              + RobotConfig.getInstance().getCameraConfigs()[cameraIndex].location(),
+          aprilTagInputs[cameraIndex]);
+      Logger.processInputs(
+          SUBSYSTEM_NAME
+              + "/"
+              + RobotConfig.getInstance().getCameraConfigs()[cameraIndex].location(),
+          objDetectInputs[cameraIndex]);
     }
 
     // Update recording state
@@ -193,6 +205,7 @@ public class Vision extends SubsystemBase {
     this.allCoralPoses.clear();
 
     for (int cameraIndex = 0; cameraIndex < visionIOs.length; cameraIndex++) {
+      String cameraLocation = RobotConfig.getInstance().getCameraConfigs()[cameraIndex].location();
 
       disconnectedAlerts[cameraIndex].set(!inputs[cameraIndex].connected);
       this.cyclesWithNoResults[cameraIndex] += 1;
@@ -282,11 +295,14 @@ public class Vision extends SubsystemBase {
 
             // if there are multiple observations, only the last will be logged, which is fine
             Logger.recordOutput(
-                SUBSYSTEM_NAME + "/" + cameraIndex + "/UpdatePoseCount",
+                SUBSYSTEM_NAME + "/" + cameraLocation + "/UpdatePoseCount",
                 this.updatePoseCount[cameraIndex]);
-            Logger.recordOutput(SUBSYSTEM_NAME + "/" + cameraIndex + "/StdDevX", stdDev.get(0, 0));
-            Logger.recordOutput(SUBSYSTEM_NAME + "/" + cameraIndex + "/StdDevY", stdDev.get(1, 0));
-            Logger.recordOutput(SUBSYSTEM_NAME + "/" + cameraIndex + "/StdDevT", stdDev.get(2, 0));
+            Logger.recordOutput(
+                SUBSYSTEM_NAME + "/" + cameraLocation + "/StdDevX", stdDev.get(0, 0));
+            Logger.recordOutput(
+                SUBSYSTEM_NAME + "/" + cameraLocation + "/StdDevY", stdDev.get(1, 0));
+            Logger.recordOutput(
+                SUBSYSTEM_NAME + "/" + cameraLocation + "/StdDevT", stdDev.get(2, 0));
           } else {
             robotPosesRejected.get(cameraIndex).add(estimatedRobotPose3d);
             if (ENABLE_DETAILED_LOGGING) {
@@ -334,32 +350,32 @@ public class Vision extends SubsystemBase {
 
       // Log data for this camera
       Logger.recordOutput(
-          SUBSYSTEM_NAME + "/" + cameraIndex + "/LatencySecs",
+          SUBSYSTEM_NAME + "/" + cameraLocation + "/LatencySecs",
           Timer.getTimestamp() - this.lastTimestamps[cameraIndex]);
       Logger.recordOutput(
-          SUBSYSTEM_NAME + "/" + cameraIndex + "/CyclesWithNoResults",
+          SUBSYSTEM_NAME + "/" + cameraLocation + "/CyclesWithNoResults",
           this.cyclesWithNoResults[cameraIndex]);
       Logger.recordOutput(
-          SUBSYSTEM_NAME + "/" + cameraIndex + "/TagPoses",
+          SUBSYSTEM_NAME + "/" + cameraLocation + "/TagPoses",
           tagPoses.get(cameraIndex).toArray(Pose3d[]::new));
       Logger.recordOutput(
-          SUBSYSTEM_NAME + "/" + cameraIndex + "/CameraPoses",
+          SUBSYSTEM_NAME + "/" + cameraLocation + "/CameraPoses",
           cameraPoses.get(cameraIndex).toArray(new Pose3d[cameraPoses.get(cameraIndex).size()]));
       Logger.recordOutput(
-          SUBSYSTEM_NAME + "/" + cameraIndex + "/RobotPoses",
+          SUBSYSTEM_NAME + "/" + cameraLocation + "/RobotPoses",
           robotPoses.get(cameraIndex).toArray(new Pose3d[robotPoses.get(cameraIndex).size()]));
       Logger.recordOutput(
-          SUBSYSTEM_NAME + "/" + cameraIndex + "/RobotPosesAccepted",
+          SUBSYSTEM_NAME + "/" + cameraLocation + "/RobotPosesAccepted",
           robotPosesAccepted
               .get(cameraIndex)
               .toArray(new Pose3d[robotPosesAccepted.get(cameraIndex).size()]));
       Logger.recordOutput(
-          SUBSYSTEM_NAME + "/" + cameraIndex + "/RobotPosesRejected",
+          SUBSYSTEM_NAME + "/" + cameraLocation + "/RobotPosesRejected",
           robotPosesRejected
               .get(cameraIndex)
               .toArray(new Pose3d[robotPosesRejected.get(cameraIndex).size()]));
       Logger.recordOutput(
-          SUBSYSTEM_NAME + "/" + cameraIndex + "/CameraAxes",
+          SUBSYSTEM_NAME + "/" + cameraLocation + "/CameraAxes",
           new Pose3d(RobotOdometry.getInstance().getEstimatedPose())
               .plus(
                   RobotConfig.getInstance()
