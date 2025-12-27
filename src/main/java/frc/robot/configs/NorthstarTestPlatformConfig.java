@@ -19,6 +19,9 @@ import frc.lib.team3061.swerve_drivetrain.swerve.SwerveConstants;
 public class NorthstarTestPlatformConfig extends RobotConfig {
   private static final String CAMERA_NAME_0 = "northstar_0";
   private static final String CAMERA_NAME_1 = "northstar_1";
+  private static final String CAMERA_NAME_2 = "northstar_2";
+  private static final String CAMERA_NAME_3 = "northstar_3";
+  private static final String CAMERA_NAME_4 = "northstar_4";
 
   // Front right camera
   private static final Transform3d ROBOT_TO_CAMERA_0 =
@@ -32,6 +35,24 @@ public class NorthstarTestPlatformConfig extends RobotConfig {
           new Translation3d(-0.279, -0.273, 0.253),
           new Rotation3d(new Quaternion(-0.149, 0.161, 0.027, 0.975)));
 
+  // Back right camera
+  private static final Transform3d ROBOT_TO_CAMERA_2 =
+      new Transform3d(
+          new Translation3d(-0.279, -0.273, 0.253),
+          new Rotation3d(new Quaternion(-0.149, 0.161, 0.027, 0.975)));
+
+  // Back right camera
+  private static final Transform3d ROBOT_TO_CAMERA_3 =
+      new Transform3d(
+          new Translation3d(-0.279, -0.273, 0.253),
+          new Rotation3d(new Quaternion(-0.149, 0.161, 0.027, 0.975)));
+
+  // Back right camera
+  private static final Transform3d ROBOT_TO_CAMERA_4 =
+      new Transform3d(
+          new Translation3d(-0.279, -0.273, 0.253),
+          new Rotation3d(new Quaternion(-0.149, 0.161, 0.027, 0.975)));
+
   @Override
   public boolean getPhoenix6Licensed() {
     return true;
@@ -39,17 +60,19 @@ public class NorthstarTestPlatformConfig extends RobotConfig {
 
   @Override
   public Transform3d[] getRobotToCameraTransforms() {
-    return new Transform3d[] {ROBOT_TO_CAMERA_0, ROBOT_TO_CAMERA_1};
+    return new Transform3d[] {
+      ROBOT_TO_CAMERA_0, ROBOT_TO_CAMERA_1, ROBOT_TO_CAMERA_2, ROBOT_TO_CAMERA_3, ROBOT_TO_CAMERA_4
+    };
   }
 
   @Override
   public String[] getCameraNames() {
-    return new String[] {CAMERA_NAME_0, CAMERA_NAME_1};
+    return new String[] {CAMERA_NAME_0, CAMERA_NAME_1, CAMERA_NAME_2, CAMERA_NAME_3, CAMERA_NAME_4};
   }
 
   @Override
   public double[] getCameraStdDevFactors() {
-    return new double[] {1.0, 1.0};
+    return new double[] {1.0, 1.0, 1.0, 1.0, 1.0};
   }
 
   @Override
