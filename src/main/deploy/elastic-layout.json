@@ -253,35 +253,35 @@
         "layouts": [],
         "containers": [
           {
-            "title": "0: activate calibration",
+            "title": "FR: activate calibration",
             "x": 16.0,
-            "y": 32.0,
+            "y": 128.0,
             "width": 240.0,
             "height": 128.0,
             "type": "Toggle Switch",
             "properties": {
-              "topic": "/northstar_0/calibration/active",
+              "topic": "/northstar_FR/calibration/active",
               "period": 0.06,
               "data_type": "boolean"
             }
           },
           {
-            "title": "0: capture frame for cal",
-            "x": 272.0,
-            "y": 32.0,
+            "title": "FR: capture frame for cal",
+            "x": 256.0,
+            "y": 128.0,
             "width": 240.0,
             "height": 128.0,
             "type": "Toggle Button",
             "properties": {
-              "topic": "/northstar_0/calibration/capture_flag",
+              "topic": "/northstar_FR/calibration/capture_flag",
               "period": 0.06,
               "data_type": "boolean"
             }
           },
           {
             "title": "enable recording",
-            "x": 544.0,
-            "y": 112.0,
+            "x": 16.0,
+            "y": 0.0,
             "width": 240.0,
             "height": 128.0,
             "type": "Toggle Switch",
@@ -292,27 +292,105 @@
             }
           },
           {
-            "title": "1: activate calibration",
+            "title": "BR: activate calibration",
             "x": 16.0,
-            "y": 176.0,
+            "y": 256.0,
             "width": 240.0,
             "height": 128.0,
             "type": "Toggle Switch",
             "properties": {
-              "topic": "/northstar_1/calibration/active",
+              "topic": "/northstar_BR/calibration/active",
               "period": 0.06,
               "data_type": "boolean"
             }
           },
           {
-            "title": "1: capture frame for cal",
-            "x": 272.0,
-            "y": 176.0,
+            "title": "BR: capture frame for cal",
+            "x": 256.0,
+            "y": 256.0,
             "width": 240.0,
             "height": 128.0,
             "type": "Toggle Button",
             "properties": {
-              "topic": "/northstar_1/calibration/capture_flag",
+              "topic": "/northstar_BR/calibration/capture_flag",
+              "period": 0.06,
+              "data_type": "boolean"
+            }
+          },
+          {
+            "title": "FL: activate calibration",
+            "x": 16.0,
+            "y": 384.0,
+            "width": 240.0,
+            "height": 128.0,
+            "type": "Toggle Switch",
+            "properties": {
+              "topic": "/northstar_FL/calibration/active",
+              "period": 0.06,
+              "data_type": "boolean"
+            }
+          },
+          {
+            "title": "FL: capture frame for cal",
+            "x": 256.0,
+            "y": 384.0,
+            "width": 240.0,
+            "height": 128.0,
+            "type": "Toggle Button",
+            "properties": {
+              "topic": "/northstar_FL/calibration/capture_flag",
+              "period": 0.06,
+              "data_type": "boolean"
+            }
+          },
+          {
+            "title": "BL: activate calibration",
+            "x": 528.0,
+            "y": 128.0,
+            "width": 240.0,
+            "height": 128.0,
+            "type": "Toggle Switch",
+            "properties": {
+              "topic": "/northstar_BL/calibration/active",
+              "period": 0.06,
+              "data_type": "boolean"
+            }
+          },
+          {
+            "title": "BL: capture frame for cal",
+            "x": 768.0,
+            "y": 128.0,
+            "width": 240.0,
+            "height": 128.0,
+            "type": "Toggle Button",
+            "properties": {
+              "topic": "/northstar_BL/calibration/capture_flag",
+              "period": 0.06,
+              "data_type": "boolean"
+            }
+          },
+          {
+            "title": "center: activate calibration",
+            "x": 528.0,
+            "y": 256.0,
+            "width": 240.0,
+            "height": 128.0,
+            "type": "Toggle Switch",
+            "properties": {
+              "topic": "/northstar_center/calibration/active",
+              "period": 0.06,
+              "data_type": "boolean"
+            }
+          },
+          {
+            "title": "center: capture frame for cal",
+            "x": 768.0,
+            "y": 256.0,
+            "width": 240.0,
+            "height": 128.0,
+            "type": "Toggle Button",
+            "properties": {
+              "topic": "/northstar_center/calibration/capture_flag",
               "period": 0.06,
               "data_type": "boolean"
             }
