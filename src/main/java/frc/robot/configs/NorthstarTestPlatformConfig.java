@@ -19,8 +19,8 @@ import frc.lib.team3061.swerve_drivetrain.swerve.SwerveConstants;
 public class NorthstarTestPlatformConfig extends RobotConfig {
   private static final String CAMERA_NAME_0 = "40686739";
   private static final String CAMERA_NAME_1 = "40708569";
-  private static final String CAMERA_NAME_2 = "40708542";
-  private static final String CAMERA_NAME_3 = "40708556";
+  private static final String CAMERA_NAME_2 = "40708556";
+  private static final String CAMERA_NAME_3 = "40708542";
   private static final String CAMERA_NAME_4 = "25249734";
 
   private static final int MONO_EXPOSURE = 2200;
