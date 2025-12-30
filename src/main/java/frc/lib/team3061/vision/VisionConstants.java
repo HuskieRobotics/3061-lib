@@ -69,6 +69,9 @@ public final class VisionConstants {
   // the average error in pixels for the simulated camera
   public static final double SIM_AVERAGE_ERROR_PIXELS = 0.1;
 
-  // te standard deviation of the error in pixels for the simulated camera
+  // the standard deviation of the error in pixels for the simulated camera
   public static final double SIM_ERROR_STD_DEV_PIXELS = 0.05;
+
+  // the minimum confidence for a coral detection to be considered valid
+  public static final double CORAL_DETECT_CONFIDENCE_THRESHOLD = 0.35;
 }

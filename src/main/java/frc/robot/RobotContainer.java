@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.team3061.RobotConfig;
+import frc.lib.team3061.RobotConfig.CameraConfig;
 import frc.lib.team3061.differential_drivetrain.DifferentialDrivetrain;
 import frc.lib.team3061.differential_drivetrain.DifferentialDrivetrainIOXRP;
 import frc.lib.team3061.leds.LEDs;
@@ -22,6 +23,7 @@ import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrainIOCTRE;
 import frc.lib.team3061.vision.Vision;
 import frc.lib.team3061.vision.VisionConstants;
 import frc.lib.team3061.vision.VisionIO;
+import frc.lib.team3061.vision.VisionIONorthstar;
 import frc.lib.team3061.vision.VisionIOPhotonVision;
 import frc.lib.team3061.vision.VisionIOSim;
 import frc.robot.Constants.Mode;
@@ -34,6 +36,7 @@ import frc.robot.commands.SwerveDrivetrainCommandFactory;
 import frc.robot.configs.CalypsoRobotConfig;
 import frc.robot.configs.DefaultRobotConfig;
 import frc.robot.configs.NewPracticeRobotConfig;
+import frc.robot.configs.NorthstarTestPlatformConfig;
 import frc.robot.configs.PracticeBoardConfig;
 import frc.robot.configs.VisionTestPlatformConfig;
 import frc.robot.configs.XRPRobotConfig;
@@ -123,6 +126,11 @@ public class RobotContainer {
             createVisionTestPlatformSubsystems();
             break;
           }
+        case ROBOT_NORTHSTAR_TEST_PLATFORM:
+          {
+            createNorthstarTestPlatformSubsystems();
+            break;
+          }
         case ROBOT_XRP:
           {
             createXRPSubsystems();
@@ -135,8 +143,8 @@ public class RobotContainer {
     } else {
       swerveDrivetrain = new SwerveDrivetrain(new SwerveDrivetrainIO() {});
 
-      String[] cameraNames = config.getCameraNames();
-      VisionIO[] visionIOs = new VisionIO[cameraNames.length];
+      CameraConfig[] cameraConfigs = config.getCameraConfigs();
+      VisionIO[] visionIOs = new VisionIO[cameraConfigs.length];
       for (int i = 0; i < visionIOs.length; i++) {
         visionIOs[i] = new VisionIO() {};
       }
@@ -192,6 +200,9 @@ public class RobotContainer {
       case ROBOT_VISION_TEST_PLATFORM:
         config = new VisionTestPlatformConfig();
         break;
+      case ROBOT_NORTHSTAR_TEST_PLATFORM:
+        config = new NorthstarTestPlatformConfig();
+        break;
       case ROBOT_XRP:
         config = new XRPRobotConfig();
         break;
@@ -203,8 +214,8 @@ public class RobotContainer {
   private void createCTRESubsystems() {
     swerveDrivetrain = new SwerveDrivetrain(new SwerveDrivetrainIOCTRE());
 
-    String[] cameraNames = config.getCameraNames();
-    VisionIO[] visionIOs = new VisionIO[cameraNames.length];
+    CameraConfig[] cameraConfigs = config.getCameraConfigs();
+    VisionIO[] visionIOs = new VisionIO[cameraConfigs.length];
     AprilTagFieldLayout layout;
     try {
       layout = new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
@@ -216,7 +227,7 @@ public class RobotContainer {
       layoutFileMissingAlert.set(true);
     }
     for (int i = 0; i < visionIOs.length; i++) {
-      visionIOs[i] = new VisionIOPhotonVision(cameraNames[i], layout);
+      visionIOs[i] = new VisionIOPhotonVision(cameraConfigs[i].id(), layout);
     }
     vision = new Vision(visionIOs);
 
@@ -231,8 +242,8 @@ public class RobotContainer {
   private void createCTRESimSubsystems() {
     swerveDrivetrain = new SwerveDrivetrain(new SwerveDrivetrainIOCTRE());
 
-    String[] cameraNames = config.getCameraNames();
-    VisionIO[] visionIOs = new VisionIO[cameraNames.length];
+    CameraConfig[] cameraConfigs = config.getCameraConfigs();
+    VisionIO[] visionIOs = new VisionIO[cameraConfigs.length];
     AprilTagFieldLayout layout;
     try {
       layout = new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
@@ -246,10 +257,10 @@ public class RobotContainer {
     for (int i = 0; i < visionIOs.length; i++) {
       visionIOs[i] =
           new VisionIOSim(
-              cameraNames[i],
+              cameraConfigs[i].id(),
               layout,
               swerveDrivetrain::getPose,
-              RobotConfig.getInstance().getRobotToCameraTransforms()[i]);
+              cameraConfigs[i].robotToCameraTransform());
     }
     vision = new Vision(visionIOs);
 
@@ -289,8 +300,8 @@ public class RobotContainer {
     // change the following to connect the subsystem being tested to actual hardware
     swerveDrivetrain = new SwerveDrivetrain(new SwerveDrivetrainIO() {});
 
-    String[] cameraNames = config.getCameraNames();
-    VisionIO[] visionIOs = new VisionIO[cameraNames.length];
+    CameraConfig[] cameraConfigs = config.getCameraConfigs();
+    VisionIO[] visionIOs = new VisionIO[cameraConfigs.length];
     AprilTagFieldLayout layout;
     try {
       layout = new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
@@ -302,7 +313,35 @@ public class RobotContainer {
       layoutFileMissingAlert.set(true);
     }
     for (int i = 0; i < visionIOs.length; i++) {
-      visionIOs[i] = new VisionIOPhotonVision(cameraNames[i], layout);
+      visionIOs[i] = new VisionIOPhotonVision(cameraConfigs[i].id(), layout);
+    }
+    vision = new Vision(visionIOs);
+
+    // FIXME: initialize other subsystems
+    arm = new Arm(new ArmIO() {});
+    elevator = new Elevator(new ElevatorIO() {});
+    manipulator = new Manipulator(new ManipulatorIO() {});
+    shooter = new Shooter(new ShooterIO() {});
+  }
+
+  private void createNorthstarTestPlatformSubsystems() {
+    // change the following to connect the subsystem being tested to actual hardware
+    swerveDrivetrain = new SwerveDrivetrain(new SwerveDrivetrainIO() {});
+
+    CameraConfig[] cameraConfigs = config.getCameraConfigs();
+    VisionIO[] visionIOs = new VisionIO[cameraConfigs.length];
+    AprilTagFieldLayout layout;
+    try {
+      layout = new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
+    } catch (IOException e) {
+      layout = new AprilTagFieldLayout(new ArrayList<>(), 16.4592, 8.2296);
+
+      layoutFileMissingAlert.setText(
+          LAYOUT_FILE_MISSING + ": " + VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
+      layoutFileMissingAlert.set(true);
+    }
+    for (int i = 0; i < visionIOs.length; i++) {
+      visionIOs[i] = new VisionIONorthstar(layout, cameraConfigs[i]);
     }
     vision = new Vision(visionIOs);
 
