@@ -126,8 +126,10 @@ public class CalypsoRobotConfig extends RobotConfig {
   private static final double AUTO_TURN_D_CONTROLLER = 0.0;
 
   // Drive to Pose constants
-  private static final double DRIVE_TO_POSE_DRIVE_KP = 2.0;
-  private static final double DRIVE_TO_POSE_DRIVE_KD = 0.0;
+  private static final double DRIVE_TO_POSE_DRIVE_X_KP = 2.0;
+  private static final double DRIVE_TO_POSE_DRIVE_Y_KP = 4.0;
+  private static final double DRIVE_TO_POSE_DRIVE_X_KD = 0.0;
+  private static final double DRIVE_TO_POSE_DRIVE_Y_KD = 0.0;
   private static final double DRIVE_TO_POSE_THETA_KP = 2.0;
   private static final double DRIVE_TO_POSE_THETA_KI = 0;
   private static final double DRIVE_TO_POSE_THETA_KD = 0.0;
@@ -436,13 +438,23 @@ public class CalypsoRobotConfig extends RobotConfig {
   }
 
   @Override
-  public double getDriveToPoseDriveKP() {
-    return DRIVE_TO_POSE_DRIVE_KP;
+  public double getDriveToPoseDriveXKP() {
+    return DRIVE_TO_POSE_DRIVE_X_KP;
   }
 
   @Override
-  public double getDriveToPoseDriveKD() {
-    return DRIVE_TO_POSE_DRIVE_KD;
+  public double getDriveToPoseDriveYKP() {
+    return DRIVE_TO_POSE_DRIVE_Y_KP;
+  }
+
+  @Override
+  public double getDriveToPoseDriveXKD() {
+    return DRIVE_TO_POSE_DRIVE_X_KD;
+  }
+
+  @Override
+  public double getDriveToPoseDriveYKD() {
+    return DRIVE_TO_POSE_DRIVE_Y_KD;
   }
 
   @Override

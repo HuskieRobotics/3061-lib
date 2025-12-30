@@ -306,12 +306,22 @@ public class PracticeBoardConfig extends RobotConfig {
   }
 
   @Override
-  public double getDriveToPoseDriveKP() {
+  public double getDriveToPoseDriveXKP() {
     return DRIVE_TO_POSE_DRIVE_KP;
   }
 
   @Override
-  public double getDriveToPoseDriveKD() {
+  public double getDriveToPoseDriveYKP() {
+    return DRIVE_TO_POSE_DRIVE_KP;
+  }
+
+  @Override
+  public double getDriveToPoseDriveXKD() {
+    return DRIVE_TO_POSE_DRIVE_KD;
+  }
+
+  @Override
+  public double getDriveToPoseDriveYKD() {
     return DRIVE_TO_POSE_DRIVE_KD;
   }
 

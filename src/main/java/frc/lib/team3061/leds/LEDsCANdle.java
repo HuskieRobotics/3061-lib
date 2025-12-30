@@ -49,6 +49,11 @@ public class LEDsCANdle extends LEDs {
     }
   }
 
+  @Override
+  public Color8Bit getColor(int index) {
+    return ledBuffer[index];
+  }
+
   private static Color8Bit convertTo8BitColor(Color color) {
     return new Color8Bit(
         (int) (color.red * 255), (int) (color.green * 255), (int) (color.blue * 255));

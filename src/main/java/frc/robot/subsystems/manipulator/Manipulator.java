@@ -3,13 +3,13 @@ package frc.robot.subsystems.manipulator;
 import static edu.wpi.first.units.Units.*;
 import static frc.robot.subsystems.manipulator.ManipulatorConstants.*;
 
-import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.lib.team254.CurrentSpikeDetector;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.leds.LEDs;
 import frc.lib.team3061.leds.LEDs.States;
@@ -71,10 +71,9 @@ public class Manipulator extends SubsystemBase {
   Timer inIndexingState = new Timer();
   Timer ejectingTimer = new Timer();
 
-  // Use a linear filter to detect when the game piece has stalled against the hard stop. We want to
-  // use a filter to eliminate false positives due to current spikes that may occur when the motor
-  // starts or when the game piece first makes contact with the manipulator.
-  private LinearFilter currentInAmps = LinearFilter.singlePoleIIR(0.1, 0.02);
+  private CurrentSpikeDetector currentSpikeDetector =
+      new CurrentSpikeDetector(
+          COLLECTION_CURRENT_SPIKE_THRESHOLD, COLLECTION_CURRENT_TIME_THRESHOLD_SECONDS);
 
   // Some state transitions are triggered by the driver or operator via a button press. We don't
   // want those commands to directly change the state as that can result in a missed state
@@ -152,9 +151,6 @@ public class Manipulator extends SubsystemBase {
 
         // If a state has a timeout, the timer must be restarted in the onEnter method.
         subsystem.inIndexingState.restart();
-
-        // If a state has a filter, the filter must be reset in the onEnter method.
-        subsystem.currentInAmps.reset();
       }
 
       @Override
@@ -163,8 +159,7 @@ public class Manipulator extends SubsystemBase {
         LEDs.getInstance().requestState(States.INDEXING_GAME_PIECE);
 
         // check if the game piece has stalled against the hard stop
-        if (subsystem.isManipulatorIRBlocked()
-            && subsystem.currentInAmps.lastValue() > COLLECTION_CURRENT_SPIKE_THRESHOLD) {
+        if (subsystem.isManipulatorIRBlocked() && subsystem.currentSpikeDetector.getAsBoolean()) {
           subsystem.setState(State.GAME_PIECE_IN_MANIPULATOR);
         }
         // check if the timeout has elapsed which indicates that the game piece may be stuck
@@ -285,7 +280,7 @@ public class Manipulator extends SubsystemBase {
     Logger.recordOutput(SUBSYSTEM_NAME + "/State", this.state);
 
     // If a filter is used, it must be updated every periodic call.
-    currentInAmps.calculate(inputs.manipulatorStatorCurrentAmps);
+    currentSpikeDetector.update(inputs.manipulatorStatorCurrentAmps);
 
     // If the testing mode is enabled, apply the specified voltage (if not zero). Only run the state
     // machine if testing mode is not enabled. Otherwise, the state machine will "fight" the

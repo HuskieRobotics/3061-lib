@@ -1,12 +1,12 @@
 package frc.robot.commands;
 
 import static edu.wpi.first.units.Units.*;
-import static frc.robot.Constants.*;
 
-import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.lib.team3061.RobotConfig;
@@ -26,12 +26,18 @@ import java.util.List;
 
 public class CrossSubsystemsCommandsFactory {
 
-  private static final LoggedTunableNumber driveKp =
+  private static final LoggedTunableNumber driveXKp =
       new LoggedTunableNumber(
-          "DriveToPoseExample/DriveKp", RobotConfig.getInstance().getDriveToPoseDriveKP());
-  private static final LoggedTunableNumber driveKd =
+          "DriveToPoseExample/DriveXKp", RobotConfig.getInstance().getDriveToPoseDriveXKP());
+  private static final LoggedTunableNumber driveYKp =
       new LoggedTunableNumber(
-          "DriveToPoseExample/DriveKd", RobotConfig.getInstance().getDriveToPoseDriveKD());
+          "DriveToPoseExample/DriveYKp", RobotConfig.getInstance().getDriveToPoseDriveYKP());
+  private static final LoggedTunableNumber driveXKd =
+      new LoggedTunableNumber(
+          "DriveToPoseExample/DriveXKd", RobotConfig.getInstance().getDriveToPoseDriveXKD());
+  private static final LoggedTunableNumber driveYKd =
+      new LoggedTunableNumber(
+          "DriveToPoseExample/DriveYKd", RobotConfig.getInstance().getDriveToPoseDriveYKD());
   private static final LoggedTunableNumber driveKi =
       new LoggedTunableNumber("DriveToPoseExample/DriveKi", 0);
   private static final LoggedTunableNumber thetaKp =
@@ -44,12 +50,36 @@ public class CrossSubsystemsCommandsFactory {
       new LoggedTunableNumber(
           "DriveToPoseExample/ThetaKi", RobotConfig.getInstance().getDriveToPoseThetaKI());
 
-  private static PIDController xController =
-      new PIDController(driveKp.get(), driveKi.get(), driveKd.get(), LOOP_PERIOD_SECS);
-  private static PIDController yController =
-      new PIDController(driveKp.get(), driveKi.get(), driveKd.get(), LOOP_PERIOD_SECS);
-  private static PIDController thetaController =
-      new PIDController(thetaKp.get(), thetaKi.get(), thetaKd.get(), LOOP_PERIOD_SECS);
+  private static ProfiledPIDController xController =
+      new ProfiledPIDController(
+          driveXKp.get(),
+          driveKi.get(),
+          driveXKd.get(),
+          new TrapezoidProfile.Constraints(
+              RobotConfig.getInstance().getDriveToPoseDriveMaxVelocity().in(MetersPerSecond),
+              RobotConfig.getInstance()
+                  .getDriveToPoseDriveMaxAcceleration()
+                  .in(MetersPerSecondPerSecond)));
+  private static ProfiledPIDController yController =
+      new ProfiledPIDController(
+          driveYKp.get(),
+          driveKi.get(),
+          driveYKd.get(),
+          new TrapezoidProfile.Constraints(
+              RobotConfig.getInstance().getDriveToPoseDriveMaxVelocity().in(MetersPerSecond),
+              RobotConfig.getInstance()
+                  .getDriveToPoseDriveMaxAcceleration()
+                  .in(MetersPerSecondPerSecond)));
+  private static ProfiledPIDController thetaController =
+      new ProfiledPIDController(
+          thetaKp.get(),
+          thetaKi.get(),
+          thetaKd.get(),
+          new TrapezoidProfile.Constraints(
+              RobotConfig.getInstance().getDriveToPoseTurnMaxVelocity().in(RadiansPerSecond),
+              RobotConfig.getInstance()
+                  .getDriveToPoseTurnMaxAcceleration()
+                  .in(RadiansPerSecondPerSecond)));
 
   private CrossSubsystemsCommandsFactory() {}
 
@@ -121,20 +151,19 @@ public class CrossSubsystemsCommandsFactory {
 
   private static Command getDriveToPoseCommand(
       SwerveDrivetrain swerveDrivetrain, Elevator elevator, OperatorInterface oi) {
+    thetaController.enableContinuousInput(-Math.PI, Math.PI);
     return new DriveToPose(
             swerveDrivetrain,
             CrossSubsystemsCommandsFactory::getTargetPose,
-            CrossSubsystemsCommandsFactory::calculateXVelocity,
-            CrossSubsystemsCommandsFactory::calculateYVelocity,
-            CrossSubsystemsCommandsFactory::calculateThetaVelocity,
+            xController,
+            yController,
+            thetaController,
             new Transform2d(0.10, 0.05, Rotation2d.fromDegrees(5.0)),
             true,
             (atPose) ->
                 LEDs.getInstance()
                     .requestState(atPose ? LEDs.States.AT_POSE : LEDs.States.AUTO_DRIVING_TO_POSE),
-            (poseDifference) -> {
-              /* do nothing */
-            },
+            CrossSubsystemsCommandsFactory::updatePIDConstants,
             5.0)
         .withName("drive to pose");
   }
@@ -149,7 +178,7 @@ public class CrossSubsystemsCommandsFactory {
     return new Pose2d(2.0, 5.0, Rotation2d.fromDegrees(90.0));
   }
 
-  private static Double calculateXVelocity(Double currentX, Double targetX) {
+  private static void updatePIDConstants(Transform2d poseDifference) {
     // Update from tunable numbers
     LoggedTunableNumber.ifChanged(
         xController.hashCode(),
@@ -157,26 +186,20 @@ public class CrossSubsystemsCommandsFactory {
           xController.setPID(pid[0], pid[1], pid[2]);
           yController.setPID(pid[0], pid[1], pid[2]);
         },
-        driveKp,
+        driveXKp,
         driveKi,
-        driveKd);
-    return xController.calculate(currentX, targetX);
-  }
+        driveXKd);
 
-  private static Double calculateYVelocity(double currentY, double targetY) {
     LoggedTunableNumber.ifChanged(
         yController.hashCode(),
         pid -> {
           xController.setPID(pid[0], pid[1], pid[2]);
           yController.setPID(pid[0], pid[1], pid[2]);
         },
-        driveKp,
+        driveYKp,
         driveKi,
-        driveKd);
-    return yController.calculate(currentY, targetY);
-  }
+        driveYKd);
 
-  private static Double calculateThetaVelocity(double currentTheta, double targetTheta) {
     LoggedTunableNumber.ifChanged(
         thetaController.hashCode(),
         pid -> {
@@ -185,6 +208,5 @@ public class CrossSubsystemsCommandsFactory {
         thetaKp,
         thetaKi,
         thetaKd);
-    return thetaController.calculate(currentTheta, targetTheta);
   }
 }

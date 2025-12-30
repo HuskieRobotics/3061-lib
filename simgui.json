@@ -32,6 +32,7 @@
       "/AdvantageKit/RealOutputs/Arm/ArmSim": "Mechanism2d",
       "/AdvantageKit/RealOutputs/Elevator/ElevatorSim": "Mechanism2d",
       "/AdvantageKit/RealOutputs/PathPlanner": "Alerts",
+      "/AdvantageKit/RealOutputs/Visualization/Mechanisms2D": "Mechanism2d",
       "/FMSInfo": "FMSInfo",
       "/SmartDashboard/Alerts": "Alerts",
       "/SmartDashboard/Auto Routine": "String Chooser",
