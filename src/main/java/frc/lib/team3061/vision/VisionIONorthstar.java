@@ -48,7 +48,7 @@ public class VisionIONorthstar implements VisionIO {
   private final Transform3d robotToCameraTransform;
 
   public VisionIONorthstar(AprilTagFieldLayout layout, RobotConfig.CameraConfig camera) {
-    this.deviceId = "northstar_" + camera.id();
+    this.deviceId = "northstar_" + camera.location();
     this.robotToCameraTransform = camera.robotToCameraTransform();
     this.aprilTagFieldLayout = layout;
     String layoutString = "";
