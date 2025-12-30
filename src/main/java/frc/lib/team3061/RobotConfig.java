@@ -836,6 +836,28 @@ public abstract class RobotConfig {
     TORQUE_CURRENT_FOC
   }
 
+  /**
+   * Configuration for a camera used by the vision subsystem.
+   *
+   * <p>It contains the following fields:
+   *
+   * <ul>
+   *   <li>robotToCameraTransform: The transform from the robot to the camera. (required)
+   *   <li>poseForRobotToCameraTransformCalibration: The pose used for calibrating the robot to
+   *       camera transform empirically.
+   *   <li>id: The identifier for the camera. (required; specify the serial number of Basler cameras
+   *       and the camera name for PhotonVision cameras)
+   *   <li>location: The physical location of the camera on the robot; also used as part of the path
+   *       in Network Tables. (required)
+   *   <li>width: The width of the camera image in pixels. (required for Basler cameras)
+   *   <li>height: The height of the camera image in pixels. (required for Basler cameras)
+   *   <li>autoExposure: The auto exposure setting for the camera. (default: 0)
+   *   <li>exposure: The exposure setting for the camera. (required for Basler cameras)
+   *   <li>gain: The gain setting for the camera. (required for Basler cameras)
+   *   <li>denoise: The denoise setting for the camera. (required for Basler cameras)
+   *   <li>stdDevFactor: The standard deviation factor for filtering. (required; suggested: 1.0)
+   * </ul>
+   */
   @Builder
   public record CameraConfig(
       Transform3d robotToCameraTransform,
