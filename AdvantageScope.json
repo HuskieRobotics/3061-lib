@@ -25,14 +25,14 @@
           ]
         },
         "tabs": {
-          "selected": 1,
+          "selected": 16,
           "tabs": [
             {
               "type": 0,
               "title": "",
               "controller": null,
               "controllerUUID": "g1xfc0hlbypfmgph7h2r8w0kzq6075b4",
-              "renderer": "#/overview/live-sources/nt-publishing",
+              "renderer": "",
               "controlsHeight": 0
             },
             {
@@ -735,8 +735,8 @@
                 ],
                 "timeRange": "visible",
                 "rangeMin": 0,
-                "rangeMax": 10,
-                "stepSize": 1
+                "rangeMax": 1,
+                "stepSize": 0.01
               },
               "controllerUUID": "r6wwgkcmzjzsak20gorebwogm5rf05g0",
               "renderer": null,
@@ -1124,8 +1124,8 @@
                 ],
                 "timeRange": "visible",
                 "rangeMin": 0,
-                "rangeMax": 10,
-                "stepSize": 1
+                "rangeMax": 13,
+                "stepSize": 0.2
               },
               "controllerUUID": "fveusbp1mlsvlgoolrpttb1fqy67eywv",
               "renderer": null,
@@ -1148,8 +1148,8 @@
                 ],
                 "timeRange": "visible",
                 "rangeMin": 0,
-                "rangeMax": 10,
-                "stepSize": 1
+                "rangeMax": 150,
+                "stepSize": 5
               },
               "controllerUUID": "pee6inzslg4o9wcpcxgmjig27rwmu17e",
               "renderer": null,
