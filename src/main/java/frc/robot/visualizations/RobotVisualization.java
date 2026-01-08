@@ -26,7 +26,6 @@ public class RobotVisualization {
   private LoggedMechanismRoot2d ledDisplayRoot;
   private LoggedMechanismLigament2d ledDisplayBox;
 
-  private final double kElevatorPosX = 0.75;
   private final double kElevatorPosY = 0.51;
   private final double kElevatorStageLength = 0.5;
   private LoggedMechanismRoot2d elevatorRoot;
