@@ -4,6 +4,7 @@ package frc.lib.team3015.subsystem;
 
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.hardware.CANrange;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.revrobotics.spark.SparkMax;
@@ -348,6 +349,22 @@ public class FaultReporter {
     SubsystemFaults subsystemFaults =
         subsystemsFaults.getOrDefault(subsystemName, new SubsystemFaults());
     subsystemFaults.hardware.add(new SelfCheckingCANCoder(label, canCoder));
+    subsystemsFaults.put(subsystemName, subsystemFaults);
+  }
+
+  /**
+   * Registers a hardware device with the FaultReporter. This method should be invoked by the
+   * hardware-specific subsystem class to register all hardware devices associated with the
+   * subsystem. Refer to the configMotor method in the Subsystem class for an example.
+   *
+   * @param subsystemName the name of the subsystem that the hardware device is associated with
+   * @param label the label of the hardware device
+   * @param canCoder the hardware device to register
+   */
+  public void registerHardware(String subsystemName, String label, CANrange canRange) {
+    SubsystemFaults subsystemFaults =
+        subsystemsFaults.getOrDefault(subsystemName, new SubsystemFaults());
+    subsystemFaults.hardware.add(new SelfCheckingCANRange(label, canRange));
     subsystemsFaults.put(subsystemName, subsystemFaults);
   }
 
