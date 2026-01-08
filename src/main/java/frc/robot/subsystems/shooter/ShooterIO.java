@@ -4,6 +4,7 @@ import static edu.wpi.first.units.Units.*;
 
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 import org.littletonrobotics.junction.AutoLog;
@@ -40,6 +41,12 @@ public interface ShooterIO {
     AngularVelocity shootMotorBottomClosedLoopErrorVelocity = RotationsPerSecond.of(0.0);
     Temperature shootMotorBottomTemperature = Celsius.of(0.0);
     Voltage shootMotorBottomVoltage = Volts.of(0.0);
+
+    // Game Piece Detection
+    boolean sensorConnected = false;
+    boolean hasGamePiece = false;
+    Distance distanceToGamePiece = Meters.of(0.0);
+    double signalStrength = 0.0;
   }
 
   public default void updateInputs(ShooterIOInputs inputs) {}
