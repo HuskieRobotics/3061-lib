@@ -25,12 +25,12 @@ public class NewPracticeRobotConfig extends RobotConfig {
 
   private static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 40;
   private static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 25;
-  private static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 8;
+  private static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 17;
   private static final Angle FRONT_RIGHT_MODULE_STEER_OFFSET = Rotations.of(-0.487793 + 0.5);
 
   private static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 39;
   private static final int BACK_LEFT_MODULE_STEER_MOTOR = 60;
-  private static final int BACK_LEFT_MODULE_STEER_ENCODER = 17;
+  private static final int BACK_LEFT_MODULE_STEER_ENCODER = 8;
   private static final Angle BACK_LEFT_MODULE_STEER_OFFSET = Rotations.of(-0.280029);
 
   private static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 38;
