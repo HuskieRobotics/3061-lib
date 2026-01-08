@@ -18,23 +18,23 @@ import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.swerve_drivetrain.swerve.SwerveConstants;
 
 public class NewPracticeRobotConfig extends RobotConfig {
-  private static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 43;
-  private static final int FRONT_LEFT_MODULE_STEER_MOTOR = 44;
+  private static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 37;
+  private static final int FRONT_LEFT_MODULE_STEER_MOTOR = 61;
   private static final int FRONT_LEFT_MODULE_STEER_ENCODER = 14;
   private static final Angle FRONT_LEFT_MODULE_STEER_OFFSET = Rotations.of(0.271484);
 
-  private static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 41;
-  private static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 42;
+  private static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 40;
+  private static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 25;
   private static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 8;
   private static final Angle FRONT_RIGHT_MODULE_STEER_OFFSET = Rotations.of(-0.487793 + 0.5);
 
-  private static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 38;
-  private static final int BACK_LEFT_MODULE_STEER_MOTOR = 37;
+  private static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 39;
+  private static final int BACK_LEFT_MODULE_STEER_MOTOR = 60;
   private static final int BACK_LEFT_MODULE_STEER_ENCODER = 17;
   private static final Angle BACK_LEFT_MODULE_STEER_OFFSET = Rotations.of(-0.280029);
 
-  private static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 39;
-  private static final int BACK_RIGHT_MODULE_STEER_MOTOR = 40;
+  private static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 38;
+  private static final int BACK_RIGHT_MODULE_STEER_MOTOR = 59;
   private static final int BACK_RIGHT_MODULE_STEER_ENCODER = 11;
   private static final Angle BACK_RIGHT_MODULE_STEER_OFFSET = Rotations.of(-0.105957 + 0.5);
 
