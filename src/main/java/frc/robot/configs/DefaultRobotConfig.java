@@ -282,11 +282,6 @@ public class DefaultRobotConfig extends RobotConfig {
   }
 
   @Override
-  public Transform3d[] getRobotToCameraTransforms() {
-    return new Transform3d[] {ROBOT_TO_CAMERA};
-  }
-
-  @Override
   public LinearVelocity getRobotMaxVelocity() {
     return MAX_VELOCITY;
   }
@@ -352,13 +347,17 @@ public class DefaultRobotConfig extends RobotConfig {
   }
 
   @Override
-  public String[] getCameraNames() {
-    return new String[] {CAMERA_NAME};
-  }
-
-  @Override
-  public double[] getCameraStdDevFactors() {
-    return new double[] {1.0};
+  public CameraConfig[] getCameraConfigs() {
+    return new CameraConfig[] {
+      CameraConfig.builder()
+          .robotToCameraTransform(ROBOT_TO_CAMERA)
+          .id(CAMERA_NAME)
+          .location("center")
+          .width(1600)
+          .height(1200)
+          .stdDevFactor(1.0)
+          .build(),
+    };
   }
 
   @Override

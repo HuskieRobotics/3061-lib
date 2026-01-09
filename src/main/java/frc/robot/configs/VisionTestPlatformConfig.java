@@ -28,18 +28,17 @@ public class VisionTestPlatformConfig extends RobotConfig {
   }
 
   @Override
-  public Transform3d[] getRobotToCameraTransforms() {
-    return new Transform3d[] {ROBOT_TO_CAMERA_0};
-  }
-
-  @Override
-  public String[] getCameraNames() {
-    return new String[] {CAMERA_NAME_0};
-  }
-
-  @Override
-  public double[] getCameraStdDevFactors() {
-    return new double[] {1.0};
+  public CameraConfig[] getCameraConfigs() {
+    return new CameraConfig[] {
+      CameraConfig.builder()
+          .robotToCameraTransform(ROBOT_TO_CAMERA_0)
+          .id(CAMERA_NAME_0)
+          .location("")
+          .width(1600)
+          .height(1200)
+          .stdDevFactor(1.0)
+          .build(),
+    };
   }
 
   @Override

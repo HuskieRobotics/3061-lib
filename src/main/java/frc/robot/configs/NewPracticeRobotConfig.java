@@ -105,10 +105,14 @@ public class NewPracticeRobotConfig extends RobotConfig {
 
   private static final int LED_COUNT = 85;
 
-  private static final String CAMERA_NAME_0 = "OV2311FR";
-  private static final String CAMERA_NAME_1 = "OV2311BR";
-  private static final String CAMERA_NAME_2 = "OV2311FL";
-  private static final String CAMERA_NAME_3 = "OV2311BL";
+  private static final String CAMERA_NAME_0 = "40686739";
+  private static final String CAMERA_NAME_1 = "40708569";
+  private static final String CAMERA_NAME_2 = "40708556";
+  private static final String CAMERA_NAME_3 = "40708542";
+
+  private static final int MONO_EXPOSURE = 2200;
+  private static final double MONO_GAIN = 17.5;
+  private static final double MONO_DENOISE = 1.0;
 
   // Front right camera
   private static final Transform3d ROBOT_TO_CAMERA_0 =
@@ -149,20 +153,53 @@ public class NewPracticeRobotConfig extends RobotConfig {
           new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(180)));
 
   @Override
-  public Transform3d[] getRobotToCameraTransforms() {
-    return new Transform3d[] {
-      ROBOT_TO_CAMERA_0, ROBOT_TO_CAMERA_1, ROBOT_TO_CAMERA_2, ROBOT_TO_CAMERA_3
+  public CameraConfig[] getCameraConfigs() {
+    return new CameraConfig[] {
+      CameraConfig.builder()
+          .robotToCameraTransform(ROBOT_TO_CAMERA_0)
+          .id(CAMERA_NAME_0)
+          .location("FR")
+          .width(1920)
+          .height(1200)
+          .exposure(MONO_EXPOSURE)
+          .gain(MONO_GAIN)
+          .denoise(MONO_DENOISE)
+          .stdDevFactor(1.0)
+          .build(),
+      CameraConfig.builder()
+          .robotToCameraTransform(ROBOT_TO_CAMERA_1)
+          .id(CAMERA_NAME_1)
+          .location("BR")
+          .width(1920)
+          .height(1200)
+          .exposure(MONO_EXPOSURE)
+          .gain(MONO_GAIN)
+          .denoise(MONO_DENOISE)
+          .stdDevFactor(1.0)
+          .build(),
+      CameraConfig.builder()
+          .robotToCameraTransform(ROBOT_TO_CAMERA_2)
+          .id(CAMERA_NAME_2)
+          .location("FL")
+          .width(1920)
+          .height(1200)
+          .exposure(MONO_EXPOSURE)
+          .gain(MONO_GAIN)
+          .denoise(MONO_DENOISE)
+          .stdDevFactor(1.0)
+          .build(),
+      CameraConfig.builder()
+          .robotToCameraTransform(ROBOT_TO_CAMERA_3)
+          .id(CAMERA_NAME_3)
+          .location("BL")
+          .width(1920)
+          .height(1200)
+          .exposure(MONO_EXPOSURE)
+          .gain(MONO_GAIN)
+          .denoise(MONO_DENOISE)
+          .stdDevFactor(1.0)
+          .build(),
     };
-  }
-
-  @Override
-  public String[] getCameraNames() {
-    return new String[] {CAMERA_NAME_0, CAMERA_NAME_1, CAMERA_NAME_2, CAMERA_NAME_3};
-  }
-
-  @Override
-  public double[] getCameraStdDevFactors() {
-    return new double[] {1.0, 1.0, 1.0, 1.0};
   }
 
   @Override

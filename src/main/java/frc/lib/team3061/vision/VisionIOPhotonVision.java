@@ -41,7 +41,10 @@ public class VisionIOPhotonVision implements VisionIO {
    * @param inputs the VisionIOInputs object to update with the latest data from the camera
    */
   @Override
-  public void updateInputs(VisionIOInputs inputs) {
+  public void updateInputs(
+      VisionIOInputs inputs,
+      AprilTagVisionIOInputs aprilTagInputs,
+      ObjDetectVisionIOInputs objDetectInputs) {
     inputs.connected = camera.isConnected();
     observations.clear();
 
