@@ -1,6 +1,6 @@
 # 3061-lib </br>
 
-Huskie Robotics, FRC Team 3061's, starter project and library focused on a swerve-based drivetrain. Supports Swerve Drive Specialties (SDS) MK4/MK4i/MK4n swerve modules using devices from Cross the Road Electronics (CTRE): 2 Falcon 500 / Kraken motors and a CTRE CANCoder, a CTRE Pigeon Gyro along with REV Robotics power distribution hub and pneumatics hub. While, due to the hardware abstraction layer, this code can be adapted to other motor controllers, encoders, and gyros as well as different swerve module designs, only CTRE devices and SDS swerve modules are supported "out of the box."
+Huskie Robotics, FRC Team 3061's, starter project and library focused on a swerve-based drivetrain. Supports Swerve Drive Specialties (SDS) MK4/MK4i/MK4n/MK5n swerve modules using devices from Cross the Road Electronics (CTRE): 2 Falcon 500 / Kraken motors and a CTRE CANCoder, a CTRE Pigeon Gyro along with REV Robotics power distribution hub and pneumatics hub. While, due to the hardware abstraction layer, this code can be adapted to other motor controllers, encoders, and gyros as well as different swerve module designs, only CTRE devices and SDS swerve modules are supported "out of the box."
 
 **Is 3061-lib a Good Fit for Your Team?**
 ----
@@ -57,7 +57,7 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
 * If you are not using all CTRE hardware, do the following.
     * Setting Steer Offsets (e.g., ```FRONT_LEFT_MODULE_STEER_OFFSET_ROT```) in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
         * For finding the offsets, use a piece of 2x1 extrusion that is straight against the forks of the front and back modules (on the left and right side) to ensure that the modules are straight
-        * Point the bevel gears of all the wheels towards the center of the robot.
+        * Point the bevel gears of all the wheels towards the center of the robot for MK3/4 and towards the outside of the robot for MK5.
         * Open Phoenix Tuner X and, for each CANcoder on a swerve module, copy the negated rotation value of the "Absolute Position No Offset" signal to the ```STEER_OFFSET``` constants. For example, if the CANcoder "Absolute Position No Offset" signal is 0.104004, specify a value of -0.104004 for the corresponding constant.
 * Checking geometry:
     1. elevate the robot on a cart positioned in front of the operator console so the driver's perspective is the same as the robot's (i.e., the front of the robot facing away from the driver); we label the front, back, left, and right of the robot on the robot since which is which may be ambiguous until more of the robot is assembled

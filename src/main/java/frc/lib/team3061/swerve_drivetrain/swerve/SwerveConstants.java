@@ -183,6 +183,102 @@ public abstract class SwerveConstants {
         }
       };
 
+  public static final SwerveConstants MK5N_R1_CONSTANTS =
+      new SwerveConstants() {
+        @Override
+        public double getDriveGearRatio() {
+          return MK5N_R1_DRIVE_GEAR_RATIO;
+        }
+
+        @Override
+        public boolean isDriveMotorInverted() {
+          return MK5N_DRIVE_MOTOR_INVERTED;
+        }
+
+        @Override
+        public double getAngleGearRatio() {
+          return MK5N_ANGLE_GEAR_RATIO;
+        }
+
+        @Override
+        public boolean isAngleMotorInverted() {
+          return MK5N_ANGLE_MOTOR_INVERTED;
+        }
+
+        @Override
+        public boolean isCanCoderInverted() {
+          return MK5N_CAN_CODER_INVERTED;
+        }
+      };
+
+  public static final SwerveConstants MK5N_R2_CONSTANTS =
+      new SwerveConstants() {
+        @Override
+        public double getDriveGearRatio() {
+          return MK5N_R2_DRIVE_GEAR_RATIO;
+        }
+
+        @Override
+        public boolean isDriveMotorInverted() {
+          return MK5N_DRIVE_MOTOR_INVERTED;
+        }
+
+        @Override
+        public double getAngleGearRatio() {
+          return MK5N_ANGLE_GEAR_RATIO;
+        }
+
+        @Override
+        public boolean isAngleMotorInverted() {
+          return MK5N_ANGLE_MOTOR_INVERTED;
+        }
+
+        @Override
+        public boolean isCanCoderInverted() {
+          return MK5N_CAN_CODER_INVERTED;
+        }
+      };
+
+  public static final SwerveConstants MK5N_R3_CONSTANTS =
+      new SwerveConstants() {
+        @Override
+        public double getDriveGearRatio() {
+          return MK5N_R3_DRIVE_GEAR_RATIO;
+        }
+
+        @Override
+        public boolean isDriveMotorInverted() {
+          return MK5N_DRIVE_MOTOR_INVERTED;
+        }
+
+        @Override
+        public double getAngleGearRatio() {
+          return MK5N_ANGLE_GEAR_RATIO;
+        }
+
+        @Override
+        public boolean isAngleMotorInverted() {
+          return MK5N_ANGLE_MOTOR_INVERTED;
+        }
+
+        @Override
+        public boolean isCanCoderInverted() {
+          return MK5N_CAN_CODER_INVERTED;
+        }
+      };
+
+  /* MK5n */
+  private static final double MK5N_R1_DRIVE_GEAR_RATIO =
+      1.0 / ((12.0 / 54.0) * (32.0 / 25.0) * (15.0 / 30.0));
+  private static final double MK5N_R2_DRIVE_GEAR_RATIO =
+      1.0 / ((14.0 / 54.0) * (32.0 / 25.0) * (15.0 / 30.0));
+  private static final double MK5N_R3_DRIVE_GEAR_RATIO =
+      1.0 / ((16.0 / 54.0) * (32.0 / 25.0) * (15.0 / 30.0));
+  private static final boolean MK5N_DRIVE_MOTOR_INVERTED = false;
+  private static final double MK5N_ANGLE_GEAR_RATIO = 287.0 / 11.0;
+  private static final boolean MK5N_ANGLE_MOTOR_INVERTED = false;
+  private static final boolean MK5N_CAN_CODER_INVERTED = false;
+
   /* MK4n L3 Plus */
   private static final double MK4N_L3_PLUS_DRIVE_GEAR_RATIO =
       1 / ((16.0 / 50.0) * (28.0 / 16.0) * (15.0 / 45.0));

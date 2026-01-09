@@ -188,10 +188,10 @@ public class RobotContainer {
       case ROBOT_DEFAULT:
         config = new DefaultRobotConfig();
         break;
-      case ROBOT_PRACTICE:
+      case ROBOT_PRACTICE, ROBOT_SIMBOT:
         config = new NewPracticeRobotConfig();
         break;
-      case ROBOT_COMPETITION, ROBOT_SIMBOT:
+      case ROBOT_COMPETITION:
         config = new CalypsoRobotConfig();
         break;
       case ROBOT_PRACTICE_BOARD:
