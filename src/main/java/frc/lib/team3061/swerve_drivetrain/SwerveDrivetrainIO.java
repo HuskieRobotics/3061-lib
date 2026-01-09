@@ -27,6 +27,10 @@ public interface SwerveDrivetrainIO {
 
     public double steerAbsolutePositionDeg = 0.0;
 
+    public double steerPositionRot = 0.0;
+    public double steerRefPositionRot = 0.0;
+    public double steerSensorPositionRot = 0.0;
+
     public boolean steerEnabled = false;
     public double steerStatorCurrentAmps = 0.0;
     public double steerSupplyCurrentAmps = 0.0;

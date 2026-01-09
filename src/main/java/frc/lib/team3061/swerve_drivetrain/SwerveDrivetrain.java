@@ -91,7 +91,7 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
   private final PIDController autoThetaController =
       new PIDController(autoTurnKp.get(), autoTurnKi.get(), autoTurnKd.get());
 
-  private boolean isFieldRelative = true;
+  private boolean isFieldRelative = false;
   private boolean isTranslationSlowMode = false;
   private boolean isRotationSlowMode = false;
 

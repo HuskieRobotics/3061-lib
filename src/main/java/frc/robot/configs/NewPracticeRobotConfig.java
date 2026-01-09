@@ -21,22 +21,22 @@ public class NewPracticeRobotConfig extends RobotConfig {
   private static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 37;
   private static final int FRONT_LEFT_MODULE_STEER_MOTOR = 61;
   private static final int FRONT_LEFT_MODULE_STEER_ENCODER = 14;
-  private static final Angle FRONT_LEFT_MODULE_STEER_OFFSET = Rotations.of(0.382812);
+  private static final Angle FRONT_LEFT_MODULE_STEER_OFFSET = Rotations.of(0.382324 + 0.5);
 
   private static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 40;
   private static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 25;
   private static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 17;
-  private static final Angle FRONT_RIGHT_MODULE_STEER_OFFSET = Rotations.of(0.471680 + 0.5);
+  private static final Angle FRONT_RIGHT_MODULE_STEER_OFFSET = Rotations.of(0.471191 + 0.5);
 
   private static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 39;
   private static final int BACK_LEFT_MODULE_STEER_MOTOR = 60;
   private static final int BACK_LEFT_MODULE_STEER_ENCODER = 8;
-  private static final Angle BACK_LEFT_MODULE_STEER_OFFSET = Rotations.of(0.120850);
+  private static final Angle BACK_LEFT_MODULE_STEER_OFFSET = Rotations.of(0.121094 + 0.5);
 
   private static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 38;
   private static final int BACK_RIGHT_MODULE_STEER_MOTOR = 59;
   private static final int BACK_RIGHT_MODULE_STEER_ENCODER = 11;
-  private static final Angle BACK_RIGHT_MODULE_STEER_OFFSET = Rotations.of(-0.341797 + 0.5);
+  private static final Angle BACK_RIGHT_MODULE_STEER_OFFSET = Rotations.of(-0.342041 + 0.5);
 
   private static final int GYRO_ID = 3;
 
@@ -51,9 +51,9 @@ public class NewPracticeRobotConfig extends RobotConfig {
   private static final double COUPLE_RATIO = 3.125;
 
   /* Angle Motor PID Values */
-  private static final double ANGLE_KP = 100.0;
+  private static final double ANGLE_KP = 10.0;
   private static final double ANGLE_KI = 0.0;
-  private static final double ANGLE_KD = 0.5;
+  private static final double ANGLE_KD = 0.1;
 
   // values from sysid routines
   private static final double ANGLE_KS = 0.28516;
