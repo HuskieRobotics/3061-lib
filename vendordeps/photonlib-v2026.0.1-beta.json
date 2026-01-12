@@ -3,7 +3,7 @@
   "name": "photonlib",
   "version": "v2026.0.1-beta",
   "uuid": "515fe07e-bfc6-11fa-b3de-0242ac130004",
-  "frcYear": "2026beta",
+  "frcYear": "2026",
   "mavenUrls": [
     "https://maven.photonvision.org/repository/internal",
     "https://maven.photonvision.org/repository/snapshots"
