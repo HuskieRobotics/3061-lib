@@ -597,10 +597,6 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
 
     inputs.steerAbsolutePositionDeg =
         module.getEncoder().getAbsolutePosition().getValue().in(Degrees);
-
-    inputs.steerPositionRot = module.getSteerMotor().getPosition().getValueAsDouble();
-    inputs.steerRefPositionRot = module.getSteerMotor().getClosedLoopReference().getValueAsDouble();
-    inputs.steerSensorPositionRot = module.getEncoder().getPosition().getValueAsDouble();
     inputs.steerEnabled =
         module.getSteerMotor().getDeviceEnable().getValue() == DeviceEnableValue.Enabled;
     inputs.steerStatorCurrentAmps = module.getSteerMotor().getStatorCurrent().getValue().in(Amps);
