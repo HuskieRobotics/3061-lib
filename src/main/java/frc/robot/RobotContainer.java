@@ -292,7 +292,7 @@ public class RobotContainer {
     arm = new Arm(new ArmIO() {});
     elevator = new Elevator(new ElevatorIO() {});
     manipulator = new Manipulator(new ManipulatorIO() {});
-    shooter = new Shooter(new ShooterIO() {});
+    shooter = new Shooter(new ShooterIOTalonFX());
     visualization = new RobotVisualization(elevator);
   }
 

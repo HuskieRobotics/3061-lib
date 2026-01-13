@@ -131,12 +131,9 @@ public class Shooter extends SubsystemBase {
     if (testingMode.get() == 1) {
       if (topWheelVelocityRPS.get() != 0) {
         io.setShooterWheelTopVelocity(RotationsPerSecond.of(topWheelVelocityRPS.get()));
+        io.setShooterWheelBottomVelocity(RotationsPerSecond.of(bottomWheelVelocityRPS.get()));
       } else if (topWheelCurrent.get() != 0) {
         io.setShooterWheelTopCurrent(Amps.of(topWheelCurrent.get()));
-      }
-      if (bottomWheelVelocityRPS.get() != 0) {
-        io.setShooterWheelBottomVelocity(RotationsPerSecond.of(bottomWheelVelocityRPS.get()));
-      } else if (bottomWheelCurrent.get() != 0) {
         io.setShooterWheelBottomCurrent(Amps.of(bottomWheelCurrent.get()));
       }
     }
