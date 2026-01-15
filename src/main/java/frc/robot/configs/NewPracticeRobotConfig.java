@@ -51,7 +51,7 @@ public class NewPracticeRobotConfig extends RobotConfig {
   private static final double COUPLE_RATIO = 3.125;
 
   /* Angle Motor PID Values */
-  private static final double ANGLE_KP = 10.0; // 54.81
+  private static final double ANGLE_KP = 77;
   private static final double ANGLE_KI = 0.0;
   private static final double ANGLE_KD = 0.1;
 
