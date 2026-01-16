@@ -1,9 +1,9 @@
 {
   "hubs": [
     {
-      "x": 238,
+      "x": 226,
       "y": 48,
-      "width": 1706,
+      "width": 1651,
       "height": 1088,
       "state": {
         "sidebar": {
@@ -25,7 +25,7 @@
           ]
         },
         "tabs": {
-          "selected": 16,
+          "selected": 1,
           "tabs": [
             {
               "type": 0,
@@ -125,9 +125,9 @@
                     }
                   }
                 ],
-                "field": "FRC:Evergreen",
+                "field": "FRC:2026 Field",
                 "orientation": 0,
-                "size": "large"
+                "size": "medium"
               },
               "controllerUUID": "oup5f5d8axykrxu8ikwgu96eq703vblm",
               "renderer": null,
@@ -173,7 +173,7 @@
                     "logType": "Pose3d[]",
                     "visible": true,
                     "options": {
-                      "variant": "frc-36h11"
+                      "variant": "36h11-6.5in"
                     }
                   },
                   {
@@ -197,7 +197,7 @@
                     }
                   }
                 ],
-                "game": "FRC:Evergreen"
+                "game": "FRC:2026 Field"
               },
               "controllerUUID": "929alcdhgeycrxxrdvi111cnleuinpma",
               "renderer": {
@@ -1475,5 +1475,5 @@
     }
   ],
   "satellites": [],
-  "version": "26.0.0-beta-2"
+  "version": "26.0.0"
 }
