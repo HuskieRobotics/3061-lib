@@ -77,74 +77,7 @@ To add an additional robot, create a new subclass of ```RobotConfig``` (you can 
     15. rotate the cart in a CCW direction and verify that the gyro is increasing
     16. rotate the cart in a CW direction and verify that the gyro is decreasing
     17. use Phoenix Tuner X to flash the LEDs on the TalonFX devices and CANcoders to ensure that the CAN IDs are properly assigned to the front-left, front-right, back-left, and back-right positions (all of the above may behave as expected even if the modules aren't assigned to the appropriate corners)
-* If you are using voltage control outputs:
-    * Angle characterization values (```ANGLE_KS```, ```ANGLE_KV```, ```ANGLE_KA```) are in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
-        * in your dashboard of choice (e.g., Shuffleboard, Elastic), set the "SysID Chooser" chooser to "Steer"
-        * enable the robot
-        * run each of the four SysId routines:
-            * dynamic in the forward direction (hold the back and y buttons on the xBox controller)
-            * dynamic in the reverse direction (hold the back and x buttons on the xBox controller)
-            * quasistatic in the forward direction (hold the start and y buttons on the xBox controller)
-            * quasistatic in the reverse direction (hold the start and x buttons on the xBox controller)
-        * disable the robot
-        * [convert](https://v6.docs.ctr-electronics.com/en/latest/docs/tuner/tools/log-extractor.html) the CTRE hoot file to a WPILog file
-        * follow WPILib's [instructions](https://docs.wpilib.org/en/latest/docs/software/advanced-controls/system-identification/loading-data.html) for loading and analyzing data to determine the KS, KV, and KA values
-        * copy the KS, KV, and KA values into the corresponding constants in your robot config file
-    * Drive characterization values (```DRIVE_KS```, ```DRIVE_KV```, ```DRIVE_KA```) in in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
-        * in your dashboard of choice (e.g., Shuffleboard, Elastic), set the "SysID Chooser" chooser to "Translation"
-        * enable the robot
-        * run each of the four SysId routines:
-            * dynamic in the forward direction (hold the back and y buttons on the xBox controller)
-            * dynamic in the reverse direction (hold the back and x buttons on the xBox controller)
-            * quasistatic in the forward direction (hold the start and y buttons on the xBox controller)
-            * quasistatic in the reverse direction (hold the start and x buttons on the xBox controller)
-        * disable the robot
-        * [convert](https://v6.docs.ctr-electronics.com/en/latest/docs/tuner/tools/log-extractor.html) the CTRE hoot file to a WPILog file
-        * follow WPILib's [instructions](https://docs.wpilib.org/en/latest/docs/software/advanced-controls/system-identification/loading-data.html) for loading and analyzing data to determine the KS, KV, and KA values
-        * copy the KS, KV, and KA values into the corresponding constants in your robot config file
-* If you are using TorqueCurrentFOC control outputs:
-    * Under development.
-    * Angle characterization values (```ANGLE_KS```, ```ANGLE_KV```, ```ANGLE_KA```) in in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
-        * set the robot on the carpet
-        * set ```ANGLE_KV``` to 0 since current corresponds to acceleration, not velocity
-        * set ```TESTING``` in DrivetrainConstants.java to true
-        * using Shuffleboard or AdvantageScope, increase the value of the Drivetrain/steerCurrent value until the swerve modules start to rotate; set ```ANGLE_KS``` to this value
-        * using AdvantageScope, create a Line Graph and plot the acceleration of each steer motor
-        * set the value of Drivetrain/steerCurrent to 10 A
-        * inspect the portion of the graph where the acceleration is constant (before the motor reached free speed); set ```ANGLE_KA``` to 10 minus ```ANGLE_KS``` divided by the average of the values from each steer motor
-        * set ```TESTING``` in DrivetrainConstants.java back to false
-        * verify kA by using VelocityTorqueCurrentFOC in Tuner X and commanding an acceleration (and a velocity if you want kS in circuit) (while you're far enough from free speed, the acceleration signal should closely match the requested acceleration)
-    * Drive characterization values (```DRIVE_KS```, ```DRIVE_KV```, ```DRIVE_KA```) in in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
-        * set the robot on the carpet
-        * set ```DRIVE_KV``` to 0 since current corresponds to acceleration, not velocity
-        * set ```TESTING``` in DrivetrainConstants.java to true
-        * using Shuffleboard or AdvantageScope, increase the value of the Drivetrain/driveCurrent value until the wheels start to rotate; set ```DRIVE_KS``` to this value
-        * using AdvantageScope, create a Line Graph and plot the acceleration of each drive motor
-        * set the value of Drivetrain/driveCurrent to 40 A
-        * inspect the portion of the graph where the acceleration is constant (before the motor reached free speed); set ```DRIVE_KA``` to 40 minus ```DRIVE_KS``` divided by the average of the values from each drive motor
-        * set ```TESTING``` in DrivetrainConstants.java back to false
-        * verify kA by using VelocityTorqueCurrentFOC in Tuner X and commanding an acceleration (and a velocity if you want kS in circuit) (while you're far enough from free speed, the acceleration signal should closely match the requested acceleration)
-* Angle Motor PID Values (```ANGLE_KP```, ```ANGLE_KI```, ```ANGLE_KD```) in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
-    * set ```TUNING_MODE``` in Constants.java to true
-    * open AdvantageScope, import the AdvantageScopeTuning.json layout file, and enable tuning; each of the PID values are under "/Tuning"
-    * in your dashboard, set the "Auto Routine" chooser to "Swerve Rotation Tuning"
-    * start with a P value of 100.0
-    * refer to the steer PID tuning tab in Advantage Scope
-    * double until the module starts oscillating around the set point
-    * scale back by searching for the value (for example, if it starts oscillating at a P of 100, then try (100 -> 50 -> 75 -> etc.)) until the module overshoots the setpoint but corrects with no oscillation
-    * repeat the process for D; the D value will basically help prevent the overshoot
-    * ignore I
-    * copy the values from AdvantageScope into SwerveModuleConstants.java
-    * set ```TUNING_MODE``` in Constants.java to false
-* Drive Motor PID Values (```DRIVE_KP```, ```DRIVE_KI```, ```DRIVE_KD```) in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
-    * set ```TUNING_MODE``` in Constants.java to true
-    * open AdvantageScope, import the AdvantageScopeTuning.json layout file, and enable tuning; each of the PID values are under "/Tuning"
-    * in your dashboard, set the "Auto Routine" chooser to "Drive Velocity Tuning"
-    * refer to the drive PID tuning tab in Advantage Scope
-    * tune ```DRIVE_KP``` until it doesn't overshoot and doesn't oscillate around a target velocity
-        * start with a P value of 10.0
-    * copy the values from AdvantageScope into SwerveModuleConstants.java
-    * set ```TUNING_MODE``` in Constants.java to false
+* For details on characterizing the steer and drive mechanism and tuning the associated PID, refer to [this document](https://docs.google.com/document/d/1maKiFmen-x5hGpW-QnDeSU37W0z5LyYb0b8MY0qDd-E/preview).
 * ```AUTO_DRIVE_P_CONTROLLER``` and ```AUTO_TURN_P_CONTROLLER``` constants in in your ```RobotConfig``` subclass (e.g., DefaultRobotConfig.java):
     * set ```TUNING_MODE``` in Constants.java to true
     * open AdvantageScope, import the AdvantageScopeTuning.json layout file, and enable tuning; each of the PID values are under "/Tuning"
