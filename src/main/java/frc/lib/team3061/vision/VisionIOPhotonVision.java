@@ -27,9 +27,7 @@ public class VisionIOPhotonVision implements VisionIO {
 
     // Don't pass the robot to camera transform as we will work with the estimated camera poses and
     // later transform them to the robot's frame
-    this.photonEstimator =
-        new PhotonPoseEstimator(
-            layout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, new Transform3d());
+    this.photonEstimator = new PhotonPoseEstimator(layout, new Transform3d());
 
     // flush any old results from previous results
     this.camera.getAllUnreadResults();
@@ -46,7 +44,11 @@ public class VisionIOPhotonVision implements VisionIO {
     observations.clear();
 
     for (PhotonPipelineResult result : camera.getAllUnreadResults()) {
-      Optional<EstimatedRobotPose> visionEstimate = this.photonEstimator.update(result);
+      Optional<EstimatedRobotPose> visionEstimate =
+          this.photonEstimator.estimateCoprocMultiTagPose(result);
+      if (visionEstimate.isEmpty()) {
+        visionEstimate = this.photonEstimator.estimateLowestAmbiguityPose(result);
+      }
 
       visionEstimate.ifPresent(
           estimate -> {
