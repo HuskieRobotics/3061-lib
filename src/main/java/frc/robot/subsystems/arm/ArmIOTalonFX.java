@@ -44,7 +44,7 @@ public class ArmIOTalonFX implements ArmIO {
   private StatusSignal<Temperature> angleMotorTemperatureStatusSignal;
   private StatusSignal<Voltage> angleMotorVoltageStatusSignal;
 
-  private double angleMotorReferenceAngleDegrees = 0.0;
+  private Angle angleMotorReferenceAngle = Rotations.of(0.0);
 
   private final Debouncer connectedDebouncer = new Debouncer(0.5);
 
@@ -80,8 +80,8 @@ public class ArmIOTalonFX implements ArmIO {
 
   public ArmIOTalonFX() {
 
-    angleMotor = new TalonFX(ANGLE_MOTOR_ID, RobotConfig.getInstance().getCANBusName());
-    angleEncoder = new CANcoder(ANGLE_ENCODER_ID, RobotConfig.getInstance().getCANBusName());
+    angleMotor = new TalonFX(ANGLE_MOTOR_ID, RobotConfig.getInstance().getCANBus());
+    angleEncoder = new CANcoder(ANGLE_ENCODER_ID, RobotConfig.getInstance().getCANBus());
 
     angleMotorPositionRequest = new MotionMagicExpoVoltage(0);
     angleMotorVoltageRequest = new VoltageOut(0);
@@ -137,26 +137,25 @@ public class ArmIOTalonFX implements ArmIO {
                 angleMotorTemperatureStatusSignal,
                 angleMotorVoltageStatusSignal));
 
-    inputs.angleMotorStatorCurrentAmps = angleMotorStatorCurrentStatusSignal.getValueAsDouble();
-    inputs.angleMotorSupplyCurrentAmps = angleMotorSupplyCurrentStatusSignal.getValueAsDouble();
-    inputs.angleMotorVoltage = angleMotorVoltageStatusSignal.getValueAsDouble();
-    inputs.angleDegrees =
-        Units.rotationsToDegrees(angleMotorPositionStatusSignal.getValueAsDouble());
-    inputs.angleMotorTemperatureCelsius = angleMotorTemperatureStatusSignal.getValueAsDouble();
-    inputs.angleMotorReferenceAngleDegrees = this.angleMotorReferenceAngleDegrees;
+    inputs.angleMotorStatorCurrent = angleMotorStatorCurrentStatusSignal.getValue();
+    inputs.angleMotorSupplyCurrent = angleMotorSupplyCurrentStatusSignal.getValue();
+    inputs.angleMotorVoltage = angleMotorVoltageStatusSignal.getValue();
+    inputs.position = angleMotorPositionStatusSignal.getValue();
+    inputs.angleMotorTemperature = angleMotorTemperatureStatusSignal.getValue();
+    inputs.angleMotorReferenceAngle = this.angleMotorReferenceAngle;
 
     // Retrieve the closed loop reference status signals directly from the motor in this method
     // instead of retrieving in advance because the status signal returned depends on the current
     // control mode. To eliminate the performance hit, only retrieve the closed loop reference
     // signals if the tuning mode is enabled. It is critical that these input values are only used
     // for tuning and not used elsewhere in the subsystem. For example, the
-    // angleMotorReferenceAngleDegrees property should be used throughout the subsystem since it
+    // angleMotorReferenceAngle property should be used throughout the subsystem since it
     // will always be populated.
     if (Constants.TUNING_MODE) {
-      inputs.angleMotorClosedLoopReferenceAngleDegrees =
-          Units.rotationsToDegrees(angleMotor.getClosedLoopReference().getValueAsDouble());
-      inputs.angleMotorClosedLoopErrorAngleDegrees =
-          Units.rotationsToDegrees(angleMotor.getClosedLoopError().getValueAsDouble());
+      inputs.angleMotorClosedLoopReferenceAngle =
+          Rotations.of(angleMotor.getClosedLoopReference().getValueAsDouble());
+      inputs.angleMotorClosedLoopErrorAngle =
+          Rotations.of(angleMotor.getClosedLoopError().getValueAsDouble());
     }
 
     // In order for a tunable to be useful, there must be code that checks if its value has changed.
@@ -210,11 +209,11 @@ public class ArmIOTalonFX implements ArmIO {
 
     // To improve performance, we store the reference angle as an instance variable to avoid having
     // to retrieve the status signal object from the device in the updateInputs method.
-    this.angleMotorReferenceAngleDegrees = angle.in(Degrees);
+    this.angleMotorReferenceAngle = angle.copy();
   }
 
   @Override
-  public void setAngleMotorVoltage(double voltage) {
+  public void setAngleMotorVoltage(Voltage voltage) {
     angleMotor.setControl(angleMotorVoltageRequest.withOutput(voltage));
   }
 
@@ -260,11 +259,9 @@ public class ArmIOTalonFX implements ArmIO {
     // Software limit switches are used to prevent the arm from moving beyond its physical limits.
     SoftwareLimitSwitchConfigs angleMotorLimitSwitches = angleMotorConfig.SoftwareLimitSwitch;
     angleMotorLimitSwitches.ForwardSoftLimitEnable = true;
-    angleMotorLimitSwitches.ForwardSoftLimitThreshold =
-        Units.degreesToRotations(ArmConstants.UPPER_ANGLE_LIMIT);
+    angleMotorLimitSwitches.ForwardSoftLimitThreshold = UPPER_ANGLE_LIMIT.in(Rotations);
     angleMotorLimitSwitches.ReverseSoftLimitEnable = true;
-    angleMotorLimitSwitches.ReverseSoftLimitThreshold =
-        Units.degreesToRotations(ArmConstants.LOWER_ANGLE_LIMIT);
+    angleMotorLimitSwitches.ReverseSoftLimitThreshold = LOWER_ANGLE_LIMIT.in(Rotations);
 
     // For the most accurate measurement of the arm's position, fuse the CANcoder with the encoder
     // in the TalonFX.

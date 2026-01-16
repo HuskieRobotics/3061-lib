@@ -73,7 +73,7 @@ public class Manipulator extends SubsystemBase {
 
   private CurrentSpikeDetector currentSpikeDetector =
       new CurrentSpikeDetector(
-          COLLECTION_CURRENT_SPIKE_THRESHOLD, COLLECTION_CURRENT_TIME_THRESHOLD_SECONDS);
+          COLLECTION_CURRENT_SPIKE_THRESHOLD_AMPS, COLLECTION_CURRENT_TIME_THRESHOLD_SECONDS);
 
   // Some state transitions are triggered by the driver or operator via a button press. We don't
   // want those commands to directly change the state as that can result in a missed state
@@ -280,7 +280,7 @@ public class Manipulator extends SubsystemBase {
     Logger.recordOutput(SUBSYSTEM_NAME + "/State", this.state);
 
     // If a filter is used, it must be updated every periodic call.
-    currentSpikeDetector.update(inputs.manipulatorStatorCurrentAmps);
+    currentSpikeDetector.update(inputs.manipulatorStatorCurrent.in(Amps));
 
     // If the testing mode is enabled, apply the specified voltage (if not zero). Only run the state
     // machine if testing mode is not enabled. Otherwise, the state machine will "fight" the
@@ -355,7 +355,7 @@ public class Manipulator extends SubsystemBase {
             Commands.waitSeconds(1.0),
             Commands.runOnce(
                 () -> {
-                  if (inputs.manipulatorVelocityRPS < 2.0) {
+                  if (inputs.manipulatorVelocity.lt(RotationsPerSecond.of(2.0))) {
                     FaultReporter.getInstance()
                         .addFault(
                             SUBSYSTEM_NAME,
@@ -367,7 +367,7 @@ public class Manipulator extends SubsystemBase {
             Commands.waitSeconds(1.0),
             Commands.runOnce(
                 () -> {
-                  if (inputs.manipulatorVelocityRPS > -2.0) {
+                  if (inputs.manipulatorVelocity.gt(RotationsPerSecond.of(-2.0))) {
                     FaultReporter.getInstance()
                         .addFault(
                             SUBSYSTEM_NAME,

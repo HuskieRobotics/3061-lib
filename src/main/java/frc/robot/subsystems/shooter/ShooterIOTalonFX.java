@@ -1,24 +1,30 @@
 package frc.robot.subsystems.shooter;
 
-import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.*;
 import static frc.robot.subsystems.shooter.ShooterConstants.*;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.CANrangeConfiguration;
+import com.ctre.phoenix6.configs.ProximityParamsConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
+import com.ctre.phoenix6.hardware.CANrange;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.signals.UpdateModeValue;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj.RobotController;
 import frc.lib.team254.Phoenix6Util;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
@@ -44,18 +50,26 @@ public class ShooterIOTalonFX implements ShooterIO {
   private StatusSignal<Temperature> shootMotorBottomTemperatureStatusSignal;
   private StatusSignal<Voltage> shootMotorTopVoltageStatusSignal;
   private StatusSignal<Voltage> shootMotorBottomVoltageStatusSignal;
+  private StatusSignal<Distance> gamePieceDistanceStatusSignal;
+  private StatusSignal<Double> gamePieceSignalStrengthStatusSignal;
+  private StatusSignal<Boolean> gamePieceDetectedStatusSignal;
 
   private AngularVelocity shootTopMotorReferenceVelocity = RotationsPerSecond.of(0.0);
   private AngularVelocity shootBottomMotorReferenceVelocity = RotationsPerSecond.of(0.0);
 
   private final Debouncer topMotorConnectedDebouncer = new Debouncer(0.5);
   private final Debouncer bottomMotorConnectedDebouncer = new Debouncer(0.5);
+  private final Debouncer gamePieceSensorConnectedDebouncer = new Debouncer(0.5);
 
   private VelocitySystemSim shootMotorTopSim;
   private VelocitySystemSim shootMotorBottomSim;
 
-  private Alert configAlert =
-      new Alert("Failed to apply configuration for shooter.", AlertType.kError);
+  private Alert topMotorConfigAlert =
+      new Alert("Failed to apply configuration for shooter top motor.", AlertType.kError);
+  private Alert bottomMotorConfigAlert =
+      new Alert("Failed to apply configuration for shooter bottom motor.", AlertType.kError);
+  private Alert gamePieceDetectorConfigAlert =
+      new Alert("Failed to apply configuration for shooter game piece detector.", AlertType.kError);
 
   // The following enables tuning of the PID and feedforward values for the arm by changing values
   // via AdvantageScope and not needing to change values in code, compile, and re-deploy.
@@ -75,15 +89,26 @@ public class ShooterIOTalonFX implements ShooterIO {
       new LoggedTunableNumber("Shooter/Bottom kD", ShooterConstants.BOTTOM_SHOOT_KD);
   private final LoggedTunableNumber shootMotorBottomKS =
       new LoggedTunableNumber("Shooter/Bottom kS", ShooterConstants.BOTTOM_SHOOT_KS);
+  private final LoggedTunableNumber detectorMinSignalStrength =
+      new LoggedTunableNumber(
+          "Shooter/Min Signal Strength", ShooterConstants.DETECTOR_MIN_SIGNAL_STRENGTH);
+  private final LoggedTunableNumber detectorProximityThreshold =
+      new LoggedTunableNumber(
+          "Shooter/Proximity Threshold", ShooterConstants.DETECTOR_PROXIMITY_THRESHOLD);
+
+  // It is a bit more challenging to simulate a CANrange sensor compared to a DIO sensor. Using a
+  // Tunable to simulate the distance to a game piece, requires that TUNING is set to true.
+  private final LoggedTunableNumber simDetectorDistance =
+      new LoggedTunableNumber("Shooter/Sim Detector Distance (m)", 1.0);
 
   private TalonFX shootMotorTop;
   private TalonFX shootMotorBottom;
+  private CANrange gamePieceDetector;
 
   public ShooterIOTalonFX() {
-
-    shootMotorTop = new TalonFX(TOP_SHOOTER_MOTOR_ID, RobotConfig.getInstance().getCANBusName());
-    shootMotorBottom =
-        new TalonFX(BOTTOM_SHOOTER_MOTOR_ID, RobotConfig.getInstance().getCANBusName());
+    shootMotorTop = new TalonFX(TOP_SHOOTER_MOTOR_ID, RobotConfig.getInstance().getCANBus());
+    shootMotorBottom = new TalonFX(BOTTOM_SHOOTER_MOTOR_ID, RobotConfig.getInstance().getCANBus());
+    gamePieceDetector = new CANrange(GAME_PIECE_SENSOR_ID, RobotConfig.getInstance().getCANBus());
 
     shootMotorTopVelocityRequest = new VelocityTorqueCurrentFOC(0);
     shootMotorBottomVelocityRequest = new VelocityTorqueCurrentFOC(0);
@@ -101,6 +126,10 @@ public class ShooterIOTalonFX implements ShooterIO {
     shootMotorTopVoltageStatusSignal = shootMotorTop.getMotorVoltage();
     shootMotorBottomVoltageStatusSignal = shootMotorBottom.getMotorVoltage();
 
+    gamePieceDistanceStatusSignal = gamePieceDetector.getDistance();
+    gamePieceSignalStrengthStatusSignal = gamePieceDetector.getSignalStrength();
+    gamePieceDetectedStatusSignal = gamePieceDetector.getIsDetected();
+
     // To improve performance, subsystems register all their signals with Phoenix6Util. All signals
     // on the entire CAN bus will be refreshed at the same time by Phoenix6Util; so, there is no
     // need to refresh any StatusSignals in this class.
@@ -115,10 +144,14 @@ public class ShooterIOTalonFX implements ShooterIO {
         shootMotorTopTemperatureStatusSignal,
         shootMotorBottomTemperatureStatusSignal,
         shootMotorTopVoltageStatusSignal,
-        shootMotorBottomVoltageStatusSignal);
+        shootMotorBottomVoltageStatusSignal,
+        gamePieceDistanceStatusSignal,
+        gamePieceSignalStrengthStatusSignal,
+        gamePieceDetectedStatusSignal);
 
-    configShootMotor(shootMotorTop, SHOOT_TOP_INVERTED, true);
-    configShootMotor(shootMotorBottom, SHOOT_BOTTOM_INVERTED, false);
+    configShootMotor(shootMotorTop, SHOOT_TOP_INVERTED, true, topMotorConfigAlert);
+    configShootMotor(shootMotorBottom, SHOOT_BOTTOM_INVERTED, false, bottomMotorConfigAlert);
+    configGamePieceDetector(gamePieceDetector, gamePieceDetectorConfigAlert);
 
     // Create a simulation objects for the shooter. The specific parameters for the simulation
     // are determined based on the mechanical design of the shooter.
@@ -158,30 +191,31 @@ public class ShooterIOTalonFX implements ShooterIO {
                 shootMotorBottomSupplyCurrentStatusSignal,
                 shootMotorBottomTemperatureStatusSignal,
                 shootMotorBottomVoltageStatusSignal));
+    inputs.sensorConnected =
+        gamePieceSensorConnectedDebouncer.calculate(
+            BaseStatusSignal.isAllGood(
+                gamePieceDistanceStatusSignal,
+                gamePieceSignalStrengthStatusSignal,
+                gamePieceDetectedStatusSignal));
 
     // Updates Top Shooter Motor Inputs
-    inputs.shootMotorTopStatorCurrentAmps =
-        shootMotorTopStatorCurrentStatusSignal.getValueAsDouble();
-    inputs.shootMotorTopSupplyCurrentAmps =
-        shootMotorTopSupplyCurrentStatusSignal.getValueAsDouble();
-    inputs.shootMotorTopVelocityRPS = shootMotorTopVelocityStatusSignal.getValueAsDouble();
-    inputs.shootMotorTopTemperatureCelsius =
-        shootMotorTopTemperatureStatusSignal.getValueAsDouble();
-    inputs.shootMotorTopVoltage = shootMotorTopVoltageStatusSignal.getValueAsDouble();
-    inputs.shootMotorTopReferenceVelocityRPS =
-        this.shootTopMotorReferenceVelocity.in(RotationsPerSecond);
+    inputs.shootMotorTopStatorCurrent = shootMotorTopStatorCurrentStatusSignal.getValue();
+    inputs.shootMotorTopSupplyCurrent = shootMotorTopSupplyCurrentStatusSignal.getValue();
+    inputs.shootMotorTopVelocity = shootMotorTopVelocityStatusSignal.getValue();
+    inputs.shootMotorTopTemperature = shootMotorTopTemperatureStatusSignal.getValue();
+    inputs.shootMotorTopVoltage = shootMotorTopVoltageStatusSignal.getValue();
+    inputs.shootMotorTopReferenceVelocity = this.shootTopMotorReferenceVelocity.copy();
 
     // Updates Bottom Shooter Motor Inputs
-    inputs.shootMotorBottomStatorCurrentAmps =
-        shootMotorBottomStatorCurrentStatusSignal.getValueAsDouble();
-    inputs.shootMotorBottomSupplyCurrentAmps =
-        shootMotorBottomSupplyCurrentStatusSignal.getValueAsDouble();
-    inputs.shootMotorBottomVelocityRPS = shootMotorBottomVelocityStatusSignal.getValueAsDouble();
-    inputs.shootMotorBottomTemperatureCelsius =
-        shootMotorBottomTemperatureStatusSignal.getValueAsDouble();
-    inputs.shootMotorBottomVoltage = shootMotorBottomVoltageStatusSignal.getValueAsDouble();
-    inputs.shootMotorBottomReferenceVelocityRPS =
-        this.shootBottomMotorReferenceVelocity.in(RotationsPerSecond);
+    inputs.shootMotorBottomStatorCurrent = shootMotorBottomStatorCurrentStatusSignal.getValue();
+    inputs.shootMotorBottomSupplyCurrent = shootMotorBottomSupplyCurrentStatusSignal.getValue();
+    inputs.shootMotorBottomVelocity = shootMotorBottomVelocityStatusSignal.getValue();
+    inputs.shootMotorBottomTemperature = shootMotorBottomTemperatureStatusSignal.getValue();
+    inputs.shootMotorBottomVoltage = shootMotorBottomVoltageStatusSignal.getValue();
+    inputs.shootMotorBottomReferenceVelocity = this.shootBottomMotorReferenceVelocity.copy();
+
+    // Update Game Piece Detection Inputs
+    inputs.hasGamePiece = gamePieceDetectedStatusSignal.getValue();
 
     // Retrieve the closed loop reference status signals directly from the motor in this method
     // instead of retrieving in advance because the status signal returned depends on the current
@@ -191,14 +225,16 @@ public class ShooterIOTalonFX implements ShooterIO {
     // shootMotorTopReferenceVelocityRPS property should be used throughout the subsystem since it
     // will always be populated.
     if (Constants.TUNING_MODE) {
-      inputs.shootMotorTopClosedLoopReferenceVelocityRPS =
-          shootMotorTop.getClosedLoopReference().getValue();
-      inputs.shootMotorTopClosedLoopErrorVelocityRPS =
-          shootMotorTop.getClosedLoopError().getValue();
-      inputs.shootMotorBottomClosedLoopReferenceVelocityRPS =
-          shootMotorBottom.getClosedLoopReference().getValue();
-      inputs.shootMotorBottomClosedLoopErrorVelocityRPS =
-          shootMotorBottom.getClosedLoopError().getValue();
+      inputs.shootMotorTopClosedLoopReferenceVelocity =
+          RotationsPerSecond.of(shootMotorTop.getClosedLoopReference().getValue());
+      inputs.shootMotorTopClosedLoopErrorVelocity =
+          RotationsPerSecond.of(shootMotorTop.getClosedLoopError().getValue());
+      inputs.shootMotorBottomClosedLoopReferenceVelocity =
+          RotationsPerSecond.of(shootMotorBottom.getClosedLoopReference().getValue());
+      inputs.shootMotorBottomClosedLoopErrorVelocity =
+          RotationsPerSecond.of(shootMotorBottom.getClosedLoopError().getValue());
+      inputs.distanceToGamePiece = gamePieceDistanceStatusSignal.getValue();
+      inputs.signalStrength = gamePieceSignalStrengthStatusSignal.getValue();
     }
 
     // In order for a tunable to be useful, there must be code that checks if its value has changed.
@@ -236,10 +272,26 @@ public class ShooterIOTalonFX implements ShooterIO {
         shootMotorBottomKI,
         shootMotorBottomKD,
         shootMotorBottomKS);
+    LoggedTunableNumber.ifChanged(
+        hashCode(),
+        detectorConfig -> {
+          ProximityParamsConfigs config = new ProximityParamsConfigs();
+          this.gamePieceDetector.getConfigurator().refresh(config);
+          config.MinSignalStrengthForValidMeasurement = detectorConfig[0];
+          config.ProximityThreshold = detectorConfig[1];
+
+          this.gamePieceDetector.getConfigurator().apply(config);
+        },
+        detectorMinSignalStrength,
+        detectorProximityThreshold);
 
     // The last step in the updateInputs method is to update the simulation.
-    this.shootMotorBottomSim.updateSim();
-    this.shootMotorTopSim.updateSim();
+    if (Constants.getMode() == Constants.Mode.SIM) {
+      this.shootMotorBottomSim.updateSim();
+      this.shootMotorTopSim.updateSim();
+      this.gamePieceDetector.getSimState().setSupplyVoltage(RobotController.getBatteryVoltage());
+      this.gamePieceDetector.getSimState().setDistance(simDetectorDistance.get());
+    }
   }
 
   @Override
@@ -248,7 +300,7 @@ public class ShooterIOTalonFX implements ShooterIO {
 
     // To improve performance, we store the reference velocity as an instance variable to avoid
     // having to retrieve the status signal object from the device in the updateInputs method.
-    this.shootTopMotorReferenceVelocity = velocity;
+    this.shootTopMotorReferenceVelocity = velocity.copy();
   }
 
   // While we cannot use subtypes of Measure in the inputs class due to logging limitations, we do
@@ -260,7 +312,7 @@ public class ShooterIOTalonFX implements ShooterIO {
 
     // To improve performance, we store the reference velocity as an instance variable to avoid
     // having to retrieve the status signal object from the device in the updateInputs method.
-    this.shootBottomMotorReferenceVelocity = velocity;
+    this.shootBottomMotorReferenceVelocity = velocity.copy();
   }
 
   @Override
@@ -273,7 +325,8 @@ public class ShooterIOTalonFX implements ShooterIO {
     shootMotorBottom.setControl(shootMotorBottomCurrentRequest.withOutput(amps));
   }
 
-  private void configShootMotor(TalonFX shootMotor, boolean isInverted, boolean isTopMotor) {
+  private void configShootMotor(
+      TalonFX shootMotor, boolean isInverted, boolean isTopMotor, Alert configAlert) {
 
     TalonFXConfiguration shootMotorsConfig = new TalonFXConfiguration();
 
@@ -317,5 +370,28 @@ public class ShooterIOTalonFX implements ShooterIO {
     // are found.
     FaultReporter.getInstance()
         .registerHardware(SUBSYSTEM_NAME, isTopMotor ? "TopMotor" : "BottomMotor", shootMotor);
+  }
+
+  private void configGamePieceDetector(CANrange detector, Alert configAlert) {
+    CANrangeConfiguration config = new CANrangeConfiguration();
+
+    // if CANrange has a signal strength of at least 2000, it is a valid measurement
+    config.ProximityParams.MinSignalStrengthForValidMeasurement = detectorMinSignalStrength.get();
+
+    // if CANrange detects an object within 0.1 meters, it will trigger the "isDetected" signal
+    config.ProximityParams.ProximityThreshold = detectorProximityThreshold.get();
+
+    // make the CANrange update as fast as possible at 100 Hz. This requires short-range mode
+    config.ToFParams.UpdateMode = UpdateModeValue.ShortRange100Hz;
+
+    // It is critical that devices are successfully configured. The applyAndCheckConfiguration
+    // method will apply the configuration, read back the configuration, and ensure that it is
+    // correct. If not, it will reattempt five times and eventually, generate an alert.
+    Phoenix6Util.applyAndCheckConfiguration(detector, config, configAlert);
+
+    // A subsystem needs to register each device with FaultReporter. FaultReporter will check
+    // devices for faults periodically when the robot is disabled and generate alerts if any faults
+    // are found.
+    FaultReporter.getInstance().registerHardware(SUBSYSTEM_NAME, "GamePieceDetector", detector);
   }
 }

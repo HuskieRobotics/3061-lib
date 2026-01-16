@@ -2,6 +2,7 @@ package frc.lib.team3061;
 
 import static edu.wpi.first.units.Units.*;
 
+import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
 import com.pathplanner.lib.config.ModuleConfig;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -372,6 +373,18 @@ public abstract class RobotConfig {
   public abstract LinearVelocity getRobotMaxVelocity();
 
   /**
+   * Returns the maximum translational acceleration, in meters per second squared, for the robot
+   * when driving with acceleration limiting enabled. Defaults to twice the robot's maximum
+   * velocity.
+   *
+   * @return the maximum translational acceleration, in meters per second squared, for the robot
+   *     when driving with acceleration limiting enabled
+   */
+  public LinearAcceleration getRobotMaxAccelerationWhenLimited() {
+    return MetersPerSecondPerSecond.of(getRobotMaxVelocity().in(MetersPerSecond) * 2.0);
+  }
+
+  /**
    * Returns the multiplier for when the robot is in slow mode. Defaults to 1 (no effect in slow
    * mode).
    *
@@ -391,6 +404,20 @@ public abstract class RobotConfig {
   public AngularVelocity getRobotMaxAngularVelocity() {
     return RadiansPerSecond.of(
         getRobotMaxVelocity().in(MetersPerSecond)
+            / Math.hypot(getTrackwidth().in(Meters) / 2.0, getWheelbase().in(Meters) / 2.0));
+  }
+
+  /**
+   * Returns the maximum rotational acceleration, in radians per second squared, for the robot when
+   * driving with acceleration limiting enabled. Defaults to the acceleration derived from the
+   * maximum translational acceleration and the robot's geometry.
+   *
+   * @return the maximum rotational acceleration, in radians per second squared, for the robot when
+   *     driving with acceleration limiting enabled
+   */
+  public AngularAcceleration getRobotMaxAngularAccelerationWhenLimited() {
+    return RadiansPerSecondPerSecond.of(
+        getRobotMaxAccelerationWhenLimited().in(MetersPerSecondPerSecond)
             / Math.hypot(getTrackwidth().in(Meters) / 2.0, getWheelbase().in(Meters) / 2.0));
   }
 
@@ -526,7 +553,18 @@ public abstract class RobotConfig {
    * @return the name of CAN FD (CANivore) bus
    */
   public String getCANBusName() {
+
     return "";
+  }
+
+  /**
+   * Returns a reference the CAN bus. Defaults to the rio (non-FD) CAN bus.
+   *
+   * @return
+   */
+  public CANBus getCANBus() {
+
+    return new CANBus();
   }
 
   /**

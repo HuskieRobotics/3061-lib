@@ -1,6 +1,5 @@
 package frc.robot.subsystems.manipulator;
 
-import static edu.wpi.first.units.Units.*;
 import static frc.robot.subsystems.manipulator.ManipulatorConstants.*;
 
 import com.ctre.phoenix6.BaseStatusSignal;
@@ -86,11 +85,11 @@ public class ManipulatorIOTalonFX implements ManipulatorIO {
                 manipulatorMotorVoltage,
                 manipulatorMotorVelocity));
 
-    inputs.manipulatorStatorCurrentAmps = manipulatorMotorStatorCurrent.getValueAsDouble();
-    inputs.manipulatorSupplyCurrentAmps = manipulatorMotorSupplyCurrent.getValueAsDouble();
-    inputs.manipulatorTempCelsius = manipulatorMotorTemp.getValueAsDouble();
-    inputs.manipulatorVelocityRPS = manipulatorMotorVelocity.getValue().in(RotationsPerSecond);
-    inputs.manipulatorMotorVoltage = manipulatorMotorVoltage.getValueAsDouble();
+    inputs.manipulatorStatorCurrent = manipulatorMotorStatorCurrent.getValue();
+    inputs.manipulatorSupplyCurrent = manipulatorMotorSupplyCurrent.getValue();
+    inputs.manipulatorTemp = manipulatorMotorTemp.getValue();
+    inputs.manipulatorVelocity = manipulatorMotorVelocity.getValue();
+    inputs.manipulatorMotorVoltage = manipulatorMotorVoltage.getValue();
     inputs.isManipulatorPrimaryIRBlocked = !manipulatorIRSensor.get();
     inputs.isManipulatorSecondaryIRBlocked = !backupManipulatorIRSensor.get();
   }

@@ -1,7 +1,14 @@
 package frc.lib.team3061.differential_drivetrain;
 
+import static edu.wpi.first.units.Units.*;
+
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Force;
+import edu.wpi.first.units.measure.LinearAcceleration;
+import edu.wpi.first.units.measure.LinearVelocity;
 import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrainConstants.SysIDCharacterizationMode;
 import org.littletonrobotics.junction.AutoLog;
 
@@ -14,19 +21,19 @@ public interface DifferentialDrivetrainIO {
     double leftEncoderCount = 0.0;
     double rightEncoderCount = 0.0;
 
-    double leftPositionMeters = 0.0;
-    double rightPositionMeters = 0.0;
+    Distance leftPosition = Meters.of(0.0);
+    Distance rightPosition = Meters.of(0.0);
 
-    double leftVelocityMetersPerSecond = 0.0;
-    double rightVelocityMetersPerSecond = 0.0;
+    LinearVelocity leftVelocity = MetersPerSecond.of(0.0);
+    LinearVelocity rightVelocity = MetersPerSecond.of(0.0);
 
-    double headingDeg = 0.0;
-    double pitchDeg = 0.0;
-    double rollDeg = 0.0;
+    Angle heading = Degrees.of(0.0);
+    Angle pitch = Degrees.of(0.0);
+    Angle roll = Degrees.of(0.0);
 
-    double xAccelerationG = 0.0;
-    double yAccelerationG = 0.0;
-    double zAccelerationG = 0.0;
+    LinearAcceleration xAccelerationG = MetersPerSecondPerSecond.of(0.0);
+    LinearAcceleration yAccelerationG = MetersPerSecondPerSecond.of(0.0);
+    LinearAcceleration zAccelerationG = MetersPerSecondPerSecond.of(0.0);
   }
 
   /** Updates the set of loggable inputs. */
@@ -39,12 +46,12 @@ public interface DifferentialDrivetrainIO {
    * positive x direction is forward; the positive y direction, left. Zero degrees is aligned to the
    * positive x axis and increases in the CCW direction.
    *
-   * @param xVelocity the desired velocity in the x direction (m/s)
-   * @param rotationalVelocity the desired rotational velocity (rad/s)
+   * @param xVelocity the desired velocity in the x direction
+   * @param rotationalVelocity the desired rotational velocity
    * @param isOpenLoop true for open-loop control; false for closed-loop control
    */
   public default void driveRobotRelative(
-      double xVelocity, double rotationalVelocity, boolean isOpenLoop) {}
+      LinearVelocity xVelocity, AngularVelocity rotationalVelocity, boolean isOpenLoop) {}
 
   /**
    * Controls the drivetrain to move the robot with the desired velocities in the x, y, and

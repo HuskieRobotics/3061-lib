@@ -6,6 +6,7 @@ import static frc.robot.subsystems.shooter.ShooterConstants.*;
 import com.ctre.phoenix6.SignalLogger;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -170,18 +171,14 @@ public class Shooter extends SubsystemBase {
     // The velocity is considered at the setpoint if the velocity is within tolerance for the period
     // specified when constructing the debouncer (e.g., 0.1 seconds or 5 loop iterations).
     return topAtSetpointDebouncer.calculate(
-        Math.abs(
-                shooterInputs.shootMotorTopVelocityRPS
-                    - shooterInputs.shootMotorTopReferenceVelocityRPS)
-            < VELOCITY_TOLERANCE_RPS);
+        shooterInputs.shootMotorTopVelocity.isNear(
+            shooterInputs.shootMotorTopReferenceVelocity, VELOCITY_TOLERANCE));
   }
 
   public boolean isBottomShooterAtSetpoint() {
     return bottomAtSetpointDebouncer.calculate(
-        Math.abs(
-                shooterInputs.shootMotorBottomVelocityRPS
-                    - shooterInputs.shootMotorBottomReferenceVelocityRPS)
-            < VELOCITY_TOLERANCE_RPS);
+        shooterInputs.shootMotorBottomVelocity.isNear(
+            shooterInputs.shootMotorBottomReferenceVelocity, VELOCITY_TOLERANCE));
   }
 
   private void populateShootingMap() {
@@ -219,52 +216,30 @@ public class Shooter extends SubsystemBase {
         Commands.runOnce(
             () ->
                 this.checkVelocity(
-                    shootingMap.get(distance.in(Meters)), shootingMap.get(distance.in(Meters)))));
+                    RotationsPerSecond.of(shootingMap.get(distance.in(Meters))),
+                    RotationsPerSecond.of(shootingMap.get(distance.in(Meters))))));
   }
 
-  private void checkVelocity(double topVelocityRPS, double bottomVelocityRPS) {
+  private void checkVelocity(AngularVelocity topVelocity, AngularVelocity bottomVelocity) {
     // check bottom motor
-    if (Math.abs(this.shooterInputs.shootMotorBottomVelocityRPS - bottomVelocityRPS)
-        > VELOCITY_TOLERANCE_RPS) {
-      if (Math.abs(this.shooterInputs.shootMotorBottomVelocityRPS) - Math.abs(bottomVelocityRPS)
-          < 0) {
-        FaultReporter.getInstance()
-            .addFault(
-                SUBSYSTEM_NAME,
-                "Bottom shooter wheel velocity is too low, should be "
-                    + bottomVelocityRPS
-                    + " but is "
-                    + this.shooterInputs.shootMotorBottomVelocityRPS);
-      } else {
-        FaultReporter.getInstance()
-            .addFault(
-                SUBSYSTEM_NAME,
-                "Bottom shooter wheel velocity is too high, should be "
-                    + bottomVelocityRPS
-                    + " but is "
-                    + this.shooterInputs.shootMotorBottomVelocityRPS);
-      }
+    if (!this.shooterInputs.shootMotorBottomVelocity.isNear(bottomVelocity, VELOCITY_TOLERANCE)) {
+      FaultReporter.getInstance()
+          .addFault(
+              SUBSYSTEM_NAME,
+              "Bottom shooter wheel velocity out of tolerance, should be "
+                  + bottomVelocity
+                  + " but is "
+                  + this.shooterInputs.shootMotorBottomVelocity);
     }
     // check top motor
-    if (Math.abs(this.shooterInputs.shootMotorTopVelocityRPS - topVelocityRPS)
-        > VELOCITY_TOLERANCE_RPS) {
-      if (Math.abs(this.shooterInputs.shootMotorTopVelocityRPS) - Math.abs(topVelocityRPS) < 0) {
-        FaultReporter.getInstance()
-            .addFault(
-                SUBSYSTEM_NAME,
-                "Top shooter wheel velocity is too low, should be "
-                    + topVelocityRPS
-                    + " but is "
-                    + this.shooterInputs.shootMotorTopVelocityRPS);
-      } else {
-        FaultReporter.getInstance()
-            .addFault(
-                SUBSYSTEM_NAME,
-                "Top shooter wheel velocity is too high, should be "
-                    + topVelocityRPS
-                    + " but is "
-                    + this.shooterInputs.shootMotorTopVelocityRPS);
-      }
+    if (!this.shooterInputs.shootMotorTopVelocity.isNear(topVelocity, VELOCITY_TOLERANCE)) {
+      FaultReporter.getInstance()
+          .addFault(
+              SUBSYSTEM_NAME,
+              "Top shooter wheel velocity out of tolerance, should be "
+                  + topVelocity
+                  + " but is "
+                  + this.shooterInputs.shootMotorTopVelocity);
     }
   }
 }

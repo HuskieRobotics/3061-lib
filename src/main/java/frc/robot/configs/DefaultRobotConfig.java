@@ -2,6 +2,7 @@ package frc.robot.configs;
 
 import static edu.wpi.first.units.Units.*;
 
+import com.ctre.phoenix6.CANBus;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -90,6 +91,7 @@ public class DefaultRobotConfig extends RobotConfig {
   // FIXME: specify the name of the CANivore CAN FD bus as appropriate (an empty string uses the
   // default CAN bus)
   private static final String CAN_BUS_NAME = "";
+  private static final CANBus CAN_BUS = new CANBus(CAN_BUS_NAME);
 
   // FIXME: specify the name of the camera used for detecting AprilTags
   private static final String CAMERA_NAME = "OV2311";
@@ -344,6 +346,11 @@ public class DefaultRobotConfig extends RobotConfig {
   @Override
   public String getCANBusName() {
     return CAN_BUS_NAME;
+  }
+
+  @Override
+  public CANBus getCANBus() {
+    return CAN_BUS;
   }
 
   @Override

@@ -16,6 +16,7 @@ public class ShooterConstants {
 
   public static final int TOP_SHOOTER_MOTOR_ID = 27;
   public static final int BOTTOM_SHOOTER_MOTOR_ID = 28;
+  public static final int GAME_PIECE_SENSOR_ID = 29;
 
   // PID constants are determined empirically through tuning
   public static final double TOP_SHOOT_KP = 5.0;
@@ -43,5 +44,9 @@ public class ShooterConstants {
   public static final boolean SHOOT_TOP_INVERTED = false;
   public static final boolean SHOOT_BOTTOM_INVERTED = false;
   public static final AngularVelocity SHOOTER_IDLE_VELOCITY = RotationsPerSecond.of(10.0);
-  public static final double VELOCITY_TOLERANCE_RPS = 5.0;
+  public static final AngularVelocity VELOCITY_TOLERANCE = RotationsPerSecond.of(5.0);
+
+  // game pirece detection constants
+  public static final double DETECTOR_MIN_SIGNAL_STRENGTH = 2000;
+  public static final double DETECTOR_PROXIMITY_THRESHOLD = 0.1;
 }

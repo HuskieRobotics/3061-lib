@@ -51,7 +51,12 @@ public class CharacterizationCommands {
             Commands.run(
                 () -> {
                   double speed = limiter.calculate(WHEEL_RADIUS_MAX_VELOCITY);
-                  drive.drive(0.0, 0.0, speed, true, false);
+                  drive.drive(
+                      MetersPerSecond.of(0.0),
+                      MetersPerSecond.of(0.0),
+                      RadiansPerSecond.of(speed),
+                      true,
+                      false);
                 },
                 drive)),
 
@@ -64,14 +69,14 @@ public class CharacterizationCommands {
             Commands.runOnce(
                 () -> {
                   state.positions = drive.getWheelRadiusCharacterizationPosition();
-                  state.lastAngle = Rotation2d.fromDegrees(drive.getYaw());
+                  state.lastAngle = Rotation2d.fromRadians(drive.getYaw().in(Radians));
                   state.gyroDelta = 0.0;
                 }),
 
             // Update gyro delta
             Commands.run(
                     () -> {
-                      var rotation = Rotation2d.fromDegrees(drive.getYaw());
+                      var rotation = Rotation2d.fromRadians(drive.getYaw().in(Radians));
                       state.gyroDelta += Math.abs(rotation.minus(state.lastAngle).getRadians());
                       state.lastAngle = rotation;
                     })

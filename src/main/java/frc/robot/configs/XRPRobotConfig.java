@@ -6,6 +6,7 @@ import com.pathplanner.lib.config.ModuleConfig;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Mass;
@@ -33,6 +34,7 @@ public class XRPRobotConfig extends RobotConfig {
 
   // FIXME: determine maximum velocities empirically
   private static final LinearVelocity MAX_VELOCITY = MetersPerSecond.of(0.5);
+  private static final AngularVelocity MAX_ANGULAR_VELOCITY = RadiansPerSecond.of(3.0);
 
   // FIXME: specify maximum velocity and acceleration and tune PID values for auto paths
   private static final double AUTO_DRIVE_P_CONTROLLER = 1.0;
@@ -116,6 +118,11 @@ public class XRPRobotConfig extends RobotConfig {
   @Override
   public LinearVelocity getRobotMaxVelocity() {
     return MAX_VELOCITY;
+  }
+
+  @Override
+  public AngularVelocity getRobotMaxAngularVelocity() {
+    return MAX_ANGULAR_VELOCITY;
   }
 
   @Override

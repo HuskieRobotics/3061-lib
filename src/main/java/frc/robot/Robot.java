@@ -29,7 +29,6 @@ import frc.lib.team254.Phoenix6Util;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.leds.LEDs;
 import frc.lib.team6328.util.LoggedTracer;
-import frc.lib.team6328.util.NTClientLogger;
 import frc.lib.team6328.util.SystemTimeValidReader;
 import frc.robot.Constants.Mode;
 import frc.robot.commands.AutonomousCommandsFactory;
@@ -203,14 +202,14 @@ public class Robot extends LoggedRobot {
     robotContainer = new RobotContainer();
 
     // create the CANivore bus object
-    this.canivoreBus = new CANBus(RobotConfig.getInstance().getCANBusName());
+    this.canivoreBus = RobotConfig.getInstance().getCANBus();
 
     // Due to the nature of how Java works, the first run of a path following command could have a
     // significantly higher delay compared with subsequent runs, as all the classes involved will
     // need to be loaded. To help alleviate this issue, you can run a warmup command in the
     // background when code starts.
     // DO THIS AFTER CONFIGURATION OF YOUR DESIRED PATHFINDER
-    PathfindingCommand.warmupCommand().schedule();
+    CommandScheduler.getInstance().schedule(PathfindingCommand.warmupCommand());
 
     if (!TUNING_MODE) {
       Threads.setCurrentThreadPriority(true, 10);
@@ -273,9 +272,6 @@ public class Robot extends LoggedRobot {
               && canInitialErrorTimer.hasElapsed(CAN_ERROR_TIME_THRESHOLD));
     }
 
-    // Log NT client list
-    NTClientLogger.log();
-
     // Update low battery alert
     if (DriverStation.isEnabled()) {
       disabledTimer.reset();
@@ -315,7 +311,7 @@ public class Robot extends LoggedRobot {
     // check if the alliance color has changed based on the FMS data
     robotContainer.checkAllianceColor();
 
-    // get the autochooser auto selected and if the default is selected then do solid red leds
+    // get the auto command and, if the default is selected, then do solid red leds
     if (AutonomousCommandsFactory.getInstance()
         .getAutonomousCommand()
         .getName()
@@ -343,7 +339,7 @@ public class Robot extends LoggedRobot {
 
     // schedule the autonomous command
     if (autonomousCommand != null) {
-      autonomousCommand.schedule();
+      CommandScheduler.getInstance().schedule(autonomousCommand);
     }
 
     robotContainer.autonomousInit();

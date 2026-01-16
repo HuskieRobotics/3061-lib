@@ -4,8 +4,6 @@
 
 package frc.lib.team3061.gyro;
 
-import static edu.wpi.first.units.Units.*;
-
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.Pigeon2;
@@ -35,7 +33,7 @@ public class GyroIOPigeon2Phoenix6 implements GyroIO {
   private final Pigeon2SimState gyroSim;
 
   public GyroIOPigeon2Phoenix6(int id) {
-    gyro = new Pigeon2(id, RobotConfig.getInstance().getCANBusName());
+    gyro = new Pigeon2(id, RobotConfig.getInstance().getCANBus());
     this.yawStatusSignal = this.gyro.getYaw();
     this.yawStatusSignal.setUpdateFrequency(SIGNAL_UPDATE_FREQUENCY_HZ);
     this.pitchStatusSignal = this.gyro.getPitch();
@@ -81,21 +79,18 @@ public class GyroIOPigeon2Phoenix6 implements GyroIO {
                 this.rollStatusSignal,
                 this.angularVelocityXStatusSignal,
                 this.angularVelocityYStatusSignal));
-    inputs.yawDeg =
+    inputs.yaw =
         BaseStatusSignal.getLatencyCompensatedValue(
-                this.yawStatusSignal, this.angularVelocityZStatusSignal)
-            .in(Degrees);
-    inputs.pitchDeg =
+            this.yawStatusSignal, this.angularVelocityZStatusSignal);
+    inputs.pitch =
         BaseStatusSignal.getLatencyCompensatedValue(
-                this.pitchStatusSignal, this.angularVelocityYStatusSignal)
-            .in(Degrees);
-    inputs.rollDeg =
+            this.pitchStatusSignal, this.angularVelocityYStatusSignal);
+    inputs.roll =
         BaseStatusSignal.getLatencyCompensatedValue(
-                this.rollStatusSignal, this.angularVelocityXStatusSignal)
-            .in(Degrees);
-    inputs.rollDegPerSec = this.angularVelocityXStatusSignal.getValue().in(DegreesPerSecond);
-    inputs.pitchDegPerSec = this.angularVelocityYStatusSignal.getValue().in(DegreesPerSecond);
-    inputs.yawDegPerSec = this.angularVelocityZStatusSignal.getValue().in(DegreesPerSecond);
+            this.rollStatusSignal, this.angularVelocityXStatusSignal);
+    inputs.rollVelocity = this.angularVelocityXStatusSignal.getValue();
+    inputs.pitchVelocity = this.angularVelocityYStatusSignal.getValue();
+    inputs.yawVelocity = this.angularVelocityZStatusSignal.getValue();
 
     // The last step in the updateInputs method is to update the simulation.
     if (Constants.getMode() == Constants.Mode.SIM) {

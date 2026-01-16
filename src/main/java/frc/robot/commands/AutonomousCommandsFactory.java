@@ -1,5 +1,7 @@
 package frc.robot.commands;
 
+import static edu.wpi.first.units.Units.*;
+
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.wpilibj.Alert;
@@ -156,28 +158,92 @@ public class AutonomousCommandsFactory {
         Commands.repeatingSequence(
             Commands.deadline(
                 Commands.waitSeconds(1.0),
-                Commands.run(() -> drivetrain.drive(2.0, 0.0, 0.0, false, false), drivetrain)),
+                Commands.run(
+                    () ->
+                        drivetrain.drive(
+                            MetersPerSecond.of(2.0),
+                            MetersPerSecond.of(0.0),
+                            RadiansPerSecond.of(0.0),
+                            false,
+                            false),
+                    drivetrain)),
             Commands.deadline(
                 Commands.waitSeconds(1.0),
-                Commands.run(() -> drivetrain.drive(-0.5, 0.0, 0.0, false, false), drivetrain)),
+                Commands.run(
+                    () ->
+                        drivetrain.drive(
+                            MetersPerSecond.of(-0.5),
+                            MetersPerSecond.of(0.0),
+                            RadiansPerSecond.of(0.0),
+                            false,
+                            false),
+                    drivetrain)),
             Commands.deadline(
                 Commands.waitSeconds(1.0),
-                Commands.run(() -> drivetrain.drive(1.0, 0.0, 0.0, false, false), drivetrain)),
+                Commands.run(
+                    () ->
+                        drivetrain.drive(
+                            MetersPerSecond.of(1.0),
+                            MetersPerSecond.of(0.0),
+                            RadiansPerSecond.of(0.0),
+                            false,
+                            false),
+                    drivetrain)),
             Commands.deadline(
                 Commands.waitSeconds(0.5),
-                Commands.run(() -> drivetrain.drive(3.0, 0.0, 0.0, false, false), drivetrain)),
+                Commands.run(
+                    () ->
+                        drivetrain.drive(
+                            MetersPerSecond.of(3.0),
+                            MetersPerSecond.of(0.0),
+                            RadiansPerSecond.of(0.0),
+                            false,
+                            false),
+                    drivetrain)),
             Commands.deadline(
                 Commands.waitSeconds(2.0),
-                Commands.run(() -> drivetrain.drive(1.0, 0.0, 0.0, false, false), drivetrain)),
+                Commands.run(
+                    () ->
+                        drivetrain.drive(
+                            MetersPerSecond.of(1.0),
+                            MetersPerSecond.of(0.0),
+                            RadiansPerSecond.of(0.0),
+                            false,
+                            false),
+                    drivetrain)),
             Commands.deadline(
                 Commands.waitSeconds(2.0),
-                Commands.run(() -> drivetrain.drive(-1.0, 0.0, 0.0, false, false), drivetrain)),
+                Commands.run(
+                    () ->
+                        drivetrain.drive(
+                            MetersPerSecond.of(-1.0),
+                            MetersPerSecond.of(0.0),
+                            RadiansPerSecond.of(0.0),
+                            false,
+                            false),
+                    drivetrain)),
             Commands.deadline(
                 Commands.waitSeconds(0.5),
-                Commands.run(() -> drivetrain.drive(-3.0, 0.0, 0.0, false, false), drivetrain)),
+                Commands.run(
+                    () ->
+                        drivetrain.drive(
+                            MetersPerSecond.of(-3.0),
+                            MetersPerSecond.of(0.0),
+                            RadiansPerSecond.of(0.0),
+                            false,
+                            false),
+                    drivetrain)),
             Commands.deadline(
                 Commands.waitSeconds(2.0),
-                Commands.run(() -> drivetrain.drive(-1.0, 0.0, 0.0, false, false), drivetrain))));
+                Commands.run(
+                    () ->
+                        drivetrain.drive(
+                            MetersPerSecond.of(-1.0),
+                            MetersPerSecond.of(0.0),
+                            RadiansPerSecond.of(0.0),
+                            false,
+                            false),
+                    drivetrain))));
   }
 
   private Command getSwerveRotationTuningCommand(SwerveDrivetrain drivetrain) {
@@ -186,16 +252,48 @@ public class AutonomousCommandsFactory {
         Commands.repeatingSequence(
             Commands.deadline(
                 Commands.waitSeconds(0.5),
-                Commands.run(() -> drivetrain.drive(0.1, 0.1, 0.0, true, false), drivetrain)),
+                Commands.run(
+                    () ->
+                        drivetrain.drive(
+                            MetersPerSecond.of(0.1),
+                            MetersPerSecond.of(0.1),
+                            RadiansPerSecond.of(0.0),
+                            true,
+                            false),
+                    drivetrain)),
             Commands.deadline(
                 Commands.waitSeconds(0.5),
-                Commands.run(() -> drivetrain.drive(-0.1, 0.1, 0.0, true, false), drivetrain)),
+                Commands.run(
+                    () ->
+                        drivetrain.drive(
+                            MetersPerSecond.of(-0.1),
+                            MetersPerSecond.of(0.1),
+                            RadiansPerSecond.of(0.0),
+                            true,
+                            false),
+                    drivetrain)),
             Commands.deadline(
                 Commands.waitSeconds(0.5),
-                Commands.run(() -> drivetrain.drive(-0.1, -0.1, 0.0, true, false), drivetrain)),
+                Commands.run(
+                    () ->
+                        drivetrain.drive(
+                            MetersPerSecond.of(-0.1),
+                            MetersPerSecond.of(-0.1),
+                            RadiansPerSecond.of(0.0),
+                            true,
+                            false),
+                    drivetrain)),
             Commands.deadline(
                 Commands.waitSeconds(0.5),
-                Commands.run(() -> drivetrain.drive(0.1, -0.1, 0.0, true, false), drivetrain))));
+                Commands.run(
+                    () ->
+                        drivetrain.drive(
+                            MetersPerSecond.of(0.1),
+                            MetersPerSecond.of(-0.1),
+                            RadiansPerSecond.of(0.0),
+                            true,
+                            false),
+                    drivetrain))));
   }
 
   private Command getDriveWheelRadiusCharacterizationCommand(SwerveDrivetrain drivetrain) {

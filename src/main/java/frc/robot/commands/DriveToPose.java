@@ -1,5 +1,7 @@
 package frc.robot.commands;
 
+import static edu.wpi.first.units.Units.*;
+
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -188,21 +190,26 @@ public class DriveToPose extends Command {
     int allianceMultiplier = Field2d.getInstance().getAlliance() == Alliance.Blue ? 1 : -1;
 
     drivetrain.drive(
-        allianceMultiplier * fieldRelativeVelocities.getX(),
-        allianceMultiplier * fieldRelativeVelocities.getY(),
-        thetaVelocity,
+        MetersPerSecond.of(allianceMultiplier * fieldRelativeVelocities.getX()),
+        MetersPerSecond.of(allianceMultiplier * fieldRelativeVelocities.getY()),
+        RadiansPerSecond.of(thetaVelocity),
         true,
         true);
 
     Logger.recordOutput("DriveToPose/targetPose", targetPose);
-    Logger.recordOutput("DriveToPose/x velocity (field frame)", fieldRelativeVelocities.getX());
-    Logger.recordOutput("DriveToPose/y velocity (field frame)", fieldRelativeVelocities.getY());
-    Logger.recordOutput("DriveToPose/theta velocity (field frame)", thetaVelocity);
+    Logger.recordOutput(
+        "DriveToPose/x velocity (field frame)", fieldRelativeVelocities.getX(), MetersPerSecond);
+    Logger.recordOutput(
+        "DriveToPose/y velocity (field frame)", fieldRelativeVelocities.getY(), MetersPerSecond);
+    Logger.recordOutput(
+        "DriveToPose/theta velocity (field frame)", thetaVelocity, RadiansPerSecond);
     Logger.recordOutput("DriveToPose/pose difference (field frame)", fieldRelativeDifference);
     Logger.recordOutput(
         "DriveToPose/pose difference (target frame)", this.poseDifferenceInTargetFrame);
-    Logger.recordOutput("DriveToPose/x velocity (target frame)", velocitiesInTargetFrame.getX());
-    Logger.recordOutput("DriveToPose/y velocity (target frame)", velocitiesInTargetFrame.getY());
+    Logger.recordOutput(
+        "DriveToPose/x velocity (target frame)", velocitiesInTargetFrame.getX(), MetersPerSecond);
+    Logger.recordOutput(
+        "DriveToPose/y velocity (target frame)", velocitiesInTargetFrame.getY(), MetersPerSecond);
   }
 
   /**

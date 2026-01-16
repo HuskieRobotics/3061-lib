@@ -1,116 +1,64 @@
 {
   "hubs": [
     {
-      "x": 619,
+      "x": 226,
       "y": 30,
-      "width": 1343,
-      "height": 1122,
+      "width": 1651,
+      "height": 1088,
       "state": {
         "sidebar": {
           "width": 300,
           "expanded": [
             "/RealOutputs",
-            "/RealOutputs/RobotOdometry/visionPoseDiff",
-            "/RealOutputs/RobotOdometry/visionPoseDiff/rotation",
-            "/RealOutputs/RobotOdometry/visionPoseDiff/translation",
-            "/RealOutputs/Odometry",
-            "/RealOutputs/SystemStatus/Drivetrain",
-            "/RealOutputs/Drivetrain/DefaultPose/rotation",
-            "/RealOutputs/Drivetrain/DefaultPose/translation",
-            "/Tuning",
-            "/RealOutputs/RobotOdometry/pastPose",
-            "/RealOutputs/RobotOdometry/pastPose/translation",
-            "/RealOutputs/PathFollowing/currentPose/translation",
-            "/RealOutputs/PathFollowing/currentPose/rotation",
-            "/RealOutputs/PathFollowing/targetPose/translation",
-            "/RealOutputs/PathFollowing/targetPose/rotation",
-            "/Drivetrain/SwerveMeasuredStates/0",
-            "/Drivetrain/SwerveReferenceStates/0",
             "/NetworkInputs/SmartDashboard",
-            "/NetworkInputs/Tuning",
-            "/RealOutputs/Drivetrain/AutoPoseDiff",
-            "/RealOutputs/Drivetrain/AutoPoseDiff/translation",
-            "/RealOutputs/Drivetrain/AutoPoseDiff/rotation",
-            "/Vision/2/PoseObservations",
-            "/Vision/2/PoseObservations/1",
-            "/Vision/2/PoseObservations/0",
-            "/NetworkInputs/Tuning/Drivetrain",
-            "/RealOutputs/PathFollowing/targetPose",
-            "/ReplayOutputs",
-            "/ReplayOutputs/RobotOdometry",
-            "/Vision/0/PoseObservations",
-            "/Vision/0/PoseObservations/0",
-            "/Vision/1/PoseObservations",
-            "/Vision/1/PoseObservations/0",
-            "/Vision/3",
-            "/Vision/3/PoseObservations",
-            "/Vision/3/PoseObservations/0",
-            "/RealOutputs/Vision/0",
-            "/RealOutputs/Vision/2",
-            "/RealOutputs/Vision/2/RobotPosesRejected",
-            "/Phoenix6",
-            "/Log1",
-            "/Log1/Phoenix6",
-            "/Log1/Phoenix6/TalonFX-1",
-            "/Log1/Phoenix6/TalonFX-2",
-            "/ReplayOutputs/Drivetrain/Pose",
-            "/ReplayOutputs/Drivetrain/Pose/translation",
-            "/RealOutputs/Drivetrain/Pose/translation",
-            "/ReplayOutputs/Vision/3",
-            "/ReplayOutputs/Vision/2",
-            "/ReplayOutputs/Vision/1",
-            "/ReplayOutputs/Vision/0",
-            "/RealOutputs/Drivetrain/Pose/rotation",
-            "/ReplayOutputs/Vision/2/RobotPosesAccepted/0",
-            "/ReplayOutputs/Vision/0/RobotPosesAccepted/0",
-            "/ReplayOutputs/Vision/0/RobotPosesAccepted/0/translation",
-            "/RealOutputs/DriveToPose/difference",
-            "/RealOutputs/DriveToPose/difference/translation",
-            "/ReplayOutputs/RobotOdometry/visionPoseDiff",
-            "/ReplayOutputs/RobotOdometry/visionPoseDiff/translation",
-            "/RealOutputs/Vision/1",
-            "/RealOutputs/Vision/3",
-            "/RealOutputs/Vision/3/RobotPosesAccepted",
-            "/RealOutputs/Vision/3/RobotPosesRejected",
-            "/ReplayOutputs/DriveToPose",
-            "/ReplayOutputs/DriveToPose/difference (reef frame)/translation",
-            "/ReplayOutputs/DriveToPose/difference",
-            "/ReplayOutputs/DriveToPose/difference/translation",
-            "/ReplayOutputs/Drivetrain",
-            "/ReplayOutputs/DriveToPose/targetPose",
-            "/ReplayOutputs/DriveToPose/targetPose/translation",
-            "/Vision/2",
-            "/Vision/0",
-            "/ReplayOutputs/DriveToPose/difference/rotation",
-            "/ReplayOutputs/DriveToPose/difference (reef frame)",
-            "/ReplayOutputs/DriveToPose/targetPose/rotation",
-            "/ReplayOutputs/DriveToPose/difference (reef frame)/rotation",
-            "/RealOutputs/DriveToPose/difference (reef frame)",
-            "/RealOutputs/DriveToPose/difference (reef frame)/translation",
-            "/Tuning/DriveToPose",
-            "/RealOutputs/Vision/0/CameraPoses",
-            "/RealOutputs/Vision/1/CameraPoses",
-            "/RealOutputs/Vision/2/CameraPoses",
-            "/RealOutputs/Vision/3/CameraPoses",
-            "/RealOutputs/DriveToReef",
-            "/RealOutputs/DriveToReef/difference (reef frame)",
-            "/RealOutputs/DriveToReef/difference (reef frame)/translation",
             "/RealOutputs/DriveToPose/pose difference (target frame)",
             "/RealOutputs/DriveToPose/pose difference (target frame)/translation",
+            "/RealOutputs/Vision/3",
+            "/RealOutputs/Vision/2",
+            "/RealOutputs/Vision/1",
+            "/RealOutputs/Vision/0",
+            "/Drivetrain/BL",
+            "/Drivetrain/BR",
+            "/Drivetrain/FL",
+            "/Drivetrain/FR",
+            "/RealOutputs/RobotOdometry",
+            "/RealOutputs/Vision",
+            "/RealOutputs/Drivetrain",
+            "/RealOutputs/Vision/0/CameraPoses",
+            "/RealOutputs/DriveToPose",
             "/RealOutputs/DriveToPose/pose difference (field frame)",
             "/RealOutputs/DriveToPose/pose difference (field frame)/translation",
-            "/Drivetrain"
+            "/Drivetrain",
+            "/NetworkInputs/Tuning",
+            "/NetworkInputs/Tuning/Drivetrain",
+            "/DriverStation",
+            "/NetworkInputs",
+            "/RealOutputs/TeleopSwerve",
+            "/Drivetrain/MeasuredChassisSpeeds",
+            "/Drivetrain/ReferenceChassisSpeeds",
+            "/RealOutputs/PathFollowing",
+            "/RealOutputs/PathFollowing/currentPose",
+            "/RealOutputs/PathFollowing/currentPose/translation",
+            "/RealOutputs/PathFollowing/targetPose",
+            "/RealOutputs/PathFollowing/targetPose/translation",
+            "/RealOutputs/PathFollowing/currentPose/rotation",
+            "/RealOutputs/PathFollowing/targetPose/rotation",
+            "/RealOutputs/RobotOdometry/visionPoseDiff",
+            "/RealOutputs/RobotOdometry/visionPoseDiff/translation",
+            "/RealOutputs/RobotOdometry/visionPoseDiff/rotation",
+            "/RealOutputs/Drivetrain/Pose",
+            "/RealOutputs/Drivetrain/Pose/translation"
           ]
         },
         "tabs": {
-          "selected": 7,
+          "selected": 1,
           "tabs": [
             {
               "type": 0,
               "title": "",
               "controller": null,
-              "controllerUUID": "310mmnrbvfb1lv6k4swzfthvq3e5d83z",
-              "renderer": "#/",
+              "controllerUUID": "g1xfc0hlbypfmgph7h2r8w0kzq6075b4",
+              "renderer": "",
               "controlsHeight": 0
             },
             {
@@ -119,29 +67,12 @@
               "controller": {
                 "sources": [
                   {
-                    "type": "ghost",
-                    "logKey": "/RealOutputs/Drivetrain/CustomPose",
-                    "logType": "Pose2d",
-                    "visible": true,
-                    "options": {
-                      "color": "#ff8c00"
-                    }
-                  },
-                  {
                     "type": "robot",
                     "logKey": "/RealOutputs/Drivetrain/Pose",
                     "logType": "Pose2d",
                     "visible": true,
-                    "options": {}
-                  },
-                  {
-                    "type": "vision",
-                    "logKey": "/RealOutputs/Vision/AprilTags",
-                    "logType": "Pose3d[]",
-                    "visible": true,
                     "options": {
-                      "color": "#00ff00",
-                      "size": "normal"
+                      "bumpers": ""
                     }
                   },
                   {
@@ -155,12 +86,22 @@
                     }
                   },
                   {
-                    "type": "arrow",
-                    "logKey": "/RealOutputs/Drivetrain/FRPose",
+                    "type": "vision",
+                    "logKey": "/RealOutputs/Vision/AprilTags",
+                    "logType": "Pose3d[]",
+                    "visible": true,
+                    "options": {
+                      "color": "#00ff00",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "ghost",
+                    "logKey": "/Drivetrain/CustomPose",
                     "logType": "Pose2d",
                     "visible": true,
                     "options": {
-                      "position": "center"
+                      "color": "#ff00ff"
                     }
                   },
                   {
@@ -179,16 +120,7 @@
                     "logType": "Pose2d",
                     "visible": true,
                     "options": {
-                      "color": "#ff0000"
-                    }
-                  },
-                  {
-                    "type": "ghost",
-                    "logKey": "/RealOutputs/RobotOdometry/pastPose",
-                    "logType": "Pose2d",
-                    "visible": true,
-                    "options": {
-                      "color": "#ff00ff"
+                      "color": "#ffff00"
                     }
                   },
                   {
@@ -204,7 +136,7 @@
                     "type": "ghost",
                     "logKey": "/RealOutputs/Vision/RobotPosesRejected",
                     "logType": "Pose3d[]",
-                    "visible": false,
+                    "visible": true,
                     "options": {
                       "color": "#ff0000"
                     }
@@ -217,15 +149,31 @@
                     "options": {
                       "color": "#00ffff"
                     }
+                  },
+                  {
+                    "type": "arrow",
+                    "logKey": "/RealOutputs/Drivetrain/FRPose",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {
+                      "position": "center"
+                    }
+                  },
+                  {
+                    "type": "ghost",
+                    "logKey": "/RealOutputs/RobotOdometry/pastPose",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {
+                      "color": "#ff8c00"
+                    }
                   }
                 ],
-                "game": "2025 Field (Welded)",
-                "bumpers": "auto",
-                "origin": "blue",
+                "field": "FRC:2026 Field",
                 "orientation": 0,
-                "size": 30
+                "size": "medium"
               },
-              "controllerUUID": "qcnqmnu8c7710fc7oyb9xyg0qaw85zg1",
+              "controllerUUID": "oup5f5d8axykrxu8ikwgu96eq703vblm",
               "renderer": null,
               "controlsHeight": 200
             },
@@ -266,66 +214,23 @@
                     "logType": "Transform3d",
                     "visible": true,
                     "options": {}
-                  },
-                  {
-                    "type": "axes",
-                    "logKey": "/RealOutputs/Vision/1/CameraPoses",
-                    "logType": "Pose3d[]",
-                    "visible": true,
-                    "options": {}
-                  },
-                  {
-                    "type": "axes",
-                    "logKey": "/RealOutputs/Vision/1/RobotToCameraTransform",
-                    "logType": "Transform3d",
-                    "visible": true,
-                    "options": {}
-                  },
-                  {
-                    "type": "axes",
-                    "logKey": "/RealOutputs/Vision/2/CameraPoses/0",
-                    "logType": "Pose3d",
-                    "visible": true,
-                    "options": {}
-                  },
-                  {
-                    "type": "axes",
-                    "logKey": "/RealOutputs/Vision/2/RobotToCameraTransform",
-                    "logType": "Transform3d",
-                    "visible": true,
-                    "options": {}
-                  },
-                  {
-                    "type": "axes",
-                    "logKey": "/RealOutputs/Vision/3/CameraPoses/0",
-                    "logType": "Pose3d",
-                    "visible": true,
-                    "options": {}
-                  },
-                  {
-                    "type": "axes",
-                    "logKey": "/RealOutputs/Vision/3/RobotToCameraTransform",
-                    "logType": "Transform3d",
-                    "visible": true,
-                    "options": {}
                   }
                 ],
-                "game": "2025 Field (Welded)",
-                "origin": "blue"
+                "game": "FRC:2026 Field"
               },
-              "controllerUUID": "v8de94sw767ofrs9xy6f0j9qs69bfnlm",
+              "controllerUUID": "3cmslzjo3did6ozrs0fem9gmi789chq9",
               "renderer": {
                 "cameraIndex": -1,
                 "orbitFov": 50,
                 "cameraPosition": [
-                  5.639497163763351,
-                  1.1098085590481928,
-                  -2.232633071245711
+                  -9.111781895152689,
+                  1.0754226494138623,
+                  8.302548946129457
                 ],
                 "cameraTarget": [
-                  5.7355498277028945,
-                  0.3817895813408314,
-                  -0.05417977521878486
+                  -2.805980872249863,
+                  1.347006360408088,
+                  0.3882112485203734
                 ]
               },
               "controlsHeight": 200
@@ -341,7 +246,7 @@
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#e48b32",
+                      "color": "#2b66a2",
                       "size": "normal"
                     }
                   },
@@ -351,7 +256,7 @@
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#d993aa",
+                      "color": "#c0b487",
                       "size": "normal"
                     }
                   }
@@ -363,7 +268,7 @@
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#2b66a2",
+                      "color": "#e5b31b",
                       "size": "normal"
                     }
                   },
@@ -373,7 +278,7 @@
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#80588e",
+                      "color": "#858584",
                       "size": "normal"
                     }
                   }
@@ -394,7 +299,7 @@
                     "logType": "Boolean",
                     "visible": true,
                     "options": {
-                      "color": "#858584"
+                      "color": "#80588e"
                     }
                   },
                   {
@@ -403,26 +308,26 @@
                     "logType": "Boolean",
                     "visible": true,
                     "options": {
-                      "color": "#3b875a"
+                      "color": "#e48b32"
                     }
                   }
                 ],
                 "leftLockedRange": null,
                 "rightLockedRange": null,
                 "leftUnitConversion": {
-                  "type": null,
-                  "factor": 1
+                  "autoTarget": null,
+                  "preset": null
                 },
                 "rightUnitConversion": {
-                  "type": null,
-                  "factor": 1
+                  "autoTarget": null,
+                  "preset": null
                 },
                 "leftFilter": 0,
                 "rightFilter": 0
               },
-              "controllerUUID": "dwlbps75jfq1xony3kpwq1hofkqhgo9l",
+              "controllerUUID": "4vor1uslaxef3p313be3aft204jp3hqm",
               "renderer": null,
-              "controlsHeight": 275
+              "controlsHeight": 200
             },
             {
               "type": 1,
@@ -435,7 +340,7 @@
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#c0b487",
+                      "color": "#2b66a2",
                       "size": "normal"
                     }
                   },
@@ -445,7 +350,7 @@
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#858584",
+                      "color": "#c0b487",
                       "size": "normal"
                     }
                   }
@@ -457,7 +362,7 @@
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#2b66a2",
+                      "color": "#e5b31b",
                       "size": "normal"
                     }
                   },
@@ -467,7 +372,7 @@
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#e5b31b",
+                      "color": "#858584",
                       "size": "normal"
                     }
                   }
@@ -479,7 +384,7 @@
                     "logType": "Boolean",
                     "visible": true,
                     "options": {
-                      "color": "#3b875a"
+                      "color": "#af2437"
                     }
                   },
                   {
@@ -488,7 +393,7 @@
                     "logType": "Boolean",
                     "visible": true,
                     "options": {
-                      "color": "#d993aa"
+                      "color": "#80588e"
                     }
                   },
                   {
@@ -497,24 +402,24 @@
                     "logType": "Boolean",
                     "visible": true,
                     "options": {
-                      "color": "#5f4528"
+                      "color": "#e48b32"
                     }
                   }
                 ],
                 "leftLockedRange": null,
                 "rightLockedRange": null,
                 "leftUnitConversion": {
-                  "type": null,
-                  "factor": 1
+                  "autoTarget": null,
+                  "preset": null
                 },
                 "rightUnitConversion": {
-                  "type": null,
-                  "factor": 1
+                  "autoTarget": null,
+                  "preset": null
                 },
                 "leftFilter": 0,
                 "rightFilter": 0
               },
-              "controllerUUID": "2nvrexsjxwle04k5kdt30db9sp5x4rdi",
+              "controllerUUID": "vqxs868d609podcei60xcc0uwmzifcc0",
               "renderer": null,
               "controlsHeight": 200
             },
@@ -543,11 +448,14 @@
                     }
                   },
                   {
-                    "type": "axes",
-                    "logKey": "/RealOutputs/Vision/0/CameraAxes",
-                    "logType": "Pose3d",
+                    "type": "swerveStates",
+                    "logKey": "/Drivetrain/SwerveMeasuredStates",
+                    "logType": "SwerveModuleState[]",
                     "visible": true,
-                    "options": {}
+                    "options": {
+                      "color": "#ff0000",
+                      "arrangement": "0,1,2,3"
+                    }
                   },
                   {
                     "type": "aprilTag",
@@ -555,17 +463,7 @@
                     "logType": "Pose3d[]",
                     "visible": true,
                     "options": {
-                      "family": "36h11"
-                    }
-                  },
-                  {
-                    "type": "ghost",
-                    "logKey": "/RealOutputs/RobotOdometry/pastPose",
-                    "logType": "Pose2d",
-                    "visible": true,
-                    "options": {
-                      "model": "3061 (2025)",
-                      "color": "#ff00ff"
+                      "variant": "36h11-6.5in"
                     }
                   },
                   {
@@ -590,7 +488,7 @@
                   },
                   {
                     "type": "ghost",
-                    "logKey": "/Drivetrain/CustomPose",
+                    "logKey": "/RealOutputs/RobotOdometry/pastPose",
                     "logType": "Pose2d",
                     "visible": true,
                     "options": {
@@ -599,25 +497,24 @@
                     }
                   }
                 ],
-                "game": "2025 Field (Welded)",
-                "origin": "blue"
+                "game": "FRC:2026 Field"
               },
-              "controllerUUID": "evx1fftrozhehzcwb3pbjh0pa9ucx1m9",
+              "controllerUUID": "929alcdhgeycrxxrdvi111cnleuinpma",
               "renderer": {
                 "cameraIndex": -1,
                 "orbitFov": 50,
                 "cameraPosition": [
-                  2.997656644655992,
-                  9.343913404532891,
-                  -3.8143169016970635
+                  1.4695761589768238e-15,
+                  5.999999999999999,
+                  -12
                 ],
                 "cameraTarget": [
-                  6.257533257684496,
-                  -25.635462598077275,
-                  8.900720439896105
+                  0,
+                  0.5,
+                  0
                 ]
               },
-              "controlsHeight": 261
+              "controlsHeight": 200
             },
             {
               "type": 1,
@@ -687,17 +584,17 @@
                 "leftLockedRange": null,
                 "rightLockedRange": null,
                 "leftUnitConversion": {
-                  "type": null,
-                  "factor": 1
+                  "autoTarget": null,
+                  "preset": null
                 },
                 "rightUnitConversion": {
-                  "type": null,
-                  "factor": 1
+                  "autoTarget": null,
+                  "preset": null
                 },
                 "leftFilter": 0,
                 "rightFilter": 0
               },
-              "controllerUUID": "qsul4f9r2ww4haqg4lpe6aa3bg3y7i3x",
+              "controllerUUID": "ox4tdw0zomyyt2zqhvxntdcdyytc4yfo",
               "renderer": null,
               "controlsHeight": 200
             },
@@ -708,21 +605,21 @@
                 "leftSources": [
                   {
                     "type": "stepped",
-                    "logKey": "/Drivetrain/AverageSwerveMeasuredSpeedMetersPerSecond",
+                    "logKey": "/Drivetrain/AverageSwerveMeasuredSpeed",
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#858584",
+                      "color": "#e48b32",
                       "size": "normal"
                     }
                   },
                   {
                     "type": "stepped",
-                    "logKey": "/Drivetrain/AverageSwerveReferenceSpeedMetersPerSecond",
+                    "logKey": "/Drivetrain/AverageSwerveReferenceSpeed",
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#2b66a2",
+                      "color": "#c0b487",
                       "size": "normal"
                     }
                   }
@@ -735,7 +632,7 @@
                     "logType": "String",
                     "visible": true,
                     "options": {
-                      "color": "#af2437"
+                      "color": "#2b66a2"
                     }
                   },
                   {
@@ -744,16 +641,7 @@
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#80588e"
-                    }
-                  },
-                  {
-                    "type": "stripes",
-                    "logKey": "/DriverStation/Autonomous",
-                    "logType": "Boolean",
-                    "visible": true,
-                    "options": {
-                      "color": "#e48b32"
+                      "color": "#e5b31b"
                     }
                   },
                   {
@@ -762,24 +650,33 @@
                     "logType": "Boolean",
                     "visible": true,
                     "options": {
-                      "color": "#c0b487"
+                      "color": "#af2437"
+                    }
+                  },
+                  {
+                    "type": "stripes",
+                    "logKey": "/DriverStation/Autonomous",
+                    "logType": "Boolean",
+                    "visible": true,
+                    "options": {
+                      "color": "#80588e"
                     }
                   }
                 ],
                 "leftLockedRange": null,
                 "rightLockedRange": null,
                 "leftUnitConversion": {
-                  "type": null,
-                  "factor": 1
+                  "autoTarget": null,
+                  "preset": null
                 },
                 "rightUnitConversion": {
-                  "type": null,
-                  "factor": 1
+                  "autoTarget": null,
+                  "preset": null
                 },
                 "leftFilter": 0,
                 "rightFilter": 0
               },
-              "controllerUUID": "yz0csmzb1ekk3tatc9u8nk2u8v5ccymp",
+              "controllerUUID": "cqxc48r9cdn5v0l7xtf9ntfsqkwn1c40",
               "renderer": null,
               "controlsHeight": 200
             },
@@ -790,7 +687,7 @@
                 "leftSources": [
                   {
                     "type": "stepped",
-                    "logKey": "/Drivetrain/FL/DriveStatorCurrentAmps",
+                    "logKey": "/Drivetrain/AverageDriveCurrent",
                     "logType": "Number",
                     "visible": true,
                     "options": {
@@ -802,7 +699,7 @@
                 "rightSources": [
                   {
                     "type": "stepped",
-                    "logKey": "/Drivetrain/FL/DriveVelocityMetersPerSec",
+                    "logKey": "/Drivetrain/AverageSwerveMeasuredSpeed",
                     "logType": "Number",
                     "visible": true,
                     "options": {
@@ -815,17 +712,17 @@
                 "leftLockedRange": null,
                 "rightLockedRange": null,
                 "leftUnitConversion": {
-                  "type": null,
-                  "factor": 1
+                  "autoTarget": null,
+                  "preset": null
                 },
                 "rightUnitConversion": {
-                  "type": null,
-                  "factor": 1
+                  "autoTarget": null,
+                  "preset": null
                 },
                 "leftFilter": 0,
                 "rightFilter": 0
               },
-              "controllerUUID": "70wx3hhb12iurab9n092d2fwen16fky4",
+              "controllerUUID": "fucmrhe7ikrhg5gkqlaona1csdpvqvmn",
               "renderer": null,
               "controlsHeight": 200
             },
@@ -840,7 +737,7 @@
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#2b66a2",
+                      "color": "#80588e",
                       "size": "normal"
                     }
                   },
@@ -850,17 +747,17 @@
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#e5b31b",
+                      "color": "#e48b32",
                       "size": "normal"
                     }
                   },
                   {
                     "type": "stepped",
-                    "logKey": "/ReplayOutputs/Drivetrain/Speed",
+                    "logKey": "/RealOutputs/Drivetrain/Speed",
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#80588e",
+                      "color": "#2b66a2",
                       "size": "normal"
                     }
                   }
@@ -868,21 +765,11 @@
                 "rightSources": [
                   {
                     "type": "stepped",
-                    "logKey": "/Drivetrain/BL/DriveStatorCurrentAmps",
-                    "logType": "Number",
-                    "visible": false,
-                    "options": {
-                      "color": "#af2437",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
                     "logKey": "/RealOutputs/TeleopSwerve/xVelocity",
                     "logType": "Number",
-                    "visible": false,
+                    "visible": true,
                     "options": {
-                      "color": "#e48b32",
+                      "color": "#e5b31b",
                       "size": "normal"
                     }
                   },
@@ -890,9 +777,9 @@
                     "type": "stepped",
                     "logKey": "/RealOutputs/TeleopSwerve/yVelocity",
                     "logType": "Number",
-                    "visible": false,
+                    "visible": true,
                     "options": {
-                      "color": "#c0b487",
+                      "color": "#af2437",
                       "size": "normal"
                     }
                   }
@@ -901,17 +788,17 @@
                 "leftLockedRange": null,
                 "rightLockedRange": null,
                 "leftUnitConversion": {
-                  "type": null,
-                  "factor": 1
+                  "autoTarget": null,
+                  "preset": null
                 },
                 "rightUnitConversion": {
-                  "type": null,
-                  "factor": 1
+                  "autoTarget": null,
+                  "preset": null
                 },
                 "leftFilter": 0,
                 "rightFilter": 0
               },
-              "controllerUUID": "2leftdj90zkei2pd13ihrirhbp5r3ui5",
+              "controllerUUID": "gxm3ize77m8rljrtzdl1olgd244xs9fq",
               "renderer": null,
               "controlsHeight": 200
             },
@@ -922,7 +809,7 @@
                 "sources": [
                   {
                     "type": "independent",
-                    "logKey": "/ReplayOutputs/Drivetrain/Speed",
+                    "logKey": "/RealOutputs/Drivetrain/Speed",
                     "logType": "Number",
                     "visible": true,
                     "options": {
@@ -935,7 +822,7 @@
                 "rangeMax": 10,
                 "stepSize": 1
               },
-              "controllerUUID": "olb4n7zs4dxm589l5q2r4f821rsm6i3f",
+              "controllerUUID": "3cw4kj2q6leyb5t4cmapjckrf7ocatzq",
               "renderer": null,
               "controlsHeight": 200
             },
@@ -957,7 +844,7 @@
                   },
                   {
                     "type": "stripes",
-                    "logKey": "/DriverStation/Autonomous",
+                    "logKey": "/DriverStation/Enabled",
                     "logType": "Boolean",
                     "visible": true,
                     "options": {
@@ -966,11 +853,11 @@
                   },
                   {
                     "type": "stripes",
-                    "logKey": "/DriverStation/Enabled",
+                    "logKey": "/DriverStation/Autonomous",
                     "logType": "Boolean",
                     "visible": true,
                     "options": {
-                      "color": "#80588e"
+                      "color": "#af2437"
                     }
                   },
                   {
@@ -979,24 +866,24 @@
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#af2437"
+                      "color": "#80588e"
                     }
                   }
                 ],
                 "leftLockedRange": null,
                 "rightLockedRange": null,
                 "leftUnitConversion": {
-                  "type": null,
-                  "factor": 1
+                  "autoTarget": null,
+                  "preset": null
                 },
                 "rightUnitConversion": {
-                  "type": null,
-                  "factor": 1
+                  "autoTarget": null,
+                  "preset": null
                 },
                 "leftFilter": 0,
                 "rightFilter": 0
               },
-              "controllerUUID": "s71hmkjwyjgztioos2s18q2s83erg6xd",
+              "controllerUUID": "7dhfudv7gi1xbgepjcy1gstdoe66u3br",
               "renderer": null,
               "controlsHeight": 200
             },
@@ -1017,7 +904,7 @@
                   },
                   {
                     "type": "stepped",
-                    "logKey": "/Drivetrain/ReferenceChassisSpeeds/vx",
+                    "logKey": "/Drivetrain/MeasuredChassisSpeeds/vy",
                     "logType": "Number",
                     "visible": true,
                     "options": {
@@ -1027,11 +914,11 @@
                   },
                   {
                     "type": "stepped",
-                    "logKey": "/Drivetrain/MeasuredChassisSpeeds/vy",
+                    "logKey": "/Drivetrain/ReferenceChassisSpeeds/vx",
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#af2437",
+                      "color": "#80588e",
                       "size": "normal"
                     }
                   },
@@ -1041,7 +928,7 @@
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#80588e",
+                      "color": "#e48b32",
                       "size": "normal"
                     }
                   }
@@ -1051,9 +938,9 @@
                     "type": "stepped",
                     "logKey": "/Drivetrain/MeasuredChassisSpeeds/omega",
                     "logType": "Number",
-                    "visible": false,
+                    "visible": true,
                     "options": {
-                      "color": "#e48b32",
+                      "color": "#af2437",
                       "size": "normal"
                     }
                   },
@@ -1061,7 +948,7 @@
                     "type": "stepped",
                     "logKey": "/Drivetrain/ReferenceChassisSpeeds/omega",
                     "logType": "Number",
-                    "visible": false,
+                    "visible": true,
                     "options": {
                       "color": "#c0b487",
                       "size": "normal"
@@ -1080,7 +967,7 @@
                   },
                   {
                     "type": "stripes",
-                    "logKey": "/DriverStation/Autonomous",
+                    "logKey": "/DriverStation/Enabled",
                     "logType": "Boolean",
                     "visible": true,
                     "options": {
@@ -1089,7 +976,7 @@
                   },
                   {
                     "type": "stripes",
-                    "logKey": "/DriverStation/Enabled",
+                    "logKey": "/DriverStation/Autonomous",
                     "logType": "Boolean",
                     "visible": true,
                     "options": {
@@ -1100,19 +987,19 @@
                 "leftLockedRange": null,
                 "rightLockedRange": null,
                 "leftUnitConversion": {
-                  "type": null,
-                  "factor": 1
+                  "autoTarget": null,
+                  "preset": null
                 },
                 "rightUnitConversion": {
-                  "type": null,
-                  "factor": 1
+                  "autoTarget": null,
+                  "preset": null
                 },
                 "leftFilter": 0,
                 "rightFilter": 0
               },
-              "controllerUUID": "lx1d3nrjwpvnqyeakmnshukgevod1aym",
+              "controllerUUID": "pvs44z0a054k0xyoquvrqcqf0j6gf5zp",
               "renderer": null,
-              "controlsHeight": 225
+              "controlsHeight": 200
             },
             {
               "type": 6,
@@ -1173,7 +1060,119 @@
                 "rangeMax": 0.03,
                 "stepSize": 0.001
               },
-              "controllerUUID": "gqtxvam6jkyp2633w6vijt6kgestxbyk",
+              "controllerUUID": "j78535x6x2vu34au27jh6sclp2c3yqpr",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
+              "type": 1,
+              "title": "vision tuning",
+              "controller": {
+                "leftSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "/RealOutputs/Drivetrain/Pose/translation/x",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#2b66a2",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "/RealOutputs/Drivetrain/Pose/translation/y",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#e5b31b",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "rightSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "/RealOutputs/Drivetrain/Pose/rotation/value",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#af2437",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "discreteSources": [],
+                "leftLockedRange": null,
+                "rightLockedRange": null,
+                "leftUnitConversion": {
+                  "autoTarget": null,
+                  "preset": null
+                },
+                "rightUnitConversion": {
+                  "autoTarget": null,
+                  "preset": null
+                },
+                "leftFilter": 0,
+                "rightFilter": 0
+              },
+              "controllerUUID": "5pp69yf4zungz344dh7yuz4fyh6anw4f",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
+              "type": 1,
+              "title": "vision latency tuning",
+              "controller": {
+                "leftSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "/RealOutputs/RobotOdometry/visionPoseDiff/translation/x",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#2b66a2",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "/RealOutputs/RobotOdometry/visionPoseDiff/translation/y",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#e5b31b",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "rightSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "/RealOutputs/RobotOdometry/visionPoseDiff/rotation/value",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#af2437",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "discreteSources": [],
+                "leftLockedRange": null,
+                "rightLockedRange": null,
+                "leftUnitConversion": {
+                  "autoTarget": null,
+                  "preset": null
+                },
+                "rightUnitConversion": {
+                  "autoTarget": null,
+                  "preset": null
+                },
+                "leftFilter": 0,
+                "rightFilter": 0
+              },
+              "controllerUUID": "c7vaedsgzu6zoc5aisy2vnvtv8sit51j",
               "renderer": null,
               "controlsHeight": 200
             },
@@ -1210,154 +1209,12 @@
                     }
                   }
                 ],
-                "timeRange": "enabled",
+                "timeRange": "visible",
                 "rangeMin": 0,
                 "rangeMax": 0.2,
                 "stepSize": 0.01
               },
-              "controllerUUID": "ndxnauwlwc655k8fpxtdqroeynhtm6ts",
-              "renderer": null,
-              "controlsHeight": 200
-            },
-            {
-              "type": 1,
-              "title": "vision tuning",
-              "controller": {
-                "leftSources": [
-                  {
-                    "type": "stepped",
-                    "logKey": "/ReplayOutputs/Drivetrain/Pose/translation/x",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#2b66a2",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "/RealOutputs/Drivetrain/Pose/translation/x",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#af2437",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "/ReplayOutputs/Drivetrain/Pose/translation/y",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#e5b31b",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "/RealOutputs/Drivetrain/Pose/translation/y",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#80588e",
-                      "size": "normal"
-                    }
-                  }
-                ],
-                "rightSources": [
-                  {
-                    "type": "stepped",
-                    "logKey": "/ReplayOutputs/Drivetrain/Pose/rotation/value",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#e48b32",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "/RealOutputs/Drivetrain/Pose/rotation/value",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#c0b487",
-                      "size": "normal"
-                    }
-                  }
-                ],
-                "discreteSources": [],
-                "leftLockedRange": null,
-                "rightLockedRange": null,
-                "leftUnitConversion": {
-                  "type": null,
-                  "factor": 1
-                },
-                "rightUnitConversion": {
-                  "type": null,
-                  "factor": 1
-                },
-                "leftFilter": 0,
-                "rightFilter": 0
-              },
-              "controllerUUID": "24yuaj2ei1md6ji0ng7r9nlr5wbtas6y",
-              "renderer": null,
-              "controlsHeight": 200
-            },
-            {
-              "type": 1,
-              "title": "vision latency tuning",
-              "controller": {
-                "leftSources": [
-                  {
-                    "type": "stepped",
-                    "logKey": "/RealOutputs/RobotOdometry/visionPoseDiff/translation/x",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#e5b31b",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "/RealOutputs/RobotOdometry/visionPoseDiff/translation/y",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#af2437",
-                      "size": "normal"
-                    }
-                  }
-                ],
-                "rightSources": [
-                  {
-                    "type": "stepped",
-                    "logKey": "/RealOutputs/RobotOdometry/visionPoseDiff/rotation/value",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#2b66a2",
-                      "size": "normal"
-                    }
-                  }
-                ],
-                "discreteSources": [],
-                "leftLockedRange": null,
-                "rightLockedRange": null,
-                "leftUnitConversion": {
-                  "type": null,
-                  "factor": 1
-                },
-                "rightUnitConversion": {
-                  "type": null,
-                  "factor": 1
-                },
-                "leftFilter": 0,
-                "rightFilter": 0
-              },
-              "controllerUUID": "0ky3jfcskw06ow984yjvrppqawqy0474",
+              "controllerUUID": "trhwo5rbjtq41d5nblhrl3vkpcxzt614",
               "renderer": null,
               "controlsHeight": 200
             },
@@ -1403,41 +1260,17 @@
                 "leftLockedRange": null,
                 "rightLockedRange": null,
                 "leftUnitConversion": {
-                  "type": null,
-                  "factor": 1
+                  "autoTarget": null,
+                  "preset": null
                 },
                 "rightUnitConversion": {
-                  "type": null,
-                  "factor": 1
+                  "autoTarget": null,
+                  "preset": null
                 },
                 "leftFilter": 0,
                 "rightFilter": 0
               },
-              "controllerUUID": "0v4hu6brdvi36d9mg9f2a367plc0go5h",
-              "renderer": null,
-              "controlsHeight": 257
-            },
-            {
-              "type": 6,
-              "title": "vision time check",
-              "controller": {
-                "sources": [
-                  {
-                    "type": "independent",
-                    "logKey": "/RealOutputs/Vision/0/TimestampDifference",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#2b66a2"
-                    }
-                  }
-                ],
-                "timeRange": "enabled",
-                "rangeMin": 0,
-                "rangeMax": 10,
-                "stepSize": 1
-              },
-              "controllerUUID": "d2e8hed42yg7sb0exg4ph4bn3wp740ng",
+              "controllerUUID": "81960uei2ep16r704cjzayj12uy057vn",
               "renderer": null,
               "controlsHeight": 200
             },
@@ -1486,7 +1319,7 @@
                   },
                   {
                     "type": "rotationLegacy",
-                    "logKey": "/RealOutputs/Drivetrain/Pose/rotation/value",
+                    "logKey": "/Drivetrain/RawHeading",
                     "logType": "Number",
                     "visible": true,
                     "options": {
@@ -1497,9 +1330,9 @@
                 "maxSpeed": 5,
                 "sizeX": 0.65,
                 "sizeY": 0.65,
-                "orientation": 0
+                "orientation": 1
               },
-              "controllerUUID": "xl0u6oymqkjm45npjm7srhm3ccuitawi",
+              "controllerUUID": "0dgz7ghojnlrt1kd0yrihoothgvxqjkv",
               "renderer": null,
               "controlsHeight": 200
             },
@@ -1525,18 +1358,18 @@
                     }
                   }
                 ],
-                "timeRange": "enabled",
+                "timeRange": "visible",
                 "rangeMin": 0,
                 "rangeMax": 10,
                 "stepSize": 1
               },
-              "controllerUUID": "n5u5mgwb0ei6ahnke33jnid3lmmxrnoc",
+              "controllerUUID": "w9m2wseblyjdz4hlkmo875aimkp0cn5k",
               "renderer": null,
               "controlsHeight": 200
             },
             {
               "type": 1,
-              "title": "alerts",
+              "title": "Alerts",
               "controller": {
                 "leftSources": [],
                 "rightSources": [],
@@ -1552,17 +1385,17 @@
                 "leftLockedRange": null,
                 "rightLockedRange": null,
                 "leftUnitConversion": {
-                  "type": null,
-                  "factor": 1
+                  "autoTarget": null,
+                  "preset": null
                 },
                 "rightUnitConversion": {
-                  "type": null,
-                  "factor": 1
+                  "autoTarget": null,
+                  "preset": null
                 },
                 "leftFilter": 0,
                 "rightFilter": 0
               },
-              "controllerUUID": "941haqffhdjzmgvh6vgesnwzb3ujd5vg",
+              "controllerUUID": "onu5vhneaxl9rda84ca1z59s0ut9e33c",
               "renderer": null,
               "controlsHeight": 200
             },
@@ -1570,15 +1403,15 @@
               "type": 12,
               "title": "Metadata",
               "controller": null,
-              "controllerUUID": "ikzdbpy3tjf9f82nnfi1qrtbgle8legr",
+              "controllerUUID": "ezxwlhyvw3fcyetlphvzdzqoh9ua1n0n",
               "renderer": null,
               "controlsHeight": 0
             },
             {
               "type": 5,
               "title": "Console",
-              "controller": "/RealOutputs/Console",
-              "controllerUUID": "zume7t5grupogh4be5qmh7lpc2aby871",
+              "controller": null,
+              "controllerUUID": "fv0a91w7hjdekc3xszjzgckhhlyuy1ib",
               "renderer": {
                 "highlight": false
               },
@@ -1590,5 +1423,5 @@
     }
   ],
   "satellites": [],
-  "version": "4.1.6"
+  "version": "26.0.0"
 }

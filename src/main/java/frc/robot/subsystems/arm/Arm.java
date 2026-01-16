@@ -54,7 +54,7 @@ public class Arm extends SubsystemBase {
   private final LoggedTunableNumber angleManualControlVoltage =
       new LoggedTunableNumber("Arm/ManualControlVoltage", ANGLE_MOTOR_MANUAL_CONTROL_VOLTAGE);
   private final LoggedTunableNumber pivotAngleDegrees =
-      new LoggedTunableNumber("Arm/AngleDegrees", LOWER_ANGLE_LIMIT);
+      new LoggedTunableNumber("Arm/AngleDegrees", LOWER_ANGLE_LIMIT.in(Degrees));
 
   private final Debouncer atSetpointDebouncer = new Debouncer(0.1);
 
@@ -69,8 +69,7 @@ public class Arm extends SubsystemBase {
               Volts.of(2.0), // override default step voltage (7 V)
               null, // use default timeout (10 s)
               state -> SignalLogger.writeString("SysId_State", state.toString())),
-          new SysIdRoutine.Mechanism(
-              output -> io.setAngleMotorVoltage(output.in(Volts)), null, this));
+          new SysIdRoutine.Mechanism(output -> io.setAngleMotorVoltage(output), null, this));
 
   public Arm(ArmIO io) {
     this.io = io;
@@ -98,7 +97,7 @@ public class Arm extends SubsystemBase {
       if (pivotAngleDegrees.get() != 0) {
         io.setAngle(Degrees.of(pivotAngleDegrees.get()));
       } else if (angleManualControlVoltage.get() != 0) {
-        io.setAngleMotorVoltage(angleManualControlVoltage.get());
+        io.setAngleMotorVoltage(Volts.of(angleManualControlVoltage.get()));
       }
     }
 
@@ -119,8 +118,7 @@ public class Arm extends SubsystemBase {
     // The angle is considered at the setpoint if the angle is within tolerance for the period
     // specified when constructing the debouncer (e.g., 0.1 seconds or 5 loop iterations).
     return atSetpointDebouncer.calculate(
-        Math.abs(inputs.angleMotorReferenceAngleDegrees - inputs.angleDegrees)
-            < ANGLE_TOLERANCE_DEGREES);
+        inputs.angleMotorReferenceAngle.isNear(inputs.position, ANGLE_TOLERANCE));
   }
 
   private Command getSystemCheckCommand() {
@@ -130,40 +128,30 @@ public class Arm extends SubsystemBase {
     // and an `andThen` condition that sets the subsystem to a safe state. This ensures that if any
     // faults are detected, the test will stop and the subsystem is always left in a safe state.
     return Commands.sequence(
-            getPresetCheckCommand(20.0),
-            getPresetCheckCommand(40.0),
-            getPresetCheckCommand(50.0),
-            getPresetCheckCommand(70.0))
+            getPresetCheckCommand(Degrees.of(20.0)),
+            getPresetCheckCommand(Degrees.of(40.0)),
+            getPresetCheckCommand(Degrees.of(50.0)),
+            getPresetCheckCommand(Degrees.of(70.0)))
         .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
-        .andThen(Commands.runOnce(() -> io.setAngle(Degrees.of(LOWER_ANGLE_LIMIT))));
+        .andThen(Commands.runOnce(() -> io.setAngle(LOWER_ANGLE_LIMIT)));
   }
 
-  private Command getPresetCheckCommand(double angleDegrees) {
+  private Command getPresetCheckCommand(Angle targetPosition) {
     return Commands.sequence(
-        Commands.runOnce(() -> this.setAngle(Degrees.of(angleDegrees))),
+        Commands.runOnce(() -> this.setAngle(targetPosition)),
         Commands.waitSeconds(2.0),
-        Commands.runOnce(() -> this.checkAngle(angleDegrees)));
+        Commands.runOnce(() -> this.checkAngle(targetPosition)));
   }
 
-  private void checkAngle(double degrees) {
-    if (Math.abs(this.inputs.angleDegrees - degrees) > ANGLE_TOLERANCE_DEGREES) {
-      if (Math.abs(degrees) - Math.abs(this.inputs.angleDegrees) > 0) {
-        FaultReporter.getInstance()
-            .addFault(
-                SUBSYSTEM_NAME,
-                "Shooter angle is too low, should be "
-                    + degrees
-                    + " but is "
-                    + this.inputs.angleDegrees);
-      } else {
-        FaultReporter.getInstance()
-            .addFault(
-                SUBSYSTEM_NAME,
-                "Shooter angle is too high, should be "
-                    + degrees
-                    + " but is "
-                    + this.inputs.angleDegrees);
-      }
+  private void checkAngle(Angle targetPosition) {
+    if (this.inputs.position.isNear(targetPosition, ANGLE_TOLERANCE)) {
+      FaultReporter.getInstance()
+          .addFault(
+              SUBSYSTEM_NAME,
+              "Shooter angle is out of tolerance, should be "
+                  + targetPosition
+                  + " but is "
+                  + this.inputs.position);
     }
   }
 }

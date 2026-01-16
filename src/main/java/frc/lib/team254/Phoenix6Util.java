@@ -11,9 +11,12 @@ package frc.lib.team254;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
+import com.ctre.phoenix6.StatusSignalCollection;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.CANrangeConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.hardware.CANrange;
 import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.wpilibj.Alert;
 import java.util.function.Supplier;
@@ -174,7 +177,7 @@ public class Phoenix6Util {
   }
 
   /**
-   * Applies the specified configuration to the specified CANcoder and checks that the configuration
+   * Applies the specified configuration to the specified TalonFX and checks that the configuration
    * was applied successfully. If not, retries five times; eventually, setting the specified alert
    * if the number of tries is exceeded.
    *
@@ -189,7 +192,7 @@ public class Phoenix6Util {
   }
 
   /**
-   * Applies the specified configuration to the specified TalonFX and checks that the configuration
+   * Applies the specified configuration to the specified CANcoder and checks that the configuration
    * was applied successfully. If not, retries the specified number of tries; eventually, setting
    * the specified alert if the number of tries is exceeded.
    *
@@ -278,6 +281,96 @@ public class Phoenix6Util {
     return applyAndCheckConfiguration(canCoder, config, alert, 5);
   }
 
+  /**
+   * Applies the specified configuration to the specified CANrange and checks that the configuration
+   * was applied successfully. If not, retries the specified number of tries; eventually, setting
+   * the specified alert if the number of tries is exceeded.
+   *
+   * @param canRange CANrange to which to apply the configuration
+   * @param config CANrange configuration to apply
+   * @param alert alert to set if the configuration is not applied successfully
+   * @param numTries number of times to try to apply the configuration
+   * @return true if the configuration was applied successfully, false otherwise
+   */
+  public static boolean applyAndCheckConfiguration(
+      CANrange canRange, CANrangeConfiguration config, Alert alert, int numTries) {
+    for (int i = 0; i < numTries; i++) {
+      if (checkErrorAndRetry(() -> canRange.getConfigurator().apply(config), alert)) {
+        // API says we applied config, lets make sure it's right
+        if (readAndVerifyConfiguration(canRange, config, alert)) {
+          return true;
+        } else {
+          alert.setText(
+              "Failed to verify config for CANrange ["
+                  + canRange.getDeviceID()
+                  + "] (attempt "
+                  + (i + 1)
+                  + " of "
+                  + numTries
+                  + ")");
+          alert.set(true);
+        }
+      } else {
+        alert.setText(
+            "Failed to apply config for CANcoder ["
+                + canRange.getDeviceID()
+                + "] (attempt "
+                + (i + 1)
+                + " of "
+                + numTries
+                + ")");
+        alert.set(true);
+      }
+    }
+    alert.setText("Failed to apply config for CANrange after " + numTries + " attempts");
+    alert.set(true);
+    return false;
+  }
+
+  /**
+   * Reads the configuration from the specified CANrange and verifies that it matches the specified
+   * configuration. If the configuration does not match, sets the specified alert.
+   *
+   * @param canRange CANrange to which to apply the configuration
+   * @param config CANrange configuration to apply
+   * @param alert alert to set if the configuration does not match
+   * @return true if the configuration was read and matched, false otherwise
+   */
+  public static boolean readAndVerifyConfiguration(
+      CANrange canRange, CANrangeConfiguration config, Alert alert) {
+    CANrangeConfiguration readConfig = new CANrangeConfiguration();
+    if (!checkErrorAndRetry(() -> canRange.getConfigurator().refresh(readConfig), alert)) {
+      // could not get config!
+      alert.setText("Failed to read config for CANrange [" + canRange.getDeviceID() + "]");
+      alert.set(true);
+      return false;
+    } else if (!CANrangeConfigEquality.isEqual(config, readConfig)) {
+      // configs did not match
+      alert.setText(
+          "Configuration verification failed for CANrange [" + canRange.getDeviceID() + "]");
+      alert.set(true);
+      return false;
+    } else {
+      // configs read and match, Talon OK
+      return true;
+    }
+  }
+
+  /**
+   * Applies the specified configuration to the specified CANrange and checks that the configuration
+   * was applied successfully. If not, retries five times; eventually, setting the specified alert
+   * if the number of tries is exceeded.
+   *
+   * @param canRange CANrange to which to apply the configuration
+   * @param config CANrange configuration to apply
+   * @param alert alert to set if the configuration is not applied successfully
+   * @return true if the configuration was applied successfully, false otherwise
+   */
+  public static boolean applyAndCheckConfiguration(
+      CANrange canRange, CANrangeConfiguration config, Alert alert) {
+    return applyAndCheckConfiguration(canRange, config, alert, 5);
+  }
+
   // Copyright (c) 2025 FRC 6328
   // http://github.com/Mechanical-Advantage
   //
@@ -286,38 +379,25 @@ public class Phoenix6Util {
   // the root directory of this project.
 
   /** Signals for synchronized refresh. */
-  private static BaseStatusSignal[] canivoreSignals = new BaseStatusSignal[0];
+  private static StatusSignalCollection canivoreSignals = new StatusSignalCollection();
 
-  private static BaseStatusSignal[] rioSignals = new BaseStatusSignal[0];
+  private static StatusSignalCollection rioSignals = new StatusSignalCollection();
 
   /** Registers a set of signals for synchronized refresh. */
   public static void registerSignals(boolean canivore, BaseStatusSignal... signals) {
     if (canivore) {
-      BaseStatusSignal[] newSignals = new BaseStatusSignal[canivoreSignals.length + signals.length];
-      System.arraycopy(canivoreSignals, 0, newSignals, 0, canivoreSignals.length);
-      System.arraycopy(signals, 0, newSignals, canivoreSignals.length, signals.length);
-      canivoreSignals = newSignals;
+      canivoreSignals.addSignals(signals);
     } else {
-      BaseStatusSignal[] newSignals = new BaseStatusSignal[rioSignals.length + signals.length];
-      System.arraycopy(rioSignals, 0, newSignals, 0, rioSignals.length);
-      System.arraycopy(signals, 0, newSignals, rioSignals.length, signals.length);
-      rioSignals = newSignals;
+      rioSignals.addSignals(signals);
     }
   }
 
   /** Refresh all registered signals. */
   public static void refreshAll() {
-    if (canivoreSignals.length > 0) {
-      checkError(
-          BaseStatusSignal.refreshAll(canivoreSignals),
-          "failed to refresh signals on CANivore:",
-          canivoreSignalsAlert);
-    }
-    if (rioSignals.length > 0) {
-      checkError(
-          BaseStatusSignal.refreshAll(rioSignals),
-          "failed to refresh signals on RIO:",
-          rioSignalsAlert);
-    }
+    checkError(
+        canivoreSignals.refreshAll(),
+        "failed to refresh signals on CANivore:",
+        canivoreSignalsAlert);
+    checkError(rioSignals.refreshAll(), "failed to refresh signals on RIO:", rioSignalsAlert);
   }
 }

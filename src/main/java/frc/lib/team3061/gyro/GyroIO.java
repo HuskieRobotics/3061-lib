@@ -4,6 +4,10 @@
 
 package frc.lib.team3061.gyro;
 
+import static edu.wpi.first.units.Units.*;
+
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
 import org.littletonrobotics.junction.AutoLog;
 
 @java.lang.SuppressWarnings({"java:S1104"})
@@ -23,12 +27,12 @@ public interface GyroIO {
   @AutoLog
   public static class GyroIOInputs {
     public boolean connected = false;
-    public double yawDeg = 0.0;
-    public double yawDegPerSec = 0.0;
-    public double pitchDeg = 0.0;
-    public double pitchDegPerSec = 0.0;
-    public double rollDeg = 0.0;
-    public double rollDegPerSec = 0.0;
+    public Angle yaw = Rotations.of(0.0);
+    public AngularVelocity yawVelocity = RotationsPerSecond.of(0.0);
+    public Angle pitch = Rotations.of(0.0);
+    public AngularVelocity pitchVelocity = RotationsPerSecond.of(0.0);
+    public Angle roll = Rotations.of(0.0);
+    public AngularVelocity rollVelocity = RotationsPerSecond.of(0.0);
   }
 
   /**

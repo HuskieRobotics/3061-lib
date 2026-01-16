@@ -2,6 +2,7 @@ package frc.robot.configs;
 
 import static edu.wpi.first.units.Units.*;
 
+import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.MountPoseConfigs;
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -83,6 +84,7 @@ public class CalypsoRobotConfig extends RobotConfig {
   private static final double SLOW_MODE_MULTIPLIER = 0.7;
 
   private static final String CAN_BUS_NAME = "canbus1";
+  private static final CANBus CAN_BUS = new CANBus(CAN_BUS_NAME);
 
   private static final String CAMERA_NAME_0 = "OV2311FR";
   private static final String CAMERA_NAME_1 = "OV2311BR";
@@ -435,6 +437,11 @@ public class CalypsoRobotConfig extends RobotConfig {
   @Override
   public String getCANBusName() {
     return CAN_BUS_NAME;
+  }
+
+  @Override
+  public CANBus getCANBus() {
+    return CAN_BUS;
   }
 
   @Override
