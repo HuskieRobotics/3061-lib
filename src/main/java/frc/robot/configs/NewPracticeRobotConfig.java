@@ -43,13 +43,13 @@ public class NewPracticeRobotConfig extends RobotConfig {
 
   private static final Distance TRACKWIDTH = Meters.of(0.57785); // 22.75
   private static final Distance WHEELBASE = Meters.of(0.57785); // 22.75
-  private static final Distance WHEEL_RADIUS = Meters.of(0.048750);
+  private static final Distance WHEEL_RADIUS = Meters.of(0.0508);
   private static final Translation2d FRONT_RIGHT_CORNER_POSITION = new Translation2d(0.36, -0.36);
 
   private static final Distance ROBOT_WIDTH_WITH_BUMPERS = Meters.of(0.88026); // 34.656 in
   private static final Distance ROBOT_LENGTH_WITH_BUMPERS = Meters.of(0.88026); // 34.656 in
 
-  private static final double COUPLE_RATIO = 3.125;
+  private static final double COUPLE_RATIO = 3.857142857142857;
 
   /* Angle Motor PID Values */
   private static final double ANGLE_KP = 77;
