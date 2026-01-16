@@ -51,25 +51,25 @@ public class NewPracticeRobotConfig extends RobotConfig {
   private static final double COUPLE_RATIO = 3.125;
 
   /* Angle Motor PID Values */
-  private static final double ANGLE_KP = 10.0;
+  private static final double ANGLE_KP = 77;
   private static final double ANGLE_KI = 0.0;
   private static final double ANGLE_KD = 0.1;
 
   // values from sysid routines
-  private static final double ANGLE_KS = 0.28516;
-  private static final double ANGLE_KV = 2.3345;
+  private static final double ANGLE_KS = 0.39776;
+  private static final double ANGLE_KV = 2.6176;
   // 0.4399866667 * 2 * Math.PI; // convert from V/(radians/s) to V/(rotations/s)
-  private static final double ANGLE_KA = 0.049918;
+  private static final double ANGLE_KA = 0.18755;
 
   /* Drive Motor PID Values */
-  private static final double DRIVE_KP = 12.0;
+  private static final double DRIVE_KP = 12.0; // 0.40997
   private static final double DRIVE_KI = 0.0;
   private static final double DRIVE_KD = 0.0;
 
   // values from sysid routines
-  private static final double DRIVE_KS = 5.7421;
-  private static final double DRIVE_KV = 0.004493;
-  private static final double DRIVE_KA = 0.63109;
+  private static final double DRIVE_KS = 3.9848;
+  private static final double DRIVE_KV = 0.058846;
+  private static final double DRIVE_KA = 0.2817;
 
   private static final LinearVelocity MAX_VELOCITY = MetersPerSecond.of(5.117);
   private static final LinearVelocity MAX_COAST_VELOCITY = MetersPerSecond.of(0.05);

@@ -106,9 +106,14 @@ public class RobotContainer {
     if (Constants.getMode() != Mode.REPLAY) {
 
       switch (Constants.getRobot()) {
-        case ROBOT_DEFAULT, ROBOT_PRACTICE, ROBOT_COMPETITION:
+        case ROBOT_DEFAULT, ROBOT_COMPETITION:
           {
             createCTRESubsystems();
+            break;
+          }
+        case ROBOT_PRACTICE:
+          {
+            createCTREPracticeBotSubsystems();
             break;
           }
         case ROBOT_SIMBOT:
@@ -236,6 +241,34 @@ public class RobotContainer {
     elevator = new Elevator(new ElevatorIOTalonFX());
     manipulator = new Manipulator(new ManipulatorIOTalonFX());
     shooter = new Shooter(new ShooterIOTalonFX());
+    visualization = new RobotVisualization(elevator);
+  }
+
+  private void createCTREPracticeBotSubsystems() {
+    swerveDrivetrain = new SwerveDrivetrain(new SwerveDrivetrainIOCTRE());
+
+    CameraConfig[] cameraConfigs = config.getCameraConfigs();
+    VisionIO[] visionIOs = new VisionIO[cameraConfigs.length];
+    AprilTagFieldLayout layout;
+    try {
+      layout = new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
+    } catch (IOException e) {
+      layout = new AprilTagFieldLayout(new ArrayList<>(), 16.4592, 8.2296);
+
+      layoutFileMissingAlert.setText(
+          LAYOUT_FILE_MISSING + ": " + VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
+      layoutFileMissingAlert.set(true);
+    }
+    for (int i = 0; i < visionIOs.length; i++) {
+      visionIOs[i] = new VisionIONorthstar(layout, cameraConfigs[i]);
+    }
+    vision = new Vision(visionIOs);
+
+    // FIXME: initialize other subsystems
+    arm = new Arm(new ArmIO() {});
+    elevator = new Elevator(new ElevatorIO() {});
+    manipulator = new Manipulator(new ManipulatorIO() {});
+    shooter = new Shooter(new ShooterIO() {});
     visualization = new RobotVisualization(elevator);
   }
 
