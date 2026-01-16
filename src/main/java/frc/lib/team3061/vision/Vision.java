@@ -183,12 +183,14 @@ public class Vision extends SubsystemBase {
       Logger.processInputs(
           SUBSYSTEM_NAME
               + "/"
-              + RobotConfig.getInstance().getCameraConfigs()[cameraIndex].location(),
+              + RobotConfig.getInstance().getCameraConfigs()[cameraIndex].location()
+              + "/AprilTags",
           aprilTagInputs[cameraIndex]);
       Logger.processInputs(
           SUBSYSTEM_NAME
               + "/"
-              + RobotConfig.getInstance().getCameraConfigs()[cameraIndex].location(),
+              + RobotConfig.getInstance().getCameraConfigs()[cameraIndex].location()
+              + "/ObjDetect",
           objDetectInputs[cameraIndex]);
     }
 
