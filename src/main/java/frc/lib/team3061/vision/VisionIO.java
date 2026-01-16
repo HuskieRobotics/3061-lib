@@ -18,6 +18,20 @@ public interface VisionIO {
     PoseObservation[] poseObservations = new PoseObservation[0];
   }
 
+  @AutoLog
+  class AprilTagVisionIOInputs {
+    public double[] timestamps = new double[] {};
+    public double[][] frames = new double[][] {};
+    public long fps = 0;
+  }
+
+  @AutoLog
+  class ObjDetectVisionIOInputs {
+    public double[] timestamps = new double[] {};
+    public double[][] frames = new double[][] {};
+    public long fps = 0;
+  }
+
   /** Represents a robot pose sample used for pose estimation. */
   public static record PoseObservation(
       double timestamp,
@@ -36,9 +50,16 @@ public interface VisionIO {
   }
 
   /**
-   * Updates the set of loggable inputs.
+   * Updates the set of loggable inputs for AprilTag data.
    *
    * @param inputs the inputs to update
+   * @param aprilTagInputs the AprilTagVisionIOInputs object to update with the latest data
+   * @param objDetectInputs the ObjDetectVisionIOInputs object to update with the latest data
    */
-  public default void updateInputs(VisionIOInputs inputs) {}
+  default void updateInputs(
+      VisionIOInputs inputs,
+      AprilTagVisionIOInputs aprilTagInputs,
+      ObjDetectVisionIOInputs objDetectInputs) {}
+
+  default void setRecording(boolean active) {}
 }

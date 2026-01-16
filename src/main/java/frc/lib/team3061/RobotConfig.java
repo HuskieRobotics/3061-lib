@@ -21,6 +21,7 @@ import edu.wpi.first.units.measure.Mass;
 import edu.wpi.first.units.measure.MomentOfInertia;
 import frc.lib.team3061.swerve_drivetrain.swerve.SwerveConstants;
 import java.io.IOException;
+import lombok.Builder;
 import org.json.simple.parser.ParseException;
 
 @java.lang.SuppressWarnings({"java:S3010", "java:S3400"})
@@ -354,40 +355,13 @@ public abstract class RobotConfig {
   }
 
   /**
-   * Returns the 3D transforms from the center of the robot to the center of each camera. The units
-   * are meters and radians. Defaults to an empty array specifying no cameras.
+   * Returns the configurations of the cameras used by the vision subsystem. Defaults to an empty
+   * array specifying no cameras.
    *
-   * @return the 3D transforms from the center of the robot to the center of each camera
+   * @return the configurations of the cameras used by the vision subsystem
    */
-  public Transform3d[] getRobotToCameraTransforms() {
-    return new Transform3d[] {};
-  }
-
-  /**
-   * Returns a set of poses for the robot to be in when calibrating the transforms from the robot to
-   * each of the cameras. The order of the poses should match the order of the camera names returned
-   * by {@link #getCameraNames()}. These poses are used when empirically determining the robot to
-   * camera transform given a known robot pose due to the use of a calibration jig with an AprilTag.
-   * Defaults to an empty array specifying no cameras.
-   *
-   * @return an array of {@link Pose3d} objects representing the poses for the robot to be in when
-   *     calibrating the transforms from the robot to each of the cameras.
-   */
-  public Pose3d[] getPosesForRobotToCameraTransformCalibration() {
-    return new Pose3d[] {};
-  }
-
-  /**
-   * Returns the standard deviation factors for the cameras used by the vision subsystem. The
-   * standard deviation factors are used to scale the standard deviation of the camera's
-   * measurements to account for the camera's noise. The order of the factors should match the order
-   * of the camera names returned by {@link #getCameraNames()}. Defaults to an empty array
-   * specifying no cameras.
-   *
-   * @return the standard deviation factors for the cameras used by the vision subsystem
-   */
-  public double[] getCameraStdDevFactors() {
-    return new double[] {};
+  public CameraConfig[] getCameraConfigs() {
+    return new CameraConfig[] {};
   }
 
   /**
@@ -580,26 +554,6 @@ public abstract class RobotConfig {
    */
   public String getCANBusName() {
     return "";
-  }
-
-  /**
-   * Returns a reference to the CanBus object for the CAN bus. Defaults to the default CANbus which
-   * is for the default (non-FD) CAN bus)
-   *
-   * @return the reference to the CanBus object for the CAN bus
-   */
-  public CANBus getCANBus() {
-    return CANBus.roboRIO();
-  }
-
-  /**
-   * Returns the names of the cameras used by the vision subsystem. Defaults to an empty array (no
-   * cameras).
-   *
-   * @return the names of the cameras used by the vision subsystem
-   */
-  public String[] getCameraNames() {
-    return new String[] {};
   }
 
   /**
@@ -941,4 +895,40 @@ public abstract class RobotConfig {
     VOLTAGE,
     TORQUE_CURRENT_FOC
   }
+
+  /**
+   * Configuration for a camera used by the vision subsystem.
+   *
+   * <p>It contains the following fields:
+   *
+   * <ul>
+   *   <li>robotToCameraTransform: The transform from the robot to the camera. (required)
+   *   <li>poseForRobotToCameraTransformCalibration: The pose used for calibrating the robot to
+   *       camera transform empirically.
+   *   <li>id: The identifier for the camera. (required; specify the serial number of Basler cameras
+   *       and the camera name for PhotonVision cameras)
+   *   <li>location: The physical location of the camera on the robot; also used as part of the path
+   *       in Network Tables. (required)
+   *   <li>width: The width of the camera image in pixels. (required for Basler cameras)
+   *   <li>height: The height of the camera image in pixels. (required for Basler cameras)
+   *   <li>autoExposure: The auto exposure setting for the camera. (default: 0)
+   *   <li>exposure: The exposure setting for the camera. (required for Basler cameras)
+   *   <li>gain: The gain setting for the camera. (required for Basler cameras)
+   *   <li>denoise: The denoise setting for the camera. (required for Basler cameras)
+   *   <li>stdDevFactor: The standard deviation factor for filtering. (required; suggested: 1.0)
+   * </ul>
+   */
+  @Builder
+  public record CameraConfig(
+      Transform3d robotToCameraTransform,
+      Pose3d poseForRobotToCameraTransformCalibration,
+      String id,
+      String location,
+      int width,
+      int height,
+      int autoExposure,
+      int exposure,
+      double gain,
+      double denoise,
+      double stdDevFactor) {}
 }

@@ -169,4 +169,7 @@ public class FieldConstants {
     public final double height;
     public final double pitch;
   }
+
+  public static final double aprilTagWidth = Units.inchesToMeters(6.50);
+  public static final int aprilTagCount = 22;
 }

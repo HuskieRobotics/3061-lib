@@ -2,10 +2,6 @@ package frc.robot.configs;
 
 import static edu.wpi.first.units.Units.*;
 
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
@@ -76,27 +72,7 @@ public class PracticeBoardConfig extends RobotConfig {
   private static final LinearVelocity MAX_COAST_VELOCITY = MetersPerSecond.of(0.05);
   private static final double SLOW_MODE_MULTIPLIER = 0.75;
 
-  private static final String CAMERA_NAME_0 = "OV2311L";
-  private static final String CAMERA_NAME_1 = "OV2311F";
-
-  // left camera
-  private static final Transform3d ROBOT_TO_CAMERA_0 =
-      new Transform3d(
-          new Translation3d(
-              Units.inchesToMeters(5.500),
-              Units.inchesToMeters(10.329),
-              Units.inchesToMeters(18.387)),
-          new Rotation3d(0, Units.degreesToRadians(-35), Units.degreesToRadians(90)));
-  // pitch 45 degrees
-
-  // left camera
-  private static final Transform3d ROBOT_TO_CAMERA_1 =
-      new Transform3d(
-          new Translation3d(
-              Units.inchesToMeters(7.329),
-              Units.inchesToMeters(-8.500),
-              Units.inchesToMeters(18.387)),
-          new Rotation3d(0, Units.degreesToRadians(-35), Units.degreesToRadians(0)));
+  private static final String CAN_BUS_NAME = "";
 
   private static final double AUTO_DRIVE_P_CONTROLLER = 5.0;
   private static final double AUTO_DRIVE_I_CONTROLLER = 0.0;
@@ -265,11 +241,6 @@ public class PracticeBoardConfig extends RobotConfig {
   }
 
   @Override
-  public Transform3d[] getRobotToCameraTransforms() {
-    return new Transform3d[] {ROBOT_TO_CAMERA_0, ROBOT_TO_CAMERA_1};
-  }
-
-  @Override
   public LinearVelocity getRobotMaxVelocity() {
     return MAX_VELOCITY;
   }
@@ -330,8 +301,8 @@ public class PracticeBoardConfig extends RobotConfig {
   }
 
   @Override
-  public String[] getCameraNames() {
-    return new String[] {CAMERA_NAME_0, CAMERA_NAME_1};
+  public String getCANBusName() {
+    return CAN_BUS_NAME;
   }
 
   @Override

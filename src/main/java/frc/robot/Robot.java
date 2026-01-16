@@ -29,6 +29,7 @@ import frc.lib.team254.Phoenix6Util;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.leds.LEDs;
 import frc.lib.team6328.util.LoggedTracer;
+import frc.lib.team6328.util.SystemTimeValidReader;
 import frc.robot.Constants.Mode;
 import frc.robot.commands.AutonomousCommandsFactory;
 import java.lang.reflect.Field;
@@ -137,6 +138,9 @@ public class Robot extends LoggedRobot {
 
     // DO THIS FIRST
     Pathfinding.setPathfinder(new LocalADStarAK());
+
+    // Start system time valid reader
+    SystemTimeValidReader.start();
 
     // Log active commands
     Map<String, Integer> commandCounts = new HashMap<>();

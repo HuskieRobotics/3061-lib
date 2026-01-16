@@ -9,10 +9,12 @@ import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.team3061.RobotConfig;
@@ -28,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
 /**
  * The Vision subsystem is responsible for updating the robot's estimated pose based on a collection
@@ -39,6 +42,12 @@ import org.littletonrobotics.junction.Logger;
 public class Vision extends SubsystemBase {
   private VisionIO[] visionIOs;
   private final VisionIOInputsAutoLogged[] inputs;
+  private final AprilTagVisionIOInputsAutoLogged[] aprilTagInputs;
+  private final ObjDetectVisionIOInputsAutoLogged[] objDetectInputs;
+
+  private final LoggedNetworkBoolean recordingRequest =
+      new LoggedNetworkBoolean("/SmartDashboard/Enable Recording", false);
+
   private double[] lastTimestamps;
   private int[] cyclesWithNoResults;
   private int[] updatePoseCount;
@@ -70,14 +79,13 @@ public class Vision extends SubsystemBase {
   private List<Pose3d> allRobotPosesAccepted = new ArrayList<>();
   private List<Pose3d> allRobotPosesRejected = new ArrayList<>();
   private List<Pose3d> allTagPoses = new ArrayList<>();
+  private List<Pose3d> allCoralPoses = new ArrayList<>();
 
   private List<List<Pose3d>> tagPoses;
   private List<List<Pose3d>> cameraPoses;
   private List<List<Pose3d>> robotPoses;
   private List<List<Pose3d>> robotPosesAccepted;
   private List<List<Pose3d>> robotPosesRejected;
-
-  private final Pose3d[] robotPosesForCalibration;
 
   private final LoggedTunableNumber latencyAdjustmentSeconds =
       new LoggedTunableNumber("Vision/LatencyAdjustmentSeconds", 0.0);
@@ -105,6 +113,8 @@ public class Vision extends SubsystemBase {
     this.cyclesWithNoResults = new int[visionIOs.length];
     this.updatePoseCount = new int[visionIOs.length];
     this.inputs = new VisionIOInputsAutoLogged[visionIOs.length];
+    this.aprilTagInputs = new AprilTagVisionIOInputsAutoLogged[visionIOs.length];
+    this.objDetectInputs = new ObjDetectVisionIOInputsAutoLogged[visionIOs.length];
     this.disconnectedAlerts = new Alert[visionIOs.length];
     this.camerasToConsider = new ArrayList<>();
 
@@ -116,6 +126,8 @@ public class Vision extends SubsystemBase {
 
     for (int i = 0; i < visionIOs.length; i++) {
       this.inputs[i] = new VisionIOInputsAutoLogged();
+      this.aprilTagInputs[i] = new AprilTagVisionIOInputsAutoLogged();
+      this.objDetectInputs[i] = new ObjDetectVisionIOInputsAutoLogged();
       this.disconnectedAlerts[i] = new Alert("camera" + i + " is disconnected", AlertType.kError);
       this.camerasToConsider.add(i);
 
@@ -149,10 +161,6 @@ public class Vision extends SubsystemBase {
       aprilTagsPoses[i] = this.layout.getTags().get(i).pose;
     }
     Logger.recordOutput(SUBSYSTEM_NAME + "/AprilTagsPoses", aprilTagsPoses);
-
-    // robot to camera transformation calibration
-    robotPosesForCalibration =
-        RobotConfig.getInstance().getPosesForRobotToCameraTransformCalibration();
   }
 
   /**
@@ -165,16 +173,41 @@ public class Vision extends SubsystemBase {
     isVisionUpdating = false;
 
     for (int cameraIndex = 0; cameraIndex < visionIOs.length; cameraIndex++) {
-      visionIOs[cameraIndex].updateInputs(inputs[cameraIndex]);
-      Logger.processInputs(SUBSYSTEM_NAME + "/" + cameraIndex, inputs[cameraIndex]);
+      visionIOs[cameraIndex].updateInputs(
+          inputs[cameraIndex], aprilTagInputs[cameraIndex], objDetectInputs[cameraIndex]);
+      Logger.processInputs(
+          SUBSYSTEM_NAME
+              + "/"
+              + RobotConfig.getInstance().getCameraConfigs()[cameraIndex].location(),
+          inputs[cameraIndex]);
+      Logger.processInputs(
+          SUBSYSTEM_NAME
+              + "/"
+              + RobotConfig.getInstance().getCameraConfigs()[cameraIndex].location()
+              + "/AprilTags",
+          aprilTagInputs[cameraIndex]);
+      Logger.processInputs(
+          SUBSYSTEM_NAME
+              + "/"
+              + RobotConfig.getInstance().getCameraConfigs()[cameraIndex].location()
+              + "/ObjDetect",
+          objDetectInputs[cameraIndex]);
+    }
+
+    // Update recording state
+    boolean shouldRecord = DriverStation.isFMSAttached() || recordingRequest.get();
+    for (VisionIO io : this.visionIOs) {
+      io.setRecording(shouldRecord);
     }
 
     this.allRobotPoses.clear();
     this.allRobotPosesAccepted.clear();
     this.allRobotPosesRejected.clear();
     this.allTagPoses.clear();
+    this.allCoralPoses.clear();
 
     for (int cameraIndex = 0; cameraIndex < visionIOs.length; cameraIndex++) {
+      String cameraLocation = RobotConfig.getInstance().getCameraConfigs()[cameraIndex].location();
 
       disconnectedAlerts[cameraIndex].set(!inputs[cameraIndex].connected);
       this.cyclesWithNoResults[cameraIndex] += 1;
@@ -205,7 +238,8 @@ public class Vision extends SubsystemBase {
                   .cameraPose()
                   .plus(
                       RobotConfig.getInstance()
-                          .getRobotToCameraTransforms()[cameraIndex]
+                          .getCameraConfigs()[cameraIndex]
+                          .robotToCameraTransform()
                           .inverse());
           Pose2d estimatedRobotPose2d = estimatedRobotPose3d.toPose2d();
           robotPoses.get(cameraIndex).add(estimatedRobotPose3d);
@@ -272,11 +306,14 @@ public class Vision extends SubsystemBase {
 
             // if there are multiple observations, only the last will be logged, which is fine
             Logger.recordOutput(
-                SUBSYSTEM_NAME + "/" + cameraIndex + "/UpdatePoseCount",
+                SUBSYSTEM_NAME + "/" + cameraLocation + "/UpdatePoseCount",
                 this.updatePoseCount[cameraIndex]);
-            Logger.recordOutput(SUBSYSTEM_NAME + "/" + cameraIndex + "/StdDevX", stdDev.get(0, 0));
-            Logger.recordOutput(SUBSYSTEM_NAME + "/" + cameraIndex + "/StdDevY", stdDev.get(1, 0));
-            Logger.recordOutput(SUBSYSTEM_NAME + "/" + cameraIndex + "/StdDevT", stdDev.get(2, 0));
+            Logger.recordOutput(
+                SUBSYSTEM_NAME + "/" + cameraLocation + "/StdDevX", stdDev.get(0, 0));
+            Logger.recordOutput(
+                SUBSYSTEM_NAME + "/" + cameraLocation + "/StdDevY", stdDev.get(1, 0));
+            Logger.recordOutput(
+                SUBSYSTEM_NAME + "/" + cameraLocation + "/StdDevT", stdDev.get(2, 0));
           } else {
             robotPosesRejected.get(cameraIndex).add(estimatedRobotPose3d);
             if (ENABLE_DETAILED_LOGGING) {
@@ -288,36 +325,73 @@ public class Vision extends SubsystemBase {
         }
       }
 
+      // Record coral observations
+      for (int frameIndex = 0;
+          frameIndex < objDetectInputs[cameraIndex].timestamps.length;
+          frameIndex++) {
+        double[] frame = objDetectInputs[cameraIndex].frames[frameIndex];
+        for (int i = 0; i < frame.length; i += 10) {
+          if (frame[i + 1] > CORAL_DETECT_CONFIDENCE_THRESHOLD) {
+            double[] tx = new double[4];
+            double[] ty = new double[4];
+            for (int z = 0; z < 4; z++) {
+              tx[z] = frame[i + 2 + (2 * z)];
+              ty[z] = frame[i + 2 + (2 * z) + 1];
+            }
+            Pose3d currentRobotPose = new Pose3d(RobotOdometry.getInstance().getEstimatedPose());
+            Pose3d cameraPose =
+                currentRobotPose.plus(
+                    RobotConfig.getInstance()
+                        .getCameraConfigs()[cameraIndex]
+                        .robotToCameraTransform());
+            Translation2d coralOffsetFromCamera = new Translation2d(1.0, tx[0]);
+            // convert the offset in the frame of the camera pose back into the field frame
+            Translation2d fieldRelativeCoralOffset =
+                coralOffsetFromCamera.rotateBy(cameraPose.toPose2d().getRotation());
+            allCoralPoses.add(
+                cameraPose.plus(
+                    new Transform3d(
+                        fieldRelativeCoralOffset.getX(),
+                        fieldRelativeCoralOffset.getY(),
+                        0.0,
+                        cameraPose.getRotation())));
+          }
+        }
+      }
+
       // Log data for this camera
       Logger.recordOutput(
-          SUBSYSTEM_NAME + "/" + cameraIndex + "/LatencySecs",
+          SUBSYSTEM_NAME + "/" + cameraLocation + "/LatencySecs",
           Timer.getTimestamp() - this.lastTimestamps[cameraIndex]);
       Logger.recordOutput(
-          SUBSYSTEM_NAME + "/" + cameraIndex + "/CyclesWithNoResults",
+          SUBSYSTEM_NAME + "/" + cameraLocation + "/CyclesWithNoResults",
           this.cyclesWithNoResults[cameraIndex]);
       Logger.recordOutput(
-          SUBSYSTEM_NAME + "/" + cameraIndex + "/TagPoses",
+          SUBSYSTEM_NAME + "/" + cameraLocation + "/TagPoses",
           tagPoses.get(cameraIndex).toArray(Pose3d[]::new));
       Logger.recordOutput(
-          SUBSYSTEM_NAME + "/" + cameraIndex + "/CameraPoses",
+          SUBSYSTEM_NAME + "/" + cameraLocation + "/CameraPoses",
           cameraPoses.get(cameraIndex).toArray(new Pose3d[cameraPoses.get(cameraIndex).size()]));
       Logger.recordOutput(
-          SUBSYSTEM_NAME + "/" + cameraIndex + "/RobotPoses",
+          SUBSYSTEM_NAME + "/" + cameraLocation + "/RobotPoses",
           robotPoses.get(cameraIndex).toArray(new Pose3d[robotPoses.get(cameraIndex).size()]));
       Logger.recordOutput(
-          SUBSYSTEM_NAME + "/" + cameraIndex + "/RobotPosesAccepted",
+          SUBSYSTEM_NAME + "/" + cameraLocation + "/RobotPosesAccepted",
           robotPosesAccepted
               .get(cameraIndex)
               .toArray(new Pose3d[robotPosesAccepted.get(cameraIndex).size()]));
       Logger.recordOutput(
-          SUBSYSTEM_NAME + "/" + cameraIndex + "/RobotPosesRejected",
+          SUBSYSTEM_NAME + "/" + cameraLocation + "/RobotPosesRejected",
           robotPosesRejected
               .get(cameraIndex)
               .toArray(new Pose3d[robotPosesRejected.get(cameraIndex).size()]));
       Logger.recordOutput(
-          SUBSYSTEM_NAME + "/" + cameraIndex + "/CameraAxes",
+          SUBSYSTEM_NAME + "/" + cameraLocation + "/CameraAxes",
           new Pose3d(RobotOdometry.getInstance().getEstimatedPose())
-              .plus(RobotConfig.getInstance().getRobotToCameraTransforms()[cameraIndex]));
+              .plus(
+                  RobotConfig.getInstance()
+                      .getCameraConfigs()[cameraIndex]
+                      .robotToCameraTransform()));
 
       if (!ENABLE_DETAILED_LOGGING) {
         allRobotPosesAccepted.addAll(robotPosesAccepted.get(cameraIndex));
@@ -353,6 +427,10 @@ public class Vision extends SubsystemBase {
     allRobotPoses.addAll(allRobotPosesRejected);
     Logger.recordOutput(
         SUBSYSTEM_NAME + "/RobotPoses", allRobotPoses.toArray(new Pose3d[allRobotPoses.size()]));
+
+    // Log coral poses
+    Logger.recordOutput(
+        SUBSYSTEM_NAME + "/CoralPoses", allCoralPoses.toArray(new Pose3d[allCoralPoses.size()]));
 
     // Log tag poses
     if (ENABLE_DETAILED_LOGGING) {
@@ -448,7 +526,7 @@ public class Vision extends SubsystemBase {
         xyStdDevCoefficient.get()
             * Math.pow(observation.averageTagDistance(), 2.0)
             / observation.numTags()
-            * RobotConfig.getInstance().getCameraStdDevFactors()[index];
+            * RobotConfig.getInstance().getCameraConfigs()[index].stdDevFactor();
 
     // for multi-tag strategies, scale the standard deviation by the reprojection error; for
     // single-tag, scale by the ambiguity
@@ -466,7 +544,7 @@ public class Vision extends SubsystemBase {
                 * Math.pow(observation.averageTagDistance(), 2.0)
                 * (reprojectionErrorScaleFactor.get() * observation.reprojectionError())
                 / observation.numTags()
-                * RobotConfig.getInstance().getCameraStdDevFactors()[index]
+                * RobotConfig.getInstance().getCameraConfigs()[index].stdDevFactor()
             : Double.POSITIVE_INFINITY;
 
     return VecBuilder.fill(xyStdDev, xyStdDev, thetaStdDev);
@@ -475,12 +553,18 @@ public class Vision extends SubsystemBase {
   private void logCameraTransforms(int cameraIndex, PoseObservation observation) {
     // this is the pose of the robot when centered on the reef face that faces the driver station
     Pose3d cameraPose = observation.cameraPose();
-    Transform3d robotToCameraTransform = cameraPose.minus(robotPosesForCalibration[cameraIndex]);
+    Transform3d robotToCameraTransform =
+        cameraPose.minus(
+            RobotConfig.getInstance()
+                .getCameraConfigs()[cameraIndex]
+                .poseForRobotToCameraTransformCalibration());
 
     Logger.recordOutput(
         SUBSYSTEM_NAME + "/" + cameraIndex + "/RobotToCameraTransform", robotToCameraTransform);
     Logger.recordOutput(
         SUBSYSTEM_NAME + "/" + cameraIndex + "/RobotToCameraPose",
-        robotPosesForCalibration[cameraIndex]);
+        RobotConfig.getInstance()
+            .getCameraConfigs()[cameraIndex]
+            .poseForRobotToCameraTransformCalibration());
   }
 }

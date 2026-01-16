@@ -26,10 +26,10 @@ import edu.wpi.first.wpilibj.RobotBase;
 public final class Constants {
 
   // set to true in order to change all Tunable values via AdvantageScope
-  public static final boolean TUNING_MODE = false;
+  public static final boolean TUNING_MODE = true;
   public static final boolean DEMO_MODE = false;
 
-  private static final RobotType ROBOT = RobotType.ROBOT_COMPETITION;
+  private static final RobotType ROBOT = RobotType.ROBOT_PRACTICE;
 
   private static final Alert invalidRobotAlert =
       new Alert("Invalid robot selected, using competition robot as default.", AlertType.kError);
@@ -42,7 +42,8 @@ public final class Constants {
     ROBOT_PRACTICE,
     ROBOT_COMPETITION,
     ROBOT_PRACTICE_BOARD,
-    ROBOT_VISION_TEST_PLATFORM
+    ROBOT_VISION_TEST_PLATFORM,
+    ROBOT_NORTHSTAR_TEST_PLATFORM
   }
 
   // FIXME: update for various robots
@@ -66,7 +67,7 @@ public final class Constants {
       case ROBOT_DEFAULT, ROBOT_PRACTICE, ROBOT_PRACTICE_BOARD, ROBOT_COMPETITION:
         return RobotBase.isReal() ? Mode.REAL : Mode.REPLAY;
 
-      case ROBOT_SIMBOT, ROBOT_VISION_TEST_PLATFORM, ROBOT_XRP:
+      case ROBOT_SIMBOT, ROBOT_VISION_TEST_PLATFORM, ROBOT_NORTHSTAR_TEST_PLATFORM, ROBOT_XRP:
         return Mode.SIM;
 
       default:
