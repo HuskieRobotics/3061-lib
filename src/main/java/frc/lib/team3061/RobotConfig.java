@@ -553,7 +553,18 @@ public abstract class RobotConfig {
    * @return the name of CAN FD (CANivore) bus
    */
   public String getCANBusName() {
+
     return "";
+  }
+
+  /**
+   * Returns a reference the CAN bus. Defaults to the rio (non-FD) CAN bus.
+   *
+   * @return
+   */
+  public CANBus getCANBus() {
+
+    return new CANBus();
   }
 
   /**
