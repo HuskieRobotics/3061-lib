@@ -55,8 +55,7 @@ public class Shooter extends SubsystemBase {
   private final LoggedTunableNumber testingMode = new LoggedTunableNumber("Shooter/TestingMode", 0);
   private final LoggedTunableNumber shooterVelocityRPS =
       new LoggedTunableNumber("Shooter/Wheel Velocity (RPS)", 0);
-  private final LoggedTunableNumber shooterCurrent =
-      new LoggedTunableNumber("Shooter/Current", 0);
+  private final LoggedTunableNumber shooterCurrent = new LoggedTunableNumber("Shooter/Current", 0);
 
   // As an alternative to determining a mathematical function to map distances to velocities,
   // we can use an InterpolatingDoubleTreeMap to store the distances and their corresponding
@@ -92,8 +91,7 @@ public class Shooter extends SubsystemBase {
 
     // Register this subsystem's SysId routine with the SysIdRoutineChooser. This allows
     // the routine to be selected and executed from the dashboard.
-    SysIdRoutineChooser.getInstance()
-        .addOption("Shooter Current", shooterSysIdRoutine);
+    SysIdRoutineChooser.getInstance().addOption("Shooter Current", shooterSysIdRoutine);
 
     // Register this subsystem's system check command with the fault reporter. The system check
     // command can be added to the Elastic Dashboard to execute the system test.
@@ -181,10 +179,7 @@ public class Shooter extends SubsystemBase {
         Commands.runOnce(() -> this.setVelocity(distance)),
         Commands.waitSeconds(2.0),
         Commands.runOnce(
-            () ->
-                this.checkVelocity(
-                    RotationsPerSecond.of(shootingMap.get(distance.in(Meters)))
-                    )));
+            () -> this.checkVelocity(RotationsPerSecond.of(shootingMap.get(distance.in(Meters))))));
   }
 
   private void checkVelocity(AngularVelocity velocity) {

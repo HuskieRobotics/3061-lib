@@ -44,16 +44,22 @@ public class ShooterIOTalonFX implements ShooterIO {
   private StatusSignal<Current> leadStatorCurrentStatusSignal;
   private StatusSignal<Current> leadSupplyCurrentStatusSignal;
   private StatusSignal<AngularVelocity> leadVelocityStatusSignal;
-  private StatusSignal<AngularVelocity> leadClosedLoopReferenceStatusSignal;
   private StatusSignal<Temperature> leadTemperatureStatusSignal;
   private StatusSignal<Voltage> leadVoltageStatusSignal;
 
-  // follower
-  private StatusSignal<Current> followerStatorCurrentStatusSignal;
-  private StatusSignal<Current> followerSupplyCurrentStatusSignal;
-  private StatusSignal<Temperature> followerTemperatureStatusSignal;
-  private StatusSignal<Voltage> followerVoltageStatusSignal;
+  // follower A
+  private StatusSignal<Current> followerAStatorCurrentStatusSignal;
+  private StatusSignal<Current> followerASupplyCurrentStatusSignal;
+  private StatusSignal<Temperature> followerATemperatureStatusSignal;
+  private StatusSignal<Voltage> followerAVoltageStatusSignal;
 
+  // follower B
+  private StatusSignal<Current> followerBStatorCurrentStatusSignal;
+  private StatusSignal<Current> followerBSupplyCurrentStatusSignal;
+  private StatusSignal<Temperature> followerBTemperatureStatusSignal;
+  private StatusSignal<Voltage> followerBVoltageStatusSignal;
+
+  // game piece detector
   private StatusSignal<Distance> gamePieceDistanceStatusSignal;
   private StatusSignal<Double> gamePieceSignalStrengthStatusSignal;
   private StatusSignal<Boolean> gamePieceDetectedStatusSignal;
@@ -61,15 +67,18 @@ public class ShooterIOTalonFX implements ShooterIO {
   private AngularVelocity leadReferenceVelocity = RotationsPerSecond.of(0.0);
 
   private final Debouncer leadConnectedDebouncer = new Debouncer(0.5);
-  private final Debouncer followerConnectedDebouncer = new Debouncer(0.5);
+  private final Debouncer followerAConnectedDebouncer = new Debouncer(0.5);
+  private final Debouncer followerBConnectedDebouncer = new Debouncer(0.5);
   private final Debouncer gamePieceSensorConnectedDebouncer = new Debouncer(0.5);
 
   private VelocitySystemSim shooterSim;
 
   private Alert leadMotorConfigAlert =
       new Alert("Failed to apply configuration for lead shooter motor", AlertType.kError);
-  private Alert followerConfigAlert =
-      new Alert("Failed to apply configuration for follower shooter motor", AlertType.kError);
+  private Alert followerAConfigAlert =
+      new Alert("Failed to apply configuration for follower A shooter motor", AlertType.kError);
+  private Alert followerBConfigAlert =
+      new Alert("Failed to apply configuration for follower B shooter motor", AlertType.kError);
   private Alert gamePieceDetectorConfigAlert =
       new Alert("Failed to apply configuration for shooter game piece detector.", AlertType.kError);
 
@@ -92,28 +101,35 @@ public class ShooterIOTalonFX implements ShooterIO {
       new LoggedTunableNumber("Shooter/Sim Detector Distance (m)", 1.0);
 
   private TalonFX leadMotor;
-  private TalonFX followerMotor;
+  private TalonFX followerAMotor;
+  private TalonFX followerBMotor;
   private CANrange gamePieceDetector;
 
   public ShooterIOTalonFX() {
     leadMotor = new TalonFX(LEAD_MOTOR_ID, RobotConfig.getInstance().getCANBus());
-    followerMotor = new TalonFX(FOLLOWER_MOTOR_ID, RobotConfig.getInstance().getCANBus());
+    followerAMotor = new TalonFX(FOLLOWER_A_MOTOR_ID, RobotConfig.getInstance().getCANBus());
+    followerBMotor = new TalonFX(FOLLOWER_B_MOTOR_ID, RobotConfig.getInstance().getCANBus());
     gamePieceDetector = new CANrange(GAME_PIECE_SENSOR_ID, RobotConfig.getInstance().getCANBus());
 
     leadVelocityRequest = new VelocityTorqueCurrentFOC(0);
 
     leadCurrentRequest = new TorqueCurrentFOC(0);
 
-    leadClosedLoopReferenceStatusSignal = leadMotor.getVelocity();
     leadVelocityStatusSignal = leadMotor.getVelocity();
     leadStatorCurrentStatusSignal = leadMotor.getStatorCurrent();
-    followerStatorCurrentStatusSignal = followerMotor.getStatorCurrent();
     leadSupplyCurrentStatusSignal = leadMotor.getSupplyCurrent();
-    followerSupplyCurrentStatusSignal = followerMotor.getSupplyCurrent();
     leadTemperatureStatusSignal = leadMotor.getDeviceTemp();
-    followerTemperatureStatusSignal = followerMotor.getDeviceTemp();
     leadVoltageStatusSignal = leadMotor.getMotorVoltage();
-    followerVoltageStatusSignal = followerMotor.getMotorVoltage();
+
+    followerAStatorCurrentStatusSignal = followerAMotor.getStatorCurrent();
+    followerASupplyCurrentStatusSignal = followerAMotor.getSupplyCurrent();
+    followerATemperatureStatusSignal = followerAMotor.getDeviceTemp();
+    followerAVoltageStatusSignal = followerAMotor.getMotorVoltage();
+
+    followerBStatorCurrentStatusSignal = followerBMotor.getStatorCurrent();
+    followerBSupplyCurrentStatusSignal = followerBMotor.getSupplyCurrent();
+    followerBTemperatureStatusSignal = followerBMotor.getDeviceTemp();
+    followerBVoltageStatusSignal = followerBMotor.getMotorVoltage();
 
     gamePieceDistanceStatusSignal = gamePieceDetector.getDistance();
     gamePieceSignalStrengthStatusSignal = gamePieceDetector.getSignalStrength();
@@ -124,44 +140,49 @@ public class ShooterIOTalonFX implements ShooterIO {
     // need to refresh any StatusSignals in this class.
     Phoenix6Util.registerSignals(
         true,
-        leadClosedLoopReferenceStatusSignal,
         leadVelocityStatusSignal,
         leadStatorCurrentStatusSignal,
-        followerStatorCurrentStatusSignal,
         leadSupplyCurrentStatusSignal,
-        followerSupplyCurrentStatusSignal,
         leadTemperatureStatusSignal,
-        followerTemperatureStatusSignal,
         leadVoltageStatusSignal,
-        followerVoltageStatusSignal,
+        followerAStatorCurrentStatusSignal,
+        followerASupplyCurrentStatusSignal,
+        followerATemperatureStatusSignal,
+        followerAVoltageStatusSignal,
+        followerBStatorCurrentStatusSignal,
+        followerBSupplyCurrentStatusSignal,
+        followerBTemperatureStatusSignal,
+        followerBVoltageStatusSignal,
         gamePieceDistanceStatusSignal,
         gamePieceSignalStrengthStatusSignal,
         gamePieceDetectedStatusSignal);
 
     configLeadMotor(leadMotor, leadMotorConfigAlert);
-    configFollowerMotor(followerMotor, followerConfigAlert);
+    configFollowerMotor(followerAMotor, "Follower A Motor", followerAConfigAlert);
+    configFollowerMotor(followerBMotor, "Follower B Motor", followerBConfigAlert);
 
-    followerMotor.setControl(new Follower(FOLLOWER_MOTOR_ID, MotorAlignmentValue.Opposed));
+    followerAMotor.setControl(
+        new Follower(
+            FOLLOWER_A_MOTOR_ID,
+            IS_FOLLOWER_A_INVERTED ? MotorAlignmentValue.Opposed : MotorAlignmentValue.Aligned));
+    followerBMotor.setControl(
+        new Follower(
+            FOLLOWER_B_MOTOR_ID,
+            IS_FOLLOWER_B_INVERTED ? MotorAlignmentValue.Opposed : MotorAlignmentValue.Aligned));
 
     configGamePieceDetector(gamePieceDetector, gamePieceDetectorConfigAlert);
 
-    //     // Create a simulation objects for the shooter. The specific parameters for the
-    // simulation
-    //     // are determined based on the mechanical design of the shooter.
-    //     this.shootMotorBottomSim =
-    //         new VelocitySystemSim(
-    //             followerMotor,
-    //             ShooterConstants.SHOOT_BOTTOM_INVERTED,
-    //             0.05,
-    //             0.01,
-    //             ShooterConstants.SHOOT_MOTORS_GEAR_RATIO);
-    //     this.shooterSim =
-    //         new VelocitySystemSim(
-    //             leadMotor,
-    //             ShooterConstants.SHOOT_TOP_INVERTED,
-    //             0.05,
-    //             0.01,
-    //             ShooterConstants.SHOOT_MOTORS_GEAR_RATIO);
+    // Create a simulation objects for the shooter. The specific parameters for the simulation
+    // are determined based on the mechanical design of the shooter.
+    this.shooterSim =
+        new VelocitySystemSim(
+            ShooterConstants.IS_LEAD_INVERTED,
+            0.05,
+            0.01,
+            ShooterConstants.SHOOT_MOTORS_GEAR_RATIO,
+            leadMotor,
+            followerAMotor,
+            followerBMotor);
   }
 
   @Override
@@ -171,19 +192,25 @@ public class ShooterIOTalonFX implements ShooterIO {
     inputs.leadConnected =
         leadConnectedDebouncer.calculate(
             BaseStatusSignal.isAllGood(
-                leadClosedLoopReferenceStatusSignal,
                 leadStatorCurrentStatusSignal,
                 leadSupplyCurrentStatusSignal,
                 leadTemperatureStatusSignal,
                 leadVoltageStatusSignal,
                 leadVelocityStatusSignal));
-    inputs.followerConnected =
-        followerConnectedDebouncer.calculate(
+    inputs.followerAConnected =
+        followerAConnectedDebouncer.calculate(
             BaseStatusSignal.isAllGood(
-                followerStatorCurrentStatusSignal,
-                followerSupplyCurrentStatusSignal,
-                followerTemperatureStatusSignal,
-                followerVoltageStatusSignal));
+                followerAStatorCurrentStatusSignal,
+                followerASupplyCurrentStatusSignal,
+                followerATemperatureStatusSignal,
+                followerAVoltageStatusSignal));
+    inputs.followerBConnected =
+        followerBConnectedDebouncer.calculate(
+            BaseStatusSignal.isAllGood(
+                followerBStatorCurrentStatusSignal,
+                followerBSupplyCurrentStatusSignal,
+                followerBTemperatureStatusSignal,
+                followerBVoltageStatusSignal));
     inputs.sensorConnected =
         gamePieceSensorConnectedDebouncer.calculate(
             BaseStatusSignal.isAllGood(
@@ -194,16 +221,21 @@ public class ShooterIOTalonFX implements ShooterIO {
     // Updates Lead Motor Inputs
     inputs.leadMotorStatorCurrent = leadStatorCurrentStatusSignal.getValue();
     inputs.leadMotorSupplyCurrent = leadSupplyCurrentStatusSignal.getValue();
-    inputs.leadMotorVelocity = leadClosedLoopReferenceStatusSignal.getValue();
+    inputs.leadMotorVelocity = leadVelocityStatusSignal.getValue();
     inputs.leadMotorTemp = leadTemperatureStatusSignal.getValue();
     inputs.leadMotorVoltage = leadVoltageStatusSignal.getValue();
     inputs.leadMotorReferenceVelocity = this.leadReferenceVelocity.copy();
 
     // Updates Follower Motor Inputs
-    inputs.followerMotorStatorCurrent = followerStatorCurrentStatusSignal.getValue();
-    inputs.followerMotorSupplyCurrent = followerSupplyCurrentStatusSignal.getValue();
-    inputs.followerMotorTemp = followerTemperatureStatusSignal.getValue();
-    inputs.followerMotorVoltage = followerVoltageStatusSignal.getValue();
+    inputs.followerAMotorStatorCurrent = followerAStatorCurrentStatusSignal.getValue();
+    inputs.followerAMotorSupplyCurrent = followerASupplyCurrentStatusSignal.getValue();
+    inputs.followerAMotorTemp = followerATemperatureStatusSignal.getValue();
+    inputs.followerAMotorVoltage = followerAVoltageStatusSignal.getValue();
+
+    inputs.followerBMotorStatorCurrent = followerBStatorCurrentStatusSignal.getValue();
+    inputs.followerBMotorSupplyCurrent = followerBSupplyCurrentStatusSignal.getValue();
+    inputs.followerBMotorTemp = followerBTemperatureStatusSignal.getValue();
+    inputs.followerBMotorVoltage = followerBVoltageStatusSignal.getValue();
 
     // Update Game Piece Detection Inputs
     inputs.hasGamePiece = gamePieceDetectedStatusSignal.getValue();
@@ -259,7 +291,6 @@ public class ShooterIOTalonFX implements ShooterIO {
 
     // The last step in the updateInputs method is to update the simulation.
     if (Constants.getMode() == Constants.Mode.SIM) {
-      // this.shootMotorBottomSim.updateSim();
       this.shooterSim.updateSim();
       this.gamePieceDetector.getSimState().setSupplyVoltage(RobotController.getBatteryVoltage());
       this.gamePieceDetector.getSimState().setDistance(simDetectorDistance.get());
@@ -294,34 +325,12 @@ public class ShooterIOTalonFX implements ShooterIO {
     leadMotorConfig.Slot0.kD = kD.get();
     leadMotorConfig.Slot0.kS = kS.get();
 
-    // if (isTopMotor) {
-    //   shootMotorsConfig.TorqueCurrent.PeakForwardTorqueCurrent =
-    //       ShooterConstants.SHOOT_MOTOR_TOP_PEAK_CURRENT_LIMIT;
-    //   shootMotorsConfig.TorqueCurrent.PeakReverseTorqueCurrent =
-    //       -ShooterConstants.SHOOT_MOTOR_TOP_PEAK_CURRENT_LIMIT;
-    // } else {
-    //   shootMotorsConfig.TorqueCurrent.PeakForwardTorqueCurrent =
-    //       ShooterConstants.SHOOT_MOTOR_BOTTOM_PEAK_CURRENT_LIMIT;
-    //   shootMotorsConfig.TorqueCurrent.PeakReverseTorqueCurrent =
-    //       -ShooterConstants.SHOOT_MOTOR_BOTTOM_PEAK_CURRENT_LIMIT;
-    // }
-
-    // if (isTopMotor) {
-    //   shootMotorsConfig.Slot0.kP = kP.get();
-    //   shootMotorsConfig.Slot0.kI = kI.get();
-    //   shootMotorsConfig.Slot0.kD = kD.get();
-    //   shootMotorsConfig.Slot0.kS = kS.get();
-    // } else {
-    //   shootMotorsConfig.Slot0.kP = shootMotorBottomKP.get();
-    //   shootMotorsConfig.Slot0.kI = shootMotorBottomKI.get();
-    //   shootMotorsConfig.Slot0.kD = shootMotorBottomKD.get();
-    //   shootMotorsConfig.Slot0.kS = shootMotorBottomKS.get();
-    // }
-
     leadMotorConfig.Feedback.SensorToMechanismRatio = ShooterConstants.SHOOT_MOTORS_GEAR_RATIO;
 
     leadMotorConfig.MotorOutput.Inverted =
-        IS_INVERTED ? InvertedValue.Clockwise_Positive : InvertedValue.CounterClockwise_Positive;
+        IS_LEAD_INVERTED
+            ? InvertedValue.Clockwise_Positive
+            : InvertedValue.CounterClockwise_Positive;
     leadMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
 
     // It is critical that devices are successfully configured. The applyAndCheckConfiguration
@@ -335,7 +344,7 @@ public class ShooterIOTalonFX implements ShooterIO {
     FaultReporter.getInstance().registerHardware(SUBSYSTEM_NAME, "Shooter Lead Motor", motor);
   }
 
-  private void configFollowerMotor(TalonFX motor, Alert configAlert) {
+  private void configFollowerMotor(TalonFX motor, String deviceDescription, Alert configAlert) {
 
     TalonFXConfiguration followerMotorConfig = new TalonFXConfiguration();
 
@@ -344,9 +353,11 @@ public class ShooterIOTalonFX implements ShooterIO {
     followerMotorConfig.TorqueCurrent.PeakReverseTorqueCurrent =
         -ShooterConstants.SHOOTER_PEAK_CURRENT_LIMIT;
 
+    followerMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+
     Phoenix6Util.applyAndCheckConfiguration(motor, followerMotorConfig, configAlert);
 
-    FaultReporter.getInstance().registerHardware(SUBSYSTEM_NAME, "Shooter Follower Motor", motor);
+    FaultReporter.getInstance().registerHardware(SUBSYSTEM_NAME, deviceDescription, motor);
   }
 
   private void configGamePieceDetector(CANrange detector, Alert configAlert) {

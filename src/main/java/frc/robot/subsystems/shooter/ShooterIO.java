@@ -20,7 +20,7 @@ public interface ShooterIO {
   @AutoLog
   public static class ShooterIOInputs {
 
-    // Top Shooter Motor Inputs
+    // Lead Motor Inputs
     boolean leadConnected = false;
     Current leadMotorStatorCurrent = Amps.of(0.0);
     Current leadMotorSupplyCurrent = Amps.of(0.0);
@@ -31,12 +31,19 @@ public interface ShooterIO {
     Temperature leadMotorTemp = Celsius.of(0.0);
     Voltage leadMotorVoltage = Volts.of(0.0);
 
-    // Bottom Shooter Motor Inputs
-    boolean followerConnected = false;
-    Current followerMotorStatorCurrent = Amps.of(0.0);
-    Current followerMotorSupplyCurrent = Amps.of(0.0);
-    Voltage followerMotorVoltage = Volts.of(0.0);
-    Temperature followerMotorTemp = Celsius.of(0.0);
+    // Follower A Motor Inputs
+    boolean followerAConnected = false;
+    Current followerAMotorStatorCurrent = Amps.of(0.0);
+    Current followerAMotorSupplyCurrent = Amps.of(0.0);
+    Voltage followerAMotorVoltage = Volts.of(0.0);
+    Temperature followerAMotorTemp = Celsius.of(0.0);
+
+    // Follower B Motor Inputs
+    boolean followerBConnected = false;
+    Current followerBMotorStatorCurrent = Amps.of(0.0);
+    Current followerBMotorSupplyCurrent = Amps.of(0.0);
+    Voltage followerBMotorVoltage = Volts.of(0.0);
+    Temperature followerBMotorTemp = Celsius.of(0.0);
 
     // Game Piece Detection
     boolean sensorConnected = false;
