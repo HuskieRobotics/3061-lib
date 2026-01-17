@@ -21,26 +21,22 @@ public interface ShooterIO {
   public static class ShooterIOInputs {
 
     // Top Shooter Motor Inputs
-    boolean shootMotorTopConnected = false;
-    Current shootMotorTopStatorCurrent = Amps.of(0.0);
-    Current shootMotorTopSupplyCurrent = Amps.of(0.0);
-    AngularVelocity shootMotorTopVelocity = RotationsPerSecond.of(0.0);
-    AngularVelocity shootMotorTopReferenceVelocity = RotationsPerSecond.of(0.0);
-    AngularVelocity shootMotorTopClosedLoopReferenceVelocity = RotationsPerSecond.of(0.0);
-    AngularVelocity shootMotorTopClosedLoopErrorVelocity = RotationsPerSecond.of(0.0);
-    Temperature shootMotorTopTemperature = Celsius.of(0.0);
-    Voltage shootMotorTopVoltage = Volts.of(0.0);
+    boolean leadConnected = false;
+    Current leadMotorStatorCurrent = Amps.of(0.0);
+    Current leadMotorSupplyCurrent = Amps.of(0.0);
+    AngularVelocity leadMotorVelocity = RotationsPerSecond.of(0.0);
+    AngularVelocity leadMotorReferenceVelocity = RotationsPerSecond.of(0.0);
+    AngularVelocity leadMotorClosedLoopReferenceVelocity = RotationsPerSecond.of(0.0);
+    AngularVelocity leadMotorClosedLoopErrorVelocity = RotationsPerSecond.of(0.0);
+    Temperature leadMotorTemp = Celsius.of(0.0);
+    Voltage leadMotorVoltage = Volts.of(0.0);
 
     // Bottom Shooter Motor Inputs
-    boolean shootMotorBottomConnected = false;
-    Current shootMotorBottomStatorCurrent = Amps.of(0.0);
-    Current shootMotorBottomSupplyCurrent = Amps.of(0.0);
-    AngularVelocity shootMotorBottomVelocity = RotationsPerSecond.of(0.0);
-    AngularVelocity shootMotorBottomReferenceVelocity = RotationsPerSecond.of(0.0);
-    AngularVelocity shootMotorBottomClosedLoopReferenceVelocity = RotationsPerSecond.of(0.0);
-    AngularVelocity shootMotorBottomClosedLoopErrorVelocity = RotationsPerSecond.of(0.0);
-    Temperature shootMotorBottomTemperature = Celsius.of(0.0);
-    Voltage shootMotorBottomVoltage = Volts.of(0.0);
+    boolean followerConnected = false;
+    Current followerMotorStatorCurrent = Amps.of(0.0);
+    Current followerMotorSupplyCurrent = Amps.of(0.0);
+    Voltage followerMotorVoltage = Volts.of(0.0);
+    Temperature followerMotorTemp = Celsius.of(0.0);
 
     // Game Piece Detection
     boolean sensorConnected = false;
@@ -51,11 +47,7 @@ public interface ShooterIO {
 
   public default void updateInputs(ShooterIOInputs inputs) {}
 
-  public default void setShooterWheelTopVelocity(AngularVelocity velocity) {}
+  public default void setShooterVelocity(AngularVelocity velocity) {}
 
-  public default void setShooterWheelBottomVelocity(AngularVelocity velocity) {}
-
-  public default void setShooterWheelTopCurrent(Current amps) {}
-
-  public default void setShooterWheelBottomCurrent(Current amps) {}
+  public default void setShooterCurrent(Current amps) {}
 }
