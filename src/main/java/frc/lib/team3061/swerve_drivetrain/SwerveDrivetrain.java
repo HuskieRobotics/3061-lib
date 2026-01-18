@@ -155,7 +155,7 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
               Volts.of(4), // Reduce dynamic step voltage to 4 V to prevent brownout
               null, // Use default timeout (10 s)
               // Log state with SignalLogger class
-              state -> SignalLogger.writeString("SysIdTranslationVolts_State", state.toString())),
+              state -> SignalLogger.writeString("SysId_State", state.toString())),
           new SysIdRoutine.Mechanism(
               output ->
                   applySysIdCharacterization(
@@ -174,7 +174,7 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
               Volts.of(20), // Use dynamic step of 10 A
               Seconds.of(5), // Use timeout of 5 seconds
               // Log state with SignalLogger class
-              state -> SignalLogger.writeString("SysIdTranslationCurrent_State", state.toString())),
+              state -> SignalLogger.writeString("SysId_State", state.toString())),
           new SysIdRoutine.Mechanism(
               output ->
                   applySysIdCharacterization(
@@ -194,7 +194,7 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
               Volts.of(7), // Use dynamic voltage of 7 V
               null, // Use default timeout (10 s)
               // Log state with SignalLogger class
-              state -> SignalLogger.writeString("SysIdSteerVolts_State", state.toString())),
+              state -> SignalLogger.writeString("SysId_State", state.toString())),
           new SysIdRoutine.Mechanism(
               volts ->
                   applySysIdCharacterization(
@@ -213,7 +213,7 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
               Volts.of(20), // Use dynamic step of 10 A
               Seconds.of(5), // Use timeout of 5 seconds
               // Log state with SignalLogger class
-              state -> SignalLogger.writeString("SysIdTranslationCurrent_State", state.toString())),
+              state -> SignalLogger.writeString("SysId_State", state.toString())),
           new SysIdRoutine.Mechanism(
               output ->
                   applySysIdCharacterization(
@@ -236,7 +236,7 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
               Volts.of(Math.PI),
               null, // Use default timeout (10 s)
               // Log state with SignalLogger class
-              state -> SignalLogger.writeString("SysIdRotation_State", state.toString())),
+              state -> SignalLogger.writeString("SysId_State", state.toString())),
           new SysIdRoutine.Mechanism(
               output -> {
                 /* output is actually radians per second, but SysId only supports "volts" */
