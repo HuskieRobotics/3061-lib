@@ -14,19 +14,23 @@ public class ShooterConstants {
 
   public static final String SUBSYSTEM_NAME = "Shooter";
 
-  public static final int LEAD_MOTOR_ID = 27;
-  public static final int FOLLOWER_A_MOTOR_ID = 28;
+  public static final int LEAD_MOTOR_ID = 17;
+  public static final int FOLLOWER_A_MOTOR_ID = 14;
   public static final int FOLLOWER_B_MOTOR_ID = 29;
   public static final int GAME_PIECE_SENSOR_ID = 30;
 
   // PID constants are determined empirically through tuning
-  public static final double KP = 5.0;
+  public static final double KP = 12; // from testing in LC
   public static final double KI = 0.0;
   public static final double KD = 0.0;
 
   // feed forward constants are determined through running SysId commands and analyzing the results
   // in SysId
-  public static final double KS = 6.0;
+  public static final double KS = 7.1914;
+
+  public static final double KV = 0.076848;
+
+  public static final double KA = 0.75841;
 
   // current limits are determined based on current budget for the robot
   public static final double SHOOTER_PEAK_CURRENT_LIMIT = 80;
@@ -34,8 +38,8 @@ public class ShooterConstants {
   // the following are determined based on the mechanical design of the shooter
   public static final double SHOOT_MOTORS_GEAR_RATIO = 1.0;
   public static final boolean IS_LEAD_INVERTED = false;
-  public static final boolean IS_FOLLOWER_A_INVERTED = false;
-  public static final boolean IS_FOLLOWER_B_INVERTED = true;
+  public static final boolean IS_FOLLOWER_A_INVERTED = true;
+  public static final boolean IS_FOLLOWER_B_INVERTED = false;
   public static final AngularVelocity SHOOTER_IDLE_VELOCITY = RotationsPerSecond.of(10.0);
   public static final AngularVelocity VELOCITY_TOLERANCE = RotationsPerSecond.of(5.0);
 

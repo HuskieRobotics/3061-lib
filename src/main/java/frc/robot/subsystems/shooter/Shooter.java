@@ -75,7 +75,7 @@ public class Shooter extends SubsystemBase {
       new SysIdRoutine(
           new SysIdRoutine.Config(
               Volts.of(5).per(Second), // will actually be a ramp rate of 5 A/s
-              Volts.of(10), // will actually be a step to 10 A
+              Volts.of(20), // will actually be a step to 10 A
               Seconds.of(5), // override default timeout (10 s)
               // Log state with SignalLogger class
               state -> SignalLogger.writeString("SysIdTranslationCurrent_State", state.toString())),

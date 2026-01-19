@@ -52,13 +52,6 @@ public class ShooterIOTalonFX implements ShooterIO {
   private StatusSignal<Current> followerASupplyCurrentStatusSignal;
   private StatusSignal<Temperature> followerATemperatureStatusSignal;
   private StatusSignal<Voltage> followerAVoltageStatusSignal;
-
-  // follower B
-  private StatusSignal<Current> followerBStatorCurrentStatusSignal;
-  private StatusSignal<Current> followerBSupplyCurrentStatusSignal;
-  private StatusSignal<Temperature> followerBTemperatureStatusSignal;
-  private StatusSignal<Voltage> followerBVoltageStatusSignal;
-
   // game piece detector
   private StatusSignal<Distance> gamePieceDistanceStatusSignal;
   private StatusSignal<Double> gamePieceSignalStrengthStatusSignal;
@@ -68,7 +61,6 @@ public class ShooterIOTalonFX implements ShooterIO {
 
   private final Debouncer leadConnectedDebouncer = new Debouncer(0.5);
   private final Debouncer followerAConnectedDebouncer = new Debouncer(0.5);
-  private final Debouncer followerBConnectedDebouncer = new Debouncer(0.5);
   private final Debouncer gamePieceSensorConnectedDebouncer = new Debouncer(0.5);
 
   private VelocitySystemSim shooterSim;
@@ -77,8 +69,6 @@ public class ShooterIOTalonFX implements ShooterIO {
       new Alert("Failed to apply configuration for lead shooter motor", AlertType.kError);
   private Alert followerAConfigAlert =
       new Alert("Failed to apply configuration for follower A shooter motor", AlertType.kError);
-  private Alert followerBConfigAlert =
-      new Alert("Failed to apply configuration for follower B shooter motor", AlertType.kError);
   private Alert gamePieceDetectorConfigAlert =
       new Alert("Failed to apply configuration for shooter game piece detector.", AlertType.kError);
 
@@ -102,13 +92,11 @@ public class ShooterIOTalonFX implements ShooterIO {
 
   private TalonFX leadMotor;
   private TalonFX followerAMotor;
-  private TalonFX followerBMotor;
   private CANrange gamePieceDetector;
 
   public ShooterIOTalonFX() {
     leadMotor = new TalonFX(LEAD_MOTOR_ID, RobotConfig.getInstance().getCANBus());
     followerAMotor = new TalonFX(FOLLOWER_A_MOTOR_ID, RobotConfig.getInstance().getCANBus());
-    followerBMotor = new TalonFX(FOLLOWER_B_MOTOR_ID, RobotConfig.getInstance().getCANBus());
     gamePieceDetector = new CANrange(GAME_PIECE_SENSOR_ID, RobotConfig.getInstance().getCANBus());
 
     leadVelocityRequest = new VelocityTorqueCurrentFOC(0);
@@ -125,11 +113,6 @@ public class ShooterIOTalonFX implements ShooterIO {
     followerASupplyCurrentStatusSignal = followerAMotor.getSupplyCurrent();
     followerATemperatureStatusSignal = followerAMotor.getDeviceTemp();
     followerAVoltageStatusSignal = followerAMotor.getMotorVoltage();
-
-    followerBStatorCurrentStatusSignal = followerBMotor.getStatorCurrent();
-    followerBSupplyCurrentStatusSignal = followerBMotor.getSupplyCurrent();
-    followerBTemperatureStatusSignal = followerBMotor.getDeviceTemp();
-    followerBVoltageStatusSignal = followerBMotor.getMotorVoltage();
 
     gamePieceDistanceStatusSignal = gamePieceDetector.getDistance();
     gamePieceSignalStrengthStatusSignal = gamePieceDetector.getSignalStrength();
@@ -149,26 +132,17 @@ public class ShooterIOTalonFX implements ShooterIO {
         followerASupplyCurrentStatusSignal,
         followerATemperatureStatusSignal,
         followerAVoltageStatusSignal,
-        followerBStatorCurrentStatusSignal,
-        followerBSupplyCurrentStatusSignal,
-        followerBTemperatureStatusSignal,
-        followerBVoltageStatusSignal,
         gamePieceDistanceStatusSignal,
         gamePieceSignalStrengthStatusSignal,
         gamePieceDetectedStatusSignal);
 
     configLeadMotor(leadMotor, leadMotorConfigAlert);
     configFollowerMotor(followerAMotor, "Follower A Motor", followerAConfigAlert);
-    configFollowerMotor(followerBMotor, "Follower B Motor", followerBConfigAlert);
 
     followerAMotor.setControl(
         new Follower(
             FOLLOWER_A_MOTOR_ID,
             IS_FOLLOWER_A_INVERTED ? MotorAlignmentValue.Opposed : MotorAlignmentValue.Aligned));
-    followerBMotor.setControl(
-        new Follower(
-            FOLLOWER_B_MOTOR_ID,
-            IS_FOLLOWER_B_INVERTED ? MotorAlignmentValue.Opposed : MotorAlignmentValue.Aligned));
 
     configGamePieceDetector(gamePieceDetector, gamePieceDetectorConfigAlert);
 
@@ -181,8 +155,7 @@ public class ShooterIOTalonFX implements ShooterIO {
             0.01,
             ShooterConstants.SHOOT_MOTORS_GEAR_RATIO,
             leadMotor,
-            followerAMotor,
-            followerBMotor);
+            followerAMotor);
   }
 
   @Override
@@ -204,13 +177,6 @@ public class ShooterIOTalonFX implements ShooterIO {
                 followerASupplyCurrentStatusSignal,
                 followerATemperatureStatusSignal,
                 followerAVoltageStatusSignal));
-    inputs.followerBConnected =
-        followerBConnectedDebouncer.calculate(
-            BaseStatusSignal.isAllGood(
-                followerBStatorCurrentStatusSignal,
-                followerBSupplyCurrentStatusSignal,
-                followerBTemperatureStatusSignal,
-                followerBVoltageStatusSignal));
     inputs.sensorConnected =
         gamePieceSensorConnectedDebouncer.calculate(
             BaseStatusSignal.isAllGood(
@@ -231,11 +197,6 @@ public class ShooterIOTalonFX implements ShooterIO {
     inputs.followerAMotorSupplyCurrent = followerASupplyCurrentStatusSignal.getValue();
     inputs.followerAMotorTemp = followerATemperatureStatusSignal.getValue();
     inputs.followerAMotorVoltage = followerAVoltageStatusSignal.getValue();
-
-    inputs.followerBMotorStatorCurrent = followerBStatorCurrentStatusSignal.getValue();
-    inputs.followerBMotorSupplyCurrent = followerBSupplyCurrentStatusSignal.getValue();
-    inputs.followerBMotorTemp = followerBTemperatureStatusSignal.getValue();
-    inputs.followerBMotorVoltage = followerBVoltageStatusSignal.getValue();
 
     // Update Game Piece Detection Inputs
     inputs.hasGamePiece = gamePieceDetectedStatusSignal.getValue();
@@ -324,6 +285,8 @@ public class ShooterIOTalonFX implements ShooterIO {
     leadMotorConfig.Slot0.kI = kI.get();
     leadMotorConfig.Slot0.kD = kD.get();
     leadMotorConfig.Slot0.kS = kS.get();
+    leadMotorConfig.Slot0.kV = KV;
+    leadMotorConfig.Slot0.kA = KA;
 
     leadMotorConfig.Feedback.SensorToMechanismRatio = ShooterConstants.SHOOT_MOTORS_GEAR_RATIO;
 
