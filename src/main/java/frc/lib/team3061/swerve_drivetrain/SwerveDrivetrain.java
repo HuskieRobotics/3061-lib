@@ -341,7 +341,13 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
    * invoked.
    */
   public void zeroGyroscope() {
-    setGyroOffset(Radians.of(0.0));
+    Pose2d pose = this.getPose();
+    Pose2d zeroedPose = new Pose2d(pose.getX(), pose.getY(), new Rotation2d());
+
+    this.odometry.resetPose(
+        Rotation2d.fromRadians(this.inputs.drivetrain.rawHeading.in(Radians)),
+        this.modulePositions,
+        zeroedPose);
   }
 
   /**

@@ -381,23 +381,32 @@ public class Phoenix6Util {
   /** Signals for synchronized refresh. */
   private static StatusSignalCollection canivoreSignals = new StatusSignalCollection();
 
+  private static int canivoreSignalsCount = 0;
+
   private static StatusSignalCollection rioSignals = new StatusSignalCollection();
+  private static int rioSignalsCount = 0;
 
   /** Registers a set of signals for synchronized refresh. */
   public static void registerSignals(boolean canivore, BaseStatusSignal... signals) {
     if (canivore) {
       canivoreSignals.addSignals(signals);
+      canivoreSignalsCount++;
     } else {
       rioSignals.addSignals(signals);
+      rioSignalsCount++;
     }
   }
 
   /** Refresh all registered signals. */
   public static void refreshAll() {
-    checkError(
-        canivoreSignals.refreshAll(),
-        "failed to refresh signals on CANivore:",
-        canivoreSignalsAlert);
-    checkError(rioSignals.refreshAll(), "failed to refresh signals on RIO:", rioSignalsAlert);
+    if (canivoreSignalsCount > 0) {
+      checkError(
+          canivoreSignals.refreshAll(),
+          "failed to refresh signals on CANivore:",
+          canivoreSignalsAlert);
+    }
+    if (rioSignalsCount > 0) {
+      checkError(rioSignals.refreshAll(), "failed to refresh signals on RIO:", rioSignalsAlert);
+    }
   }
 }
