@@ -53,14 +53,9 @@ public class Shooter extends SubsystemBase {
   // an efficient approach when, for example, empirically tuning the velocity for different
   // distances when shooting a game piece.
   private final LoggedTunableNumber testingMode = new LoggedTunableNumber("Shooter/TestingMode", 0);
-  private final LoggedTunableNumber topWheelVelocityRPS =
-      new LoggedTunableNumber("Shooter/Top Wheel Velocity (RPS)", 0);
-  private final LoggedTunableNumber bottomWheelVelocityRPS =
-      new LoggedTunableNumber("Shooter/Bottom Wheel Velocity (RPS)", 0);
-  private final LoggedTunableNumber topWheelCurrent =
-      new LoggedTunableNumber("Shooter/Top Wheel Current", 0);
-  private final LoggedTunableNumber bottomWheelCurrent =
-      new LoggedTunableNumber("Shooter/Bottom Wheel Current", 0);
+  private final LoggedTunableNumber shooterVelocityRPS =
+      new LoggedTunableNumber("Shooter/Wheel Velocity (RPS)", 0);
+  private final LoggedTunableNumber shooterCurrent = new LoggedTunableNumber("Shooter/Current", 0);
 
   // As an alternative to determining a mathematical function to map distances to velocities,
   // we can use an InterpolatingDoubleTreeMap to store the distances and their corresponding
@@ -71,34 +66,21 @@ public class Shooter extends SubsystemBase {
   private final double[] shootingPopulationDistances = {7.329, 9.649, 11.336};
   private final double[] shootingPopulationRealVelocities = {40.0, 48.0, 55.0};
 
-  private final Debouncer topAtSetpointDebouncer = new Debouncer(0.1);
-  private final Debouncer bottomAtSetpointDebouncer = new Debouncer(0.1);
+  private final Debouncer leadSetPointDebouncer = new Debouncer(0.1);
 
   // The SysId routine is used to characterize the mechanism. While the SysId routine is intended to
   // be used for voltage control, we can apply a current instead and reinterpret the units when
   // performing the analysis in SysId.
-  private final SysIdRoutine shooterWheelTopSysIdRoutine =
+  private final SysIdRoutine shooterSysIdRoutine =
       new SysIdRoutine(
           new SysIdRoutine.Config(
               Volts.of(5).per(Second), // will actually be a ramp rate of 5 A/s
-              Volts.of(10), // will actually be a step to 10 A
+              Volts.of(20), // will actually be a step to 10 A
               Seconds.of(5), // override default timeout (10 s)
               // Log state with SignalLogger class
               state -> SignalLogger.writeString("SysIdTranslationCurrent_State", state.toString())),
           new SysIdRoutine.Mechanism(
-              output -> io.setShooterWheelTopCurrent(Amps.of(output.in(Volts))),
-              null,
-              this)); // treat volts as amps
-  private final SysIdRoutine shooterWheelBottomSysIdRoutine =
-      new SysIdRoutine(
-          new SysIdRoutine.Config(
-              Volts.of(5).per(Second), // will actually be a ramp rate of 5 A/s
-              Volts.of(10), // will actually be a step to 10 A
-              Seconds.of(5), // override default timeout (10 s)
-              // Log state with SignalLogger class
-              state -> SignalLogger.writeString("SysIdTranslationCurrent_State", state.toString())),
-          new SysIdRoutine.Mechanism(
-              output -> io.setShooterWheelBottomCurrent(Amps.of(output.in(Volts))),
+              output -> io.setShooterCurrent(Amps.of(output.in(Volts))),
               null,
               this)); // treat volts as amps
 
@@ -109,10 +91,7 @@ public class Shooter extends SubsystemBase {
 
     // Register this subsystem's SysId routine with the SysIdRoutineChooser. This allows
     // the routine to be selected and executed from the dashboard.
-    SysIdRoutineChooser.getInstance()
-        .addOption("Shooter Wheel Top Current", shooterWheelTopSysIdRoutine);
-    SysIdRoutineChooser.getInstance()
-        .addOption("Shooter Wheel Bottom Current", shooterWheelBottomSysIdRoutine);
+    SysIdRoutineChooser.getInstance().addOption("Shooter Current", shooterSysIdRoutine);
 
     // Register this subsystem's system check command with the fault reporter. The system check
     // command can be added to the Elastic Dashboard to execute the system test.
@@ -130,15 +109,10 @@ public class Shooter extends SubsystemBase {
     // If the testing mode is enabled, set either the velocity (if not zero) or apply the
     // specified current (if not zero).
     if (testingMode.get() == 1) {
-      if (topWheelVelocityRPS.get() != 0) {
-        io.setShooterWheelTopVelocity(RotationsPerSecond.of(topWheelVelocityRPS.get()));
-      } else if (topWheelCurrent.get() != 0) {
-        io.setShooterWheelTopCurrent(Amps.of(topWheelCurrent.get()));
-      }
-      if (bottomWheelVelocityRPS.get() != 0) {
-        io.setShooterWheelBottomVelocity(RotationsPerSecond.of(bottomWheelVelocityRPS.get()));
-      } else if (bottomWheelCurrent.get() != 0) {
-        io.setShooterWheelBottomCurrent(Amps.of(bottomWheelCurrent.get()));
+      if (shooterVelocityRPS.get() != 0) {
+        io.setShooterVelocity(RotationsPerSecond.of(shooterVelocityRPS.get()));
+      } else if (shooterCurrent.get() != 0) {
+        io.setShooterCurrent(Amps.of(shooterCurrent.get()));
       }
     }
 
@@ -148,8 +122,7 @@ public class Shooter extends SubsystemBase {
   }
 
   public void setIdleVelocity() {
-    io.setShooterWheelBottomVelocity(SHOOTER_IDLE_VELOCITY);
-    io.setShooterWheelTopVelocity(SHOOTER_IDLE_VELOCITY);
+    io.setShooterVelocity(SHOOTER_IDLE_VELOCITY);
   }
 
   // While we cannot use subtypes of Measure in the inputs class due to logging limitations, we do
@@ -162,23 +135,16 @@ public class Shooter extends SubsystemBase {
     // are changed.
     Logger.recordOutput("Shooter/distance", distance);
 
-    io.setShooterWheelTopVelocity(RotationsPerSecond.of(shootingMap.get(distance.in(Meters))));
-    io.setShooterWheelBottomVelocity(RotationsPerSecond.of(shootingMap.get(distance.in(Meters))));
+    io.setShooterVelocity(RotationsPerSecond.of(shootingMap.get(distance.in(Meters))));
   }
 
-  public boolean isTopShooterAtSetpoint() {
+  public boolean isLeadShooterAtSetpoint() {
     // This method uses a debouncer to determine if the shooter wheels are at the setpoint velocity.
     // The velocity is considered at the setpoint if the velocity is within tolerance for the period
     // specified when constructing the debouncer (e.g., 0.1 seconds or 5 loop iterations).
-    return topAtSetpointDebouncer.calculate(
-        shooterInputs.shootMotorTopVelocity.isNear(
-            shooterInputs.shootMotorTopReferenceVelocity, VELOCITY_TOLERANCE));
-  }
-
-  public boolean isBottomShooterAtSetpoint() {
-    return bottomAtSetpointDebouncer.calculate(
-        shooterInputs.shootMotorBottomVelocity.isNear(
-            shooterInputs.shootMotorBottomReferenceVelocity, VELOCITY_TOLERANCE));
+    return leadSetPointDebouncer.calculate(
+        shooterInputs.leadMotorVelocity.isNear(
+            shooterInputs.leadMotorReferenceVelocity, VELOCITY_TOLERANCE));
   }
 
   private void populateShootingMap() {
@@ -204,8 +170,7 @@ public class Shooter extends SubsystemBase {
         .andThen(
             Commands.runOnce(
                 () -> {
-                  io.setShooterWheelBottomVelocity(RotationsPerSecond.of(0.0));
-                  io.setShooterWheelTopVelocity(RotationsPerSecond.of(0.0));
+                  io.setShooterVelocity(RotationsPerSecond.of(0.0));
                 }));
   }
 
@@ -214,32 +179,19 @@ public class Shooter extends SubsystemBase {
         Commands.runOnce(() -> this.setVelocity(distance)),
         Commands.waitSeconds(2.0),
         Commands.runOnce(
-            () ->
-                this.checkVelocity(
-                    RotationsPerSecond.of(shootingMap.get(distance.in(Meters))),
-                    RotationsPerSecond.of(shootingMap.get(distance.in(Meters))))));
+            () -> this.checkVelocity(RotationsPerSecond.of(shootingMap.get(distance.in(Meters))))));
   }
 
-  private void checkVelocity(AngularVelocity topVelocity, AngularVelocity bottomVelocity) {
-    // check bottom motor
-    if (!this.shooterInputs.shootMotorBottomVelocity.isNear(bottomVelocity, VELOCITY_TOLERANCE)) {
-      FaultReporter.getInstance()
-          .addFault(
-              SUBSYSTEM_NAME,
-              "Bottom shooter wheel velocity out of tolerance, should be "
-                  + bottomVelocity
-                  + " but is "
-                  + this.shooterInputs.shootMotorBottomVelocity);
-    }
+  private void checkVelocity(AngularVelocity velocity) {
     // check top motor
-    if (!this.shooterInputs.shootMotorTopVelocity.isNear(topVelocity, VELOCITY_TOLERANCE)) {
+    if (!this.shooterInputs.leadMotorVelocity.isNear(velocity, VELOCITY_TOLERANCE)) {
       FaultReporter.getInstance()
           .addFault(
               SUBSYSTEM_NAME,
-              "Top shooter wheel velocity out of tolerance, should be "
-                  + topVelocity
+              "Shooter wheel velocity out of tolerance, should be "
+                  + velocity
                   + " but is "
-                  + this.shooterInputs.shootMotorTopVelocity);
+                  + this.shooterInputs.leadMotorVelocity);
     }
   }
 }

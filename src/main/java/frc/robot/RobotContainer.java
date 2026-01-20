@@ -319,13 +319,13 @@ public class RobotContainer {
   private void createPracticeBoardSubsystems() {
     // change the following to connect the subsystem being tested to actual hardware
     swerveDrivetrain = new SwerveDrivetrain(new SwerveDrivetrainIO() {});
-    vision = new Vision(new VisionIO[] {new VisionIO() {}});
+    vision = new Vision(new VisionIO[] {});
 
     // FIXME: initialize other subsystems
     arm = new Arm(new ArmIO() {});
     elevator = new Elevator(new ElevatorIO() {});
     manipulator = new Manipulator(new ManipulatorIO() {});
-    shooter = new Shooter(new ShooterIO() {});
+    shooter = new Shooter(new ShooterIOTalonFX());
     visualization = new RobotVisualization(elevator);
   }
 
