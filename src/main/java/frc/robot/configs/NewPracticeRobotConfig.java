@@ -63,7 +63,7 @@ public class NewPracticeRobotConfig extends RobotConfig {
   private static final double ANGLE_KA = 0.18755;
 
   /* Drive Motor PID Values */
-  private static final double DRIVE_KP = 12.0; // 0.40997
+  private static final double DRIVE_KP = 15.0; // determined after manual tuning
   private static final double DRIVE_KI = 0.0;
   private static final double DRIVE_KD = 0.0;
 
