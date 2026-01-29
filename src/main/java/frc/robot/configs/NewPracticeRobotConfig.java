@@ -122,42 +122,47 @@ public class NewPracticeRobotConfig extends RobotConfig {
   private static final double COLOR_GAIN = 5.0;
 
   // Front right camera
+  // x, y, z, pitch, yaw
+  // 11.4425	-8.0165	6.436	60	-52.239
   private static final Transform3d ROBOT_TO_CAMERA_0 =
       new Transform3d(
           new Translation3d(
-              Units.inchesToMeters(10.609),
-              Units.inchesToMeters(-10.778),
-              Units.inchesToMeters(8.2085)),
-          new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(18)));
-  // pitch 45 degrees
+              Units.inchesToMeters(11.4425),
+              Units.inchesToMeters(-8.0165),
+              Units.inchesToMeters(7.436)),
+          new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(-52.239)));
 
   // Back right camera
+  // x, y, z, pitch, yaw
+  // -11.4425	-8.0165	6.436	60	-127.761
   private static final Transform3d ROBOT_TO_CAMERA_1 =
       new Transform3d(
           new Translation3d(
-              Units.inchesToMeters(-10.778),
-              Units.inchesToMeters(-10.6095),
-              Units.inchesToMeters(8.052)),
-          new Rotation3d(
-              Units.degreesToRadians(0), Units.degreesToRadians(-30), Units.degreesToRadians(-90)));
+              Units.inchesToMeters(-11.4425),
+              Units.inchesToMeters(-8.0165),
+              Units.inchesToMeters(7.436)),
+          new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(-127.761)));
 
   // Front left camera
+  // x, y, z, pitch, yaw
+  // 11.4425	8.0165	6.436	60	52.239
   private static final Transform3d ROBOT_TO_CAMERA_2 =
       new Transform3d(
           new Translation3d(
-              Units.inchesToMeters(10.778),
-              Units.inchesToMeters(10.6085),
-              Units.inchesToMeters(8.2085)),
-          new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(-18)));
-
+              Units.inchesToMeters(11.4425),
+              Units.inchesToMeters(8.0165),
+              Units.inchesToMeters(7.436)),
+          new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(52.239)));
   // Back left camera
+  // x, y, z, pitch, yaw
+  // -11.4425	8.0165	6.436	60	142.239
   private static final Transform3d ROBOT_TO_CAMERA_3 =
       new Transform3d(
           new Translation3d(
-              Units.inchesToMeters(-10.6095),
-              Units.inchesToMeters(10.778),
-              Units.inchesToMeters(8.052)),
-          new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(180)));
+              Units.inchesToMeters(-11.4425),
+              Units.inchesToMeters(8.0165),
+              Units.inchesToMeters(7.436)),
+          new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(142.239)));
 
   // color camera
   private static final Transform3d ROBOT_TO_CAMERA_4 =
