@@ -20,6 +20,7 @@ import com.ctre.phoenix6.hardware.CANrange;
 import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.wpilibj.Alert;
 import java.util.function.Supplier;
+import org.littletonrobotics.junction.Logger;
 
 @java.lang.SuppressWarnings({"java:S112"})
 public class Phoenix6Util {
@@ -383,8 +384,27 @@ public class Phoenix6Util {
 
   private static StatusSignalCollection rioSignals = new StatusSignalCollection();
 
-  /** Registers a set of signals for synchronized refresh. */
-  public static void registerSignals(boolean canivore, BaseStatusSignal... signals) {
+  /**
+   * Registers a set of signals for synchronized refresh.
+   *
+   * @param canivore true to register for CANivore, false for RIO
+   * @param updateFrequency desired update frequency for the signals (0.0 for default)
+   * @param signals signals to register
+   */
+  public static void registerSignals(
+      boolean canivore, double updateFrequency, BaseStatusSignal... signals) {
+    if (updateFrequency > 0.0) {
+      BaseStatusSignal.setUpdateFrequencyForAll(updateFrequency, signals);
+      
+      for (BaseStatusSignal signal : signals) {
+        signal.setUpdateFrequency(updateFrequency);
+        signal.optimizeBusUtilization();
+      }
+    }
+    
+    for (BaseStatusSignal signal : signals) {
+      Logger.recordOutput("StatusSignals/" + signal.getName(), signal.getAppliedUpdateFrequency());
+    }
     if (canivore) {
       canivoreSignals.addSignals(signals);
     } else {
