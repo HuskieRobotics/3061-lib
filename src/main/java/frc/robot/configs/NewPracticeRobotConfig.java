@@ -127,8 +127,8 @@ public class NewPracticeRobotConfig extends RobotConfig {
   private static final Transform3d ROBOT_TO_CAMERA_0 =
       new Transform3d(
           new Translation3d(
-              Units.inchesToMeters(11.4425),
               Units.inchesToMeters(-8.0165),
+              Units.inchesToMeters(11.4425),
               Units.inchesToMeters(7.436)),
           new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(-52.239)));
 
@@ -138,8 +138,8 @@ public class NewPracticeRobotConfig extends RobotConfig {
   private static final Transform3d ROBOT_TO_CAMERA_1 =
       new Transform3d(
           new Translation3d(
-              Units.inchesToMeters(-11.4425),
               Units.inchesToMeters(-8.0165),
+              Units.inchesToMeters(-11.4425),
               Units.inchesToMeters(7.436)),
           new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(-127.761)));
 
@@ -149,8 +149,8 @@ public class NewPracticeRobotConfig extends RobotConfig {
   private static final Transform3d ROBOT_TO_CAMERA_2 =
       new Transform3d(
           new Translation3d(
-              Units.inchesToMeters(11.4425),
               Units.inchesToMeters(8.0165),
+              Units.inchesToMeters(11.4425),
               Units.inchesToMeters(7.436)),
           new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(52.239)));
   // Back left camera
@@ -159,8 +159,8 @@ public class NewPracticeRobotConfig extends RobotConfig {
   private static final Transform3d ROBOT_TO_CAMERA_3 =
       new Transform3d(
           new Translation3d(
-              Units.inchesToMeters(-11.4425),
               Units.inchesToMeters(8.0165),
+              Units.inchesToMeters(-11.4425),
               Units.inchesToMeters(7.436)),
           new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(142.239)));
 
