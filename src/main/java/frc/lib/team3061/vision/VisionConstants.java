@@ -15,7 +15,7 @@ public final class VisionConstants {
       new File(Filesystem.getDeployDirectory(), "2026-rebuilt-welded.json").toPath();
   public static final Path OFFICIAL_APRILTAG_FIELD_LAYOUT_PATH =
       new File(Filesystem.getDeployDirectory(), "2026-rebuilt-welded.json").toPath();
-  public static final int MAX_NUMBER_TAGS = 30;
+  public static final int MAX_NUMBER_TAGS = 32;
 
   public static final String SUBSYSTEM_NAME = "Vision";
 
