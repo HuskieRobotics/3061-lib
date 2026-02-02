@@ -108,9 +108,9 @@ public class NewPracticeRobotConfig extends RobotConfig {
   private static final int LED_COUNT = 85;
 
   private static final String FR_CAMERA_SERIAL_NUMBER = "40686739";
-  private static final String BR_CAMERA_NAME = "40708569";
+  private static final String BR_CAMERA_NAME = "40708542";
   private static final String FL_CAMERA_NAME = "40708556";
-  private static final String BL_CAMERA_NAME = "40708542";
+  private static final String BL_CAMERA_NAME = "40708569";
   private static final String CENTER_CAMERA_NAME = "25249734";
 
   private static final int MONO_EXPOSURE = 2200;
