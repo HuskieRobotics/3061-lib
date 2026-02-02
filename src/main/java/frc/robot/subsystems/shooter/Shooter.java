@@ -6,6 +6,7 @@ import static frc.robot.subsystems.shooter.ShooterConstants.*;
 import com.ctre.phoenix6.SignalLogger;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -57,6 +58,12 @@ public class Shooter extends SubsystemBase {
       new LoggedTunableNumber("Shooter/Wheel Velocity (RPS)", 0);
   private final LoggedTunableNumber shooterCurrent = new LoggedTunableNumber("Shooter/Current", 0);
 
+  private final LoggedTunableNumber hoodVoltage =
+      new LoggedTunableNumber("Shooter/Hood Voltage", HOOD_MOTOR_MANUAL_CONTROL_VOLTAGE);
+
+  private final LoggedTunableNumber hoodAngleDegrees =
+      new LoggedTunableNumber("Shooter/Hood Angle Degrees", LOWER_ANGLE_LIMIT.in(Degrees));
+
   // As an alternative to determining a mathematical function to map distances to velocities,
   // we can use an InterpolatingDoubleTreeMap to store the distances and their corresponding
   // velocities. The InterpolatingDoubleTreeMap will linearly interpolate the velocity
@@ -84,6 +91,15 @@ public class Shooter extends SubsystemBase {
               null,
               this)); // treat volts as amps
 
+  private final SysIdRoutine hoodSysIdRoutine =
+      new SysIdRoutine(
+          new SysIdRoutine.Config(
+              Volts.of(0.5).per(Second), // override default ramp rate (1 V/s)
+              Volts.of(2.0), // override default step voltage (7 V)
+              null, // use default timeout (10 s)
+              state -> SignalLogger.writeString("SysId_State", state.toString())),
+          new SysIdRoutine.Mechanism(output -> io.setHoodVoltage(output), null, this));
+
   public Shooter(ShooterIO io) {
     this.io = io;
 
@@ -92,6 +108,8 @@ public class Shooter extends SubsystemBase {
     // Register this subsystem's SysId routine with the SysIdRoutineChooser. This allows
     // the routine to be selected and executed from the dashboard.
     SysIdRoutineChooser.getInstance().addOption("Shooter Current", shooterSysIdRoutine);
+
+    SysIdRoutineChooser.getInstance().addOption("Hood Voltage", hoodSysIdRoutine);
 
     // Register this subsystem's system check command with the fault reporter. The system check
     // command can be added to the Elastic Dashboard to execute the system test.
@@ -113,6 +131,10 @@ public class Shooter extends SubsystemBase {
         io.setShooterVelocity(RotationsPerSecond.of(shooterVelocityRPS.get()));
       } else if (shooterCurrent.get() != 0) {
         io.setShooterCurrent(Amps.of(shooterCurrent.get()));
+      } else if (hoodAngleDegrees.get() != 0) {
+        io.setHoodAngle(Degrees.of(hoodAngleDegrees.get()));
+      } else if (hoodVoltage.get() != 0) {
+        io.setHoodVoltage(Volts.of(hoodVoltage.get()));
       }
     }
 
@@ -123,6 +145,10 @@ public class Shooter extends SubsystemBase {
 
   public void setIdleVelocity() {
     io.setShooterVelocity(SHOOTER_IDLE_VELOCITY);
+  }
+
+  public void setHoodAngle(Angle angle) {
+    io.setHoodAngle(angle);
   }
 
   // While we cannot use subtypes of Measure in the inputs class due to logging limitations, we do

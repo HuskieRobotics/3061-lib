@@ -2,6 +2,7 @@ package frc.robot.subsystems.shooter;
 
 import static edu.wpi.first.units.Units.*;
 
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Distance;
@@ -45,6 +46,14 @@ public interface ShooterIO {
     Voltage followerBMotorVoltage = Volts.of(0.0);
     Temperature followerBMotorTemp = Celsius.of(0.0);
 
+    // Hood Motor Inputs
+    boolean hoodConnected = false;
+    Current hoodMotorStatorCurrent = Amps.of(0.0);
+    Current hoodMotorSupplyCurrent = Amps.of(0.0);
+    Voltage hoodMotorVoltage = Volts.of(0.0);
+    Temperature hoodMotorTemp = Celsius.of(0.0);
+    Angle hoodPosition = Rotations.of(0.0);
+
     // Game Piece Detection
     boolean sensorConnected = false;
     boolean hasGamePiece = false;
@@ -57,4 +66,8 @@ public interface ShooterIO {
   public default void setShooterVelocity(AngularVelocity velocity) {}
 
   public default void setShooterCurrent(Current amps) {}
+
+  public default void setHoodAngle(Angle position) {}
+
+  public default void setHoodVoltage(Voltage volts) {}
 }
