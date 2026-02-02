@@ -48,7 +48,7 @@ public class ShooterConstants {
   public static final AngularVelocity VELOCITY_TOLERANCE = RotationsPerSecond.of(5.0);
 
   // Hood motor constants
-  public static final double HOOD_GEAR_RATIO = 12.0;
+  public static final double HOOD_GEAR_RATIO = 240.0;
   public static final double HOOD_MIN_ANGLE_RAD = 0.0;
   public static final double HOOD_MAX_ANGLE_RAD = Math.toRadians(90.0);
   public static final double HOOD_LENGTH_METERS = 0.2; // example length, replace with actual
