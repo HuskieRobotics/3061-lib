@@ -73,5 +73,5 @@ public final class VisionConstants {
   public static final double SIM_ERROR_STD_DEV_PIXELS = 0.05;
 
   // the minimum confidence for a coral detection to be considered valid
-  public static final double CORAL_DETECT_CONFIDENCE_THRESHOLD = 0.35;
+  public static final double OBJECT_DETECT_CONFIDENCE_THRESHOLD = 0.80;
 }
