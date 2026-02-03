@@ -12,6 +12,7 @@ import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DynamicMotionMagicExpoVoltage;
 import com.ctre.phoenix6.controls.Follower;
+import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
@@ -46,7 +47,7 @@ public class ShooterIOTalonFX implements ShooterIO {
   private VelocityTorqueCurrentFOC leadVelocityRequest;
   private TorqueCurrentFOC leadCurrentRequest;
   private VoltageOut hoodVoltageRequest;
-  private DynamicMotionMagicExpoVoltage hoodPositionRequest;
+  private PositionVoltage hoodPositionRequest;
 
   // lead
   private StatusSignal<Current> leadStatorCurrentStatusSignal;
@@ -126,10 +127,6 @@ public class ShooterIOTalonFX implements ShooterIO {
       new LoggedTunableNumber("Shooter/Hood/kA", ShooterConstants.KA_HOOD);
   private final LoggedTunableNumber kGHood =
       new LoggedTunableNumber("Shooter/Hood/kG", ShooterConstants.KG_HOOD);
-  private final LoggedTunableNumber kVExpoHood =
-      new LoggedTunableNumber("Shooter/Hood/kVExpo", ShooterConstants.KV_EXPO_HOOD);
-  private final LoggedTunableNumber kAExpoHood =
-      new LoggedTunableNumber("Shooter/Hood/kAExpo", ShooterConstants.KA_EXPO_HOOD);
 
   private final LoggedTunableNumber detectorMinSignalStrength =
       new LoggedTunableNumber(
@@ -159,7 +156,7 @@ public class ShooterIOTalonFX implements ShooterIO {
     leadVelocityRequest = new VelocityTorqueCurrentFOC(0);
     leadCurrentRequest = new TorqueCurrentFOC(0);
     hoodVoltageRequest = new VoltageOut(0);
-    hoodPositionRequest = new DynamicMotionMagicExpoVoltage(0, kVExpoHood.get(), kAExpoHood.get());
+    hoodPositionRequest = new PositionVoltage(0);
 
     leadVelocityStatusSignal = leadMotor.getVelocity();
     leadStatorCurrentStatusSignal = leadMotor.getStatorCurrent();
@@ -363,19 +360,17 @@ public class ShooterIOTalonFX implements ShooterIO {
 
     LoggedTunableNumber.ifChanged(
         hashCode(),
-        motionMagic -> {
+        pid -> {
           TalonFXConfiguration config = new TalonFXConfiguration();
           this.hoodMotor.getConfigurator().refresh(config);
-          config.Slot0.kP = motionMagic[0];
-          config.Slot0.kI = motionMagic[1];
-          config.Slot0.kD = motionMagic[2];
-          config.Slot0.kS = motionMagic[3];
-          config.Slot0.kV = motionMagic[4];
-          config.Slot0.kA = motionMagic[5];
-          config.Slot0.kG = motionMagic[6];
+          config.Slot0.kP = pid[0];
+          config.Slot0.kI = pid[1];
+          config.Slot0.kD = pid[2];
+          config.Slot0.kS = pid[3];
+          config.Slot0.kV = pid[4];
+          config.Slot0.kA = pid[5];
+          config.Slot0.kG = pid[6];
 
-          config.MotionMagic.MotionMagicExpo_kV = motionMagic[7];
-          config.MotionMagic.MotionMagicExpo_kA = motionMagic[8];
           this.hoodMotor.getConfigurator().apply(config);
         },
         kPHood,
@@ -384,9 +379,7 @@ public class ShooterIOTalonFX implements ShooterIO {
         kSHood,
         kVHood,
         kAHood,
-        kGHood,
-        kVExpoHood,
-        kAExpoHood);
+        kGHood);
 
     LoggedTunableNumber.ifChanged(
         hashCode(),
@@ -510,10 +503,6 @@ public class ShooterIOTalonFX implements ShooterIO {
     angleMotorConfig.Slot0.withGravityType(GravityTypeValue.Arm_Cosine);
     angleMotorConfig.Slot0.kA = kAHood.get();
     angleMotorConfig.Slot0.kV = kVHood.get();
-
-    angleMotorConfig.MotionMagic.MotionMagicCruiseVelocity = ShooterConstants.CRUISE_VELOCITY_HOOD;
-    angleMotorConfig.MotionMagic.MotionMagicExpo_kV = kVExpoHood.get();
-    angleMotorConfig.MotionMagic.MotionMagicExpo_kA = kAExpoHood.get();
 
     angleMotorConfig.MotorOutput.Inverted =
         ShooterConstants.IS_HOOD_INVERTED

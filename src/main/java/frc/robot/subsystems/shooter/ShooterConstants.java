@@ -63,10 +63,7 @@ public class ShooterConstants {
   public static final double KV_HOOD = 0.076848;
   public static final double KA_HOOD = 0.75841;
   public static final double KG_HOOD = 0.0;
-  public static final double KV_EXPO_HOOD = 0.0;
-  public static final double KA_EXPO_HOOD = 0.0;
 
-  public static final double CRUISE_VELOCITY_HOOD = 0.0;
 
   public static final Distance HOOD_PULLY_CIRCUMFERENCE_METERS = Inches.of(2.0);
 
