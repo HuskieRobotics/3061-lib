@@ -29,11 +29,11 @@ public class ShooterConstants {
 
   // feed forward constants are determined through running SysId commands and analyzing the results
   // in SysId
-  public static final double KS = 0.39217; // old: 7.1914
+  public static final double KS = 0.39217; // same as 1:1 - prototype: 7.1914
 
-  public static final double KV = 0.12928;
+  public static final double KV = 0.086186; // 0.12928
 
-  public static final double KA = 0.034191;
+  public static final double KA = 0.022794; // 0.034191
 
   // current limits are determined based on current budget for the robot
   public static final double SHOOTER_PEAK_CURRENT_LIMIT = 80;
