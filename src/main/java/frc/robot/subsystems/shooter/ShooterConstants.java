@@ -39,7 +39,7 @@ public class ShooterConstants {
   public static final double SHOOTER_PEAK_CURRENT_LIMIT = 80;
 
   // the following are determined based on the mechanical design of the shooter
-  public static final double SHOOT_MOTORS_GEAR_RATIO = 1.0;
+  public static final double SHOOT_MOTORS_GEAR_RATIO = 1.5;
   public static final boolean IS_LEAD_INVERTED = false;
   public static final boolean IS_FOLLOWER_A_INVERTED = true;
   public static final boolean IS_FOLLOWER_B_INVERTED = false;
