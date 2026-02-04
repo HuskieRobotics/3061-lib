@@ -81,11 +81,11 @@ public class Shooter extends SubsystemBase {
   private final SysIdRoutine shooterSysIdRoutine =
       new SysIdRoutine(
           new SysIdRoutine.Config(
-              Volts.of(5).per(Second), // will actually be a ramp rate of 5 A/s
-              Volts.of(20), // will actually be a step to 10 A
-              Seconds.of(5), // override default timeout (10 s)
+              Volts.of(7).per(Second), // will actually be a ramp rate of 5 A/s
+              Volts.of(30), // will actually be a step to 10 A
+              Seconds.of(15), // override default timeout (10 s)
               // Log state with SignalLogger class
-              state -> SignalLogger.writeString("SysIdTranslationCurrent_State", state.toString())),
+              state -> SignalLogger.writeString("SysIdShooterCurrent_State", state.toString())),
           new SysIdRoutine.Mechanism(
               output -> io.setShooterCurrent(Amps.of(output.in(Volts))),
               null,
@@ -97,7 +97,7 @@ public class Shooter extends SubsystemBase {
               Volts.of(0.5).per(Second), // override default ramp rate (1 V/s)
               Volts.of(2.0), // override default step voltage (7 V)
               null, // use default timeout (10 s)
-              state -> SignalLogger.writeString("SysId_State", state.toString())),
+              state -> SignalLogger.writeString("SysIdHoodVoltage_State", state.toString())),
           new SysIdRoutine.Mechanism(output -> io.setHoodVoltage(output), null, this));
 
   public Shooter(ShooterIO io) {
@@ -131,9 +131,9 @@ public class Shooter extends SubsystemBase {
         io.setShooterVelocity(RotationsPerSecond.of(shooterVelocityRPS.get()));
       } else if (shooterCurrent.get() != 0) {
         io.setShooterCurrent(Amps.of(shooterCurrent.get()));
-      } else if (hoodAngleDegrees.get() != 0) {
+      } else if (hoodAngleDegrees.get() != LOWER_ANGLE_LIMIT.in(Degrees)) {
         io.setHoodAngle(Degrees.of(hoodAngleDegrees.get()));
-      } else if (hoodVoltage.get() != 0) {
+      } else if (hoodVoltage.get() != HOOD_MOTOR_MANUAL_CONTROL_VOLTAGE) {
         io.setHoodVoltage(Volts.of(hoodVoltage.get()));
       }
     }
