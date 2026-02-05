@@ -520,6 +520,8 @@ public class ShooterIOTalonFX implements ShooterIO {
     angleMotorConfig.Feedback.SensorToMechanismRatio = HOOD_GEAR_RATIO;
 
     Phoenix6Util.applyAndCheckConfiguration(motor, angleMotorConfig, configAlert);
+
+    motor.setPosition(ShooterConstants.HOOD_STARTING_ANGLE.in(Rotations));
   }
 
   private void configGamePieceDetector(CANrange detector, Alert configAlert) {
