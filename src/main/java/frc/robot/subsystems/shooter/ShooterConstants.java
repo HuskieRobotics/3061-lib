@@ -16,10 +16,10 @@ public class ShooterConstants {
 
   public static final String SUBSYSTEM_NAME = "Shooter";
 
-  public static final int LEAD_MOTOR_ID = 17;
-  public static final int FOLLOWER_A_MOTOR_ID = 14;
-  public static final int FOLLOWER_B_MOTOR_ID = 29;
-  public static final int HOOD_MOTOR_ID = 19;
+  public static final int LEAD_MOTOR_ID = 20;
+  public static final int FOLLOWER_A_MOTOR_ID = 21;
+  public static final int FOLLOWER_B_MOTOR_ID = 22;
+  public static final int HOOD_MOTOR_ID = 23;
   public static final int GAME_PIECE_SENSOR_ID = 30;
 
   // PID constants are determined empirically through tuning
