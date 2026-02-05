@@ -49,11 +49,19 @@ public class ShooterConstants {
 
   // Hood motor constants
   public static final double HOOD_GEAR_RATIO = 240.0;
-  public static final double HOOD_MIN_ANGLE_RAD = 0.0;
-  public static final double HOOD_MAX_ANGLE_RAD = Math.toRadians(90.0);
   public static final double HOOD_LENGTH_METERS = 0.2; // example length, replace with actual
   public static final double HOOD_MASS_KG = 2.0; // example mass, replace with actual
-  public static final double HOOD_STARTING_ANGLE_RAD = Math.toRadians(0);
+
+  // Only for sim
+  public static final Angle HOOD_MIN_ANGLE = Degrees.of(0.0);
+
+  // FIXME: confirm all these values
+  // For theoretical maximum positions
+  public static final Angle HOOD_MAX_ANGLE = Degrees.of(60.0);
+  public static final Angle HOOD_STARTING_ANGLE = Degrees.of(25.0);
+  // For soft limits
+  public static final Angle UPPER_ANGLE_LIMIT = Degrees.of(50.0);
+  public static final Angle LOWER_ANGLE_LIMIT = Degrees.of(25.0);
 
   // FIXME: change these values
   public static final double KP_HOOD = 700; // from tuning on 2/04
@@ -65,9 +73,6 @@ public class ShooterConstants {
   public static final double KG_HOOD = 0.0;
 
   public static final Distance HOOD_PULLY_CIRCUMFERENCE_METERS = Inches.of(2.0);
-
-  public static final Angle UPPER_ANGLE_LIMIT = Degrees.of(50.0);
-  public static final Angle LOWER_ANGLE_LIMIT = Degrees.of(0.0);
 
   public static final double HOOD_MOTOR_CONTINUOUS_CURRENT_LIMIT = 15;
   public static final double HOOD_MOTOR_PEAK_CURRENT_LIMIT = 20;

@@ -155,7 +155,7 @@ public class ShooterIOTalonFX implements ShooterIO {
     leadVelocityRequest = new VelocityTorqueCurrentFOC(0);
     leadCurrentRequest = new TorqueCurrentFOC(0);
     hoodVoltageRequest = new VoltageOut(0);
-    hoodPositionRequest = new PositionVoltage(0);
+    hoodPositionRequest = new PositionVoltage(ShooterConstants.HOOD_STARTING_ANGLE.in(Rotations));
 
     leadVelocityStatusSignal = leadMotor.getVelocity();
     leadStatorCurrentStatusSignal = leadMotor.getStatorCurrent();
@@ -245,9 +245,9 @@ public class ShooterIOTalonFX implements ShooterIO {
             HOOD_GEAR_RATIO,
             HOOD_LENGTH_METERS,
             HOOD_MASS_KG,
-            HOOD_MIN_ANGLE_RAD,
-            HOOD_MAX_ANGLE_RAD,
-            HOOD_STARTING_ANGLE_RAD,
+            HOOD_MIN_ANGLE.in(Radians),
+            HOOD_MAX_ANGLE.in(Radians),
+            HOOD_STARTING_ANGLE.in(Radians),
             ShooterConstants.SUBSYSTEM_NAME + " Hood");
   }
 
@@ -512,10 +512,10 @@ public class ShooterIOTalonFX implements ShooterIO {
     SoftwareLimitSwitchConfigs angleMotorLimitSwitches = angleMotorConfig.SoftwareLimitSwitch;
     angleMotorLimitSwitches.ForwardSoftLimitEnable = true;
     angleMotorLimitSwitches.ForwardSoftLimitThreshold =
-        ShooterConstants.UPPER_ANGLE_LIMIT.in(Degrees);
+        ShooterConstants.UPPER_ANGLE_LIMIT.in(Rotations);
     angleMotorLimitSwitches.ReverseSoftLimitEnable = true;
     angleMotorLimitSwitches.ReverseSoftLimitThreshold =
-        ShooterConstants.LOWER_ANGLE_LIMIT.in(Degrees);
+        ShooterConstants.LOWER_ANGLE_LIMIT.in(Rotations);
 
     angleMotorConfig.Feedback.SensorToMechanismRatio = HOOD_GEAR_RATIO;
 
