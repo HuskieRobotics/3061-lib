@@ -155,7 +155,7 @@ public class ShooterIOTalonFX implements ShooterIO {
     leadVelocityRequest = new VelocityTorqueCurrentFOC(0);
     leadCurrentRequest = new TorqueCurrentFOC(0);
     hoodVoltageRequest = new VoltageOut(0);
-    hoodPositionRequest = new PositionVoltage(ShooterConstants.HOOD_STARTING_ANGLE.in(Rotations));
+    hoodPositionRequest = new PositionVoltage(0);
 
     leadVelocityStatusSignal = leadMotor.getVelocity();
     leadStatorCurrentStatusSignal = leadMotor.getStatorCurrent();
