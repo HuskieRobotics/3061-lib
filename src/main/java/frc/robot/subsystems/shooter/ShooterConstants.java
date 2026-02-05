@@ -30,9 +30,7 @@ public class ShooterConstants {
   // feed forward constants are determined through running SysId commands and analyzing the results
   // in SysId
   public static final double KS = 0.39217; // same as 1:1 - prototype: 7.1914
-
   public static final double KV = 0.086186; // 0.12928
-
   public static final double KA = 0.022794; // 0.034191
 
   // current limits are determined based on current budget for the robot
@@ -61,12 +59,12 @@ public class ShooterConstants {
   public static final Angle LOWER_ANGLE_LIMIT = Degrees.of(20.0);
 
   // FIXME: change these values
-  public static final double KP_HOOD = 700; // from tuning on 2/04
+  public static final double KP_HOOD = 400;
   public static final double KI_HOOD = 0.0;
   public static final double KD_HOOD = 0.0;
-  public static final double KS_HOOD = 7.1914;
-  public static final double KV_HOOD = 0.076848;
-  public static final double KA_HOOD = 0.75841;
+  public static final double KS_HOOD = 0.50489;
+  public static final double KV_HOOD = 21.619;
+  public static final double KA_HOOD = 0.83438;
   public static final double KG_HOOD = 0.0;
 
   public static final Distance HOOD_PULLY_CIRCUMFERENCE_METERS = Inches.of(2.0);
