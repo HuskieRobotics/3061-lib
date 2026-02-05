@@ -52,7 +52,7 @@ public interface ShooterIO {
     Current hoodMotorSupplyCurrent = Amps.of(0.0);
     Voltage hoodMotorVoltage = Volts.of(0.0);
     Temperature hoodMotorTemp = Celsius.of(0.0);
-    Angle hoodPosition = Rotations.of(0.0);
+    Angle hoodPosition = Degrees.of(0.0);
 
     // Game Piece Detection
     boolean sensorConnected = false;

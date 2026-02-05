@@ -59,10 +59,10 @@ public class Shooter extends SubsystemBase {
   private final LoggedTunableNumber shooterCurrent = new LoggedTunableNumber("Shooter/Current", 0);
 
   private final LoggedTunableNumber hoodVoltage =
-      new LoggedTunableNumber("Shooter/Hood Voltage", HOOD_MOTOR_MANUAL_CONTROL_VOLTAGE);
+      new LoggedTunableNumber("Shooter/Hood Voltage", 0);
 
   private final LoggedTunableNumber hoodAngleDegrees =
-      new LoggedTunableNumber("Shooter/Hood Angle Degrees", LOWER_ANGLE_LIMIT.in(Degrees));
+      new LoggedTunableNumber("Shooter/Hood Angle Degrees", 0);
 
   // As an alternative to determining a mathematical function to map distances to velocities,
   // we can use an InterpolatingDoubleTreeMap to store the distances and their corresponding
@@ -95,7 +95,7 @@ public class Shooter extends SubsystemBase {
       new SysIdRoutine(
           new SysIdRoutine.Config(
               Volts.of(0.5).per(Second), // override default ramp rate (1 V/s)
-              Volts.of(2.0), // override default step voltage (7 V)
+              Volts.of(1), // override default step voltage (7 V)
               null, // use default timeout (10 s)
               state -> SignalLogger.writeString("SysIdHoodVoltage_State", state.toString())),
           new SysIdRoutine.Mechanism(output -> io.setHoodVoltage(output), null, this));
@@ -131,10 +131,10 @@ public class Shooter extends SubsystemBase {
         io.setShooterVelocity(RotationsPerSecond.of(shooterVelocityRPS.get()));
       } else if (shooterCurrent.get() != 0) {
         io.setShooterCurrent(Amps.of(shooterCurrent.get()));
-      } else if (hoodAngleDegrees.get() != LOWER_ANGLE_LIMIT.in(Degrees)) {
-        io.setHoodAngle(Degrees.of(hoodAngleDegrees.get()));
-      } else if (hoodVoltage.get() != HOOD_MOTOR_MANUAL_CONTROL_VOLTAGE) {
+      } else if (hoodVoltage.get() != 0) {
         io.setHoodVoltage(Volts.of(hoodVoltage.get()));
+      } else if (hoodAngleDegrees.get() != 0) {
+        io.setHoodAngle(Degrees.of(hoodAngleDegrees.get()).div(2));
       }
     }
 

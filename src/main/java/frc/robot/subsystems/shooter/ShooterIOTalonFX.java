@@ -10,7 +10,6 @@ import com.ctre.phoenix6.configs.ProximityParamsConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.DynamicMotionMagicExpoVoltage;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
@@ -76,7 +75,7 @@ public class ShooterIOTalonFX implements ShooterIO {
   private StatusSignal<Voltage> hoodVoltageStatusSignal;
   private StatusSignal<Angle> hoodPositionStatusSignal;
 
-  private Angle hoodReferenceAngle = Rotations.of(0.0);
+  private Angle hoodReferenceAngle = Degrees.of(0.0);
 
   // game piece detector
   private StatusSignal<Distance> gamePieceDistanceStatusSignal;
@@ -415,7 +414,7 @@ public class ShooterIOTalonFX implements ShooterIO {
   @Override
   public void setHoodAngle(Angle angle) {
 
-    hoodMotor.setControl(hoodPositionRequest.withPosition(angle));
+    hoodMotor.setControl(hoodPositionRequest.withPosition(angle.in(Rotations)));
     this.hoodReferenceAngle = angle.copy();
   }
 
@@ -513,10 +512,10 @@ public class ShooterIOTalonFX implements ShooterIO {
     SoftwareLimitSwitchConfigs angleMotorLimitSwitches = angleMotorConfig.SoftwareLimitSwitch;
     angleMotorLimitSwitches.ForwardSoftLimitEnable = true;
     angleMotorLimitSwitches.ForwardSoftLimitThreshold =
-        ShooterConstants.UPPER_ANGLE_LIMIT.in(Rotations);
+        ShooterConstants.UPPER_ANGLE_LIMIT.in(Degrees);
     angleMotorLimitSwitches.ReverseSoftLimitEnable = true;
     angleMotorLimitSwitches.ReverseSoftLimitThreshold =
-        ShooterConstants.LOWER_ANGLE_LIMIT.in(Rotations);
+        ShooterConstants.LOWER_ANGLE_LIMIT.in(Degrees);
 
     angleMotorConfig.Feedback.SensorToMechanismRatio = HOOD_GEAR_RATIO;
 

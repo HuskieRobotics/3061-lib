@@ -23,7 +23,7 @@ public class ShooterConstants {
   public static final int GAME_PIECE_SENSOR_ID = 30;
 
   // PID constants are determined empirically through tuning
-  public static final double KP = 12; // from testing in LC
+  public static final double KP = 19;
   public static final double KI = 0.0;
   public static final double KD = 0.0;
 
@@ -56,7 +56,7 @@ public class ShooterConstants {
   public static final double HOOD_STARTING_ANGLE_RAD = Math.toRadians(0);
 
   // FIXME: change these values
-  public static final double KP_HOOD = 12;
+  public static final double KP_HOOD = 700; // from tuning on 2/04
   public static final double KI_HOOD = 0.0;
   public static final double KD_HOOD = 0.0;
   public static final double KS_HOOD = 7.1914;
@@ -64,10 +64,9 @@ public class ShooterConstants {
   public static final double KA_HOOD = 0.75841;
   public static final double KG_HOOD = 0.0;
 
-
   public static final Distance HOOD_PULLY_CIRCUMFERENCE_METERS = Inches.of(2.0);
 
-  public static final Angle UPPER_ANGLE_LIMIT = Degrees.of(90.0);
+  public static final Angle UPPER_ANGLE_LIMIT = Degrees.of(50.0);
   public static final Angle LOWER_ANGLE_LIMIT = Degrees.of(0.0);
 
   public static final double HOOD_MOTOR_CONTINUOUS_CURRENT_LIMIT = 15;
