@@ -46,17 +46,17 @@ public class ShooterConstants {
   public static final AngularVelocity VELOCITY_TOLERANCE = RotationsPerSecond.of(5.0);
 
   // Hood motor constants
-  public static final double HOOD_GEAR_RATIO = 160.0;
+  public static final double HOOD_GEAR_RATIO = 144.0;
   public static final double HOOD_LENGTH_METERS = 0.2; // example length, replace with actual
   public static final double HOOD_MASS_KG = 2.0; // example mass, replace with actual
 
   // FIXME: confirm all these values
   // For theoretical maximum positions
-  public static final Angle HOOD_MAX_ANGLE = Degrees.of(54.0);
+  public static final Angle HOOD_MAX_ANGLE = Degrees.of(52.0);
   public static final Angle HOOD_STARTING_ANGLE = Degrees.of(20.0);
   // For soft limits
-  public static final Angle UPPER_ANGLE_LIMIT = Degrees.of(54.0);
-  public static final Angle LOWER_ANGLE_LIMIT = Degrees.of(20.0);
+  public static final Angle UPPER_ANGLE_LIMIT = Degrees.of(50.0);
+  public static final Angle LOWER_ANGLE_LIMIT = Degrees.of(22.0);
 
   // FIXME: change these values
   public static final double KP_HOOD = 400;
