@@ -245,7 +245,7 @@ public class ShooterIOTalonFX implements ShooterIO {
             HOOD_GEAR_RATIO,
             HOOD_LENGTH_METERS,
             HOOD_MASS_KG,
-            HOOD_MIN_ANGLE.in(Radians),
+            HOOD_STARTING_ANGLE.in(Radians),
             HOOD_MAX_ANGLE.in(Radians),
             HOOD_STARTING_ANGLE.in(Radians),
             ShooterConstants.SUBSYSTEM_NAME + " Hood");

@@ -48,12 +48,9 @@ public class ShooterConstants {
   public static final AngularVelocity VELOCITY_TOLERANCE = RotationsPerSecond.of(5.0);
 
   // Hood motor constants
-  public static final double HOOD_GEAR_RATIO = 240.0;
+  public static final double HOOD_GEAR_RATIO = 120.0;
   public static final double HOOD_LENGTH_METERS = 0.2; // example length, replace with actual
   public static final double HOOD_MASS_KG = 2.0; // example mass, replace with actual
-
-  // Only for sim
-  public static final Angle HOOD_MIN_ANGLE = Degrees.of(0.0);
 
   // FIXME: confirm all these values
   // For theoretical maximum positions

@@ -33,6 +33,7 @@
       "/AdvantageKit/RealOutputs/Elevator/ElevatorSim": "Mechanism2d",
       "/AdvantageKit/RealOutputs/PathPlanner": "Alerts",
       "/AdvantageKit/RealOutputs/PhotonAlerts": "Alerts",
+      "/AdvantageKit/RealOutputs/Shooter Hood/ArmSim": "Mechanism2d",
       "/AdvantageKit/RealOutputs/Visualization/Mechanisms2D": "Mechanism2d",
       "/FMSInfo": "FMSInfo",
       "/SmartDashboard/Alerts": "Alerts",
