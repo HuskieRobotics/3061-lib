@@ -5,19 +5,20 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
-import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.simulation.LinearSystemSim;
+import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import frc.robot.Constants;
 
-public class VelocitySystemSim {
+public class FlywheelSystemSim {
 
   private TalonFXSimState[] motorSimStates;
-  private LinearSystemSim<N1, N1, N1> systemSim;
+  private FlywheelSim systemSim;
   private double gearRatio;
 
-  public VelocitySystemSim(double kV, double kA, double gearRatio, TalonFX... motors) {
+  public FlywheelSystemSim(
+      double kV, double kA, double gearRatio, double momentOfInertia, TalonFX... motors) {
     this.gearRatio = gearRatio;
 
     if (Constants.getMode() != Constants.Mode.SIM) {
@@ -35,7 +36,10 @@ public class VelocitySystemSim {
               : ChassisReference.CounterClockwise_Positive;
     }
 
-    this.systemSim = new LinearSystemSim<>(LinearSystemId.identifyVelocitySystem(kV, kA));
+    DCMotor dcMotors = DCMotor.getKrakenX60Foc(motors.length);
+    this.systemSim =
+        new FlywheelSim(
+            LinearSystemId.createFlywheelSystem(dcMotors, momentOfInertia, gearRatio), dcMotors);
   }
 
   public void updateSim() {

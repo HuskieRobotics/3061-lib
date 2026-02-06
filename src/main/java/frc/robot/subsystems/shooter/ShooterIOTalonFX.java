@@ -36,7 +36,7 @@ import frc.lib.team254.Phoenix6Util;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.sim.ArmSystemSim;
-import frc.lib.team3061.sim.VelocitySystemSim;
+import frc.lib.team3061.sim.FlywheelSystemSim;
 import frc.lib.team6328.util.LoggedTunableNumber;
 import frc.robot.Constants;
 
@@ -102,9 +102,9 @@ public class ShooterIOTalonFX implements ShooterIO {
 
   private final Debouncer gamePieceSensorConnectedDebouncer = new Debouncer(0.5);
 
-  private VelocitySystemSim shooterSim;
+  private FlywheelSystemSim shooterSim;
   private ArmSystemSim hoodSim;
-  private VelocitySystemSim kickerSim;
+  private FlywheelSystemSim kickerSim;
 
   private Alert leadMotorConfigAlert =
       new Alert("Failed to apply configuration for lead shooter motor", AlertType.kError);
@@ -273,11 +273,11 @@ public class ShooterIOTalonFX implements ShooterIO {
     // Create a simulation objects for the shooter. The specific parameters for the simulation
     // are determined based on the mechanical design of the shooter.
     this.shooterSim =
-        new VelocitySystemSim(
-            ShooterConstants.IS_LEAD_INVERTED,
+        new FlywheelSystemSim(
             KV,
             KA,
             ShooterConstants.SHOOT_MOTORS_GEAR_RATIO,
+            0.0339,
             leadMotor,
             followerAMotor,
             followerBMotor);
@@ -295,12 +295,8 @@ public class ShooterIOTalonFX implements ShooterIO {
             ShooterConstants.SUBSYSTEM_NAME + " Hood");
 
     this.kickerSim =
-        new VelocitySystemSim(
-            ShooterConstants.KICKER_MOTOR_INVERTED,
-            0.05,
-            0.01,
-            ShooterConstants.KICKER_GEAR_RATIO,
-            kickerMotor);
+        new FlywheelSystemSim(
+            KICKER_KV, KICKER_KA, ShooterConstants.KICKER_GEAR_RATIO, 0.000344, kickerMotor);
   }
 
   @Override
@@ -406,7 +402,7 @@ public class ShooterIOTalonFX implements ShooterIO {
       inputs.hoodClosedLoopReferencePosition =
           Rotations.of(hoodMotor.getClosedLoopReference().getValue());
       inputs.hoodClosedLoopErrorPosition = Rotations.of(hoodMotor.getClosedLoopError().getValue());
-      
+
       inputs.kickerMotorClosedLoopReferenceVelocity =
           RotationsPerSecond.of(kickerMotor.getClosedLoopReference().getValue());
       inputs.kickerMotorClosedLoopErrorVelocity =
