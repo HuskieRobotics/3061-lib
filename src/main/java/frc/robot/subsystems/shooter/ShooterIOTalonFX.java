@@ -299,8 +299,7 @@ public class ShooterIOTalonFX implements ShooterIO {
             0.05,
             0.01,
             ShooterConstants.KICKER_GEAR_RATIO,
-            kickerMotor,
-            null);
+            kickerMotor);
   }
 
   @Override
