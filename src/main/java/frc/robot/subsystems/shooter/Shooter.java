@@ -58,6 +58,11 @@ public class Shooter extends SubsystemBase {
       new LoggedTunableNumber("Shooter/Wheel Velocity (RPS)", 0);
   private final LoggedTunableNumber shooterCurrent = new LoggedTunableNumber("Shooter/Current", 0);
 
+  private final LoggedTunableNumber kickerVelocityRPS =
+      new LoggedTunableNumber("Shooter/Kicker Velocity (RPS)", 0);
+  private final LoggedTunableNumber kickerCurrent =
+      new LoggedTunableNumber("Shooter/Kicker Current", 0);
+
   private final LoggedTunableNumber hoodVoltage =
       new LoggedTunableNumber("Shooter/Hood Voltage", 0);
 
@@ -74,6 +79,7 @@ public class Shooter extends SubsystemBase {
   private final double[] shootingPopulationRealVelocities = {40.0, 48.0, 55.0};
 
   private final Debouncer leadSetPointDebouncer = new Debouncer(0.1);
+  private final Debouncer kickerSetPointDebouncer = new Debouncer(0.1);
 
   // The SysId routine is used to characterize the mechanism. While the SysId routine is intended to
   // be used for voltage control, we can apply a current instead and reinterpret the units when
@@ -86,6 +92,19 @@ public class Shooter extends SubsystemBase {
               Seconds.of(15), // override default timeout (10 s)
               // Log state with SignalLogger class
               state -> SignalLogger.writeString("SysIdShooterCurrent_State", state.toString())),
+          new SysIdRoutine.Mechanism(
+              output -> io.setShooterCurrent(Amps.of(output.in(Volts))),
+              null,
+              this)); // treat volts as amps
+
+  private final SysIdRoutine kickerSysIdRoutine =
+      new SysIdRoutine(
+          new SysIdRoutine.Config(
+              Volts.of(7).per(Second), // will actually be a ramp rate of 5 A/s
+              Volts.of(30), // will actually be a step to 10 A
+              Seconds.of(15), // override default timeout (10 s)
+              // Log state with SignalLogger class
+              state -> SignalLogger.writeString("SysIdKickerCurrent_State", state.toString())),
           new SysIdRoutine.Mechanism(
               output -> io.setShooterCurrent(Amps.of(output.in(Volts))),
               null,
@@ -110,6 +129,8 @@ public class Shooter extends SubsystemBase {
     SysIdRoutineChooser.getInstance().addOption("Shooter Current", shooterSysIdRoutine);
 
     SysIdRoutineChooser.getInstance().addOption("Hood Voltage", hoodSysIdRoutine);
+
+    SysIdRoutineChooser.getInstance().addOption("Kicker Current", kickerSysIdRoutine);
 
     // Register this subsystem's system check command with the fault reporter. The system check
     // command can be added to the Elastic Dashboard to execute the system test.
@@ -137,6 +158,12 @@ public class Shooter extends SubsystemBase {
         io.setHoodAngle(Degrees.of(hoodAngleDegrees.get()));
       } else if (hoodVoltage.get() != 0) {
         io.setHoodVoltage(Volts.of(hoodVoltage.get()));
+      }
+
+      if (kickerVelocityRPS.get() != 0) {
+        io.setKickerVelocity(RotationsPerSecond.of(kickerVelocityRPS.get()));
+      } else if (kickerCurrent.get() != 0) {
+        io.setKickerCurrent(Amps.of(kickerCurrent.get()));
       }
     }
 
@@ -173,6 +200,12 @@ public class Shooter extends SubsystemBase {
     return leadSetPointDebouncer.calculate(
         shooterInputs.leadMotorVelocity.isNear(
             shooterInputs.leadMotorReferenceVelocity, VELOCITY_TOLERANCE));
+  }
+
+  public boolean isKickerAtSetpoint() {
+    return kickerSetPointDebouncer.calculate(
+        shooterInputs.kickerMotorVelocity.isNear(
+            shooterInputs.kickerMotorReferenceVelocity, VELOCITY_TOLERANCE));
   }
 
   private void populateShootingMap() {

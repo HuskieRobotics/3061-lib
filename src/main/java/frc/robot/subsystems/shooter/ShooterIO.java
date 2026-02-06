@@ -32,6 +32,17 @@ public interface ShooterIO {
     Temperature leadMotorTemp = Celsius.of(0.0);
     Voltage leadMotorVoltage = Volts.of(0.0);
 
+    // Kicker Motor Inputs
+    boolean kickerConnected = false;
+    Current kickerMotorStatorCurrent = Amps.of(0.0);
+    Current kickerMotorSupplyCurrent = Amps.of(0.0);
+    AngularVelocity kickerMotorVelocity = RotationsPerSecond.of(0.0);
+    AngularVelocity kickerMotorReferenceVelocity = RotationsPerSecond.of(0.0);
+    AngularVelocity kickerMotorClosedLoopReferenceVelocity = RotationsPerSecond.of(0.0);
+    AngularVelocity kickerMotorClosedLoopErrorVelocity = RotationsPerSecond.of(0.0);
+    Temperature kickerMotorTemp = Celsius.of(0.0);
+    Voltage kickerMotorVoltage = Volts.of(0.0);
+
     // Follower A Motor Inputs
     boolean followerAConnected = false;
     Current followerAMotorStatorCurrent = Amps.of(0.0);
@@ -66,6 +77,10 @@ public interface ShooterIO {
   public default void setShooterVelocity(AngularVelocity velocity) {}
 
   public default void setShooterCurrent(Current amps) {}
+
+  public default void setKickerVelocity(AngularVelocity velocity) {}
+
+  public default void setKickerCurrent(Current amps) {}
 
   public default void setHoodAngle(Angle position) {}
 

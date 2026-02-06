@@ -20,6 +20,9 @@ public class ShooterConstants {
   public static final int FOLLOWER_A_MOTOR_ID = 21;
   public static final int FOLLOWER_B_MOTOR_ID = 22;
   public static final int HOOD_MOTOR_ID = 23;
+
+  public static final int KICKER_MOTOR_ID = 19;
+
   public static final int GAME_PIECE_SENSOR_ID = 30;
 
   // PID constants are determined empirically through tuning
@@ -74,6 +77,26 @@ public class ShooterConstants {
   public static final double HOOD_MOTOR_PEAK_CURRENT_DURATION = 0.1;
 
   public static final double HOOD_MOTOR_MANUAL_CONTROL_VOLTAGE = 1.0;
+
+  //
+
+  // PID constants are determined empirically through tuning
+  public static final double KICKER_KP = 19;
+  public static final double KICKER_KI = 0.0;
+  public static final double KICKER_KD = 0.0;
+
+  // feed forward constants are determined through running SysId commands and analyzing the results
+  // in SysId
+  public static final double KICKER_KS = 0.39217; // same as 1:1 - prototype: 7.1914
+  public static final double KICKER_KV = 0.086186; // 0.12928
+  public static final double KICKER_KA = 0.022794; // 0.034191
+
+  // current limits are determined based on current budget for the robot
+  public static final double KICKER_PEAK_CURRENT_LIMIT = 80;
+
+  // the following are determined based on the mechanical design of the shooter
+  public static final double KICKER_GEAR_RATIO = 1; // FIXME: find
+  public static final boolean KICKER_MOTOR_INVERTED = true;
 
   // game piece detection constants
   public static final double DETECTOR_MIN_SIGNAL_STRENGTH = 2000;
