@@ -47,6 +47,8 @@ public class ShooterIOTalonFX implements ShooterIO {
   private TorqueCurrentFOC leadCurrentRequest;
   private VoltageOut hoodVoltageRequest;
   private PositionVoltage hoodPositionRequest;
+  private VelocityTorqueCurrentFOC kickerVelocityRequest;
+  private TorqueCurrentFOC kickerCurrentRequest;
 
   // lead
   private StatusSignal<Current> leadStatorCurrentStatusSignal;
@@ -68,6 +70,13 @@ public class ShooterIOTalonFX implements ShooterIO {
   private StatusSignal<Temperature> followerBTemperatureStatusSignal;
   private StatusSignal<Voltage> followerBVoltageStatusSignal;
 
+  // Kicker
+  private StatusSignal<Current> kickerStatorCurrentStatusSignal;
+  private StatusSignal<Current> kickerSupplyCurrentStatusSignal;
+  private StatusSignal<AngularVelocity> kickerVelocityStatusSignal;
+  private StatusSignal<Temperature> kickerTemperatureStatusSignal;
+  private StatusSignal<Voltage> kickerVoltageStatusSignal;
+
   // Hood Motor
   private StatusSignal<Current> hoodStatorCurrentStatusSignal;
   private StatusSignal<Current> hoodSupplyCurrentStatusSignal;
@@ -83,16 +92,19 @@ public class ShooterIOTalonFX implements ShooterIO {
   private StatusSignal<Boolean> gamePieceDetectedStatusSignal;
 
   private AngularVelocity leadReferenceVelocity = RotationsPerSecond.of(0.0);
+  private AngularVelocity kickerReferenceVelocity = RotationsPerSecond.of(0.0);
 
   private final Debouncer leadConnectedDebouncer = new Debouncer(0.5);
   private final Debouncer followerAConnectedDebouncer = new Debouncer(0.5);
   private final Debouncer followerBConnectedDebouncer = new Debouncer(0.5);
   private final Debouncer hoodConnectedDebouncer = new Debouncer(0.5);
+  private final Debouncer kickerConnectedDebouncer = new Debouncer(0.5);
 
   private final Debouncer gamePieceSensorConnectedDebouncer = new Debouncer(0.5);
 
   private VelocitySystemSim shooterSim;
   private ArmSystemSim hoodSim;
+  private VelocitySystemSim kickerSim;
 
   private Alert leadMotorConfigAlert =
       new Alert("Failed to apply configuration for lead shooter motor", AlertType.kError);
@@ -104,6 +116,8 @@ public class ShooterIOTalonFX implements ShooterIO {
       new Alert("Failed to apply configuration for hood motor", AlertType.kError);
   private Alert gamePieceDetectorConfigAlert =
       new Alert("Failed to apply configuration for shooter game piece detector.", AlertType.kError);
+  private Alert kickerMotorConfigAlert =
+      new Alert("Failed to apply configuration for kicker motor", AlertType.kError);
 
   // The following enables tuning of the PID and feedforward values for the arm by changing values
   // via AdvantageScope and not needing to change values in code, compile, and re-deploy.
@@ -127,6 +141,19 @@ public class ShooterIOTalonFX implements ShooterIO {
   private final LoggedTunableNumber kGHood =
       new LoggedTunableNumber("Shooter/Hood/kG", ShooterConstants.KG_HOOD);
 
+  private final LoggedTunableNumber kickerKP =
+      new LoggedTunableNumber("Shooter/Kicker/kP", ShooterConstants.KICKER_KP);
+  private final LoggedTunableNumber kickerKI =
+      new LoggedTunableNumber("Shooter/Kicker/kI", ShooterConstants.KICKER_KI);
+  private final LoggedTunableNumber kickerKD =
+      new LoggedTunableNumber("Shooter/Kicker/kD", ShooterConstants.KICKER_KD);
+  private final LoggedTunableNumber kickerKS =
+      new LoggedTunableNumber("Shooter/Kicker/kS", ShooterConstants.KICKER_KS);
+  private final LoggedTunableNumber kickerKV =
+      new LoggedTunableNumber("Shooter/Kicker/kV", ShooterConstants.KICKER_KV);
+  private final LoggedTunableNumber kickerKA =
+      new LoggedTunableNumber("Shooter/Kicker/kA", ShooterConstants.KICKER_KA);
+
   private final LoggedTunableNumber detectorMinSignalStrength =
       new LoggedTunableNumber(
           "Shooter/Min Signal Strength", ShooterConstants.DETECTOR_MIN_SIGNAL_STRENGTH);
@@ -143,6 +170,7 @@ public class ShooterIOTalonFX implements ShooterIO {
   private TalonFX followerAMotor;
   private TalonFX followerBMotor;
   private TalonFX hoodMotor;
+  private TalonFX kickerMotor;
   private CANrange gamePieceDetector;
 
   public ShooterIOTalonFX() {
@@ -151,11 +179,14 @@ public class ShooterIOTalonFX implements ShooterIO {
     followerBMotor = new TalonFX(FOLLOWER_B_MOTOR_ID, RobotConfig.getInstance().getCANBus());
     hoodMotor = new TalonFX(HOOD_MOTOR_ID, RobotConfig.getInstance().getCANBus());
     gamePieceDetector = new CANrange(GAME_PIECE_SENSOR_ID, RobotConfig.getInstance().getCANBus());
+    kickerMotor = new TalonFX(KICKER_MOTOR_ID, RobotConfig.getInstance().getCANBus());
 
     leadVelocityRequest = new VelocityTorqueCurrentFOC(0);
     leadCurrentRequest = new TorqueCurrentFOC(0);
     hoodVoltageRequest = new VoltageOut(0);
     hoodPositionRequest = new PositionVoltage(0);
+    kickerVelocityRequest = new VelocityTorqueCurrentFOC(0);
+    kickerCurrentRequest = new TorqueCurrentFOC(0);
 
     leadVelocityStatusSignal = leadMotor.getVelocity();
     leadStatorCurrentStatusSignal = leadMotor.getStatorCurrent();
@@ -178,6 +209,12 @@ public class ShooterIOTalonFX implements ShooterIO {
     hoodTemperatureStatusSignal = hoodMotor.getDeviceTemp();
     hoodVoltageStatusSignal = hoodMotor.getMotorVoltage();
     hoodPositionStatusSignal = hoodMotor.getPosition();
+
+    kickerVelocityStatusSignal = kickerMotor.getVelocity();
+    kickerStatorCurrentStatusSignal = kickerMotor.getStatorCurrent();
+    kickerSupplyCurrentStatusSignal = kickerMotor.getSupplyCurrent();
+    kickerTemperatureStatusSignal = kickerMotor.getDeviceTemp();
+    kickerVoltageStatusSignal = kickerMotor.getMotorVoltage();
 
     gamePieceDistanceStatusSignal = gamePieceDetector.getDistance();
     gamePieceSignalStrengthStatusSignal = gamePieceDetector.getSignalStrength();
@@ -206,6 +243,11 @@ public class ShooterIOTalonFX implements ShooterIO {
         hoodTemperatureStatusSignal,
         hoodVoltageStatusSignal,
         hoodPositionStatusSignal,
+        kickerVelocityStatusSignal,
+        kickerStatorCurrentStatusSignal,
+        kickerSupplyCurrentStatusSignal,
+        kickerTemperatureStatusSignal,
+        kickerVoltageStatusSignal,
         gamePieceDistanceStatusSignal,
         gamePieceSignalStrengthStatusSignal,
         gamePieceDetectedStatusSignal);
@@ -214,6 +256,7 @@ public class ShooterIOTalonFX implements ShooterIO {
     configFollowerMotor(followerAMotor, "Follower A Motor", followerAConfigAlert);
     configFollowerMotor(followerBMotor, "Follower B Motor", followerBConfigAlert);
     configHoodMotor(hoodMotor, "Hood Motor", hoodMotorConfigAlert);
+    configKickerMotor(kickerMotor, kickerMotorConfigAlert);
 
     followerAMotor.setControl(
         new Follower(
@@ -250,6 +293,14 @@ public class ShooterIOTalonFX implements ShooterIO {
             HOOD_MAX_ANGLE.in(Radians),
             HOOD_STARTING_ANGLE.in(Radians),
             ShooterConstants.SUBSYSTEM_NAME + " Hood");
+
+    this.kickerSim =
+        new VelocitySystemSim(
+            ShooterConstants.KICKER_MOTOR_INVERTED,
+            0.05,
+            0.01,
+            ShooterConstants.KICKER_GEAR_RATIO,
+            kickerMotor);
   }
 
   @Override
@@ -286,6 +337,14 @@ public class ShooterIOTalonFX implements ShooterIO {
                 hoodTemperatureStatusSignal,
                 hoodVoltageStatusSignal,
                 hoodPositionStatusSignal));
+    inputs.kickerConnected =
+        kickerConnectedDebouncer.calculate(
+            BaseStatusSignal.isAllGood(
+                kickerStatorCurrentStatusSignal,
+                kickerSupplyCurrentStatusSignal,
+                kickerTemperatureStatusSignal,
+                kickerVoltageStatusSignal,
+                kickerVelocityStatusSignal));
     inputs.sensorConnected =
         gamePieceSensorConnectedDebouncer.calculate(
             BaseStatusSignal.isAllGood(
@@ -300,6 +359,14 @@ public class ShooterIOTalonFX implements ShooterIO {
     inputs.leadMotorTemp = leadTemperatureStatusSignal.getValue();
     inputs.leadMotorVoltage = leadVoltageStatusSignal.getValue();
     inputs.leadMotorReferenceVelocity = this.leadReferenceVelocity.copy();
+
+    // Updates Kicker Motor Inputs
+    inputs.kickerMotorStatorCurrent = kickerStatorCurrentStatusSignal.getValue();
+    inputs.kickerMotorSupplyCurrent = kickerSupplyCurrentStatusSignal.getValue();
+    inputs.kickerMotorVelocity = kickerVelocityStatusSignal.getValue();
+    inputs.kickerMotorTemp = kickerTemperatureStatusSignal.getValue();
+    inputs.kickerMotorVoltage = kickerVoltageStatusSignal.getValue();
+    inputs.kickerMotorReferenceVelocity = this.kickerReferenceVelocity.copy();
 
     // Updates Follower Motor Inputs
     inputs.followerAMotorStatorCurrent = followerAStatorCurrentStatusSignal.getValue();
@@ -339,6 +406,11 @@ public class ShooterIOTalonFX implements ShooterIO {
       inputs.hoodClosedLoopReferencePosition =
           Rotations.of(hoodMotor.getClosedLoopReference().getValue());
       inputs.hoodClosedLoopErrorPosition = Rotations.of(hoodMotor.getClosedLoopError().getValue());
+      
+      inputs.kickerMotorClosedLoopReferenceVelocity =
+          RotationsPerSecond.of(kickerMotor.getClosedLoopReference().getValue());
+      inputs.kickerMotorClosedLoopErrorVelocity =
+          RotationsPerSecond.of(kickerMotor.getClosedLoopError().getValue());
 
       inputs.distanceToGamePiece = gamePieceDistanceStatusSignal.getValue();
       inputs.signalStrength = gamePieceSignalStrengthStatusSignal.getValue();
@@ -363,6 +435,27 @@ public class ShooterIOTalonFX implements ShooterIO {
         kI,
         kD,
         kS);
+
+    LoggedTunableNumber.ifChanged(
+        hashCode(),
+        pid -> {
+          Slot0Configs config = new Slot0Configs();
+          this.kickerMotor.getConfigurator().refresh(config);
+          config.kP = pid[0];
+          config.kI = pid[1];
+          config.kD = pid[2];
+          config.kS = pid[3];
+          config.kV = pid[4];
+          config.kA = pid[5];
+
+          this.kickerMotor.getConfigurator().apply(config);
+        },
+        kickerKP,
+        kickerKI,
+        kickerKD,
+        kickerKS,
+        kickerKV,
+        kickerKA);
 
     LoggedTunableNumber.ifChanged(
         hashCode(),
@@ -404,6 +497,7 @@ public class ShooterIOTalonFX implements ShooterIO {
     if (Constants.getMode() == Constants.Mode.SIM) {
       this.shooterSim.updateSim();
       this.hoodSim.updateSim();
+      this.kickerSim.updateSim();
       this.gamePieceDetector.getSimState().setSupplyVoltage(RobotController.getBatteryVoltage());
       this.gamePieceDetector.getSimState().setDistance(simDetectorDistance.get());
     }
@@ -433,6 +527,20 @@ public class ShooterIOTalonFX implements ShooterIO {
   @Override
   public void setShooterCurrent(Current amps) {
     leadMotor.setControl(leadCurrentRequest.withOutput(amps));
+  }
+
+  @Override
+  public void setKickerVelocity(AngularVelocity velocity) {
+    kickerMotor.setControl(kickerVelocityRequest.withVelocity(velocity));
+
+    // To improve performance, we store the reference velocity as an instance variable to avoid
+    // having to retrieve the status signal object from the device in the updateInputs method.
+    this.kickerReferenceVelocity = velocity.copy();
+  }
+
+  @Override
+  public void setKickerCurrent(Current amps) {
+    kickerMotor.setControl(kickerCurrentRequest.withOutput(amps));
   }
 
   private void configLeadMotor(TalonFX motor, Alert configAlert) {
@@ -529,6 +637,38 @@ public class ShooterIOTalonFX implements ShooterIO {
     Phoenix6Util.applyAndCheckConfiguration(motor, angleMotorConfig, configAlert);
 
     motor.setPosition(ShooterConstants.HOOD_STARTING_ANGLE.in(Rotations));
+  }
+
+  private void configKickerMotor(TalonFX motor, Alert configAlert) {
+
+    TalonFXConfiguration kickerMotorConfig = new TalonFXConfiguration();
+
+    kickerMotorConfig.TorqueCurrent.PeakForwardTorqueCurrent =
+        ShooterConstants.KICKER_PEAK_CURRENT_LIMIT;
+    kickerMotorConfig.TorqueCurrent.PeakReverseTorqueCurrent =
+        -ShooterConstants.KICKER_PEAK_CURRENT_LIMIT;
+
+    kickerMotorConfig.Slot0.kP = kP.get();
+    kickerMotorConfig.Slot0.kI = kI.get();
+    kickerMotorConfig.Slot0.kD = kD.get();
+    kickerMotorConfig.Slot0.kS = kS.get();
+    kickerMotorConfig.Slot0.kV = KV;
+    kickerMotorConfig.Slot0.kA = KA;
+    kickerMotorConfig.Feedback.SensorToMechanismRatio = ShooterConstants.SHOOT_MOTORS_GEAR_RATIO;
+
+    kickerMotorConfig.MotorOutput.Inverted =
+        IS_LEAD_INVERTED
+            ? InvertedValue.Clockwise_Positive
+            : InvertedValue.CounterClockwise_Positive;
+    kickerMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+    // It is critical that devices are successfully configured. The applyAndCheckConfiguration
+    // method will apply the configuration, read back the configuration, and ensure that it is
+    // correct. If not, it will reattempt five times and eventually, generate an alert.
+    Phoenix6Util.applyAndCheckConfiguration(motor, kickerMotorConfig, configAlert);
+    // A subsystem needs to register each device with FaultReporter. FaultReporter will check
+    // devices for faults periodically when the robot is disabled and generate alerts if any faults
+    // are found.
+    FaultReporter.getInstance().registerHardware(SUBSYSTEM_NAME, "Shooter Kicker Motor", motor);
   }
 
   private void configGamePieceDetector(CANrange detector, Alert configAlert) {

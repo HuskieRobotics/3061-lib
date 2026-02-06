@@ -16,10 +16,13 @@ public class ShooterConstants {
 
   public static final String SUBSYSTEM_NAME = "Shooter";
 
-  public static final int LEAD_MOTOR_ID = 17;
-  public static final int FOLLOWER_A_MOTOR_ID = 14;
-  public static final int FOLLOWER_B_MOTOR_ID = 29;
-  public static final int HOOD_MOTOR_ID = 19;
+  public static final int LEAD_MOTOR_ID = 20;
+  public static final int FOLLOWER_A_MOTOR_ID = 21;
+  public static final int FOLLOWER_B_MOTOR_ID = 22;
+  public static final int HOOD_MOTOR_ID = 23;
+
+  public static final int KICKER_MOTOR_ID = 19;
+
   public static final int GAME_PIECE_SENSOR_ID = 30;
 
   // PID constants are determined empirically through tuning
@@ -30,9 +33,7 @@ public class ShooterConstants {
   // feed forward constants are determined through running SysId commands and analyzing the results
   // in SysId
   public static final double KS = 0.39217; // same as 1:1 - prototype: 7.1914
-
   public static final double KV = 0.086186; // 0.12928
-
   public static final double KA = 0.022794; // 0.034191
 
   // current limits are determined based on current budget for the robot
@@ -48,25 +49,25 @@ public class ShooterConstants {
   public static final AngularVelocity VELOCITY_TOLERANCE = RotationsPerSecond.of(5.0);
 
   // Hood motor constants
-  public static final double HOOD_GEAR_RATIO = 120.0;
+  public static final double HOOD_GEAR_RATIO = 144.0;
   public static final double HOOD_LENGTH_METERS = 0.2; // example length, replace with actual
   public static final double HOOD_MASS_KG = 2.0; // example mass, replace with actual
 
   // FIXME: confirm all these values
   // For theoretical maximum positions
-  public static final Angle HOOD_MAX_ANGLE = Degrees.of(60.0);
-  public static final Angle HOOD_STARTING_ANGLE = Degrees.of(25.0);
+  public static final Angle HOOD_MAX_ANGLE = Degrees.of(52.0);
+  public static final Angle HOOD_STARTING_ANGLE = Degrees.of(20.0);
   // For soft limits
   public static final Angle UPPER_ANGLE_LIMIT = Degrees.of(50.0);
-  public static final Angle LOWER_ANGLE_LIMIT = Degrees.of(25.0);
+  public static final Angle LOWER_ANGLE_LIMIT = Degrees.of(22.0);
 
   // FIXME: change these values
-  public static final double KP_HOOD = 700; // from tuning on 2/04
+  public static final double KP_HOOD = 400;
   public static final double KI_HOOD = 0.0;
   public static final double KD_HOOD = 0.0;
-  public static final double KS_HOOD = 7.1914;
-  public static final double KV_HOOD = 0.076848;
-  public static final double KA_HOOD = 0.75841;
+  public static final double KS_HOOD = 0.50489;
+  public static final double KV_HOOD = 21.619;
+  public static final double KA_HOOD = 0.83438;
   public static final double KG_HOOD = 0.0;
 
   public static final Distance HOOD_PULLY_CIRCUMFERENCE_METERS = Inches.of(2.0);
@@ -76,6 +77,26 @@ public class ShooterConstants {
   public static final double HOOD_MOTOR_PEAK_CURRENT_DURATION = 0.1;
 
   public static final double HOOD_MOTOR_MANUAL_CONTROL_VOLTAGE = 1.0;
+
+  //
+
+  // PID constants are determined empirically through tuning
+  public static final double KICKER_KP = 19;
+  public static final double KICKER_KI = 0.0;
+  public static final double KICKER_KD = 0.0;
+
+  // feed forward constants are determined through running SysId commands and analyzing the results
+  // in SysId
+  public static final double KICKER_KS = 0.39217; // same as 1:1 - prototype: 7.1914
+  public static final double KICKER_KV = 0.086186; // 0.12928
+  public static final double KICKER_KA = 0.022794; // 0.034191
+
+  // current limits are determined based on current budget for the robot
+  public static final double KICKER_PEAK_CURRENT_LIMIT = 80;
+
+  // the following are determined based on the mechanical design of the shooter
+  public static final double KICKER_GEAR_RATIO = 1; // FIXME: find
+  public static final boolean KICKER_MOTOR_INVERTED = true;
 
   // game piece detection constants
   public static final double DETECTOR_MIN_SIGNAL_STRENGTH = 2000;
