@@ -232,11 +232,12 @@ public class ShooterIOTalonFX implements ShooterIO {
     this.shooterSim =
         new VelocitySystemSim(
             ShooterConstants.IS_LEAD_INVERTED,
-            0.05,
-            0.01,
+            KV,
+            KA,
             ShooterConstants.SHOOT_MOTORS_GEAR_RATIO,
             leadMotor,
-            followerAMotor);
+            followerAMotor,
+            followerBMotor);
 
     this.hoodSim =
         new ArmSystemSim(
@@ -317,6 +318,7 @@ public class ShooterIOTalonFX implements ShooterIO {
     inputs.hoodMotorTemp = hoodTemperatureStatusSignal.getValue();
     inputs.hoodMotorVoltage = hoodVoltageStatusSignal.getValue();
     inputs.hoodPosition = hoodPositionStatusSignal.getValue();
+    inputs.hoodReferencePosition = this.hoodReferenceAngle.copy();
 
     // Update Game Piece Detection Inputs
     inputs.hasGamePiece = gamePieceDetectedStatusSignal.getValue();
@@ -333,6 +335,11 @@ public class ShooterIOTalonFX implements ShooterIO {
           RotationsPerSecond.of(leadMotor.getClosedLoopReference().getValue());
       inputs.leadMotorClosedLoopErrorVelocity =
           RotationsPerSecond.of(leadMotor.getClosedLoopError().getValue());
+
+      inputs.hoodClosedLoopReferencePosition =
+          Rotations.of(hoodMotor.getClosedLoopReference().getValue());
+      inputs.hoodClosedLoopErrorPosition = Rotations.of(hoodMotor.getClosedLoopError().getValue());
+
       inputs.distanceToGamePiece = gamePieceDistanceStatusSignal.getValue();
       inputs.signalStrength = gamePieceSignalStrengthStatusSignal.getValue();
     }
@@ -414,7 +421,7 @@ public class ShooterIOTalonFX implements ShooterIO {
   @Override
   public void setHoodAngle(Angle angle) {
 
-    hoodMotor.setControl(hoodPositionRequest.withPosition(angle.in(Rotations)));
+    hoodMotor.setControl(hoodPositionRequest.withPosition(angle));
     this.hoodReferenceAngle = angle.copy();
   }
 
