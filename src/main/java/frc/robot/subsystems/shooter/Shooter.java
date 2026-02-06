@@ -131,7 +131,9 @@ public class Shooter extends SubsystemBase {
         io.setShooterVelocity(RotationsPerSecond.of(shooterVelocityRPS.get()));
       } else if (shooterCurrent.get() != 0) {
         io.setShooterCurrent(Amps.of(shooterCurrent.get()));
-      } else if (hoodVoltage.get() != 0) {
+      }
+
+      if (hoodVoltage.get() != 0) {
         io.setHoodVoltage(Volts.of(hoodVoltage.get()));
       } else if (hoodAngleDegrees.get() != 0) {
         io.setHoodAngle(Degrees.of(hoodAngleDegrees.get()));
