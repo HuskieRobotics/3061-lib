@@ -53,6 +53,9 @@ public interface ShooterIO {
     Voltage hoodMotorVoltage = Volts.of(0.0);
     Temperature hoodMotorTemp = Celsius.of(0.0);
     Angle hoodPosition = Degrees.of(0.0);
+    Angle hoodReferencePosition = Degrees.of(0.0);
+    Angle hoodClosedLoopReferencePosition = Degrees.of(0.0);
+    Angle hoodClosedLoopErrorPosition = Degrees.of(0.0);
 
     // Game Piece Detection
     boolean sensorConnected = false;
