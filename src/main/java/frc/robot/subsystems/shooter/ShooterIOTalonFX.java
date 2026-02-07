@@ -653,16 +653,16 @@ public class ShooterIOTalonFX implements ShooterIO {
     kickerMotorConfig.TorqueCurrent.PeakReverseTorqueCurrent =
         -ShooterConstants.KICKER_PEAK_CURRENT_LIMIT;
 
-    kickerMotorConfig.Slot0.kP = kP.get();
-    kickerMotorConfig.Slot0.kI = kI.get();
-    kickerMotorConfig.Slot0.kD = kD.get();
-    kickerMotorConfig.Slot0.kS = kS.get();
-    kickerMotorConfig.Slot0.kV = KV;
-    kickerMotorConfig.Slot0.kA = KA;
-    kickerMotorConfig.Feedback.SensorToMechanismRatio = ShooterConstants.SHOOT_MOTORS_GEAR_RATIO;
+    kickerMotorConfig.Slot0.kP = kickerKP.get();
+    kickerMotorConfig.Slot0.kI = kickerKI.get();
+    kickerMotorConfig.Slot0.kD = kickerKD.get();
+    kickerMotorConfig.Slot0.kS = kickerKS.get();
+    kickerMotorConfig.Slot0.kV = kickerKV.get();
+    kickerMotorConfig.Slot0.kA = kickerKA.get();
+    kickerMotorConfig.Feedback.SensorToMechanismRatio = ShooterConstants.KICKER_GEAR_RATIO;
 
     kickerMotorConfig.MotorOutput.Inverted =
-        IS_LEAD_INVERTED
+        KICKER_MOTOR_INVERTED
             ? InvertedValue.Clockwise_Positive
             : InvertedValue.CounterClockwise_Positive;
     kickerMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;

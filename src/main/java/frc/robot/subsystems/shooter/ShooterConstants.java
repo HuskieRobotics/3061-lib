@@ -26,15 +26,15 @@ public class ShooterConstants {
   public static final int GAME_PIECE_SENSOR_ID = 30;
 
   // PID constants are determined empirically through tuning
-  public static final double KP = 19;
+  public static final double KP = 8;  // was 14
   public static final double KI = 0.0;
   public static final double KD = 0.0;
 
   // feed forward constants are determined through running SysId commands and analyzing the results
   // in SysId
-  public static final double KS = 0.39217; // same as 1:1 - prototype: 7.1914
-  public static final double KV = 0.086186; // 0.12928
-  public static final double KA = 0.022794; // 0.034191
+  public static final double KS = 0.17154; // same as 1:1 - prototype: 7.1914
+  public static final double KV = 0.17203; // 0.12928
+  public static final double KA = 0.042211; // 0.034191
 
   // current limits are determined based on current budget for the robot
   public static final double SHOOTER_PEAK_CURRENT_LIMIT = 80;
