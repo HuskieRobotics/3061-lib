@@ -56,6 +56,7 @@ public class ShooterIOTalonFX implements ShooterIO {
   private StatusSignal<AngularVelocity> leadVelocityStatusSignal;
   private StatusSignal<Temperature> leadTemperatureStatusSignal;
   private StatusSignal<Voltage> leadVoltageStatusSignal;
+  private StatusSignal<Current> leadTorqueCurrentStatusSignal;
 
   // follower A
   private StatusSignal<Current> followerAStatorCurrentStatusSignal;
@@ -193,6 +194,7 @@ public class ShooterIOTalonFX implements ShooterIO {
     leadSupplyCurrentStatusSignal = leadMotor.getSupplyCurrent();
     leadTemperatureStatusSignal = leadMotor.getDeviceTemp();
     leadVoltageStatusSignal = leadMotor.getMotorVoltage();
+    leadTorqueCurrentStatusSignal = leadMotor.getTorqueCurrent();
 
     followerAStatorCurrentStatusSignal = followerAMotor.getStatorCurrent();
     followerASupplyCurrentStatusSignal = followerAMotor.getSupplyCurrent();
@@ -230,6 +232,7 @@ public class ShooterIOTalonFX implements ShooterIO {
         leadSupplyCurrentStatusSignal,
         leadTemperatureStatusSignal,
         leadVoltageStatusSignal,
+        leadTorqueCurrentStatusSignal,
         followerAStatorCurrentStatusSignal,
         followerASupplyCurrentStatusSignal,
         followerATemperatureStatusSignal,
@@ -314,6 +317,7 @@ public class ShooterIOTalonFX implements ShooterIO {
                 leadSupplyCurrentStatusSignal,
                 leadTemperatureStatusSignal,
                 leadVoltageStatusSignal,
+                leadTorqueCurrentStatusSignal,
                 leadVelocityStatusSignal));
     inputs.followerAConnected =
         followerAConnectedDebouncer.calculate(
@@ -358,6 +362,7 @@ public class ShooterIOTalonFX implements ShooterIO {
     inputs.leadMotorVelocity = leadVelocityStatusSignal.getValue();
     inputs.leadMotorTemp = leadTemperatureStatusSignal.getValue();
     inputs.leadMotorVoltage = leadVoltageStatusSignal.getValue();
+    inputs.leadMotorTorqueCurrent = leadTorqueCurrentStatusSignal.getValue();
     inputs.leadMotorReferenceVelocity = this.leadReferenceVelocity.copy();
 
     // Updates Kicker Motor Inputs
