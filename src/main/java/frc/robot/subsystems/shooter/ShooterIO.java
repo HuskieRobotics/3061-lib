@@ -31,6 +31,7 @@ public interface ShooterIO {
     AngularVelocity leadMotorClosedLoopErrorVelocity = RotationsPerSecond.of(0.0);
     Temperature leadMotorTemp = Celsius.of(0.0);
     Voltage leadMotorVoltage = Volts.of(0.0);
+    Current leadMotorTorqueCurrent = Amps.of(0.0);
 
     // Kicker Motor Inputs
     boolean kickerConnected = false;
