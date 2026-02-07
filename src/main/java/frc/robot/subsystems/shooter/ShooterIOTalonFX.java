@@ -260,13 +260,17 @@ public class ShooterIOTalonFX implements ShooterIO {
 
     followerAMotor.setControl(
         new Follower(
-            FOLLOWER_A_MOTOR_ID,
-            IS_FOLLOWER_A_INVERTED ? MotorAlignmentValue.Opposed : MotorAlignmentValue.Aligned));
+            LEAD_MOTOR_ID,
+            IS_FOLLOWER_A_INVERTED_FROM_LEAD
+                ? MotorAlignmentValue.Opposed
+                : MotorAlignmentValue.Aligned));
 
     followerBMotor.setControl(
         new Follower(
-            FOLLOWER_B_MOTOR_ID,
-            IS_FOLLOWER_B_INVERTED ? MotorAlignmentValue.Opposed : MotorAlignmentValue.Aligned));
+            LEAD_MOTOR_ID,
+            IS_FOLLOWER_B_INVERTED_FROM_LEAD
+                ? MotorAlignmentValue.Opposed
+                : MotorAlignmentValue.Aligned));
 
     configGamePieceDetector(gamePieceDetector, gamePieceDetectorConfigAlert);
 

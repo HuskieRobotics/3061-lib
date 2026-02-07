@@ -41,9 +41,9 @@ public class ShooterConstants {
 
   // the following are determined based on the mechanical design of the shooter
   public static final double SHOOT_MOTORS_GEAR_RATIO = 1.5;
-  public static final boolean IS_LEAD_INVERTED = true;
-  public static final boolean IS_FOLLOWER_A_INVERTED = true;
-  public static final boolean IS_FOLLOWER_B_INVERTED = false;
+  public static final boolean IS_LEAD_INVERTED = true; // CW positive
+  public static final boolean IS_FOLLOWER_A_INVERTED_FROM_LEAD = true; // CCW positive
+  public static final boolean IS_FOLLOWER_B_INVERTED_FROM_LEAD = false; // CW positive
   public static final boolean IS_HOOD_INVERTED = false;
   public static final AngularVelocity SHOOTER_IDLE_VELOCITY = RotationsPerSecond.of(10.0);
   public static final AngularVelocity VELOCITY_TOLERANCE = RotationsPerSecond.of(5.0);
@@ -81,15 +81,15 @@ public class ShooterConstants {
   //
 
   // PID constants are determined empirically through tuning
-  public static final double KICKER_KP = 19;
+  public static final double KICKER_KP = 12;
   public static final double KICKER_KI = 0.0;
   public static final double KICKER_KD = 0.0;
 
   // feed forward constants are determined through running SysId commands and analyzing the results
   // in SysId
-  public static final double KICKER_KS = 0.39217; // same as 1:1 - prototype: 7.1914
-  public static final double KICKER_KV = 0.086186; // 0.12928
-  public static final double KICKER_KA = 0.022794; // 0.034191
+  public static final double KICKER_KS = 0.12132; // same as 1:1 - prototype: 7.1914
+  public static final double KICKER_KV = 0.14996; // 0.12928
+  public static final double KICKER_KA = 0.030084; // 0.034191
 
   // current limits are determined based on current budget for the robot
   public static final double KICKER_PEAK_CURRENT_LIMIT = 80;
