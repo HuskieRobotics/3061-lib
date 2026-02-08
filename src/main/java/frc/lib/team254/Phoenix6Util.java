@@ -395,13 +395,12 @@ public class Phoenix6Util {
       boolean canivore, double updateFrequency, BaseStatusSignal... signals) {
     if (updateFrequency > 0.0) {
       BaseStatusSignal.setUpdateFrequencyForAll(updateFrequency, signals);
-      
+
       for (BaseStatusSignal signal : signals) {
         signal.setUpdateFrequency(updateFrequency);
-        signal.optimizeBusUtilization();
       }
     }
-    
+
     for (BaseStatusSignal signal : signals) {
       Logger.recordOutput("StatusSignals/" + signal.getName(), signal.getAppliedUpdateFrequency());
     }

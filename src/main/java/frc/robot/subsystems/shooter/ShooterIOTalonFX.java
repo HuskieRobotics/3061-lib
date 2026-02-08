@@ -12,6 +12,7 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.CANrange;
+import com.ctre.phoenix6.hardware.ParentDevice;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -31,6 +32,7 @@ import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.sim.VelocitySystemSim;
 import frc.lib.team6328.util.LoggedTunableNumber;
 import frc.robot.Constants;
+import org.littletonrobotics.junction.Logger;
 
 public class ShooterIOTalonFX implements ShooterIO {
 
@@ -135,19 +137,44 @@ public class ShooterIOTalonFX implements ShooterIO {
     // need to refresh any StatusSignals in this class.
     Phoenix6Util.registerSignals(
         true,
+        100.0,
         shootMotorTopVelocityStatusSignal,
         shootMotorBottomVelocityStatusSignal,
         shootMotorTopStatorCurrentStatusSignal,
         shootMotorBottomStatorCurrentStatusSignal,
         shootMotorTopSupplyCurrentStatusSignal,
         shootMotorBottomSupplyCurrentStatusSignal,
-        shootMotorTopTemperatureStatusSignal,
-        shootMotorBottomTemperatureStatusSignal,
         shootMotorTopVoltageStatusSignal,
         shootMotorBottomVoltageStatusSignal,
         gamePieceDistanceStatusSignal,
         gamePieceSignalStrengthStatusSignal,
         gamePieceDetectedStatusSignal);
+
+    Phoenix6Util.registerSignals(
+        true, 4.0, shootMotorTopTemperatureStatusSignal, shootMotorBottomTemperatureStatusSignal);
+
+    ParentDevice.optimizeBusUtilizationForAll(
+        4.0, shootMotorTop, shootMotorBottom, gamePieceDetector);
+
+    for (BaseStatusSignal signal :
+        new BaseStatusSignal[] {
+          shootMotorTopVelocityStatusSignal,
+          shootMotorBottomVelocityStatusSignal,
+          shootMotorTopStatorCurrentStatusSignal,
+          shootMotorBottomStatorCurrentStatusSignal,
+          shootMotorTopSupplyCurrentStatusSignal,
+          shootMotorBottomSupplyCurrentStatusSignal,
+          shootMotorTopTemperatureStatusSignal,
+          shootMotorBottomTemperatureStatusSignal,
+          shootMotorTopVoltageStatusSignal,
+          shootMotorBottomVoltageStatusSignal,
+          gamePieceDistanceStatusSignal,
+          gamePieceSignalStrengthStatusSignal,
+          gamePieceDetectedStatusSignal
+        }) {
+      Logger.recordOutput(
+          "StatusSignals/Shooter/" + signal.getName(), signal.getAppliedUpdateFrequency());
+    }
 
     configShootMotor(shootMotorTop, SHOOT_TOP_INVERTED, true, topMotorConfigAlert);
     configShootMotor(shootMotorBottom, SHOOT_BOTTOM_INVERTED, false, bottomMotorConfigAlert);

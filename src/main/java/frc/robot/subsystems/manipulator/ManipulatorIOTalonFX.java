@@ -58,6 +58,7 @@ public class ManipulatorIOTalonFX implements ManipulatorIO {
     // need to refresh any StatusSignals in this class.
     Phoenix6Util.registerSignals(
         false,
+        0.0,
         manipulatorMotorStatorCurrent,
         manipulatorMotorSupplyCurrent,
         manipulatorMotorTemp,

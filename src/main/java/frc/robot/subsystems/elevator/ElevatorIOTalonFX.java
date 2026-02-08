@@ -116,6 +116,7 @@ public class ElevatorIOTalonFX implements ElevatorIO {
     // need to refresh any StatusSignals in this class.
     Phoenix6Util.registerSignals(
         true,
+        0.0,
         leadStatorCurrent,
         followerStatorCurrent,
         leadVoltageSupplied,

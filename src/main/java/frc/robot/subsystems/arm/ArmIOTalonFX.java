@@ -97,6 +97,7 @@ public class ArmIOTalonFX implements ArmIO {
     // need to refresh any StatusSignals in this class.
     Phoenix6Util.registerSignals(
         true,
+        0.0,
         angleMotorPositionStatusSignal,
         angleMotorStatorCurrentStatusSignal,
         angleMotorSupplyCurrentStatusSignal,

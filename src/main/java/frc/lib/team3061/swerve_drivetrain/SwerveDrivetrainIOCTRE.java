@@ -380,7 +380,7 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
     this.rollStatusSignal = this.getPigeon2().getRoll();
     this.pitchStatusSignal = this.getPigeon2().getPitch();
 
-    Phoenix6Util.registerSignals(true, rollStatusSignal, pitchStatusSignal);
+    Phoenix6Util.registerSignals(true, 0.0, rollStatusSignal, pitchStatusSignal);
 
     // register all drivetrain-related devices with FaultReporter
     FaultReporter.getInstance().registerHardware(SUBSYSTEM_NAME, "Pigeon", this.getPigeon2());

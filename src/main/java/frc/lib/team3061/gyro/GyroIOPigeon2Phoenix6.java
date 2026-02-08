@@ -52,6 +52,7 @@ public class GyroIOPigeon2Phoenix6 implements GyroIO {
     // StatusSignals in this class.
     Phoenix6Util.registerSignals(
         true,
+        0.0,
         this.yawStatusSignal,
         this.angularVelocityZStatusSignal,
         this.pitchStatusSignal,
