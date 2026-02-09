@@ -126,6 +126,8 @@ public class ShooterIOTalonFX implements ShooterIO {
   private final LoggedTunableNumber kI = new LoggedTunableNumber("Shooter/kI", ShooterConstants.KI);
   private final LoggedTunableNumber kD = new LoggedTunableNumber("Shooter/kD", ShooterConstants.KD);
   private final LoggedTunableNumber kS = new LoggedTunableNumber("Shooter/kS", ShooterConstants.KS);
+  private final LoggedTunableNumber kV = new LoggedTunableNumber("Shooter/kV", ShooterConstants.KV);
+  private final LoggedTunableNumber kA = new LoggedTunableNumber("Shooter/kA", ShooterConstants.KA);
 
   private final LoggedTunableNumber kPHood =
       new LoggedTunableNumber("Shooter/Hood/kP", ShooterConstants.KP_HOOD);
@@ -434,13 +436,17 @@ public class ShooterIOTalonFX implements ShooterIO {
           config.kI = pid[1];
           config.kD = pid[2];
           config.kS = pid[3];
+          config.kV = pid[4];
+          config.kA = pid[5];
 
           this.leadMotor.getConfigurator().apply(config);
         },
         kP,
         kI,
         kD,
-        kS);
+        kS,
+        kV,
+        kA);
 
     LoggedTunableNumber.ifChanged(
         hashCode(),
@@ -562,8 +568,8 @@ public class ShooterIOTalonFX implements ShooterIO {
     leadMotorConfig.Slot0.kI = kI.get();
     leadMotorConfig.Slot0.kD = kD.get();
     leadMotorConfig.Slot0.kS = kS.get();
-    leadMotorConfig.Slot0.kV = KV;
-    leadMotorConfig.Slot0.kA = KA;
+    leadMotorConfig.Slot0.kV = kV.get();
+    leadMotorConfig.Slot0.kA = kA.get();
 
     leadMotorConfig.Feedback.SensorToMechanismRatio = ShooterConstants.SHOOT_MOTORS_GEAR_RATIO;
 
