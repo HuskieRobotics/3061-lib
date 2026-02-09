@@ -33,6 +33,7 @@ public class VisionIONorthstar implements VisionIO {
   private final String deviceId;
   private final DoubleArraySubscriber observationSubscriber;
   private final DoubleArraySubscriber objDetectObservationSubscriber;
+  private final DoubleArraySubscriber powerMetricsSubscriber;
   private final IntegerSubscriber fpsAprilTagsSubscriber;
   private final IntegerSubscriber fpsObjDetectSubscriber;
   private final StringPublisher eventNamePublisher;
@@ -99,6 +100,8 @@ public class VisionIONorthstar implements VisionIO {
                 PubSubOption.periodic(0.01));
     fpsAprilTagsSubscriber = outputTable.getIntegerTopic("fps_apriltags").subscribe(0);
     fpsObjDetectSubscriber = outputTable.getIntegerTopic("fps_objdetect").subscribe(0);
+    powerMetricsSubscriber =
+        outputTable.getDoubleArrayTopic("power_metrics").subscribe(new double[] {});
 
     slowPeriodicTimer.start();
   }
@@ -156,6 +159,32 @@ public class VisionIONorthstar implements VisionIO {
     }
     if (slowPeriodic) {
       objDetectInputs.fps = fpsObjDetectSubscriber.get();
+    }
+
+    // Get power metrics
+    if (slowPeriodic) {
+      double[] powerMetrics = powerMetricsSubscriber.get();
+      if (powerMetrics.length >= 4) {
+        inputs.cpuPower = powerMetrics[0];
+        inputs.gpuPower = powerMetrics[1];
+        inputs.anePower = powerMetrics[2];
+        switch ((int) powerMetrics[3]) {
+          case 0:
+            inputs.thermalPressure = "Nominal";
+            break;
+          case 1:
+            inputs.thermalPressure = "Fair";
+            break;
+          case 2:
+            inputs.thermalPressure = "Serious";
+            break;
+          case 3:
+            inputs.thermalPressure = "Critical";
+            break;
+          default:
+            inputs.thermalPressure = "Unknown";
+        }
+      }
     }
   }
 

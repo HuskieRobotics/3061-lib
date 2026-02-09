@@ -16,6 +16,10 @@ public interface VisionIO {
   public static class VisionIOInputs {
     boolean connected;
     PoseObservation[] poseObservations = new PoseObservation[0];
+    double cpuPower = 0.0;
+    double gpuPower = 0.0;
+    double anePower = 0.0;
+    String thermalPressure = "";
   }
 
   @AutoLog
