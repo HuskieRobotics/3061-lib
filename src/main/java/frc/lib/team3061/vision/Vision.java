@@ -62,6 +62,11 @@ public class Vision extends SubsystemBase {
           AlertType.kWarning);
   private final Alert unofficialAprilTagLayoutAlert = new Alert("", AlertType.kInfo);
 
+  private Alert northstarThermalAlertWarning =
+      new Alert("Northstar co-processor thermal pressure is high.", AlertType.kWarning);
+  private Alert northstarThermalAlertError =
+      new Alert("Northstar co-processor thermal pressure is critical!", AlertType.kError);
+
   private boolean isEnabled = true;
   private boolean isVisionUpdating = false;
   private final Debouncer isVisionUpdatingDebounce =
@@ -175,6 +180,10 @@ public class Vision extends SubsystemBase {
   @Override
   public void periodic() {
     isVisionUpdating = false;
+    boolean northstarThermalHigh = false;
+    boolean northstarThermalCritical = false;
+    northstarThermalAlertWarning.set(false);
+    northstarThermalAlertError.set(false);
 
     for (int cameraIndex = 0; cameraIndex < visionIOs.length; cameraIndex++) {
       visionIOs[cameraIndex].updateInputs(
@@ -196,6 +205,18 @@ public class Vision extends SubsystemBase {
               + RobotConfig.getInstance().getCameraConfigs()[cameraIndex].location()
               + "/ObjDetect",
           objDetectInputs[cameraIndex]);
+
+      if (inputs[cameraIndex].thermalPressure.equals("Critical")) {
+        northstarThermalCritical = true;
+      } else if (inputs[cameraIndex].thermalPressure.equals("High")) {
+        northstarThermalHigh = true;
+      }
+    }
+
+    if (northstarThermalCritical) {
+      northstarThermalAlertError.set(true);
+    } else if (northstarThermalHigh) {
+      northstarThermalAlertWarning.set(true);
     }
 
     // Update recording state
