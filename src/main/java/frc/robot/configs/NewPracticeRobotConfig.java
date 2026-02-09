@@ -126,8 +126,8 @@ public class NewPracticeRobotConfig extends RobotConfig {
   private static final Transform3d ROBOT_TO_FR_CAMERA =
       new Transform3d(
           new Translation3d(
-              Units.inchesToMeters(-8.0165),
-              Units.inchesToMeters(11.4425),
+              Units.inchesToMeters(8.0165),
+              Units.inchesToMeters(-11.4425),
               Units.inchesToMeters(7.436)),
           new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(-52.239)));
 
@@ -168,8 +168,8 @@ public class NewPracticeRobotConfig extends RobotConfig {
   private static final Transform3d ROBOT_TO_CENTER_CAMERA =
       new Transform3d(
           new Translation3d(
-              Units.inchesToMeters(8.0165),
-              Units.inchesToMeters(-11.4425),
+              Units.inchesToMeters(-8.0165),
+              Units.inchesToMeters(11.4425),
               Units.inchesToMeters(7.436)),
           new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(142.239)));
 

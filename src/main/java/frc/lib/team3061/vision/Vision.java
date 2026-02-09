@@ -78,10 +78,12 @@ public class Vision extends SubsystemBase {
   private List<Pose3d> allRobotPoses = new ArrayList<>();
   private List<Pose3d> allRobotPosesAccepted = new ArrayList<>();
   private List<Pose3d> allRobotPosesRejected = new ArrayList<>();
+  private List<Pose3d> allRejectedTagPoses = new ArrayList<>();
   private List<Pose3d> allTagPoses = new ArrayList<>();
   private List<Pose3d> allDetectedObjectPoses = new ArrayList<>();
 
   private List<List<Pose3d>> tagPoses;
+  private List<List<Pose3d>> rejectedTagPoses;
   private List<List<Pose3d>> cameraPoses;
   private List<List<Pose3d>> robotPoses;
   private List<List<Pose3d>> robotPosesAccepted;
@@ -119,6 +121,7 @@ public class Vision extends SubsystemBase {
     this.camerasToConsider = new ArrayList<>();
 
     tagPoses = new ArrayList<List<Pose3d>>(visionIOs.length);
+    rejectedTagPoses = new ArrayList<List<Pose3d>>(visionIOs.length);
     cameraPoses = new ArrayList<List<Pose3d>>(visionIOs.length);
     robotPoses = new ArrayList<List<Pose3d>>(visionIOs.length);
     robotPosesAccepted = new ArrayList<List<Pose3d>>(visionIOs.length);
@@ -132,6 +135,7 @@ public class Vision extends SubsystemBase {
       this.camerasToConsider.add(i);
 
       tagPoses.add(new ArrayList<>());
+      rejectedTagPoses.add(new ArrayList<>());
       cameraPoses.add(new ArrayList<>());
       robotPoses.add(new ArrayList<>());
       robotPosesAccepted.add(new ArrayList<>());
@@ -204,6 +208,7 @@ public class Vision extends SubsystemBase {
     this.allRobotPosesAccepted.clear();
     this.allRobotPosesRejected.clear();
     this.allTagPoses.clear();
+    this.allRejectedTagPoses.clear();
     this.allDetectedObjectPoses.clear();
 
     for (int cameraIndex = 0; cameraIndex < visionIOs.length; cameraIndex++) {
@@ -214,6 +219,7 @@ public class Vision extends SubsystemBase {
 
       // Initialize logging values
       tagPoses.get(cameraIndex).clear();
+      rejectedTagPoses.get(cameraIndex).clear();
       cameraPoses.get(cameraIndex).clear();
       robotPoses.get(cameraIndex).clear();
       robotPosesAccepted.get(cameraIndex).clear();
@@ -316,6 +322,16 @@ public class Vision extends SubsystemBase {
                 SUBSYSTEM_NAME + "/" + cameraLocation + "/StdDevT", stdDev.get(2, 0));
           } else {
             robotPosesRejected.get(cameraIndex).add(estimatedRobotPose3d);
+            final int finalCameraIndex = cameraIndex;
+            for (int tagID = 1; tagID < MAX_NUMBER_TAGS; tagID++) {
+              if ((observation.tagsSeenBitMap() & (1L << tagID)) != 0) {
+                Optional<Pose3d> tagPose = this.layout.getTagPose(tagID);
+                tagPose.ifPresent(
+                    (e) -> {
+                      rejectedTagPoses.get(finalCameraIndex).add(e);
+                    });
+              }
+            }
             if (ENABLE_DETAILED_LOGGING) {
               lastPoseEstimationRejectedTimes.put(estimatedRobotPose3d, Timer.getTimestamp());
             }
@@ -370,6 +386,9 @@ public class Vision extends SubsystemBase {
           SUBSYSTEM_NAME + "/" + cameraLocation + "/TagPoses",
           tagPoses.get(cameraIndex).toArray(Pose3d[]::new));
       Logger.recordOutput(
+          SUBSYSTEM_NAME + "/" + cameraLocation + "/RejectedTagPoses",
+          rejectedTagPoses.get(cameraIndex).toArray(Pose3d[]::new));
+      Logger.recordOutput(
           SUBSYSTEM_NAME + "/" + cameraLocation + "/CameraPoses",
           cameraPoses.get(cameraIndex).toArray(new Pose3d[cameraPoses.get(cameraIndex).size()]));
       Logger.recordOutput(
@@ -397,6 +416,7 @@ public class Vision extends SubsystemBase {
         allRobotPosesAccepted.addAll(robotPosesAccepted.get(cameraIndex));
         allRobotPosesRejected.addAll(robotPosesRejected.get(cameraIndex));
         allTagPoses.addAll(tagPoses.get(cameraIndex));
+        allRejectedTagPoses.addAll(rejectedTagPoses.get(cameraIndex));
       }
     }
 
