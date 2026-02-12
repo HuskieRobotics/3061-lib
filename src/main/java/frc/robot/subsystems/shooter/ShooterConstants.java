@@ -26,7 +26,7 @@ public class ShooterConstants {
   public static final int GAME_PIECE_SENSOR_ID = 30;
 
   // PID constants are determined empirically through tuning
-  public static final double KP = 28.0;
+  public static final double KP = 21.0;
   public static final double KI = 0.0;
   public static final double KD = 0.0;
 
