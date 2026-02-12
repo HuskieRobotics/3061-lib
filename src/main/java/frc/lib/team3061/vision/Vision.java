@@ -286,7 +286,9 @@ public class Vision extends SubsystemBase {
                       || Math.abs(observation.reprojectionError()) < REPROJECTION_ERROR_THRESHOLD)
                   && poseIsOnField(estimatedRobotPose3d);
           boolean acceptPose =
-              acceptPoseForPoseReset && arePoseRotationsReasonable(estimatedRobotPose3d);
+              acceptPoseForPoseReset
+                  && (arePoseRotationsReasonable(estimatedRobotPose3d)
+                      || DriverStation.isDisabled());
 
           Matrix<N3, N1> stdDev = null;
           if (acceptPoseForPoseReset) {
