@@ -62,11 +62,11 @@ public class ShooterConstants {
   public static final Angle LOWER_ANGLE_LIMIT = Degrees.of(22.0);
 
   // FIXME: change these values
-  public static final double KP_HOOD = 400;
+  public static final double KP_HOOD = 800;
   public static final double KI_HOOD = 0.0;
   public static final double KD_HOOD = 0.0;
   public static final double KS_HOOD = 0.4; // 0.50489;
-  public static final double KV_HOOD = 21.619;
+  public static final double KV_HOOD = 0.0; // 21.619
   public static final double KA_HOOD = 0.83438;
   public static final double KG_HOOD = 0.0;
 

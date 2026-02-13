@@ -21,6 +21,7 @@ import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
 import com.ctre.phoenix6.signals.UpdateModeValue;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.Angle;
@@ -629,6 +630,8 @@ public class ShooterIOTalonFX implements ShooterIO {
     angleMotorConfig.Slot0.withGravityType(GravityTypeValue.Arm_Cosine);
     angleMotorConfig.Slot0.kA = kAHood.get();
     angleMotorConfig.Slot0.kV = kVHood.get();
+
+    angleMotorConfig.Slot0.StaticFeedforwardSign = StaticFeedforwardSignValue.UseClosedLoopSign;
 
     angleMotorConfig.MotorOutput.Inverted =
         ShooterConstants.IS_HOOD_INVERTED
