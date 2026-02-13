@@ -26,14 +26,14 @@ public class ShooterConstants {
   public static final int GAME_PIECE_SENSOR_ID = 30;
 
   // PID constants are determined empirically through tuning
-  public static final double KP = 12.0;
+  public static final double KP = 8.0;
   public static final double KI = 0.0;
   public static final double KD = 0.0;
 
   // feed forward constants are determined through running SysId commands and analyzing the results
   // in SysId
-  public static final double KS = 5; // same as 1:1 - prototype: 7.1914
-  public static final double KV = 0.015; // 0.12928
+  public static final double KS = 5.2; // same as 1:1 - prototype: 7.1914
+  public static final double KV = 0.018; // 0.12928
   public static final double KA = 0.0; // 0.034191
 
   // current limits are determined based on current budget for the robot
@@ -65,7 +65,7 @@ public class ShooterConstants {
   public static final double KP_HOOD = 400;
   public static final double KI_HOOD = 0.0;
   public static final double KD_HOOD = 0.0;
-  public static final double KS_HOOD = 0.50489;
+  public static final double KS_HOOD = 0.4; // 0.50489;
   public static final double KV_HOOD = 21.619;
   public static final double KA_HOOD = 0.83438;
   public static final double KG_HOOD = 0.0;
@@ -81,15 +81,15 @@ public class ShooterConstants {
   //
 
   // PID constants are determined empirically through tuning
-  public static final double KICKER_KP = 12;
+  public static final double KICKER_KP = 8;
   public static final double KICKER_KI = 0.0;
   public static final double KICKER_KD = 0.0;
 
   // feed forward constants are determined through running SysId commands and analyzing the results
   // in SysId
-  public static final double KICKER_KS = 0.12132; // same as 1:1 - prototype: 7.1914
-  public static final double KICKER_KV = 0.14996; // 0.12928
-  public static final double KICKER_KA = 0.030084; // 0.034191
+  public static final double KICKER_KS = 13.75; // same as 1:1 - prototype: 7.1914
+  public static final double KICKER_KV = 0.28; // 0.12928
+  public static final double KICKER_KA = 0; // 0.034191
 
   // current limits are determined based on current budget for the robot
   public static final double KICKER_PEAK_CURRENT_LIMIT = 80;
