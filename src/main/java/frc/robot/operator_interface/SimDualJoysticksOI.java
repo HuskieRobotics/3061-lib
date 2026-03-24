@@ -74,6 +74,11 @@ public class SimDualJoysticksOI extends OperatorDashboard {
   }
 
   @Override
+  public Trigger getMoveArmLowPositionTrigger(){
+    return rotateJoystickButtons[5];
+  }
+
+  @Override
   public Trigger getInterruptAll() {
     return rotateJoystickButtons[4];
   }
