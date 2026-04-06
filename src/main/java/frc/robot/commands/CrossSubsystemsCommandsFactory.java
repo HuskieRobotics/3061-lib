@@ -174,6 +174,16 @@ public class CrossSubsystemsCommandsFactory {
         .withName("Override driveToPose");
   }
 
+  private static Command goToLowMiddleThenHighCommand(
+    OperatorInterface oi,
+      Arm arm
+     ) {
+        return new Command() {
+            Commands.runOnce(arm.setAngle(LOWER_ANGLE_LIMIT)),
+            
+        };
+      }
+
   private static Pose2d getTargetPose() {
     return new Pose2d(2.0, 5.0, Rotation2d.fromDegrees(90.0));
   }
