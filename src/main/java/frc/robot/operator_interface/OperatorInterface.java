@@ -119,4 +119,10 @@ public interface OperatorInterface {
   public default Trigger getLowerElevatorSlowButton() {
     return new Trigger(() -> false);
   }
+
+  // XRP TRIGGER
+
+  public default Trigger getSpinOneRevolutionButton() {
+    return new Trigger(() -> false);
+  }
 }

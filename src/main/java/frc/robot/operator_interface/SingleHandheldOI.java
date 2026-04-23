@@ -79,4 +79,9 @@ public class SingleHandheldOI extends OperatorDashboard {
   public Trigger getSysIdQuasistaticReverse() {
     return controller.start().and(controller.x());
   }
+
+  @Override
+  public Trigger getSpinOneRevolutionButton() {
+    return controller.x();
+  }
 }

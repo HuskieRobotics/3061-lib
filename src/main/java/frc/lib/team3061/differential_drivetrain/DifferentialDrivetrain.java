@@ -57,6 +57,15 @@ public class DifferentialDrivetrain extends SubsystemBase {
   }
 
   /**
+   * Returns the current heading of the robot.
+   *
+   * @return the current heading as a Rotation2d
+   */
+  public Rotation2d getHeading() {
+    return Rotation2d.fromRadians(this.inputs.heading.in(Radians));
+  }
+
+  /**
    * Returns the pose of the robot (e.g., x and y position of the robot on the field and the robot's
    * rotation). The origin of the field is always the blue origin (i.e., the positive x-axis points
    * away from the blue alliance wall). Zero degrees is aligned to the positive x axis and increases
