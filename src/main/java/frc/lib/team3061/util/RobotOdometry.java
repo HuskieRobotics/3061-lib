@@ -1,11 +1,13 @@
 package frc.lib.team3061.util;
 
-import static frc.robot.Constants.TUNING_MODE;
+import static frc.robot.Constants.ENABLE_EXTRA_LOGGING;
 
 import com.ctre.phoenix6.Utils;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Twist2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import java.util.Optional;
@@ -24,6 +26,8 @@ import org.littletonrobotics.junction.Logger;
 public abstract class RobotOdometry {
   private static RobotOdometry robotOdometry;
   private CustomPoseEstimator customEstimator = null;
+
+  private ChassisSpeeds chassisSpeeds = null;
 
   /**
    * When tuning vision, it is useful to log vision pose estimates and display them in
@@ -111,7 +115,7 @@ public abstract class RobotOdometry {
 
     // log the difference between the vision pose estimate and the pose estimate corresponding to
     // the same timestamp
-    if (TUNING_MODE) {
+    if (ENABLE_EXTRA_LOGGING) {
       var sample = this.sampleAt(adjustedTimestamp);
       if (!sample.isEmpty()) {
         Pose2d pastPose = sample.get();
@@ -120,6 +124,52 @@ public abstract class RobotOdometry {
         Logger.recordOutput("RobotOdometry/visionPoseDiff", diff);
       }
     }
+  }
+
+  /**
+   * Sets the ChassisSpeeds for RobotOdometry (called from the drive train)
+   *
+   * @param customOdometry
+   */
+  public void updateChassisSpeeds(ChassisSpeeds speeds) {
+    this.chassisSpeeds = speeds;
+  }
+
+  /**
+   * Returns the ChassisSpeeds for RobotOdometry
+   *
+   * @return ChassisSpeeds
+   */
+  public ChassisSpeeds getRobotRelativeSpeeds() {
+    return this.chassisSpeeds;
+  }
+
+  /**
+   * Returns the Field Relative ChassisSpeeds for RobotOdometry
+   *
+   * @param customOdometry
+   */
+  public ChassisSpeeds getFieldRelativeSpeeds() {
+    return ChassisSpeeds.fromRobotRelativeSpeeds(
+        this.chassisSpeeds, this.getEstimatedPose().getRotation());
+  }
+
+  /**
+   * Returns the projected future pose of the robot based on the current pose and translational and
+   * rotational velocities.
+   *
+   * @param secondsInFuture the number of seconds in the future to project the pose
+   * @return the projected future pose of the robot
+   */
+  public Pose2d getFutureRobotPose(double secondsInFuture) {
+    ChassisSpeeds robotRelativeSpeeds = this.getRobotRelativeSpeeds();
+
+    return this.getEstimatedPose()
+        .exp(
+            new Twist2d(
+                robotRelativeSpeeds.vxMetersPerSecond * secondsInFuture,
+                robotRelativeSpeeds.vyMetersPerSecond * secondsInFuture,
+                robotRelativeSpeeds.omegaRadiansPerSecond * secondsInFuture));
   }
 
   /**

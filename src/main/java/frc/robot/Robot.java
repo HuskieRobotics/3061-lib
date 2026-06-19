@@ -4,8 +4,6 @@
 
 package frc.robot;
 
-import static frc.robot.Constants.TUNING_MODE;
-
 import com.ctre.phoenix6.CANBus;
 import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.pathfinding.Pathfinding;
@@ -19,7 +17,6 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.IterativeRobotBase;
 import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.Threads;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Watchdog;
 import edu.wpi.first.wpilibj.simulation.DriverStationSim;
@@ -63,11 +60,8 @@ public class Robot extends LoggedRobot {
 
   private final Timer disabledTimer = new Timer();
   private final Timer canInitialErrorTimer = new Timer();
-  private final Timer canErrorTimer = new Timer();
   private final Timer canivoreErrorTimer = new Timer();
 
-  private final Alert canErrorAlert =
-      new Alert("CAN errors detected, robot may not be controllable.", AlertType.kError);
   private final Alert canivoreErrorAlert =
       new Alert("CANivore error detected, robot may not be controllable.", AlertType.kError);
   private final Alert logReceiverQueueAlert =
@@ -173,20 +167,20 @@ public class Robot extends LoggedRobot {
 
     // Logging callback for target robot pose
     PathPlannerLogging.setLogTargetPoseCallback(
-        pose -> Logger.recordOutput("PathFollowing/targetPose", pose));
-
+        pose -> {
+          Logger.recordOutput("PathFollowing/targetPose", pose);
+          robotContainer.setPathFollowingTargetPose(pose);
+        });
     // Logging callback for the active path, this is sent as a list of poses
     PathPlannerLogging.setLogActivePathCallback(
         poses -> Logger.recordOutput("PathFollowing/activePath", poses.toArray(new Pose2d[0])));
 
     // Start timers
     canInitialErrorTimer.restart();
-    canErrorTimer.restart();
     canivoreErrorTimer.restart();
     disabledTimer.restart();
 
     // adjust loop overrun warning timeout
-    if (!Constants.TUNING_MODE) {
       try {
         Field watchdogField = IterativeRobotBase.class.getDeclaredField("m_watchdog");
         watchdogField.setAccessible(true);
@@ -195,7 +189,8 @@ public class Robot extends LoggedRobot {
       } catch (Exception e) {
         DriverStation.reportWarning("Failed to disable loop overrun warnings", false);
       }
-    }
+
+    CommandScheduler.getInstance().setPeriod(0.2);
 
     // Instantiate our RobotContainer. This will perform all our button bindings,
     // and put our autonomous chooser on the dashboard.
@@ -211,9 +206,9 @@ public class Robot extends LoggedRobot {
     // DO THIS AFTER CONFIGURATION OF YOUR DESIRED PATHFINDER
     CommandScheduler.getInstance().schedule(PathfindingCommand.warmupCommand());
 
-    if (!TUNING_MODE) {
-      Threads.setCurrentThreadPriority(true, 10);
-    }
+    // if (!TUNING_MODE) {
+    //   Threads.setCurrentThreadPriority(true, 1);
+    // }
   }
 
   /**
@@ -241,20 +236,6 @@ public class Robot extends LoggedRobot {
 
     logReceiverQueueAlert.set(Logger.getReceiverQueueFault());
 
-    // Check CAN status
-    var canStatus = RobotController.getCANStatus();
-    Logger.recordOutput("CANStatus/OffCount", canStatus.busOffCount);
-    Logger.recordOutput("CANStatus/TxFullCount", canStatus.txFullCount);
-    Logger.recordOutput("CANStatus/ReceiveErrorCount", canStatus.receiveErrorCount);
-    Logger.recordOutput("CANStatus/TransmitErrorCount", canStatus.transmitErrorCount);
-
-    if (canStatus.transmitErrorCount > 0 || canStatus.receiveErrorCount > 0) {
-      canErrorTimer.restart();
-    }
-    canErrorAlert.set(
-        !canErrorTimer.hasElapsed(CAN_ERROR_TIME_THRESHOLD)
-            && canInitialErrorTimer.hasElapsed(CAN_ERROR_TIME_THRESHOLD));
-
     // Log CANivore status
     if (Constants.getMode() == Mode.REAL) {
       var canivoreStatus = this.canivoreBus.getStatus();
@@ -276,7 +257,8 @@ public class Robot extends LoggedRobot {
     if (DriverStation.isEnabled()) {
       disabledTimer.reset();
     }
-    if (RobotController.getBatteryVoltage() < LOW_BATTERY_VOLTAGE
+    double batteryVoltage = RobotController.getBatteryVoltage();
+    if (batteryVoltage < LOW_BATTERY_VOLTAGE
         && disabledTimer.hasElapsed(LOW_BATTERY_DISABLED_TIME)) {
       LEDs.getInstance().requestState(LEDs.States.LOW_BATTERY);
       lowBatteryAlert.set(true);

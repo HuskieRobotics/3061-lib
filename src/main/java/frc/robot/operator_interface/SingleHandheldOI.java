@@ -62,12 +62,12 @@ public class SingleHandheldOI extends OperatorDashboard {
 
   @Override
   public Trigger getSysIdDynamicForward() {
-    return controller.back().and(controller.y());
+    return controller.start().and(controller.b());
   }
 
   @Override
   public Trigger getSysIdDynamicReverse() {
-    return controller.back().and(controller.x());
+    return controller.start().and(controller.a());
   }
 
   @Override

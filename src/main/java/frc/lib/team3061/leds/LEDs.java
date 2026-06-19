@@ -63,13 +63,12 @@ public abstract class LEDs extends SubsystemBase {
             leds.solid(
                 1.0 - ((Timer.getFPGATimestamp() - leds.lastEnabledTime) / AUTO_FADE_TIME),
                 Color.kGreen)),
-    LOW_BATTERY((leds, section) -> leds.solid(section, new Color(255, 20, 0))),
+    LOW_BATTERY((leds, section) -> leds.solid(section, Color.kOrange)),
     DISABLED_DEMO_MODE((leds, section) -> leds.updateToPridePattern()),
     NO_AUTO_SELECTED((leds, section) -> leds.solid(section, Color.kYellow)),
     DISABLED(LEDs::updateToDisabledPattern),
-    AUTO((leds, section) -> leds.orangePulse(section, PULSE_DURATION)),
+    AUTO((leds, section) -> leds.pulse(section, PULSE_DURATION, 255, 127, 0)),
     ENDGAME_ALERT((leds, section) -> leds.strobe(section, Color.kYellow, STROBE_SLOW_DURATION)),
-    UNTILTING_ROBOT((leds, section) -> leds.strobe(section, Color.kRed, STROBE_SLOW_DURATION)),
     ELEVATOR_JAMMED((leds, section) -> leds.strobe(section, Color.kBlue, STROBE_SLOW_DURATION)),
     DRIVE_TO_POSE_CANCELED(
         (leds, section) -> leds.strobe(section, Color.kPink, STROBE_SLOW_DURATION)),
@@ -77,7 +76,7 @@ public abstract class LEDs extends SubsystemBase {
         (leds, section) -> leds.strobe(section, new Color(255, 20, 0), STROBE_SLOW_DURATION)),
     RELEASING_GAME_PIECE(
         (leds, section) -> leds.strobe(section, Color.kGreen, STROBE_SLOW_DURATION)),
-    AUTO_DRIVING_TO_POSE((leds, section) -> leds.orangePulse(section, PULSE_DURATION)),
+    AUTO_DRIVING_TO_POSE((leds, section) -> leds.pulse(section, PULSE_DURATION, 255, 30, 0)),
     AT_POSE((leds, section) -> leds.solid(section, Color.kGreen)),
     HAS_GAME_PIECE((leds, section) -> leds.solid(section, Color.kBlue)),
     INDEXING_GAME_PIECE((leds, section) -> leds.strobe(section, Color.kBlue, STROBE_SLOW_DURATION)),
@@ -89,7 +88,8 @@ public abstract class LEDs extends SubsystemBase {
                 new Color(255, 20, 0),
                 WAVE_FAST_CYCLE_LENGTH,
                 WAVE_SLOW_DURATION)),
-    DEFAULT((leds, section) -> leds.solid(section, Color.kBlack));
+	UNTILTING_ROBOT((leds, section) -> leds.strobe(section, Color.kRed, STROBE_SLOW_DURATION)),
+    DEFAULT(LEDs::updateToDisabledPattern);
 
     public final BiConsumer<LEDs, Section> setter;
 
@@ -115,7 +115,7 @@ public abstract class LEDs extends SubsystemBase {
    * before updating the LEDs.
    */
   protected static final boolean MIRROR_LEDS = true;
-  protected static final int ACTUAL_LENGTH = 42; // RobotConfig.getInstance().getLEDCount();
+  protected static final int ACTUAL_LENGTH = 26; // RobotConfig.getInstance().getLEDCount();
   protected static final int LENGTH = MIRROR_LEDS ? ACTUAL_LENGTH / 2 : ACTUAL_LENGTH;
   private static final int STATIC_LENGTH = LENGTH / 2;
   private static final int STATIC_SECTION_LENGTH = STATIC_LENGTH / 3;
@@ -441,7 +441,7 @@ public abstract class LEDs extends SubsystemBase {
     }
   }
 
-  private void orangePulse(Section section, double duration) {
+  private void pulse(Section section, double duration, int rValue, int gValue, int bValue) {
     double x = (1 - ((Timer.getFPGATimestamp() % duration) / duration)) * 2.0 * Math.PI;
     double[] heat = new double[section.end() - section.start()];
     double xDiffPerLed = (2.0 * Math.PI) / heat.length;
@@ -454,10 +454,10 @@ public abstract class LEDs extends SubsystemBase {
     for (int i = 0; i < heat.length; i++) {
       double ratio = heat[i];
 
-      // Orange color
-      int red = (int) (255 * ratio);
-      int green = (int) (30 * ratio);
-      int blue = 0;
+      // Blue color
+      int red = (int) (rValue * ratio);
+      int green = (int) (gValue * ratio);
+      int blue = (int) (bValue * ratio);
 
       // Simulate rising and falling effect
       int offset = (int) (2 * Math.sin(x + (i * 0.2)));

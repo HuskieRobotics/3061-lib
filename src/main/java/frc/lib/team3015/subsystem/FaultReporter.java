@@ -11,10 +11,10 @@ import com.revrobotics.spark.SparkMax;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.motorcontrol.PWMMotorController;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.team3015.subsystem.selfcheck.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -61,7 +61,6 @@ public class FaultReporter {
 
   private FaultReporter() {
     setupCallbacks();
-    registerDashboardCommands();
   }
 
   /**
@@ -87,14 +86,15 @@ public class FaultReporter {
    * @param systemCheckCommand the system check command to register
    * @return
    */
-  public Command registerSystemCheck(String subsystemName, Command systemCheckCommand) {
+  public Command registerSystemCheck(
+      String subsystemName, Command systemCheckCommand, Trigger systemCheckTrigger) {
     String statusTable = SYSTEM_STATUS + subsystemName;
     SubsystemFaults subsystemFaults =
         subsystemsFaults.getOrDefault(subsystemName, new SubsystemFaults());
 
     Command wrappedSystemCheckCommand = wrapSystemCheckCommand(subsystemName, systemCheckCommand);
     wrappedSystemCheckCommand.setName(subsystemName + "Check");
-    SmartDashboard.putData(statusTable + "/SystemCheck", wrappedSystemCheckCommand);
+    systemCheckTrigger.onTrue(wrappedSystemCheckCommand);
     Logger.recordOutput(statusTable + CHECK_RAN, false);
 
     subsystemsFaults.put(subsystemName, subsystemFaults);
@@ -102,18 +102,8 @@ public class FaultReporter {
     return wrappedSystemCheckCommand;
   }
 
-  /**
-   * Registers a command that clears all sticky faults for all devices registered with the
-   * FaultReporter. The command is located at "SystemStatus/ClearAllFaults" in Network Tables. Also
-   * registers a command that checks for faults in all registered devices even when the robot is
-   * enabled. The command is located at "SystemStatus/CheckForFaults" in Network Tables. These
-   * commands can be executed via a dashboard such as Shuffleboard or Elastic to help troubleshoot
-   * when the robot is encountering problems during a match.
-   */
-  private void registerDashboardCommands() {
-    SmartDashboard.putData(
-        SYSTEM_STATUS + "ClearAllFaults",
-        Commands.runOnce(
+  public Command getClearAllFaultsCommand() {
+    return Commands.runOnce(
                 () -> {
                   for (Map.Entry<String, SubsystemFaults> entry : subsystemsFaults.entrySet()) {
                     SubsystemFaults subsystemFaults = entry.getValue();
@@ -129,11 +119,13 @@ public class FaultReporter {
                   }
                 })
             .ignoringDisable(true)
-            .withName("ClearAllFaults"));
+        .withName("ClearAllFaults");
+  }
 
-    SmartDashboard.putData(
-        SYSTEM_STATUS + "CheckForFaults",
-        Commands.runOnce(this::checkForFaults).ignoringDisable(true).withName("check for faults"));
+  public Command getCheckForFaultsCommand() {
+    return Commands.runOnce(this::checkForFaults)
+        .ignoringDisable(true)
+        .withName("check for faults");
   }
 
   private Command wrapSystemCheckCommand(String subsystemName, Command systemCheckCommand) {
@@ -159,7 +151,7 @@ public class FaultReporter {
     CommandScheduler.getInstance()
         .schedule(
             Commands.repeatingSequence(
-                    Commands.runOnce(this::checkForFaultsWhenDisabled), Commands.waitSeconds(1.0))
+                    Commands.runOnce(this::checkForFaultsWhenDisabled), Commands.waitSeconds(5.0))
                 .ignoringDisable(true)
                 .withName("check for faults when disabled"));
   }

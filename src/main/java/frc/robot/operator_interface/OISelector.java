@@ -86,13 +86,15 @@ public class OISelector {
         || Constants.getRobot() == RobotType.ROBOT_NORTHSTAR_TEST_PLATFORM) {
       nonCompetitionOperatorInterfaceWarning.set(false);
       return new SimDualJoysticksOI(0, 1);
-    } else if (firstPort != null && secondPort != null && xBoxPort != null && thirdPort != null) {
-      noOperatorInterfaceWarning.set(false);
-      nonCompetitionOperatorInterfaceWarning.set(true);
-      return new FullOperatorConsoleOI(firstPort, secondPort, xBoxPort, thirdPort);
-    } else if (firstPort != null && secondPort != null) {
+    } else if (firstPort != null && secondPort != null && xBoxPort != null) {
+      // Full operator console now becomes "competition" due to new use of xbox controller
       noOperatorInterfaceWarning.set(false);
       nonCompetitionOperatorInterfaceWarning.set(false);
+      return new FullOperatorConsoleOI(firstPort, secondPort, xBoxPort);
+    } else if (firstPort != null && secondPort != null) {
+      // Dual joysticks now "non-competition" due to new use of xbox controller
+      noOperatorInterfaceWarning.set(false);
+      nonCompetitionOperatorInterfaceWarning.set(true);
       return new DualJoysticksOI(firstPort, secondPort);
     } else if (xBoxPort != null) {
       noOperatorInterfaceWarning.set(false);
@@ -101,7 +103,7 @@ public class OISelector {
     } else {
       noOperatorInterfaceWarning.set(true);
       nonCompetitionOperatorInterfaceWarning.set(true);
-      return new OperatorInterface() {};
+      return new OperatorDashboard();
     }
   }
 }

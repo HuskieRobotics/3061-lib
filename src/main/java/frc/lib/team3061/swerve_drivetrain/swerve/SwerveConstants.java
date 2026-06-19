@@ -274,7 +274,7 @@ public abstract class SwerveConstants {
       1.0 / ((14.0 / 54.0) * (32.0 / 25.0) * (15.0 / 30.0));
   private static final double MK5N_R3_DRIVE_GEAR_RATIO =
       1.0 / ((16.0 / 54.0) * (32.0 / 25.0) * (15.0 / 30.0));
-  private static final boolean MK5N_DRIVE_MOTOR_INVERTED = false;
+  private static final boolean MK5N_DRIVE_MOTOR_INVERTED = true;
   private static final double MK5N_ANGLE_GEAR_RATIO = 287.0 / 11.0;
   private static final boolean MK5N_ANGLE_MOTOR_INVERTED = false;
   private static final boolean MK5N_CAN_CODER_INVERTED = false;
@@ -339,7 +339,7 @@ public abstract class SwerveConstants {
   public static final boolean ANGLE_ENABLE_CURRENT_LIMIT = true;
 
   public static final int DRIVE_CONTINUOUS_CURRENT_LIMIT = 40;
-  public static final int DRIVE_PEAK_CURRENT_LIMIT = 80;
+  public static final int DRIVE_PEAK_CURRENT_LIMIT = 65;
   public static final double DRIVE_PEAK_CURRENT_DURATION = 0.1;
   public static final boolean DRIVE_ENABLE_CURRENT_LIMIT = true;
 }
