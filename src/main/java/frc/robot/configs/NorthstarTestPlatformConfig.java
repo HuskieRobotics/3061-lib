@@ -17,8 +17,8 @@ import frc.lib.team3061.swerve_drivetrain.swerve.SwerveConstants;
  * these methods, refer to the documentation in the RobotConfig class.
  */
 public class NorthstarTestPlatformConfig extends RobotConfig {
-  private static final String BR_CAMERA_SERIAL_NUMBER = "40686739";
-  private static final String BL_CAMERA_SERIAL_NUMBER = "40708556";
+  private static final String BR_CAMERA_SERIAL_NUMBER = "40708569";
+  private static final String BL_CAMERA_SERIAL_NUMBER = "40708542";
   private static final String CENTER_CAMERA_SERIAL_NUMBER = "25249734";
 
   private static final int MONO_EXPOSURE = 2200;
