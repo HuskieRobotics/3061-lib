@@ -42,7 +42,7 @@ public class ShooterConstants {
   public static final double SHOOTER_IDLE_VELOCITY_RPS = 10.0;
   public static final double VELOCITY_TOLERANCE_RPS = 5.0;
 
-  // game pirece detection constants
+  // game piece detection constants
   public static final double DETECTOR_MIN_SIGNAL_STRENGTH = 2000;
   public static final double DETECTOR_PROXIMITY_THRESHOLD = 0.1;
 }

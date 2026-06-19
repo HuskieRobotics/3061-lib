@@ -14,9 +14,6 @@ import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.swerve_drivetrain.swerve.SwerveConstants;
 import frc.lib.team6328.util.FieldConstants;
 
-// FIXME: a lot of this is copied directly from the practice bot config, we must update all the
-// necessary values
-
 public class SavannaRobotConfig extends RobotConfig {
   private static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 24;
   private static final int FRONT_LEFT_MODULE_STEER_MOTOR = 53;

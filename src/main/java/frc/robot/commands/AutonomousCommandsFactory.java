@@ -1,7 +1,5 @@
 package frc.robot.commands;
 
-import static edu.wpi.first.units.Units.*;
-
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.util.FlippingUtil;
@@ -31,7 +29,6 @@ public class AutonomousCommandsFactory {
   private final Alert pathFileMissingAlert =
       new Alert("Could not find the specified path file.", AlertType.kError);
 
-  private Timer hopperUnloadTimer;
   private Timer matchTimer;
   private Pose2d currentTargetPose;
   private final Debouncer fallenBehindPathDebouncer = new Debouncer(0.2);
@@ -50,7 +47,6 @@ public class AutonomousCommandsFactory {
 
   private AutonomousCommandsFactory() {
     matchTimer = new Timer();
-    hopperUnloadTimer = new Timer();
     currentTargetPose = new Pose2d();
   }
 
@@ -230,7 +226,6 @@ public class AutonomousCommandsFactory {
   private boolean fallenBehindPath() {
     Pose2d pose = RobotOdometry.getInstance().getEstimatedPose();
 
-    // PathPlannerLogging.logTargetPose(pose);
     Transform2d diff = pose.minus(getPathFollowingTargetPose());
     double dist = Math.hypot(diff.getX(), diff.getY());
 

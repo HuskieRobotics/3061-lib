@@ -20,8 +20,6 @@ public class SwerveDrivetrainCommandFactory {
 
   private static final double WALL_SNAP_TOLERANCE_METERS = Units.inchesToMeters(30);
 
-  private static Trigger driveToPoseCanceledTrigger;
-
   private SwerveDrivetrainCommandFactory() {}
 
   public static void registerCommands(
@@ -38,7 +36,7 @@ public class SwerveDrivetrainCommandFactory {
      */
     swerveDrivetrain.setDefaultCommand(getDefaultTeleopSwerveCommand(oi, swerveDrivetrain));
 
-    driveToPoseCanceledTrigger = new Trigger(swerveDrivetrain::getDriveToPoseCanceled);
+    Trigger driveToPoseCanceledTrigger = new Trigger(swerveDrivetrain::getDriveToPoseCanceled);
     driveToPoseCanceledTrigger.onTrue(
         Commands.sequence(
                 Commands.run(
@@ -90,7 +88,7 @@ public class SwerveDrivetrainCommandFactory {
                 .until(() -> vision.getBestRobotPose() != null)
                 .andThen(
                     Commands.runOnce(
-                        () -> swerveDrivetrain.resetPoseToVision(() -> vision.getBestRobotPose())))
+                        () -> swerveDrivetrain.resetPoseToVision(vision::getBestRobotPose)))
                 .ignoringDisable(true)
                 .withName("reset pose to vision"));
 
@@ -118,11 +116,8 @@ public class SwerveDrivetrainCommandFactory {
                 .ignoringDisable(true)
                 .withName("print current pose"));
 
-    // new Trigger(
-    //         () -> {
-    //           return drivetrain.isTilted();
-    //         })
-    //     .whileTrue(Commands.run(() -> drivetrain.untilt(), drivetrain).withName("untilt"));
+    new Trigger(swerveDrivetrain::isTilted)
+        .whileTrue(Commands.run(swerveDrivetrain::untilt, swerveDrivetrain).withName("untilt"));
 
     FaultReporter.getInstance()
         .registerSystemCheck(

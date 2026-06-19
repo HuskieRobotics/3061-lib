@@ -99,15 +99,17 @@ public class CrossSubsystemsCommandsFactory {
     oi.getCheckForFaults()
         .onTrue(FaultReporter.getInstance().getCheckForFaultsCommand().ignoringDisable(true));
 
+    oi.getDriveToPoseButton().onTrue(getDriveToPoseCommand(swerveDrivetrain, elevator, oi));
+    oi.getOverrideDriveToPoseButton().onTrue(getDriveToPoseOverrideCommand(swerveDrivetrain, oi));
+
     oi.getSimulateCollisionButton()
         .onTrue(
             Commands.runOnce(
-                () -> {
-                  swerveDrivetrain.resetPose(
-                      RobotOdometry.getInstance()
-                          .getEstimatedPose()
-                          .plus(new Transform2d(3.0, 3.0, new Rotation2d())));
-                }));
+                () ->
+                    swerveDrivetrain.resetPose(
+                        RobotOdometry.getInstance()
+                            .getEstimatedPose()
+                            .plus(new Transform2d(3.0, 3.0, new Rotation2d())))));
 
     configureCrossSubsystemsTriggers(arm, elevator, manipulator, shooter, swerveDrivetrain);
 
@@ -177,8 +179,8 @@ public class CrossSubsystemsCommandsFactory {
             Commands.runOnce(() -> arm.setAngleRotations(0.0), arm),
             Commands.runOnce(
                 () -> elevator.goToPosition(ElevatorConstants.Positions.BOTTOM), elevator),
-            Commands.runOnce(() -> manipulator.resetStateMachine(), manipulator),
-            Commands.runOnce(() -> shooter.setIdleVelocity(), shooter))
+            Commands.runOnce(manipulator::resetStateMachine, manipulator),
+            Commands.runOnce(shooter::setIdleVelocity, shooter))
         .withName("interrupt all");
   }
 
@@ -202,7 +204,7 @@ public class CrossSubsystemsCommandsFactory {
             thetaController,
             new Transform2d(0.10, 0.05, Rotation2d.fromDegrees(5.0)),
             true,
-            (atPose) ->
+            atPose ->
                 LEDs.getInstance()
                     .requestState(atPose ? LEDs.States.AT_POSE : LEDs.States.AUTO_DRIVING_TO_POSE),
             CrossSubsystemsCommandsFactory::updatePIDConstants,
@@ -244,9 +246,7 @@ public class CrossSubsystemsCommandsFactory {
 
     LoggedTunableNumber.ifChanged(
         thetaController.hashCode(),
-        pid -> {
-          thetaController.setPID(pid[0], pid[1], pid[2]);
-        },
+        pid -> thetaController.setPID(pid[0], pid[1], pid[2]),
         thetaKp,
         thetaKi,
         thetaKd);
