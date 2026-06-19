@@ -104,21 +104,21 @@ public class FaultReporter {
 
   public Command getClearAllFaultsCommand() {
     return Commands.runOnce(
-                () -> {
-                  for (Map.Entry<String, SubsystemFaults> entry : subsystemsFaults.entrySet()) {
-                    SubsystemFaults subsystemFaults = entry.getValue();
-                    for (SelfChecking device : subsystemFaults.hardware) {
-                      device.clearStickyFaults();
-                    }
+            () -> {
+              for (Map.Entry<String, SubsystemFaults> entry : subsystemsFaults.entrySet()) {
+                SubsystemFaults subsystemFaults = entry.getValue();
+                for (SelfChecking device : subsystemFaults.hardware) {
+                  device.clearStickyFaults();
+                }
 
-                    for (Alert alert : subsystemFaults.faultAlerts) {
-                      alert.set(false);
-                    }
-                    subsystemFaults.faultAlerts.clear();
-                    subsystemFaults.faults.clear();
-                  }
-                })
-            .ignoringDisable(true)
+                for (Alert alert : subsystemFaults.faultAlerts) {
+                  alert.set(false);
+                }
+                subsystemFaults.faultAlerts.clear();
+                subsystemFaults.faults.clear();
+              }
+            })
+        .ignoringDisable(true)
         .withName("ClearAllFaults");
   }
 

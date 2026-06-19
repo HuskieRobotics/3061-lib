@@ -80,17 +80,14 @@ public interface OperatorInterface {
   public default Trigger getDriveToPoseButton() {
     return new Trigger(() -> false);
   }
-  
 
   public default Trigger getOverrideDriveToPoseButton() {
     return new Trigger(() -> false);
   }
-  
+
   public default Trigger getLimitAccelerationAndVelocityButton() {
     return new Trigger(() -> false);
   }
-
-  
 
   public default Trigger getSnakeDriveButton() {
     return new Trigger(() -> false);
@@ -130,18 +127,16 @@ public interface OperatorInterface {
   public default Trigger getLowerElevatorSlowButton() {
     return new Trigger(() -> false);
   }
-  
+
   // only for at home
   public default Trigger getSimulateCollisionButton() {
     return new Trigger(() -> false);
   }
-  
-  
 
   public default Trigger getAutoSnapsEnabledTrigger() {
     return new Trigger(() -> false);
   }
-  
+
   // System Tests
 
   public default Trigger getDrivetrainSystemTest() {

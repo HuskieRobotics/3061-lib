@@ -71,10 +71,10 @@ public class DifferentialDrivetrainIOXRP implements DifferentialDrivetrainIO {
     inputs.rightPositionMeters = rightEncoder.getDistance();
 
     inputs.leftVelocityMPS =
-            leftVelocity.calculate(
+        leftVelocity.calculate(
             (inputs.leftPositionMeters - this.prevLeftPositionMeters) / LOOP_PERIOD_SECS);
     inputs.rightVelocityMPS =
-            rightVelocity.calculate(
+        rightVelocity.calculate(
             (inputs.rightPositionMeters - this.prevRightPositionMeters) / LOOP_PERIOD_SECS);
 
     inputs.headingDeg = gyro.getAngleZ();

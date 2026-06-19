@@ -204,7 +204,7 @@ public class Vision extends SubsystemBase {
         northstarThermalCritical = true;
       } else if (inputs[cameraIndex].thermalPressure.equals("High")) {
         northstarThermalHigh = true;
-    }
+      }
     }
 
     if (northstarThermalCritical) {
@@ -413,47 +413,47 @@ public class Vision extends SubsystemBase {
       }
 
       if (ENABLE_EXTRA_LOGGING) {
-      // Log data for this camera
+        // Log data for this camera
         if (stdDev != null) {
           Logger.recordOutput(SUBSYSTEM_NAME + "/" + cameraLocation + "/StdDevX", stdDev.get(0, 0));
           Logger.recordOutput(SUBSYSTEM_NAME + "/" + cameraLocation + "/StdDevY", stdDev.get(1, 0));
           Logger.recordOutput(SUBSYSTEM_NAME + "/" + cameraLocation + "/StdDevT", stdDev.get(2, 0));
         }
-      Logger.recordOutput(
-          SUBSYSTEM_NAME + "/" + cameraLocation + "/LatencySecs",
-          Timer.getTimestamp() - this.lastTimestamps[cameraIndex]);
-      Logger.recordOutput(
-          SUBSYSTEM_NAME + "/" + cameraLocation + "/CyclesWithNoResults",
-          this.cyclesWithNoResults[cameraIndex]);
-      Logger.recordOutput(
-          SUBSYSTEM_NAME + "/" + cameraLocation + "/TagPoses",
-          tagPoses.get(cameraIndex).toArray(Pose3d[]::new));
-      Logger.recordOutput(
+        Logger.recordOutput(
+            SUBSYSTEM_NAME + "/" + cameraLocation + "/LatencySecs",
+            Timer.getTimestamp() - this.lastTimestamps[cameraIndex]);
+        Logger.recordOutput(
+            SUBSYSTEM_NAME + "/" + cameraLocation + "/CyclesWithNoResults",
+            this.cyclesWithNoResults[cameraIndex]);
+        Logger.recordOutput(
+            SUBSYSTEM_NAME + "/" + cameraLocation + "/TagPoses",
+            tagPoses.get(cameraIndex).toArray(Pose3d[]::new));
+        Logger.recordOutput(
             SUBSYSTEM_NAME + "/" + cameraLocation + "/RejectedTagPoses",
             rejectedTagPoses.get(cameraIndex).toArray(Pose3d[]::new));
         Logger.recordOutput(
-          SUBSYSTEM_NAME + "/" + cameraLocation + "/CameraPoses",
-          cameraPoses.get(cameraIndex).toArray(new Pose3d[cameraPoses.get(cameraIndex).size()]));
-      Logger.recordOutput(
-          SUBSYSTEM_NAME + "/" + cameraLocation + "/RobotPoses",
-          robotPoses.get(cameraIndex).toArray(new Pose3d[robotPoses.get(cameraIndex).size()]));
-      Logger.recordOutput(
-          SUBSYSTEM_NAME + "/" + cameraLocation + "/RobotPosesAccepted",
-          robotPosesAccepted
-              .get(cameraIndex)
-              .toArray(new Pose3d[robotPosesAccepted.get(cameraIndex).size()]));
-      Logger.recordOutput(
-          SUBSYSTEM_NAME + "/" + cameraLocation + "/RobotPosesRejected",
-          robotPosesRejected
-              .get(cameraIndex)
-              .toArray(new Pose3d[robotPosesRejected.get(cameraIndex).size()]));
-      Logger.recordOutput(
-          SUBSYSTEM_NAME + "/" + cameraLocation + "/CameraAxes",
-          new Pose3d(RobotOdometry.getInstance().getEstimatedPose())
-              .plus(
-                  RobotConfig.getInstance()
-                      .getCameraConfigs()[cameraIndex]
-                      .robotToCameraTransform()));
+            SUBSYSTEM_NAME + "/" + cameraLocation + "/CameraPoses",
+            cameraPoses.get(cameraIndex).toArray(new Pose3d[cameraPoses.get(cameraIndex).size()]));
+        Logger.recordOutput(
+            SUBSYSTEM_NAME + "/" + cameraLocation + "/RobotPoses",
+            robotPoses.get(cameraIndex).toArray(new Pose3d[robotPoses.get(cameraIndex).size()]));
+        Logger.recordOutput(
+            SUBSYSTEM_NAME + "/" + cameraLocation + "/RobotPosesAccepted",
+            robotPosesAccepted
+                .get(cameraIndex)
+                .toArray(new Pose3d[robotPosesAccepted.get(cameraIndex).size()]));
+        Logger.recordOutput(
+            SUBSYSTEM_NAME + "/" + cameraLocation + "/RobotPosesRejected",
+            robotPosesRejected
+                .get(cameraIndex)
+                .toArray(new Pose3d[robotPosesRejected.get(cameraIndex).size()]));
+        Logger.recordOutput(
+            SUBSYSTEM_NAME + "/" + cameraLocation + "/CameraAxes",
+            new Pose3d(RobotOdometry.getInstance().getEstimatedPose())
+                .plus(
+                    RobotConfig.getInstance()
+                        .getCameraConfigs()[cameraIndex]
+                        .robotToCameraTransform()));
       }
 
       if (!ENABLE_POSE_PERSISTENCE_LOGGING) {
@@ -488,10 +488,10 @@ public class Vision extends SubsystemBase {
         allRobotPosesRejected.toArray(new Pose3d[allRobotPosesRejected.size()]));
 
     if (ENABLE_EXTRA_LOGGING) {
-    allRobotPoses.addAll(allRobotPosesAccepted);
-    allRobotPoses.addAll(allRobotPosesRejected);
-    Logger.recordOutput(
-        SUBSYSTEM_NAME + "/RobotPoses", allRobotPoses.toArray(new Pose3d[allRobotPoses.size()]));
+      allRobotPoses.addAll(allRobotPosesAccepted);
+      allRobotPoses.addAll(allRobotPosesRejected);
+      Logger.recordOutput(
+          SUBSYSTEM_NAME + "/RobotPoses", allRobotPoses.toArray(new Pose3d[allRobotPoses.size()]));
     }
 
     // Log detected object poses

@@ -2,15 +2,12 @@ package frc.robot.commands;
 
 import static edu.wpi.first.units.Units.*;
 
-import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.util.FlippingUtil;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.Timer;
@@ -18,11 +15,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.lib.team3061.differential_drivetrain.DifferentialDrivetrain;
-import frc.lib.team3061.leds.LEDs;
 import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
 import frc.lib.team3061.util.RobotOdometry;
-import frc.robot.Field2d;
-import frc.robot.Field2d.Side;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -232,7 +226,6 @@ public class AutonomousCommandsFactory {
         new PathPlannerAuto(autoName),
         Commands.runOnce(() -> drivetrain.captureFinalConditions(autoName, measureDistance)));
   }
-  
 
   private boolean fallenBehindPath() {
     Pose2d pose = RobotOdometry.getInstance().getEstimatedPose();
@@ -250,8 +243,6 @@ public class AutonomousCommandsFactory {
 
     return fallenBehind;
   }
-  
-  
 
   private Command setStartingPoseForAuto(Pose2d startingPose, SwerveDrivetrain drivetrain) {
     return Commands.runOnce(
@@ -263,8 +254,6 @@ public class AutonomousCommandsFactory {
           drivetrain.resetPose(pose);
         });
   }
-  
-  
 
   public void setPathFollowingTargetPose(Pose2d pose) {
     currentTargetPose = pose;

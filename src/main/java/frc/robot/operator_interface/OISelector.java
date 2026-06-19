@@ -63,7 +63,6 @@ public class OISelector {
     Integer firstPort = null;
     Integer secondPort = null;
     Integer xBoxPort = null;
-    Integer thirdPort = null;
     for (int port = 0; port < DriverStation.kJoystickPorts; port++) {
       if (DriverStation.getJoystickName(port).toLowerCase().contains("xbox")) {
         if (xBoxPort == null) {
@@ -74,8 +73,6 @@ public class OISelector {
           firstPort = port;
         } else if (secondPort == null) {
           secondPort = port;
-        } else { // thirdPort == null
-          thirdPort = port;
         }
       }
     }

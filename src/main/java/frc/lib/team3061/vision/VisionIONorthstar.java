@@ -123,11 +123,11 @@ public class VisionIONorthstar implements VisionIO {
     }
 
     // Publish timestamp
-      timestampPublisher.set(WPIUtilJNI.getSystemTime() / 1000000);
+    timestampPublisher.set(WPIUtilJNI.getSystemTime() / 1000000);
 
-      eventNamePublisher.set(DriverStation.getEventName());
-      matchTypePublisher.set(DriverStation.getMatchType().ordinal());
-      matchNumberPublisher.set(DriverStation.getMatchNumber());
+    eventNamePublisher.set(DriverStation.getEventName());
+    matchTypePublisher.set(DriverStation.getMatchType().ordinal());
+    matchNumberPublisher.set(DriverStation.getMatchNumber());
 
     // Get AprilTag data
     inputs.receivingFrames = false;
@@ -141,12 +141,12 @@ public class VisionIONorthstar implements VisionIO {
     aprilTagInputs.fps = fpsAprilTagsSubscriber.get();
 
     if (Constants.ENABLE_EXTRA_LOGGING) {
-    aprilTagInputs.timestamps = new double[aprilTagQueue.length];
-    aprilTagInputs.frames = new double[aprilTagQueue.length][];
-    for (int i = 0; i < aprilTagQueue.length; i++) {
-      aprilTagInputs.timestamps[i] = aprilTagQueue[i].timestamp / 1000000.0;
-      aprilTagInputs.frames[i] = aprilTagQueue[i].value;
-    }
+      aprilTagInputs.timestamps = new double[aprilTagQueue.length];
+      aprilTagInputs.frames = new double[aprilTagQueue.length][];
+      for (int i = 0; i < aprilTagQueue.length; i++) {
+        aprilTagInputs.timestamps[i] = aprilTagQueue[i].timestamp / 1000000.0;
+        aprilTagInputs.frames[i] = aprilTagQueue[i].value;
+      }
     }
 
     // Get object detection data
@@ -157,7 +157,7 @@ public class VisionIONorthstar implements VisionIO {
       objDetectInputs.timestamps[i] = objDetectQueue[i].timestamp / 1000000.0;
       objDetectInputs.frames[i] = objDetectQueue[i].value;
     }
-      objDetectInputs.fps = fpsObjDetectSubscriber.get();
+    objDetectInputs.fps = fpsObjDetectSubscriber.get();
 
     // Get power metrics
     double[] powerMetrics = powerMetricsSubscriber.get();
@@ -180,8 +180,8 @@ public class VisionIONorthstar implements VisionIO {
           break;
         default:
           inputs.thermalPressure = "Unknown";
+      }
     }
-  }
   }
 
   public void setRecording(boolean active) {
@@ -242,14 +242,14 @@ public class VisionIONorthstar implements VisionIO {
           Rotation2d visionRotation0 = robotPose0.toPose2d().getRotation();
           Rotation2d visionRotation1 = robotPose1.toPose2d().getRotation();
           if (DriverStation.isEnabled()) {
-          if (Math.abs(currentRotation.minus(visionRotation0).getRadians())
-              < Math.abs(currentRotation.minus(visionRotation1).getRadians())) {
-            cameraPose = cameraPose0;
-            ambiguity = error0;
-          } else {
-            cameraPose = cameraPose1;
-            ambiguity = error1;
-          }
+            if (Math.abs(currentRotation.minus(visionRotation0).getRadians())
+                < Math.abs(currentRotation.minus(visionRotation1).getRadians())) {
+              cameraPose = cameraPose0;
+              ambiguity = error0;
+            } else {
+              cameraPose = cameraPose1;
+              ambiguity = error1;
+            }
           } else {
             if (error0 < error1) {
               cameraPose = cameraPose0;
@@ -257,7 +257,7 @@ public class VisionIONorthstar implements VisionIO {
             } else {
               cameraPose = cameraPose1;
               ambiguity = error1;
-        }
+            }
           }
         }
         break;
@@ -273,11 +273,11 @@ public class VisionIONorthstar implements VisionIO {
     if (startIndex < values.length) {
       int tagCount = (int) values[startIndex];
       for (int i = startIndex + 1; i < startIndex + 1 + tagCount && i < values.length; i++) {
-      int tagId = (int) values[i];
-      tagsSeenBitMap |= 1L << tagId;
-      Optional<Pose3d> tagPose = aprilTagFieldLayout.getTagPose(tagId);
-      tagPose.ifPresent(tagPoses::add);
-    }
+        int tagId = (int) values[i];
+        tagsSeenBitMap |= 1L << tagId;
+        Optional<Pose3d> tagPose = aprilTagFieldLayout.getTagPose(tagId);
+        tagPose.ifPresent(tagPoses::add);
+      }
     }
     if (tagPoses.isEmpty()) return;
 

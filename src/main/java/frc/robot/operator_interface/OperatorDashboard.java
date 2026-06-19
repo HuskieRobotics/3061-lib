@@ -1,6 +1,5 @@
 package frc.robot.operator_interface;
 
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.team6328.util.LoggedTunableBoolean;
 
@@ -26,7 +25,6 @@ public class OperatorDashboard implements OperatorInterface {
   public final LoggedTunableBoolean simulateCollisionButton =
       new LoggedTunableBoolean("operatorDashboard/Simulate Collision", false, true);
 
-
   public OperatorDashboard() {}
 
   @Override
@@ -38,7 +36,7 @@ public class OperatorDashboard implements OperatorInterface {
   public Trigger getEnablePrimaryIRSensorsTrigger() {
     return new Trigger(() -> enablePrimaryIRSensors.get());
   }
-  
+
   @Override
   public Trigger getAutoSnapsEnabledTrigger() {
     return new Trigger(() -> autoSnapsEnabled.get());

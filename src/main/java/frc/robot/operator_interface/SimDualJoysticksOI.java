@@ -55,7 +55,7 @@ public class SimDualJoysticksOI extends OperatorDashboard {
   public Trigger getResetPoseToVisionButton() {
     return translateJoystickButtons[3];
   }
-  
+
   @Override
   public Trigger getLimitAccelerationAndVelocityButton() {
     return translateJoystickButtons[4];
@@ -77,8 +77,6 @@ public class SimDualJoysticksOI extends OperatorDashboard {
   public Trigger getMoveArmHighPositionTrigger() {
     return rotateJoystickButtons[2];
   }
-  
-  
 
   @Override
   public Trigger getClearAllFaults() {

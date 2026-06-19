@@ -141,7 +141,7 @@ public class SwerveDrivetrainCommandFactory {
             oi::getRotate,
             getTeleopSwerveAngleSupplier(drivetrain))
         .withName("default teleop swerve");
-}
+  }
 
   private static Supplier<Optional<Rotation2d>> getTeleopSwerveAngleSupplier(
       SwerveDrivetrain drivetrain) {

@@ -5,17 +5,13 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
 import frc.lib.team3061.RobotConfig;
-import frc.robot.subsystems.intake.Intake;
-// import frc.robot.subsystems.climber.Climber;
+import frc.robot.subsystems.elevator.Elevator;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 
 public class RobotVisualization {
-
-  private Intake intake;
-  // private Climber climber;
 
   private LoggedMechanism2d intakeVisualization2D;
 
@@ -30,15 +26,16 @@ public class RobotVisualization {
 
   private LoggedMechanism2d climberVisualization2D;
 
+  private Elevator elevator;
   private LoggedMechanismLigament2d climberBox;
   private final double kClimberRootPosY = Units.inchesToMeters(4.875);
   private final double kClimberRootPosZ = Units.inchesToMeters(20.25);
   private final double kClimberLength = Units.inchesToMeters(10.0);
 
-  public RobotVisualization(Intake intake) {
+  public RobotVisualization(Elevator elevator) {
     if (RobotBase.isReal()) return;
 
-    this.intake = intake;
+    this.elevator = elevator;
     init2dVisualization();
   }
 
@@ -55,6 +52,7 @@ public class RobotVisualization {
     ledDisplayRoot.append(ledDisplayBox);
 
     // Intake
+    // FIXME: update for manipulator or combine with elevator
     LoggedMechanismRoot2d intakeRoot =
         intakeVisualization2D.getRoot("intakeRoot", kIntakeRootPosX, kIntakeRootPosY);
     intakeBox =
@@ -65,6 +63,7 @@ public class RobotVisualization {
         new LoggedMechanism2d(RobotConfig.getInstance().getRobotLengthWithBumpersMeters(), 3.0);
 
     // Climber
+    // FIXME: update for elevator
     LoggedMechanismRoot2d climberRoot =
         climberVisualization2D.getRoot("climberRoot", kClimberRootPosY, kClimberRootPosZ);
     climberBox =
@@ -78,11 +77,11 @@ public class RobotVisualization {
 
     // climberBox.setAngle(climber.getAngle().in(Degrees));
 
-    if (intake.isDeployed()) {
-      intakeBox.setLength(kIntakeDepth * 2.0);
-    } else {
-      intakeBox.setLength(kIntakeDepth);
-    }
+    // if (intake.isDeployed()) {
+    //   intakeBox.setLength(kIntakeDepth * 2.0);
+    // } else {
+    //   intakeBox.setLength(kIntakeDepth);
+    // }
 
     Logger.recordOutput("Visualization/Intake", this.intakeVisualization2D);
     Logger.recordOutput("Visualization/Climber", this.climberVisualization2D);

@@ -72,7 +72,7 @@ public class NorthstarTestPlatformConfig extends RobotConfig {
           .getTagPose(13)
           .get()
           .transformBy(
-      new Transform3d(
+              new Transform3d(
                   Units.inchesToMeters(15.125),
                   Units.inchesToMeters(0.0),
                   -Units.inchesToMeters(9.625),
@@ -84,7 +84,7 @@ public class NorthstarTestPlatformConfig extends RobotConfig {
           .getTagPose(13)
           .get()
           .transformBy(
-      new Transform3d(
+              new Transform3d(
                   Units.inchesToMeters(15.125),
                   Units.inchesToMeters(18.125),
                   -Units.inchesToMeters(9.625),

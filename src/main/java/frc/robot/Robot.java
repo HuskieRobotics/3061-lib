@@ -181,14 +181,14 @@ public class Robot extends LoggedRobot {
     disabledTimer.restart();
 
     // adjust loop overrun warning timeout
-      try {
-        Field watchdogField = IterativeRobotBase.class.getDeclaredField("m_watchdog");
-        watchdogField.setAccessible(true);
-        Watchdog watchdog = (Watchdog) watchdogField.get(this);
-        watchdog.setTimeout(0.2);
-      } catch (Exception e) {
-        DriverStation.reportWarning("Failed to disable loop overrun warnings", false);
-      }
+    try {
+      Field watchdogField = IterativeRobotBase.class.getDeclaredField("m_watchdog");
+      watchdogField.setAccessible(true);
+      Watchdog watchdog = (Watchdog) watchdogField.get(this);
+      watchdog.setTimeout(0.2);
+    } catch (Exception e) {
+      DriverStation.reportWarning("Failed to disable loop overrun warnings", false);
+    }
 
     CommandScheduler.getInstance().setPeriod(0.2);
 

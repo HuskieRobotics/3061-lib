@@ -88,7 +88,7 @@ public abstract class LEDs extends SubsystemBase {
                 new Color(255, 20, 0),
                 WAVE_FAST_CYCLE_LENGTH,
                 WAVE_SLOW_DURATION)),
-	UNTILTING_ROBOT((leds, section) -> leds.strobe(section, Color.kRed, STROBE_SLOW_DURATION)),
+    UNTILTING_ROBOT((leds, section) -> leds.strobe(section, Color.kRed, STROBE_SLOW_DURATION)),
     DEFAULT(LEDs::updateToDisabledPattern);
 
     public final BiConsumer<LEDs, Section> setter;

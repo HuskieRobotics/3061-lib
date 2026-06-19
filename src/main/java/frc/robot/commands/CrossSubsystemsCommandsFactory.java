@@ -1,22 +1,15 @@
 package frc.robot.commands;
 
-import static frc.robot.subsystems.intake.IntakeConstants.*;
-
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.leds.LEDs;
-import frc.lib.team3061.leds.LEDs.States;
 import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
-import frc.lib.team3061.util.MathUtils;
 import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team3061.util.SysIdRoutineChooser;
 import frc.lib.team6328.util.LoggedTunableNumber;
@@ -126,7 +119,7 @@ public class CrossSubsystemsCommandsFactory {
 
     oi.getInterruptAll().onTrue(getInterruptAllCommand(differentialDrivetrain, vision, arm, oi));
 
-oi.getSnakeDriveButton().toggleOnTrue(getSnakeDriveCommand(oi, swerveDrivetrain));
+    oi.getSnakeDriveButton().toggleOnTrue(getSnakeDriveCommand(oi, swerveDrivetrain));
 
     registerSysIdCommands(oi);
   }

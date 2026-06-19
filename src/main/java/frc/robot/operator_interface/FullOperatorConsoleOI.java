@@ -35,7 +35,7 @@ public class FullOperatorConsoleOI extends OperatorDashboard {
       translateJoystickButtons[i] = translateJoystick.button(i);
       rotateJoystickButtons[i] = rotateJoystick.button(i);
     }
-    }
+  }
 
   // Translation Joystick
   @Override

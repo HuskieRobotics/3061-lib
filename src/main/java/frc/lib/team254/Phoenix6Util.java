@@ -400,13 +400,13 @@ public class Phoenix6Util {
   /** Refresh all registered signals. */
   public static void refreshAll() {
     if (canivoreSignalsCount > 0) {
-    checkError(
-        canivoreSignals.refreshAll(),
-        "failed to refresh signals on CANivore:",
-        canivoreSignalsAlert);
+      checkError(
+          canivoreSignals.refreshAll(),
+          "failed to refresh signals on CANivore:",
+          canivoreSignalsAlert);
     }
     if (rioSignalsCount > 0) {
-    checkError(rioSignals.refreshAll(), "failed to refresh signals on RIO:", rioSignalsAlert);
+      checkError(rioSignals.refreshAll(), "failed to refresh signals on RIO:", rioSignalsAlert);
+    }
   }
-}
 }

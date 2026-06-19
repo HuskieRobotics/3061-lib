@@ -493,7 +493,7 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
       if (currentVelocity > ACCELERATION_LIMITING_MAX_VELOCITY_MPS) {
         xVelocityMPS = xVelocityMPS / currentVelocity * ACCELERATION_LIMITING_MAX_VELOCITY_MPS;
         yVelocityMPS = yVelocityMPS / currentVelocity * ACCELERATION_LIMITING_MAX_VELOCITY_MPS;
-    }
+      }
       if (rotationalVelocityRadiansPerSecond > 4.0) {
         rotationalVelocityRadiansPerSecond = 4.0;
       } else if (rotationalVelocityRadiansPerSecond < -4.0) {
@@ -675,18 +675,18 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
     Logger.recordOutput(SUBSYSTEM_NAME + "/FieldRelative", this.getFieldRelative());
 
     if (ENABLE_EXTRA_LOGGING) {
-    Logger.recordOutput(
+      Logger.recordOutput(
           SUBSYSTEM_NAME + "/FRPose",
           pose.transformBy(
               new Transform2d(
                   RobotConfig.getInstance().getFrontRightCornerPosition(), new Rotation2d())));
 
       Logger.recordOutput(
-        SUBSYSTEM_NAME + "/Speed",
-        Math.hypot(
-            inputs.drivetrain.measuredChassisSpeeds.vxMetersPerSecond,
-            inputs.drivetrain.measuredChassisSpeeds.vyMetersPerSecond),
-        MetersPerSecond);
+          SUBSYSTEM_NAME + "/Speed",
+          Math.hypot(
+              inputs.drivetrain.measuredChassisSpeeds.vxMetersPerSecond,
+              inputs.drivetrain.measuredChassisSpeeds.vyMetersPerSecond),
+          MetersPerSecond);
     }
 
     // update the brake mode based on the robot's velocity and state (enabled/disabled)
