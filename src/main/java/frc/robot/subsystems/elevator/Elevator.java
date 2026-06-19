@@ -5,7 +5,7 @@ import static frc.robot.subsystems.elevator.ElevatorConstants.*;
 
 import com.ctre.phoenix6.SignalLogger;
 import edu.wpi.first.math.filter.Debouncer;
-import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.lib.team254.CurrentSpikeDetector;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.leds.LEDs;
+import frc.lib.team3061.util.MathUtils;
 import frc.lib.team3061.util.SysIdRoutineChooser;
 import frc.lib.team6328.util.LoggedTracer;
 import frc.lib.team6328.util.LoggedTunableNumber;
@@ -84,7 +85,8 @@ public class Elevator extends SubsystemBase {
               Volts.of(2.0), // override default step voltage (7 V)
               null, // Use default timeout (10 s)
               state -> SignalLogger.writeString("SysId_State", state.toString())),
-          new SysIdRoutine.Mechanism(output -> elevatorIO.setMotorVoltage(output), null, this));
+          new SysIdRoutine.Mechanism(
+              output -> elevatorIO.setMotorVoltage(output.in(Volts)), null, this));
 
   public Elevator(ElevatorIO io) {
 
@@ -95,11 +97,6 @@ public class Elevator extends SubsystemBase {
     // Register this subsystem's SysId routine with the SysIdRoutineChooser. This allows
     // the routine to be selected and executed from the dashboard.
     SysIdRoutineChooser.getInstance().addOption("Elevator Voltage", sysIdRoutine);
-
-    // Register this subsystem's system check command with the fault reporter. The system check
-    // command can be added to the Elastic Dashboard to execute the system test.
-    FaultReporter.getInstance()
-        .registerSystemCheck(SUBSYSTEM_NAME, getElevatorSystemCheckCommand());
   }
 
   @Override
@@ -120,11 +117,11 @@ public class Elevator extends SubsystemBase {
     // elevator, request a jammed state on the LEDs, and generate an alert. We don't directly stop
     // the elevator using the io object as that won't interrupt commands that are currently using
     // the elevator.
-    if (jamDetector.update(Math.abs(inputs.statorCurrentLead.in(Amps)))) {
+    if (jamDetector.update(Math.abs(inputs.statorCurrentLead))) {
       CommandScheduler.getInstance()
           .schedule(
               Commands.sequence(
-                      Commands.runOnce(() -> elevatorIO.setMotorVoltage(Volts.of(0.0)), this),
+                      Commands.runOnce(() -> elevatorIO.setMotorVoltage(0.0), this),
                       Commands.run(
                               () -> LEDs.getInstance().requestState(LEDs.States.ELEVATOR_JAMMED))
                           .withTimeout(1.0))
@@ -138,9 +135,9 @@ public class Elevator extends SubsystemBase {
     // specified voltage (if not zero).
     if (testingMode.get() == 1) {
       if (elevatorVoltage.get() != 0) {
-        elevatorIO.setMotorVoltage(Volts.of(elevatorVoltage.get()));
+        elevatorIO.setMotorVoltage(elevatorVoltage.get());
       } else if (elevatorHeightInches.get() != 0) {
-        elevatorIO.setPosition(Inches.of(elevatorHeightInches.get()));
+        elevatorIO.setPositionMeters(Units.inchesToMeters(elevatorHeightInches.get()));
       }
     }
 
@@ -152,24 +149,24 @@ public class Elevator extends SubsystemBase {
   // While we cannot use subtypes of Measure in the inputs class due to logging limitations, we do
   // strive to use them (e.g., Distance) throughout the rest of the code to mitigate bugs due to
   // unit mismatches.
-  private Distance positionToDistance(Positions reefBranch) {
-    Distance height;
+  private double positionToDistanceMeters(Positions reefBranch) {
+    double height;
 
     switch (reefBranch) {
       case BOTTOM:
-        height = BOTTOM_HEIGHT;
+        height = BOTTOM_HEIGHT_METERS;
         break;
 
       case MIDDLE:
-        height = MIDDLE_HEIGHT;
+        height = MIDDLE_HEIGHT_METERS;
         break;
 
       case TOP:
-        height = TOP_HEIGHT;
+        height = TOP_HEIGHT_METERS;
         break;
 
       default:
-        height = MIN_HEIGHT;
+        height = MIN_HEIGHT_METERS;
         break;
     }
     return height;
@@ -177,7 +174,10 @@ public class Elevator extends SubsystemBase {
 
   public boolean isAtPosition(Positions position) {
     return atSetpointDebouncer.calculate(
-        getPosition().isNear(positionToDistance(position), LINEAR_POSITION_TOLERANCE));
+        MathUtils.isNear(
+            getPositionMeters(),
+            positionToDistanceMeters(position),
+            LINEAR_POSITION_TOLERANCE_METERS));
   }
 
   public Command getElevatorSystemCheckCommand() {
@@ -209,19 +209,19 @@ public class Elevator extends SubsystemBase {
               "Elevator position not at "
                   + position
                   + " as expected. Should be: "
-                  + positionToDistance(position)
+                  + positionToDistanceMeters(position)
                   + " but is: "
-                  + getPosition());
+                  + getPositionMeters());
     }
   }
 
   public void goToPosition(Positions position) {
     targetPosition = position;
-    elevatorIO.setPosition(positionToDistance(position));
+    elevatorIO.setPositionMeters(positionToDistanceMeters(position));
   }
 
-  public Distance getPosition() {
-    return inputs.linearPosition;
+  public double getPositionMeters() {
+    return inputs.linearPositionMeters;
   }
 
   public void raiseElevatorSlow() {
@@ -233,7 +233,7 @@ public class Elevator extends SubsystemBase {
   }
 
   public void stop() {
-    elevatorIO.setMotorVoltage(Volts.of(0.0));
+    elevatorIO.setMotorVoltage(0.0);
   }
 
   public void zero() {

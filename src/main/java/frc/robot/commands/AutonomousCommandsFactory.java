@@ -58,7 +58,7 @@ public class AutonomousCommandsFactory {
     return autoChooser.get();
   }
 
-  public void configureAutoCommands(SwerveDrivetrain drivetrain, Vision vision) {
+  public void configureAutoCommands(SwerveDrivetrain drivetrain) {
     // add commands to the auto chooser
     autoChooser.addDefaultOption("Do Nothing", new InstantCommand());
 

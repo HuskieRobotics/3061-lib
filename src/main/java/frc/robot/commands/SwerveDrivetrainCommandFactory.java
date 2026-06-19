@@ -11,7 +11,6 @@ import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
 import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrainConstants;
 import frc.lib.team3061.vision.Vision;
 import frc.lib.team6328.util.FieldConstants;
-import frc.robot.Field2d;
 import frc.robot.operator_interface.OISelector;
 import frc.robot.operator_interface.OperatorInterface;
 import java.util.Optional;
@@ -160,7 +159,7 @@ public class SwerveDrivetrainCommandFactory {
 
         // Don't snap if we are in the trench zone since we want the driver to maintain control
         // while traversing the trench
-        if ((closerToLeft || closerToRight) && !Field2d.getInstance().inTrenchZone()) {
+        if ((closerToLeft || closerToRight)) {
           double nearest90DegreeAngle =
               Math.round(currentRotationDeg / 90.0) * 90.0; // nearest multiple of 90 degrees
           Rotation2d targetRotation = Rotation2d.fromDegrees(nearest90DegreeAngle);

@@ -143,15 +143,19 @@ public interface OperatorInterface {
     return new Trigger(() -> false);
   }
 
+  public default Trigger getArmSystemTest() {
+    return new Trigger(() -> false);
+  }
+
+  public default Trigger getElevatorSystemTest() {
+    return new Trigger(() -> false);
+  }
+
+  public default Trigger getManipulatorSystemTest() {
+    return new Trigger(() -> false);
+  }
+
   public default Trigger getShooterSystemTest() {
-    return new Trigger(() -> false);
-  }
-
-  public default Trigger getIntakeSystemTest() {
-    return new Trigger(() -> false);
-  }
-
-  public default Trigger getHopperSystemTest() {
     return new Trigger(() -> false);
   }
 

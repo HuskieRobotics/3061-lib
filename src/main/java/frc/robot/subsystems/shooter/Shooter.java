@@ -6,13 +6,12 @@ import static frc.robot.subsystems.shooter.ShooterConstants.*;
 import com.ctre.phoenix6.SignalLogger;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
-import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.lib.team3015.subsystem.FaultReporter;
+import frc.lib.team3061.util.MathUtils;
 import frc.lib.team3061.util.SysIdRoutineChooser;
 import frc.lib.team6328.util.LoggedTracer;
 import frc.lib.team6328.util.LoggedTunableNumber;
@@ -86,7 +85,7 @@ public class Shooter extends SubsystemBase {
               // Log state with SignalLogger class
               state -> SignalLogger.writeString("SysIdTranslationCurrent_State", state.toString())),
           new SysIdRoutine.Mechanism(
-              output -> io.setShooterWheelTopCurrent(Amps.of(output.in(Volts))),
+              output -> io.setShooterWheelTopCurrent(output.in(Volts)),
               null,
               this)); // treat volts as amps
   private final SysIdRoutine shooterWheelBottomSysIdRoutine =
@@ -98,7 +97,7 @@ public class Shooter extends SubsystemBase {
               // Log state with SignalLogger class
               state -> SignalLogger.writeString("SysIdTranslationCurrent_State", state.toString())),
           new SysIdRoutine.Mechanism(
-              output -> io.setShooterWheelBottomCurrent(Amps.of(output.in(Volts))),
+              output -> io.setShooterWheelBottomCurrent(output.in(Volts)),
               null,
               this)); // treat volts as amps
 
@@ -113,10 +112,6 @@ public class Shooter extends SubsystemBase {
         .addOption("Shooter Wheel Top Current", shooterWheelTopSysIdRoutine);
     SysIdRoutineChooser.getInstance()
         .addOption("Shooter Wheel Bottom Current", shooterWheelBottomSysIdRoutine);
-
-    // Register this subsystem's system check command with the fault reporter. The system check
-    // command can be added to the Elastic Dashboard to execute the system test.
-    FaultReporter.getInstance().registerSystemCheck(SUBSYSTEM_NAME, getSystemCheckCommand());
   }
 
   @Override
@@ -131,14 +126,14 @@ public class Shooter extends SubsystemBase {
     // specified current (if not zero).
     if (testingMode.get() == 1) {
       if (topWheelVelocityRPS.get() != 0) {
-        io.setShooterWheelTopVelocity(RotationsPerSecond.of(topWheelVelocityRPS.get()));
+        io.setShooterWheelTopVelocityRPS(topWheelVelocityRPS.get());
       } else if (topWheelCurrent.get() != 0) {
-        io.setShooterWheelTopCurrent(Amps.of(topWheelCurrent.get()));
+        io.setShooterWheelTopCurrent(topWheelCurrent.get());
       }
       if (bottomWheelVelocityRPS.get() != 0) {
-        io.setShooterWheelBottomVelocity(RotationsPerSecond.of(bottomWheelVelocityRPS.get()));
+        io.setShooterWheelBottomVelocityRPS(bottomWheelVelocityRPS.get());
       } else if (bottomWheelCurrent.get() != 0) {
-        io.setShooterWheelBottomCurrent(Amps.of(bottomWheelCurrent.get()));
+        io.setShooterWheelBottomCurrent(bottomWheelCurrent.get());
       }
     }
 
@@ -148,22 +143,22 @@ public class Shooter extends SubsystemBase {
   }
 
   public void setIdleVelocity() {
-    io.setShooterWheelBottomVelocity(SHOOTER_IDLE_VELOCITY);
-    io.setShooterWheelTopVelocity(SHOOTER_IDLE_VELOCITY);
+    io.setShooterWheelBottomVelocityRPS(SHOOTER_IDLE_VELOCITY_RPS);
+    io.setShooterWheelTopVelocityRPS(SHOOTER_IDLE_VELOCITY_RPS);
   }
 
   // While we cannot use subtypes of Measure in the inputs class due to logging limitations, we do
   // strive to use them (e.g., Distance) throughout the rest of the code to mitigate bugs due to
   // unit mismatches.
-  public void setVelocity(Distance distance) {
+  public void setVelocity(double distanceMeters) {
     // Subsystems may need to log additional information that is not part of the inputs. This is
     // done for convenience as additional values can always be logged when replaying a log file.
     // While this is often done in the periodic method, at times values are only logged when they
     // are changed.
-    Logger.recordOutput("Shooter/distance", distance);
+    Logger.recordOutput("Shooter/distanceMeters", distanceMeters);
 
-    io.setShooterWheelTopVelocity(RotationsPerSecond.of(shootingMap.get(distance.in(Meters))));
-    io.setShooterWheelBottomVelocity(RotationsPerSecond.of(shootingMap.get(distance.in(Meters))));
+    io.setShooterWheelTopVelocityRPS(shootingMap.get(distanceMeters));
+    io.setShooterWheelBottomVelocityRPS(shootingMap.get(distanceMeters));
   }
 
   public boolean isTopShooterAtSetpoint() {
@@ -171,14 +166,18 @@ public class Shooter extends SubsystemBase {
     // The velocity is considered at the setpoint if the velocity is within tolerance for the period
     // specified when constructing the debouncer (e.g., 0.1 seconds or 5 loop iterations).
     return topAtSetpointDebouncer.calculate(
-        shooterInputs.shootMotorTopVelocity.isNear(
-            shooterInputs.shootMotorTopReferenceVelocity, VELOCITY_TOLERANCE));
+        MathUtils.isNear(
+            shooterInputs.shootMotorTopVelocityRPS,
+            shooterInputs.shootMotorTopReferenceVelocityRPS,
+            VELOCITY_TOLERANCE_RPS));
   }
 
   public boolean isBottomShooterAtSetpoint() {
     return bottomAtSetpointDebouncer.calculate(
-        shooterInputs.shootMotorBottomVelocity.isNear(
-            shooterInputs.shootMotorBottomReferenceVelocity, VELOCITY_TOLERANCE));
+        MathUtils.isNear(
+            shooterInputs.shootMotorBottomVelocityRPS,
+            shooterInputs.shootMotorBottomReferenceVelocityRPS,
+            VELOCITY_TOLERANCE_RPS));
   }
 
   private void populateShootingMap() {
@@ -189,57 +188,60 @@ public class Shooter extends SubsystemBase {
     }
   }
 
-  private Command getSystemCheckCommand() {
+  public Command getSystemCheckCommand() {
     // A subsystem's system check command is used to verify the functionality of the subsystem. It
     // should perform a sequence of commands (usually encapsulated in another method). The command
     // should always be decorated with an `until` condition that checks for faults in the subsystem
     // and an `andThen` condition that sets the subsystem to a safe state. This ensures that if any
     // faults are detected, the test will stop and the subsystem is always left in a safe state.
     return Commands.sequence(
-            getPresetCheckCommand(Meters.of(7.0)),
-            getPresetCheckCommand(Meters.of(9.0)),
-            getPresetCheckCommand(Meters.of(11.0)),
-            getPresetCheckCommand(Meters.of(13.0)))
+            getPresetCheckCommand(7.0),
+            getPresetCheckCommand(9.0),
+            getPresetCheckCommand(11.0),
+            getPresetCheckCommand(13.0))
         .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
         .andThen(
             Commands.runOnce(
                 () -> {
-                  io.setShooterWheelBottomVelocity(RotationsPerSecond.of(0.0));
-                  io.setShooterWheelTopVelocity(RotationsPerSecond.of(0.0));
+                  io.setShooterWheelBottomVelocityRPS(0.0);
+                  io.setShooterWheelTopVelocityRPS(0.0);
                 }));
   }
 
-  private Command getPresetCheckCommand(Distance distance) {
+  private Command getPresetCheckCommand(double distanceMeters) {
     return Commands.sequence(
-        Commands.runOnce(() -> this.setVelocity(distance)),
+        Commands.runOnce(() -> this.setVelocity(distanceMeters)),
         Commands.waitSeconds(2.0),
         Commands.runOnce(
             () ->
                 this.checkVelocity(
-                    RotationsPerSecond.of(shootingMap.get(distance.in(Meters))),
-                    RotationsPerSecond.of(shootingMap.get(distance.in(Meters))))));
+                    shootingMap.get(distanceMeters), shootingMap.get(distanceMeters))));
   }
 
-  private void checkVelocity(AngularVelocity topVelocity, AngularVelocity bottomVelocity) {
+  private void checkVelocity(double topVelocityRPS, double bottomVelocityRPS) {
     // check bottom motor
-    if (!this.shooterInputs.shootMotorBottomVelocity.isNear(bottomVelocity, VELOCITY_TOLERANCE)) {
+    if (!MathUtils.isNear(
+        this.shooterInputs.shootMotorBottomVelocityRPS,
+        bottomVelocityRPS,
+        VELOCITY_TOLERANCE_RPS)) {
       FaultReporter.getInstance()
           .addFault(
               SUBSYSTEM_NAME,
               "Bottom shooter wheel velocity out of tolerance, should be "
-                  + bottomVelocity
+                  + bottomVelocityRPS
                   + " but is "
-                  + this.shooterInputs.shootMotorBottomVelocity);
+                  + this.shooterInputs.shootMotorBottomVelocityRPS);
     }
     // check top motor
-    if (!this.shooterInputs.shootMotorTopVelocity.isNear(topVelocity, VELOCITY_TOLERANCE)) {
+    if (!MathUtils.isNear(
+        this.shooterInputs.shootMotorTopVelocityRPS, topVelocityRPS, VELOCITY_TOLERANCE_RPS)) {
       FaultReporter.getInstance()
           .addFault(
               SUBSYSTEM_NAME,
               "Top shooter wheel velocity out of tolerance, should be "
-                  + topVelocity
+                  + topVelocityRPS
                   + " but is "
-                  + this.shooterInputs.shootMotorTopVelocity);
+                  + this.shooterInputs.shootMotorTopVelocityRPS);
     }
   }
 }

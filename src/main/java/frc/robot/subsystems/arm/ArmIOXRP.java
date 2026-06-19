@@ -1,24 +1,22 @@
 package frc.robot.subsystems.arm;
 
-import static edu.wpi.first.units.Units.*;
-
-import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.xrp.XRPServo;
 
 public class ArmIOXRP implements ArmIO {
 
   private final XRPServo armMotor = new XRPServo(4);
 
-  private Angle referenceAngle = Degrees.of(0.0);
+  private double referenceAngleRotations = 0.0;
 
   @Override
   public void updateInputs(ArmIOInputs inputs) {
-    inputs.position = Degrees.of(armMotor.getAngle());
-    inputs.angleMotorReferenceAngle = referenceAngle;
+    inputs.positionRotations = Units.degreesToRotations(armMotor.getAngle());
+    inputs.angleMotorReferenceAngleRotations = Units.degreesToRotations(referenceAngleRotations);
   }
 
   @Override
-  public void setAngle(Angle angle) {
-    armMotor.setAngle(angle.in(Degrees));
+  public void setAngleRotations(double angleRotations) {
+    armMotor.setAngle(Units.rotationsToDegrees(angleRotations));
   }
 }

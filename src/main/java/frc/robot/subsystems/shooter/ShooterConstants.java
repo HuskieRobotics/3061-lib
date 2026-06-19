@@ -1,9 +1,5 @@
 package frc.robot.subsystems.shooter;
 
-import static edu.wpi.first.units.Units.RotationsPerSecond;
-
-import edu.wpi.first.units.measure.AngularVelocity;
-
 public class ShooterConstants {
 
   private static final String CONSTRUCTOR_EXCEPTION = "constant class";
@@ -43,8 +39,8 @@ public class ShooterConstants {
   public static final double SHOOT_MOTORS_GEAR_RATIO = 0.5;
   public static final boolean SHOOT_TOP_INVERTED = false;
   public static final boolean SHOOT_BOTTOM_INVERTED = false;
-  public static final AngularVelocity SHOOTER_IDLE_VELOCITY = RotationsPerSecond.of(10.0);
-  public static final AngularVelocity VELOCITY_TOLERANCE = RotationsPerSecond.of(5.0);
+  public static final double SHOOTER_IDLE_VELOCITY_RPS = 10.0;
+  public static final double VELOCITY_TOLERANCE_RPS = 5.0;
 
   // game pirece detection constants
   public static final double DETECTOR_MIN_SIGNAL_STRENGTH = 2000;

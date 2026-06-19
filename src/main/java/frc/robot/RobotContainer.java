@@ -166,10 +166,10 @@ public class RobotContainer {
 
     // register autonomous commands
     if (RobotConfig.getInstance().getDrivetrainType() == RobotConfig.DRIVETRAIN_TYPE.DIFFERENTIAL) {
-      AutonomousCommandsFactory.getInstance().configureAutoCommands(differentialDrivetrain, vision);
+      AutonomousCommandsFactory.getInstance().configureAutoCommands(differentialDrivetrain);
     } else if (RobotConfig.getInstance().getDrivetrainType()
         == RobotConfig.DRIVETRAIN_TYPE.SWERVE) {
-      AutonomousCommandsFactory.getInstance().configureAutoCommands(swerveDrivetrain, vision);
+      AutonomousCommandsFactory.getInstance().configureAutoCommands(swerveDrivetrain);
     }
 
     // Alert when tuning

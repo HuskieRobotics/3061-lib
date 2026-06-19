@@ -54,11 +54,6 @@ public class FullOperatorConsoleOI extends OperatorDashboard {
   }
 
   @Override
-  public Trigger getResetGyroButton() {
-    return translateJoystickButtons[3];
-  }
-
-  @Override
   public Trigger getSnakeDriveButton() {
     return translateJoystickButtons[4];
   }
@@ -111,13 +106,18 @@ public class FullOperatorConsoleOI extends OperatorDashboard {
   }
 
   @Override
-  public Trigger getIntakeSystemTest() {
+  public Trigger getArmSystemTest() {
     return operatorController.back().and(operatorController.y());
   }
 
   @Override
-  public Trigger getHopperSystemTest() {
+  public Trigger getElevatorSystemTest() {
     return operatorController.back().and(operatorController.x());
+  }
+
+  @Override
+  public Trigger getManipulatorSystemTest() {
+    return operatorController.back().and(operatorController.a());
   }
 
   @Override

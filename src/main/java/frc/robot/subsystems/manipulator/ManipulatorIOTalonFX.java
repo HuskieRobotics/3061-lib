@@ -85,11 +85,11 @@ public class ManipulatorIOTalonFX implements ManipulatorIO {
                 manipulatorMotorVoltage,
                 manipulatorMotorVelocity));
 
-    inputs.manipulatorStatorCurrent = manipulatorMotorStatorCurrent.getValue();
-    inputs.manipulatorSupplyCurrent = manipulatorMotorSupplyCurrent.getValue();
-    inputs.manipulatorTemp = manipulatorMotorTemp.getValue();
-    inputs.manipulatorVelocity = manipulatorMotorVelocity.getValue();
-    inputs.manipulatorMotorVoltage = manipulatorMotorVoltage.getValue();
+    inputs.manipulatorStatorCurrent = manipulatorMotorStatorCurrent.getValueAsDouble();
+    inputs.manipulatorSupplyCurrent = manipulatorMotorSupplyCurrent.getValueAsDouble();
+    inputs.manipulatorTemp = manipulatorMotorTemp.getValueAsDouble();
+    inputs.manipulatorVelocityRPS = manipulatorMotorVelocity.getValueAsDouble();
+    inputs.manipulatorMotorVoltage = manipulatorMotorVoltage.getValueAsDouble();
     inputs.isManipulatorPrimaryIRBlocked = !manipulatorIRSensor.get();
     inputs.isManipulatorSecondaryIRBlocked = !backupManipulatorIRSensor.get();
   }
@@ -98,7 +98,7 @@ public class ManipulatorIOTalonFX implements ManipulatorIO {
   // strive to use them (e.g., Voltage) throughout the rest of the code to mitigate bugs due to unit
   // mismatches.
   @Override
-  public void setManipulatorVoltage(Voltage volts) {
+  public void setManipulatorVoltage(double volts) {
     this.manipulatorMotor.setControl(indexerVoltageRequest.withOutput(volts));
   }
 
