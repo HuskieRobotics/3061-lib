@@ -367,7 +367,6 @@ public class Manipulator extends SubsystemBase {
                             false);
                   }
                 }))
-        .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
         .andThen(Commands.runOnce(() -> io.setManipulatorVoltage(0.0)));
   }
 }

@@ -134,7 +134,6 @@ public class Arm extends SubsystemBase {
             getPresetCheckCommand(Units.degreesToRotations(40.0)),
             getPresetCheckCommand(Units.degreesToRotations(50.0)),
             getPresetCheckCommand(Units.degreesToRotations(70.0)))
-        .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
         .andThen(Commands.runOnce(() -> io.setAngleRotations(LOWER_ANGLE_LIMIT_ROTATIONS)));
   }
 

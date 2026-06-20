@@ -135,6 +135,7 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
   private boolean accelerationLimiting = false;
   private boolean driveToPoseCanceled = false;
   private static final double ACCELERATION_LIMITING_MAX_VELOCITY_MPS = 1.5;
+  private static final double ACCELERATION_LIMITING_MAX_ANGULAR_VELOCITY_RPS = 4.0;
 
   private Alert noPoseAlert =
       new Alert("Attempted to reset pose from vision, but no pose was found.", AlertType.kWarning);
@@ -494,10 +495,12 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
         xVelocityMPS = xVelocityMPS / currentVelocity * ACCELERATION_LIMITING_MAX_VELOCITY_MPS;
         yVelocityMPS = yVelocityMPS / currentVelocity * ACCELERATION_LIMITING_MAX_VELOCITY_MPS;
       }
-      if (rotationalVelocityRadiansPerSecond > 4.0) {
-        rotationalVelocityRadiansPerSecond = 4.0;
-      } else if (rotationalVelocityRadiansPerSecond < -4.0) {
-        rotationalVelocityRadiansPerSecond = -4.0;
+
+      if (rotationalVelocityRadiansPerSecond > ACCELERATION_LIMITING_MAX_ANGULAR_VELOCITY_RPS) {
+        rotationalVelocityRadiansPerSecond = ACCELERATION_LIMITING_MAX_ANGULAR_VELOCITY_RPS;
+      } else if (rotationalVelocityRadiansPerSecond
+          < -ACCELERATION_LIMITING_MAX_ANGULAR_VELOCITY_RPS) {
+        rotationalVelocityRadiansPerSecond = -ACCELERATION_LIMITING_MAX_ANGULAR_VELOCITY_RPS;
       }
     }
 
@@ -997,7 +1000,6 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
             getSwerveCheckCommand(SwerveCheckTypes.BACKWARD),
             getSwerveCheckCommand(SwerveCheckTypes.CLOCKWISE),
             getSwerveCheckCommand(SwerveCheckTypes.COUNTERCLOCKWISE))
-        // .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
         .andThen(Commands.runOnce(() -> this.drive(0.0, 0.0, 0.0, true, false), this));
   }
 

@@ -190,7 +190,6 @@ public class Elevator extends SubsystemBase {
             getTestPositionCommand(Positions.BOTTOM),
             getTestPositionCommand(Positions.MIDDLE),
             getTestPositionCommand(Positions.TOP))
-        .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
         .andThen(Commands.runOnce(() -> goToPosition(Positions.BOTTOM)));
   }
 

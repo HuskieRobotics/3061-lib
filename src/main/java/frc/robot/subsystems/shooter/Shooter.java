@@ -199,7 +199,6 @@ public class Shooter extends SubsystemBase {
             getPresetCheckCommand(9.0),
             getPresetCheckCommand(11.0),
             getPresetCheckCommand(13.0))
-        .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
         .andThen(
             Commands.runOnce(
                 () -> {
