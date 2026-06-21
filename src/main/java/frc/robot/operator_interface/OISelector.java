@@ -63,7 +63,6 @@ public class OISelector {
     Integer firstPort = null;
     Integer secondPort = null;
     Integer xBoxPort = null;
-    Integer thirdPort = null;
     for (int port = 0; port < DriverStation.kJoystickPorts; port++) {
       if (DriverStation.getJoystickName(port).toLowerCase().contains("xbox")) {
         if (xBoxPort == null) {
@@ -74,8 +73,6 @@ public class OISelector {
           firstPort = port;
         } else if (secondPort == null) {
           secondPort = port;
-        } else { // thirdPort == null
-          thirdPort = port;
         }
       }
     }
@@ -86,13 +83,15 @@ public class OISelector {
         || Constants.getRobot() == RobotType.ROBOT_NORTHSTAR_TEST_PLATFORM) {
       nonCompetitionOperatorInterfaceWarning.set(false);
       return new SimDualJoysticksOI(0, 1);
-    } else if (firstPort != null && secondPort != null && xBoxPort != null && thirdPort != null) {
-      noOperatorInterfaceWarning.set(false);
-      nonCompetitionOperatorInterfaceWarning.set(true);
-      return new FullOperatorConsoleOI(firstPort, secondPort, xBoxPort, thirdPort);
-    } else if (firstPort != null && secondPort != null) {
+    } else if (firstPort != null && secondPort != null && xBoxPort != null) {
+      // Full operator console now becomes "competition" due to new use of xbox controller
       noOperatorInterfaceWarning.set(false);
       nonCompetitionOperatorInterfaceWarning.set(false);
+      return new FullOperatorConsoleOI(firstPort, secondPort, xBoxPort);
+    } else if (firstPort != null && secondPort != null) {
+      // Dual joysticks now "non-competition" due to new use of xbox controller
+      noOperatorInterfaceWarning.set(false);
+      nonCompetitionOperatorInterfaceWarning.set(true);
       return new DualJoysticksOI(firstPort, secondPort);
     } else if (xBoxPort != null) {
       noOperatorInterfaceWarning.set(false);
@@ -101,7 +100,7 @@ public class OISelector {
     } else {
       noOperatorInterfaceWarning.set(true);
       nonCompetitionOperatorInterfaceWarning.set(true);
-      return new OperatorInterface() {};
+      return new OperatorDashboard();
     }
   }
 }

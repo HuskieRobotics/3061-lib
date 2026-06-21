@@ -21,8 +21,8 @@ import org.photonvision.simulation.VisionSystemSim;
  * is being used.
  */
 public class VisionIOSim extends VisionIOPhotonVision {
-  private static final double DIAGONAL_FOV = 96.0; // FOV in degrees
-  private static final int IMG_WIDTH = 1600; // image width in px
+  private static final double DIAGONAL_FOV = 89.0; // FOV in degrees
+  private static final int IMG_WIDTH = 1920; // image width in px
   private static final int IMG_HEIGHT = 1200; // image heigh in px
 
   private Supplier<Pose2d> poseSupplier;

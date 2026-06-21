@@ -163,6 +163,8 @@ public class DriveToPose extends Command {
           new Translation2d(currentSpeeds.vxMetersPerSecond, currentSpeeds.vyMetersPerSecond)
               .rotateBy(targetPose.getRotation().unaryMinus());
 
+      Logger.recordOutput("/DriveToPose/Velocities (target frame)", velocitiesInTargetFrame);
+
       xController.reset(this.poseDifferenceInTargetFrame.getX(), velocitiesInTargetFrame.getX());
       yController.reset(this.poseDifferenceInTargetFrame.getY(), velocitiesInTargetFrame.getY());
       thetaController.reset(
@@ -190,9 +192,9 @@ public class DriveToPose extends Command {
     int allianceMultiplier = Field2d.getInstance().getAlliance() == Alliance.Blue ? 1 : -1;
 
     drivetrain.drive(
-        MetersPerSecond.of(allianceMultiplier * fieldRelativeVelocities.getX()),
-        MetersPerSecond.of(allianceMultiplier * fieldRelativeVelocities.getY()),
-        RadiansPerSecond.of(thetaVelocity),
+        allianceMultiplier * fieldRelativeVelocities.getX(),
+        allianceMultiplier * fieldRelativeVelocities.getY(),
+        thetaVelocity,
         true,
         true);
 

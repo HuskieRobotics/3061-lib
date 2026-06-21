@@ -3,6 +3,8 @@ package frc.robot.configs;
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.MountPoseConfigs;
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Quaternion;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -10,63 +12,69 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.swerve_drivetrain.swerve.SwerveConstants;
+import frc.lib.team6328.util.FieldConstants;
 
-public class NewPracticeRobotConfig extends RobotConfig {
-  private static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 37;
-  private static final int FRONT_LEFT_MODULE_STEER_MOTOR = 61;
-  private static final int FRONT_LEFT_MODULE_STEER_ENCODER = 14;
-  private static final double FRONT_LEFT_MODULE_STEER_OFFSET_ROT = -0.117676 + 0.5;
+public class SavannaRobotConfig extends RobotConfig {
+  private static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 24;
+  private static final int FRONT_LEFT_MODULE_STEER_MOTOR = 53;
+  private static final int FRONT_LEFT_MODULE_STEER_ENCODER = 25;
+  private static final double FRONT_LEFT_MODULE_STEER_OFFSET_ROT = -0.071045;
 
-  private static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 40;
-  private static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 25;
-  private static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 17;
-  private static final double FRONT_RIGHT_MODULE_STEER_OFFSET_ROT = -0.028809 + 0.5;
+  private static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 61;
+  private static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 51;
+  private static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 24;
+  private static final double FRONT_RIGHT_MODULE_STEER_OFFSET_ROT = 0.025879;
 
-  private static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 39;
-  private static final int BACK_LEFT_MODULE_STEER_MOTOR = 60;
-  private static final int BACK_LEFT_MODULE_STEER_ENCODER = 8;
-  private static final double BACK_LEFT_MODULE_STEER_OFFSET_ROT = -0.378906 + 0.5;
+  private static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 40;
+  private static final int BACK_LEFT_MODULE_STEER_MOTOR = 25;
+  private static final int BACK_LEFT_MODULE_STEER_ENCODER = 17;
+  private static final double BACK_LEFT_MODULE_STEER_OFFSET_ROT = 0.469727;
 
-  private static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 38;
-  private static final int BACK_RIGHT_MODULE_STEER_MOTOR = 59;
-  private static final int BACK_RIGHT_MODULE_STEER_ENCODER = 11;
-  private static final double BACK_RIGHT_MODULE_STEER_OFFSET_ROT = 0.157959 - 0.5;
-  private static final int GYRO_ID = 3;
+  private static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 35;
+  private static final int BACK_RIGHT_MODULE_STEER_MOTOR = 52;
+  private static final int BACK_RIGHT_MODULE_STEER_ENCODER = 23;
+  private static final double BACK_RIGHT_MODULE_STEER_OFFSET_ROT = -0.166748;
 
-  private static final double TRACKWIDTH_METERS = 0.57785; // 22.75
-  private static final double WHEELBASE_METERS = 0.57785; // 22.75
+  private static final int GYRO_ID = 18;
+
+  private static final double TRACKWIDTH_METERS = 0.628650;
+  private static final double WHEELBASE_METERS = 0.476250;
   private static final double WHEEL_RADIUS_METERS = 0.0515507563;
-  private static final Translation2d FRONT_RIGHT_CORNER_POSITION = new Translation2d(0.36, -0.36);
+  private static final Translation2d FRONT_RIGHT_CORNER_POSITION =
+      new Translation2d(0.302940, -0.379140);
 
-  private static final double ROBOT_WIDTH_WITH_BUMPERS_METERS = 0.88026; // 34.656 in
-  private static final double ROBOT_LENGTH_WITH_BUMPERS_METERS = 0.88026; // 34.656 in
+  private static final double ROBOT_WIDTH_WITH_BUMPERS_METERS = 0.933450;
+  private static final double ROBOT_LENGTH_WITH_BUMPERS_METERS = 0.768350;
 
   private static final double COUPLE_RATIO = 3.857142857142857;
 
   /* Angle Motor PID Values */
-  private static final double ANGLE_KP = 77;
+  private static final double ANGLE_KP = 90;
   private static final double ANGLE_KI = 0.0;
   private static final double ANGLE_KD = 0.1;
 
   // values from sysid routines
-  private static final double ANGLE_KS = 0.39776;
-  private static final double ANGLE_KV = 2.6176;
+  private static final double ANGLE_KS = 0.57576;
+  private static final double ANGLE_KV = 2.6475;
   // 0.4399866667 * 2 * Math.PI; // convert from V/(radians/s) to V/(rotations/s)
-  private static final double ANGLE_KA = 0.18755;
+  private static final double ANGLE_KA = 0.15068;
 
   /* Drive Motor PID Values */
-  private static final double DRIVE_KP = 10.0; // determined after manual tuning
+  private static final double DRIVE_KP = 16.0;
   private static final double DRIVE_KI = 0.0;
   private static final double DRIVE_KD = 0.0;
 
   // values from sysid routines
-  private static final double DRIVE_KS = 3.9848;
-  private static final double DRIVE_KV = 0.058846;
-  private static final double DRIVE_KA = 0.2817;
+  private static final double DRIVE_KS = 2.8277;
+  private static final double DRIVE_KV = 0.060631;
+  private static final double DRIVE_KA = 0.51114;
 
-  private static final double MAX_VELOCITY_MPS = 5.117;
+  private static final double MAX_VELOCITY_MPS = 4.936;
   private static final double MAX_COAST_VELOCITY_MPS = 0.05;
-  private static final double SLOW_MODE_MULTIPLIER = 0.75;
+  private static final double SLOW_MODE_MULTIPLIER = 0.3;
+  private static final double MAX_ACCELERATION_WHEN_LIMITED_MPSPS = 9.0;
+  private static final double MAX_ANGULAR_ACCELERATION_WHEN_LIMITED_RPSPS =
+      100.0; // essentially disable angular acceleration limits
 
   private static final String CAN_BUS_NAME = "canbus1";
   private static final CANBus CAN_BUS = new CANBus(CAN_BUS_NAME);
@@ -74,22 +82,21 @@ public class NewPracticeRobotConfig extends RobotConfig {
   private static final double AUTO_DRIVE_P_CONTROLLER = 5.0;
   private static final double AUTO_DRIVE_I_CONTROLLER = 0.0;
   private static final double AUTO_DRIVE_D_CONTROLLER = 0.0;
-  private static final double AUTO_TURN_P_CONTROLLER = 5.0;
+  private static final double AUTO_TURN_P_CONTROLLER = 3.0;
   private static final double AUTO_TURN_I_CONTROLLER = 0.0;
   private static final double AUTO_TURN_D_CONTROLLER = 0.0;
 
   // Drive to Pose constants
-  private static final double DRIVE_TO_POSE_DRIVE_X_KP = 5.0;
-  private static final double DRIVE_TO_POSE_DRIVE_Y_KP = 5.0;
+  private static final double DRIVE_TO_POSE_DRIVE_KP =
+      6.0; // from preliminary testing, still needs more tuning
   private static final double DRIVE_TO_POSE_DRIVE_KD = 0.0;
   private static final double DRIVE_TO_POSE_THETA_KP =
-      5; // 18.0; // from preliminary testing, still needs more tuning
-  private static final double DRIVE_TO_POSE_THETA_KI = 0.0;
+      6.0; // 18.0; // from preliminary testing, still needs more tuning
+  private static final double DRIVE_TO_POSE_THETA_KI = 10.0;
   private static final double DRIVE_TO_POSE_THETA_KD = 0.0;
   private static final double DRIVE_TO_POSE_DRIVE_TOLERANCE_METERS = 0.06;
   private static final double DRIVE_TO_POSE_THETA_TOLERANCE_RADIANS = 0.02;
-  private static final double DRIVE_TO_POSE_MAX_VELOCITY_MPS = 2.0;
-  private static final double DRIVE_TO_POSE_MAX_ACCELERATION_MPSPS = 4.0;
+  private static final double DRIVE_TO_POSE_MAX_VELOCITY_MPS = 1.25;
 
   private static final double SQUARING_SPEED_MPS = 1.0;
 
@@ -98,63 +105,135 @@ public class NewPracticeRobotConfig extends RobotConfig {
   private static final double DRIVE_FACING_ANGLE_KD = 0.1;
   private static final double DRIVE_FACING_ANGLE_KI = 0.0;
 
-  private static final int LED_COUNT = 85;
+  private static final int LED_COUNT = 26;
 
-  private static final String BR_CAMERA_NAME = "40708542";
-  private static final String BL_CAMERA_NAME = "40708569";
+  private static final String BR_CAMERA_SERIAL_NUMBER = "40708542";
+  private static final String BL_CAMERA_SERIAL_NUMBER = "40708556";
+  private static final String BCL_CAMERA_SERIAL_NUMBER = "24608727";
+  private static final String BCH_CAMERA_SERIAL_NUMBER = "40777404";
 
-  private static final int MONO_EXPOSURE = 2200;
-  private static final double MONO_GAIN = 17.5;
-  private static final double MONO_DENOISE = 1.0;
-
-  private static final int COLOR_EXPOSURE = 4500;
-  private static final double COLOR_GAIN = 5.0;
+  private static final int DAA1920_160UM_EXPOSURE = 2000;
+  private static final int DAA1280_54UM_EXPOSURE = 800;
+  private static final double MONO_GAIN = 10;
+  private static final double DAA1920_160UM_DENOISE = 1.0;
+  private static final double DAA1280_54UM_DENOISE = 0.0;
 
   // Back right camera
   // x, y, z, pitch, yaw
-  // -11.4425	-8.0165	6.436	60	-127.761
   private static final Transform3d ROBOT_TO_BR_CAMERA =
       new Transform3d(
-          new Translation3d(
-              Units.inchesToMeters(-10.969),
-              Units.inchesToMeters(-10.729),
-              Units.inchesToMeters(7.434)),
-          new Rotation3d(0, Units.degreesToRadians(-25), Units.degreesToRadians(-90.0)));
+          new Translation3d(-0.226, -0.311, 0.184),
+          new Rotation3d(new Quaternion(-0.686, 0.160, 0.156, 0.692)));
 
   // Back left camera
   // x, y, z, pitch, yaw
-  // -11.4425	8.0165	6.436	60	142.239
   private static final Transform3d ROBOT_TO_BL_CAMERA =
       new Transform3d(
-          new Translation3d(
-              Units.inchesToMeters(-10.969),
-              Units.inchesToMeters(10.729),
-              Units.inchesToMeters(7.434)),
-          new Rotation3d(0, Units.degreesToRadians(-25), Units.degreesToRadians(90.0)));
+          new Translation3d(-0.219768, 0.306363, 0.202798),
+          new Rotation3d(new Quaternion(-0.680614, -0.147614, 0.145496, -0.702325)));
+
+  // Back center left camera
+  // x, y, z, pitch, yaw
+  // FIXME: update
+  private static final Transform3d ROBOT_TO_BCL_CAMERA =
+      new Transform3d(
+          new Translation3d(-0.249052, 0.072636, 0.160716),
+          new Rotation3d(new Quaternion(0.106805, 0.165791, -0.980344, 0.005602)));
+
+  // Back center right camera
+  // x, y, z, pitch, yaw
+  // FIXME: update
+  private static final Transform3d ROBOT_TO_BCH_CAMERA =
+      new Transform3d(
+          new Translation3d(-0.231423, 0.054115, 0.222039),
+          new Rotation3d(new Quaternion(0.205042, 0.094613, -0.015936, 0.974039)));
+
+  // use AprilTag ID 13 for empirical determination of the robot-to-camera transform
+  private static final Pose3d ROBOT_TO_TAG_13_BACK_CAMERAS =
+      FieldConstants.defaultAprilTagType
+          .getLayout()
+          .getTagPose(13)
+          .get()
+          .transformBy(
+              new Transform3d(
+                  Units.inchesToMeters(48.0),
+                  Units.inchesToMeters(0.0),
+                  -Units.inchesToMeters(21.75),
+                  new Rotation3d()));
+
+  private static final Pose3d ROBOT_TO_TAG_13_LEFT_CAMERA =
+      FieldConstants.defaultAprilTagType
+          .getLayout()
+          .getTagPose(13)
+          .get()
+          .transformBy(
+              new Transform3d(
+                  Units.inchesToMeters(51.0),
+                  Units.inchesToMeters(2.25),
+                  -Units.inchesToMeters(21.75),
+                  new Rotation3d(0, 0, Units.degreesToRadians(90))));
+
+  private static final Pose3d ROBOT_TO_TAG_13_RIGHT_CAMERA =
+      FieldConstants.defaultAprilTagType
+          .getLayout()
+          .getTagPose(13)
+          .get()
+          .transformBy(
+              new Transform3d(
+                  Units.inchesToMeters(51.0),
+                  Units.inchesToMeters(-2.25),
+                  -Units.inchesToMeters(21.75),
+                  new Rotation3d(0, 0, Units.degreesToRadians(-90))));
 
   @Override
   public CameraConfig[] getCameraConfigs() {
     return new CameraConfig[] {
       CameraConfig.builder()
           .robotToCameraTransform(ROBOT_TO_BR_CAMERA)
-          .id(BR_CAMERA_NAME)
+          .poseForRobotToCameraTransformCalibration(ROBOT_TO_TAG_13_RIGHT_CAMERA)
+          .id(BR_CAMERA_SERIAL_NUMBER)
           .location("BR")
-          .width(1920)
+          .width(1800)
           .height(1200)
-          .exposure(MONO_EXPOSURE)
+          .exposure(DAA1920_160UM_EXPOSURE)
           .gain(MONO_GAIN)
-          .denoise(MONO_DENOISE)
+          .denoise(DAA1920_160UM_DENOISE)
           .stdDevFactor(1.0)
           .build(),
       CameraConfig.builder()
           .robotToCameraTransform(ROBOT_TO_BL_CAMERA)
-          .id(BL_CAMERA_NAME)
+          .poseForRobotToCameraTransformCalibration(ROBOT_TO_TAG_13_LEFT_CAMERA)
+          .id(BL_CAMERA_SERIAL_NUMBER)
           .location("BL")
-          .width(1920)
+          .width(1800)
           .height(1200)
-          .exposure(MONO_EXPOSURE)
+          .exposure(DAA1920_160UM_EXPOSURE)
           .gain(MONO_GAIN)
-          .denoise(MONO_DENOISE)
+          .denoise(DAA1920_160UM_DENOISE)
+          .stdDevFactor(1.0)
+          .build(),
+      CameraConfig.builder()
+          .robotToCameraTransform(ROBOT_TO_BCL_CAMERA)
+          .poseForRobotToCameraTransformCalibration(ROBOT_TO_TAG_13_BACK_CAMERAS)
+          .id(BCL_CAMERA_SERIAL_NUMBER)
+          .location("BCL")
+          .width(1280)
+          .height(960)
+          .exposure(DAA1280_54UM_EXPOSURE)
+          .gain(MONO_GAIN)
+          .denoise(DAA1280_54UM_DENOISE)
+          .stdDevFactor(1.0)
+          .build(),
+      CameraConfig.builder()
+          .robotToCameraTransform(ROBOT_TO_BCH_CAMERA)
+          .poseForRobotToCameraTransformCalibration(ROBOT_TO_TAG_13_BACK_CAMERAS)
+          .id(BCH_CAMERA_SERIAL_NUMBER)
+          .location("BCH")
+          .width(1800)
+          .height(1200)
+          .exposure(DAA1920_160UM_EXPOSURE)
+          .gain(MONO_GAIN)
+          .denoise(DAA1920_160UM_DENOISE)
           .stdDevFactor(1.0)
           .build(),
     };
@@ -316,6 +395,16 @@ public class NewPracticeRobotConfig extends RobotConfig {
   }
 
   @Override
+  public double getRobotMaxAccelerationWhenLimitedMPSPS() {
+    return MAX_ACCELERATION_WHEN_LIMITED_MPSPS;
+  }
+
+  @Override
+  public double getRobotMaxAngularAccelerationWhenLimitedRPSPS() {
+    return MAX_ANGULAR_ACCELERATION_WHEN_LIMITED_RPSPS;
+  }
+
+  @Override
   public double getRobotMaxCoastVelocityMPS() {
     return MAX_COAST_VELOCITY_MPS;
   }
@@ -352,12 +441,12 @@ public class NewPracticeRobotConfig extends RobotConfig {
 
   @Override
   public double getMassKG() {
-    return 50.3487;
+    return 62.4143;
   }
 
   @Override
   public double getMomentOfInertiaKGMM() {
-    return 3.40;
+    return 6.0;
   }
 
   @Override
@@ -376,13 +465,13 @@ public class NewPracticeRobotConfig extends RobotConfig {
   }
 
   @Override
-  public double getDriveToPoseDriveYKP() {
-    return DRIVE_TO_POSE_DRIVE_Y_KP;
+  public double getDriveToPoseDriveXKP() {
+    return DRIVE_TO_POSE_DRIVE_KP;
   }
 
   @Override
-  public double getDriveToPoseDriveXKP() {
-    return DRIVE_TO_POSE_DRIVE_X_KP;
+  public double getDriveToPoseDriveYKP() {
+    return DRIVE_TO_POSE_DRIVE_KP;
   }
 
   @Override
@@ -413,11 +502,6 @@ public class NewPracticeRobotConfig extends RobotConfig {
   @Override
   public double getDriveToPoseDriveMaxVelocityMPS() {
     return DRIVE_TO_POSE_MAX_VELOCITY_MPS;
-  }
-
-  @Override
-  public double getDriveToPoseDriveMaxAccelerationMPSPS() {
-    return DRIVE_TO_POSE_MAX_ACCELERATION_MPSPS;
   }
 
   @Override

@@ -47,6 +47,7 @@ public class ArmSystemSim {
       double minAngle,
       double maxAngle,
       double startingAngle,
+      boolean simulateGravity,
       String subsystemName) {
     this(
         motor,
@@ -59,6 +60,7 @@ public class ArmSystemSim {
         minAngle,
         maxAngle,
         startingAngle,
+        simulateGravity,
         subsystemName);
   }
 
@@ -73,6 +75,7 @@ public class ArmSystemSim {
       double minAngle,
       double maxAngle,
       double startingAngle,
+      boolean simulateGravity,
       String subsystemName) {
     if (Constants.getMode() != Constants.Mode.SIM) {
       return;
@@ -104,7 +107,7 @@ public class ArmSystemSim {
             length,
             minAngle,
             maxAngle,
-            true,
+            simulateGravity,
             startingAngle);
 
     this.mech2d = new LoggedMechanism2d(1, 1);

@@ -56,6 +56,11 @@ public class SimDualJoysticksOI extends OperatorDashboard {
     return translateJoystickButtons[3];
   }
 
+  @Override
+  public Trigger getLimitAccelerationAndVelocityButton() {
+    return translateJoystickButtons[4];
+  }
+
   // rotation joystick
 
   @Override
@@ -71,6 +76,11 @@ public class SimDualJoysticksOI extends OperatorDashboard {
   @Override
   public Trigger getMoveArmHighPositionTrigger() {
     return rotateJoystickButtons[2];
+  }
+
+  @Override
+  public Trigger getClearAllFaults() {
+    return rotateJoystickButtons[2].and(rotateJoystickButtons[3]);
   }
 
   @Override

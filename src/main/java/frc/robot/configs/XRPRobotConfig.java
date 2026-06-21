@@ -1,16 +1,8 @@
 package frc.robot.configs;
 
-import static edu.wpi.first.units.Units.*;
-
 import com.pathplanner.lib.config.ModuleConfig;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.Distance;
-import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.units.measure.Mass;
-import edu.wpi.first.units.measure.MomentOfInertia;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.swerve_drivetrain.swerve.SwerveConstants;
 
@@ -21,20 +13,20 @@ import frc.lib.team3061.swerve_drivetrain.swerve.SwerveConstants;
 public class XRPRobotConfig extends RobotConfig {
 
   // FIXME: update robot dimensions
-  private static final Mass MASS = Kilograms.of(0.418);
-  private static final MomentOfInertia MOI = KilogramSquareMeters.of(0.0025149667);
-  private static final Distance TRACKWIDTH = Meters.of(0.16);
-  private static final Distance WHEELBASE = Meters.of(0.13);
-  private static final Distance WHEEL_RADIUS = Meters.of(0.028575);
+  private static final double MASS_KG = 0.418;
+  private static final double MOI_KGMM = 0.0025149667;
+  private static final double TRACKWIDTH_METERS = 0.16;
+  private static final double WHEELBASE_METERS = 0.13;
+  private static final double WHEEL_RADIUS_METERS = 0.028575;
   private static final double WHEEL_COEFFICIENT_OF_FRICTION =
       1.2; // FIXME: update based on wheel coefficient of friction
   private static final Translation2d FRONT_RIGHT_CORNER_POSITION = new Translation2d(0.095, -0.095);
-  private static final Distance ROBOT_WIDTH_WITH_BUMPERS = Meters.of(0.19);
-  private static final Distance ROBOT_LENGTH_WITH_BUMPERS = Meters.of(0.19);
+  private static final double ROBOT_WIDTH_WITH_BUMPERS_METERS = 0.19;
+  private static final double ROBOT_LENGTH_WITH_BUMPERS_METERS = 0.19;
 
   // FIXME: determine maximum velocities empirically
-  private static final LinearVelocity MAX_VELOCITY = MetersPerSecond.of(0.5);
-  private static final AngularVelocity MAX_ANGULAR_VELOCITY = RadiansPerSecond.of(3.0);
+  private static final double MAX_VELOCITY_MPS = 0.5;
+  private static final double MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND = 3.0;
 
   // FIXME: specify maximum velocity and acceleration and tune PID values for auto paths
   private static final double AUTO_DRIVE_P_CONTROLLER = 1.0;
@@ -74,9 +66,9 @@ public class XRPRobotConfig extends RobotConfig {
   }
 
   @Override
-  public Angle[] getSwerveSteerOffsets() {
+  public double[] getSwerveSteerOffsetsRots() {
     // the XRP doesn't support swerve; so, return an empty array
-    return new Angle[] {};
+    return new double[] {};
   }
 
   @Override
@@ -86,18 +78,18 @@ public class XRPRobotConfig extends RobotConfig {
   }
 
   @Override
-  public Distance getTrackwidth() {
-    return TRACKWIDTH;
+  public double getTrackwidthMeters() {
+    return TRACKWIDTH_METERS;
   }
 
   @Override
-  public Distance getWheelbase() {
-    return WHEELBASE;
+  public double getWheelbaseMeters() {
+    return WHEELBASE_METERS;
   }
 
   @Override
-  public Distance getWheelRadius() {
-    return WHEEL_RADIUS;
+  public double getWheelRadiusMeters() {
+    return WHEEL_RADIUS_METERS;
   }
 
   @Override
@@ -106,23 +98,23 @@ public class XRPRobotConfig extends RobotConfig {
   }
 
   @Override
-  public Distance getRobotWidthWithBumpers() {
-    return ROBOT_WIDTH_WITH_BUMPERS;
+  public double getRobotWidthWithBumpersMeters() {
+    return ROBOT_WIDTH_WITH_BUMPERS_METERS;
   }
 
   @Override
-  public Distance getRobotLengthWithBumpers() {
-    return ROBOT_LENGTH_WITH_BUMPERS;
+  public double getRobotLengthWithBumpersMeters() {
+    return ROBOT_LENGTH_WITH_BUMPERS_METERS;
   }
 
   @Override
-  public LinearVelocity getRobotMaxVelocity() {
-    return MAX_VELOCITY;
+  public double getRobotMaxVelocityMPS() {
+    return MAX_VELOCITY_MPS;
   }
 
   @Override
-  public AngularVelocity getRobotMaxAngularVelocity() {
-    return MAX_ANGULAR_VELOCITY;
+  public double getRobotMaxAngularVelocityRPS() {
+    return MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND;
   }
 
   @Override
@@ -158,27 +150,26 @@ public class XRPRobotConfig extends RobotConfig {
   @Override
   public com.pathplanner.lib.config.RobotConfig getPathPlannerRobotConfig() {
     return new com.pathplanner.lib.config.RobotConfig(
-        getMass(),
-        getMomentOfInertia(),
+        getMassKG(),
+        getMomentOfInertiaKGMM(),
         new ModuleConfig(
-            getWheelRadius(),
-            MetersPerSecond.of(
-                2.0), // this is greater than the true value, but makes PathPlanner generate paths
+            getWheelRadiusMeters(),
+            2.0, // this is greater than the true value, but makes PathPlanner generate paths
             getWheelCOF(),
             DCMotor.getKrakenX60(1).withReduction(10.0), // completely fictitious
-            Amps.of(40.0), // completely fictitious
+            40.0, // completely fictitious
             1),
-        getTrackwidth());
+        getTrackwidthMeters());
   }
 
   @Override
-  public Mass getMass() {
-    return MASS;
+  public double getMassKG() {
+    return MASS_KG;
   }
 
   @Override
-  public MomentOfInertia getMomentOfInertia() {
-    return MOI;
+  public double getMomentOfInertiaKGMM() {
+    return MOI_KGMM;
   }
 
   @Override

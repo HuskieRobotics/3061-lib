@@ -1,17 +1,21 @@
 package frc.robot.commands;
 
-import static edu.wpi.first.units.Units.*;
-
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.util.FlippingUtil;
+import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.lib.team3061.differential_drivetrain.DifferentialDrivetrain;
 import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
-import frc.lib.team3061.vision.Vision;
+import frc.lib.team3061.util.RobotOdometry;
+import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 public class AutonomousCommandsFactory {
@@ -25,6 +29,10 @@ public class AutonomousCommandsFactory {
   private final Alert pathFileMissingAlert =
       new Alert("Could not find the specified path file.", AlertType.kError);
 
+  private Timer matchTimer;
+  private Pose2d currentTargetPose;
+  private final Debouncer fallenBehindPathDebouncer = new Debouncer(0.2);
+
   /**
    * Returns the singleton instance of this class.
    *
@@ -37,13 +45,16 @@ public class AutonomousCommandsFactory {
     return autonomousCommandFactory;
   }
 
-  private AutonomousCommandsFactory() {}
+  private AutonomousCommandsFactory() {
+    matchTimer = new Timer();
+    currentTargetPose = new Pose2d();
+  }
 
   public Command getAutonomousCommand() {
     return autoChooser.get();
   }
 
-  public void configureAutoCommands(SwerveDrivetrain drivetrain, Vision vision) {
+  public void configureAutoCommands(SwerveDrivetrain drivetrain) {
     // add commands to the auto chooser
     autoChooser.addDefaultOption("Do Nothing", new InstantCommand());
 
@@ -119,7 +130,7 @@ public class AutonomousCommandsFactory {
         this.getDriveWheelRadiusCharacterizationCommand(drivetrain));
   }
 
-  public void configureAutoCommands(DifferentialDrivetrain drivetrain, Vision vision) {
+  public void configureAutoCommands(DifferentialDrivetrain drivetrain) {
     // add commands to the auto chooser
     autoChooser.addDefaultOption("Do Nothing", new InstantCommand());
 
@@ -158,92 +169,28 @@ public class AutonomousCommandsFactory {
         Commands.repeatingSequence(
             Commands.deadline(
                 Commands.waitSeconds(1.0),
-                Commands.run(
-                    () ->
-                        drivetrain.drive(
-                            MetersPerSecond.of(2.0),
-                            MetersPerSecond.of(0.0),
-                            RadiansPerSecond.of(0.0),
-                            false,
-                            false),
-                    drivetrain)),
+                Commands.run(() -> drivetrain.drive(2.0, 0.0, 0.0, false, false), drivetrain)),
             Commands.deadline(
                 Commands.waitSeconds(1.0),
-                Commands.run(
-                    () ->
-                        drivetrain.drive(
-                            MetersPerSecond.of(-0.5),
-                            MetersPerSecond.of(0.0),
-                            RadiansPerSecond.of(0.0),
-                            false,
-                            false),
-                    drivetrain)),
+                Commands.run(() -> drivetrain.drive(-0.5, 0.0, 0.0, false, false), drivetrain)),
             Commands.deadline(
                 Commands.waitSeconds(1.0),
-                Commands.run(
-                    () ->
-                        drivetrain.drive(
-                            MetersPerSecond.of(1.0),
-                            MetersPerSecond.of(0.0),
-                            RadiansPerSecond.of(0.0),
-                            false,
-                            false),
-                    drivetrain)),
+                Commands.run(() -> drivetrain.drive(1.0, 0.0, 0.0, false, false), drivetrain)),
             Commands.deadline(
-                Commands.waitSeconds(0.5),
-                Commands.run(
-                    () ->
-                        drivetrain.drive(
-                            MetersPerSecond.of(3.0),
-                            MetersPerSecond.of(0.0),
-                            RadiansPerSecond.of(0.0),
-                            false,
-                            false),
-                    drivetrain)),
+                Commands.waitSeconds(1.0),
+                Commands.run(() -> drivetrain.drive(3.0, 0.0, 0.0, false, false), drivetrain)),
             Commands.deadline(
                 Commands.waitSeconds(2.0),
-                Commands.run(
-                    () ->
-                        drivetrain.drive(
-                            MetersPerSecond.of(1.0),
-                            MetersPerSecond.of(0.0),
-                            RadiansPerSecond.of(0.0),
-                            false,
-                            false),
-                    drivetrain)),
+                Commands.run(() -> drivetrain.drive(1.0, 0.0, 0.0, false, false), drivetrain)),
             Commands.deadline(
                 Commands.waitSeconds(2.0),
-                Commands.run(
-                    () ->
-                        drivetrain.drive(
-                            MetersPerSecond.of(-1.0),
-                            MetersPerSecond.of(0.0),
-                            RadiansPerSecond.of(0.0),
-                            false,
-                            false),
-                    drivetrain)),
+                Commands.run(() -> drivetrain.drive(-1.0, 0.0, 0.0, false, false), drivetrain)),
             Commands.deadline(
-                Commands.waitSeconds(0.5),
-                Commands.run(
-                    () ->
-                        drivetrain.drive(
-                            MetersPerSecond.of(-3.0),
-                            MetersPerSecond.of(0.0),
-                            RadiansPerSecond.of(0.0),
-                            false,
-                            false),
-                    drivetrain)),
+                Commands.waitSeconds(1.0),
+                Commands.run(() -> drivetrain.drive(-3.0, 0.0, 0.0, false, false), drivetrain)),
             Commands.deadline(
                 Commands.waitSeconds(2.0),
-                Commands.run(
-                    () ->
-                        drivetrain.drive(
-                            MetersPerSecond.of(-1.0),
-                            MetersPerSecond.of(0.0),
-                            RadiansPerSecond.of(0.0),
-                            false,
-                            false),
-                    drivetrain))));
+                Commands.run(() -> drivetrain.drive(-1.0, 0.0, 0.0, false, false), drivetrain))));
   }
 
   private Command getSwerveRotationTuningCommand(SwerveDrivetrain drivetrain) {
@@ -252,48 +199,16 @@ public class AutonomousCommandsFactory {
         Commands.repeatingSequence(
             Commands.deadline(
                 Commands.waitSeconds(0.5),
-                Commands.run(
-                    () ->
-                        drivetrain.drive(
-                            MetersPerSecond.of(0.1),
-                            MetersPerSecond.of(0.1),
-                            RadiansPerSecond.of(0.0),
-                            true,
-                            false),
-                    drivetrain)),
+                Commands.run(() -> drivetrain.drive(0.1, 0.1, 0.0, true, false), drivetrain)),
             Commands.deadline(
                 Commands.waitSeconds(0.5),
-                Commands.run(
-                    () ->
-                        drivetrain.drive(
-                            MetersPerSecond.of(-0.1),
-                            MetersPerSecond.of(0.1),
-                            RadiansPerSecond.of(0.0),
-                            true,
-                            false),
-                    drivetrain)),
+                Commands.run(() -> drivetrain.drive(-0.1, 0.1, 0.0, true, false), drivetrain)),
             Commands.deadline(
                 Commands.waitSeconds(0.5),
-                Commands.run(
-                    () ->
-                        drivetrain.drive(
-                            MetersPerSecond.of(-0.1),
-                            MetersPerSecond.of(-0.1),
-                            RadiansPerSecond.of(0.0),
-                            true,
-                            false),
-                    drivetrain)),
+                Commands.run(() -> drivetrain.drive(-0.1, -0.1, 0.0, true, false), drivetrain)),
             Commands.deadline(
                 Commands.waitSeconds(0.5),
-                Commands.run(
-                    () ->
-                        drivetrain.drive(
-                            MetersPerSecond.of(0.1),
-                            MetersPerSecond.of(-0.1),
-                            RadiansPerSecond.of(0.0),
-                            true,
-                            false),
-                    drivetrain))));
+                Commands.run(() -> drivetrain.drive(0.1, -0.1, 0.0, true, false), drivetrain))));
   }
 
   private Command getDriveWheelRadiusCharacterizationCommand(SwerveDrivetrain drivetrain) {
@@ -306,5 +221,44 @@ public class AutonomousCommandsFactory {
         Commands.runOnce(drivetrain::captureInitialConditions),
         new PathPlannerAuto(autoName),
         Commands.runOnce(() -> drivetrain.captureFinalConditions(autoName, measureDistance)));
+  }
+
+  private boolean fallenBehindPath() {
+    Pose2d pose = RobotOdometry.getInstance().getEstimatedPose();
+
+    Transform2d diff = pose.minus(getPathFollowingTargetPose());
+    double dist = Math.hypot(diff.getX(), diff.getY());
+
+    // check match timer to make sure we don't trigger this if the target pose isn't updated yet
+    boolean fallenBehind =
+        fallenBehindPathDebouncer.calculate(matchTimer.get() > 0.5 && dist > 2.0);
+
+    Logger.recordOutput("Auto/FallenBehindPath/Difference", dist);
+    Logger.recordOutput("Auto/FallenBehindPath/FallenBehind", fallenBehind);
+
+    return fallenBehind;
+  }
+
+  private Command setStartingPoseForAuto(Pose2d startingPose, SwerveDrivetrain drivetrain) {
+    return Commands.runOnce(
+        () -> {
+          Pose2d pose = startingPose;
+          if (drivetrain.shouldFlipAutoPath()) {
+            pose = FlippingUtil.flipFieldPose(startingPose);
+          }
+          drivetrain.resetPose(pose);
+        });
+  }
+
+  public void setPathFollowingTargetPose(Pose2d pose) {
+    currentTargetPose = pose;
+  }
+
+  public Pose2d getPathFollowingTargetPose() {
+    return currentTargetPose;
+  }
+
+  public double getCustomMatchTime() {
+    return matchTimer.get();
   }
 }
