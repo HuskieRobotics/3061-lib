@@ -4,7 +4,7 @@
 
 package frc.robot.commands;
 
-import edu.wpi.first.wpilibj2.command.Command;
+import org.wpilib.command2.Command;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.differential_drivetrain.DifferentialDrivetrain;
 import java.util.function.Supplier;

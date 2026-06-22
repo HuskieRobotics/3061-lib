@@ -1,7 +1,7 @@
 package frc.lib.team254;
 
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
+import org.wpilib.system.Timer;
+import org.wpilib.command2.button.Trigger;
 import java.util.function.BooleanSupplier;
 
 public class CurrentSpikeDetector implements BooleanSupplier {

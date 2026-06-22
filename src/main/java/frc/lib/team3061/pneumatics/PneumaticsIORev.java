@@ -10,8 +10,8 @@ package frc.lib.team3061.pneumatics;
 
 import static frc.robot.Constants.*;
 
-import edu.wpi.first.wpilibj.AnalogInput;
-import edu.wpi.first.wpilibj.PneumaticHub;
+import org.wpilib.hardware.discrete.AnalogInput;
+import org.wpilib.hardware.pneumatic.PneumaticHub;
 import frc.lib.team3061.RobotConfig;
 
 /**

@@ -7,7 +7,7 @@
 
 package frc.lib.team6328.util;
 
-import edu.wpi.first.wpilibj.Timer;
+import org.wpilib.system.Timer;
 import org.littletonrobotics.junction.Logger;
 
 /** Utility class for logging code execution times. */

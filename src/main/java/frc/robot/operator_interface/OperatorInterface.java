@@ -8,7 +8,7 @@
 
 package frc.robot.operator_interface;
 
-import edu.wpi.first.wpilibj2.command.button.Trigger;
+import org.wpilib.command2.button.Trigger;
 
 /** Interface for all driver and operator controls. */
 public interface OperatorInterface {

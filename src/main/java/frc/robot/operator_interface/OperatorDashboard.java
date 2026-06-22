@@ -1,6 +1,6 @@
 package frc.robot.operator_interface;
 
-import edu.wpi.first.wpilibj2.command.button.Trigger;
+import org.wpilib.command2.button.Trigger;
 import frc.lib.team6328.util.LoggedTunableBoolean;
 
 /**

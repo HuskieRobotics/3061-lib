@@ -7,7 +7,7 @@
 
 package frc.lib.team6328.util;
 
-import edu.wpi.first.wpilibj.RobotController;
+import org.wpilib.system.RobotController;
 
 public class SystemTimeValidReader {
   private static Thread thread = null;

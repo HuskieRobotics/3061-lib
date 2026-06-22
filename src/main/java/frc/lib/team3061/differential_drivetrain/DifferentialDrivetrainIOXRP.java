@@ -3,14 +3,14 @@ package frc.lib.team3061.differential_drivetrain;
 import static frc.lib.team3061.differential_drivetrain.DifferentialDrivetrainConstants.*;
 import static frc.robot.Constants.LOOP_PERIOD_SECS;
 
-import edu.wpi.first.math.filter.LinearFilter;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.units.measure.Force;
-import edu.wpi.first.wpilibj.BuiltInAccelerometer;
-import edu.wpi.first.wpilibj.Encoder;
-import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.xrp.XRPGyro;
-import edu.wpi.first.wpilibj.xrp.XRPMotor;
+import org.wpilib.math.filter.LinearFilter;
+import org.wpilib.math.kinematics.ChassisSpeeds;
+import org.wpilib.units.measure.Force;
+import org.wpilib.BuiltInAccelerometer;
+import org.wpilib.hardware.rotation.Encoder;
+import org.wpilib.drive.DifferentialDrive;
+import org.wpilib.xrp.XRPGyro;
+import org.wpilib.xrp.XRPMotor;
 import frc.lib.team3061.RobotConfig;
 
 public class DifferentialDrivetrainIOXRP implements DifferentialDrivetrainIO {

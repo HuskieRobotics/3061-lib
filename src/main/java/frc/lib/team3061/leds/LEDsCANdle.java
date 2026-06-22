@@ -8,8 +8,8 @@ import com.ctre.phoenix6.signals.RGBWColor;
 import com.ctre.phoenix6.signals.StatusLedWhenActiveValue;
 import com.ctre.phoenix6.signals.StripTypeValue;
 import com.ctre.phoenix6.signals.VBatOutputModeValue;
-import edu.wpi.first.wpilibj.util.Color;
-import edu.wpi.first.wpilibj.util.Color8Bit;
+import org.wpilib.util.Color;
+import org.wpilib.util.Color8Bit;
 import frc.lib.team3061.RobotConfig;
 
 public class LEDsCANdle extends LEDs {

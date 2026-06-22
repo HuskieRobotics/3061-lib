@@ -8,10 +8,10 @@
 
 package frc.lib.team3061.pneumatics;
 
-import edu.wpi.first.wpilibj.Alert;
-import edu.wpi.first.wpilibj.Alert.AlertType;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import org.wpilib.util.Alert;
+import org.wpilib.util.Alert.AlertType;
+import org.wpilib.system.Timer;
+import org.wpilib.command2.SubsystemBase;
 import frc.robot.Constants;
 import java.util.ArrayList;
 import java.util.List;

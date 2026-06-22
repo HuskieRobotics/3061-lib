@@ -8,9 +8,9 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.Alert;
-import edu.wpi.first.wpilibj.Alert.AlertType;
-import edu.wpi.first.wpilibj.RobotBase;
+import org.wpilib.util.Alert;
+import org.wpilib.util.Alert.AlertType;
+import org.wpilib.framework.RobotBase;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean

@@ -3,10 +3,10 @@ package frc.lib.team3061.sim;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
-import edu.wpi.first.math.numbers.N1;
-import edu.wpi.first.math.system.plant.LinearSystemId;
-import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.simulation.LinearSystemSim;
+import org.wpilib.math.numbers.N1;
+import org.wpilib.math.system.plant.LinearSystemId;
+import org.wpilib.system.RobotController;
+import org.wpilib.simulation.LinearSystemSim;
 import frc.robot.Constants;
 
 public class VelocitySystemSim {

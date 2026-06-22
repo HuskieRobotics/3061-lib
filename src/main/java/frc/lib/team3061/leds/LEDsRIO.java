@@ -1,9 +1,9 @@
 package frc.lib.team3061.leds;
 
-import edu.wpi.first.wpilibj.AddressableLED;
-import edu.wpi.first.wpilibj.AddressableLEDBuffer;
-import edu.wpi.first.wpilibj.util.Color;
-import edu.wpi.first.wpilibj.util.Color8Bit;
+import org.wpilib.hardware.led.AddressableLED;
+import org.wpilib.hardware.led.AddressableLEDBuffer;
+import org.wpilib.util.Color;
+import org.wpilib.util.Color8Bit;
 import frc.robot.Constants;
 
 public class LEDsRIO extends LEDs {

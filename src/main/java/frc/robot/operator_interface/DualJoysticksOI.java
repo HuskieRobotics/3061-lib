@@ -4,8 +4,8 @@
 
 package frc.robot.operator_interface;
 
-import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
+import org.wpilib.command2.button.CommandJoystick;
+import org.wpilib.command2.button.Trigger;
 
 /** Class for controlling the robot with two joysticks. */
 public class DualJoysticksOI extends OperatorDashboard {

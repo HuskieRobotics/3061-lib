@@ -1,8 +1,8 @@
 package frc.robot.configs;
 
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.math.geometry.Translation3d;
+import org.wpilib.math.geometry.Rotation3d;
+import org.wpilib.math.geometry.Transform3d;
+import org.wpilib.math.geometry.Translation3d;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.swerve_drivetrain.swerve.SwerveConstants;
 

@@ -1,6 +1,6 @@
 package frc.lib.team3015.subsystem.selfcheck;
 
-import edu.wpi.first.wpilibj.motorcontrol.PWMMotorController;
+import org.wpilib.hardware.motor.PWMMotorController;
 import frc.lib.team3015.subsystem.SubsystemFault;
 import java.util.ArrayList;
 import java.util.List;

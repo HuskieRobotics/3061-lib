@@ -1,7 +1,7 @@
 package frc.robot.subsystems.arm;
 
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.xrp.XRPServo;
+import org.wpilib.math.util.Units;
+import org.wpilib.xrp.XRPServo;
 
 public class ArmIOXRP implements ArmIO {
 

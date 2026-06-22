@@ -1,8 +1,8 @@
 package frc.robot.configs;
 
 import com.pathplanner.lib.config.ModuleConfig;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.system.plant.DCMotor;
+import org.wpilib.math.geometry.Translation2d;
+import org.wpilib.math.system.plant.DCMotor;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.swerve_drivetrain.swerve.SwerveConstants;
 

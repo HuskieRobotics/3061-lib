@@ -8,10 +8,10 @@
 
 package frc.robot.operator_interface;
 
-import edu.wpi.first.wpilibj.Alert;
-import edu.wpi.first.wpilibj.Alert.AlertType;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import org.wpilib.util.Alert;
+import org.wpilib.util.Alert.AlertType;
+import org.wpilib.driverstation.DriverStation;
+import org.wpilib.command2.CommandScheduler;
 import frc.robot.Constants;
 import frc.robot.Constants.RobotType;
 

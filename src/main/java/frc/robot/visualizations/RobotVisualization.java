@@ -1,9 +1,9 @@
 package frc.robot.visualizations;
 
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.RobotBase;
-import edu.wpi.first.wpilibj.util.Color;
-import edu.wpi.first.wpilibj.util.Color8Bit;
+import org.wpilib.math.util.Units;
+import org.wpilib.framework.RobotBase;
+import org.wpilib.util.Color;
+import org.wpilib.util.Color8Bit;
 import frc.lib.team3061.RobotConfig;
 import frc.robot.subsystems.elevator.Elevator;
 import org.littletonrobotics.junction.Logger;

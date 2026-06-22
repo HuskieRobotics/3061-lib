@@ -1,6 +1,6 @@
 package frc.lib.team3015.subsystem;
 
-import edu.wpi.first.wpilibj.Timer;
+import org.wpilib.system.Timer;
 import java.util.Objects;
 
 public class SubsystemFault {

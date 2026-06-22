@@ -8,7 +8,7 @@
 package frc.lib.team254;
 
 import com.ctre.phoenix6.configs.*;
-import edu.wpi.first.math.MathUtil;
+import org.wpilib.math.util.MathUtil;
 
 @java.lang.SuppressWarnings({"java:S106"})
 public class TalonFXConfigEquality {
