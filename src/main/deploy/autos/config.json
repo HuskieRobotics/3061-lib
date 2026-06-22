@@ -1,0 +1,32 @@
+{
+  "gui": {
+    "robot": {
+      "length_meters": 0.76835,
+      "width_meters": 0.93345
+    },
+    "protrusions": {
+      "enabled": false,
+      "distance_meters": 0.0,
+      "side": "none",
+      "default_state": "",
+      "show_on_event_keys": [],
+      "hide_on_event_keys": []
+    },
+    "field": {
+      "selected_field_id": "frc2026-rebuilt",
+      "custom_fields": []
+    }
+  },
+  "kinematic_constraints": {
+    "default_max_velocity_meters_per_sec": 4.936,
+    "default_max_acceleration_meters_per_sec2": 12.0,
+    "default_intermediate_handoff_radius_meters": 0.2,
+    "default_max_velocity_deg_per_sec": 720.0,
+    "default_max_acceleration_deg_per_sec2": 1500.0,
+    "default_end_translation_tolerance_meters": 0.03,
+    "default_end_rotation_tolerance_deg": 2.0,
+    "default_auto_velocity_velocity_safety_factor": 0.9,
+    "default_auto_velocity_acceleration_safety_factor": 0.8,
+    "default_auto_velocity_merge_tolerance_meters_per_sec": 0.3
+  }
+}
