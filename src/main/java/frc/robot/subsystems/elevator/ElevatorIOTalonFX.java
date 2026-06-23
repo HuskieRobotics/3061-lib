@@ -18,7 +18,6 @@ import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
-import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Alert;
@@ -148,9 +147,9 @@ public class ElevatorIOTalonFX implements ElevatorIO {
             ElevatorConstants.IS_INVERTED,
             ElevatorConstants.GEAR_RATIO,
             ElevatorConstants.ELEVATOR_MASS_KG,
-            PULLEY_CIRCUMFERENCE.div(Math.PI * 2).in(Meters),
-            ElevatorConstants.MIN_HEIGHT.in(Meters),
-            ElevatorConstants.MAX_HEIGHT.in(Meters),
+            PULLEY_CIRCUMFERENCE_METERS / (Math.PI * 2.0),
+            ElevatorConstants.MIN_HEIGHT_METERS,
+            ElevatorConstants.MAX_HEIGHT_METERS,
             0.0,
             ElevatorConstants.SUBSYSTEM_NAME);
   }
@@ -176,19 +175,18 @@ public class ElevatorIOTalonFX implements ElevatorIO {
                 followerSupplyCurrent,
                 elevatorFollowerTempStatusSignal));
 
-    inputs.voltageSuppliedLead = leadVoltageSupplied.getValue();
-    inputs.voltageSuppliedFollower = followerVoltageSupplied.getValue();
+    inputs.voltageSuppliedLead = leadVoltageSupplied.getValueAsDouble();
+    inputs.voltageSuppliedFollower = followerVoltageSupplied.getValueAsDouble();
 
-    inputs.statorCurrentLead = leadStatorCurrent.getValue();
-    inputs.statorCurrentFollower = followerStatorCurrent.getValue();
+    inputs.statorCurrentLead = leadStatorCurrent.getValueAsDouble();
+    inputs.statorCurrentFollower = followerStatorCurrent.getValueAsDouble();
+    inputs.supplyCurrentLead = leadSupplyCurrent.getValueAsDouble();
+    inputs.supplyCurrentFollower = followerSupplyCurrent.getValueAsDouble();
 
-    inputs.supplyCurrentLead = leadSupplyCurrent.getValue();
-    inputs.supplyCurrentFollower = followerSupplyCurrent.getValue();
+    inputs.leadTemp = elevatorLeadTempStatusSignal.getValueAsDouble();
+    inputs.followerTemp = elevatorFollowerTempStatusSignal.getValueAsDouble();
 
-    inputs.leadTemp = elevatorLeadTempStatusSignal.getValue();
-    inputs.followerTemp = elevatorFollowerTempStatusSignal.getValue();
-
-    inputs.velocity = elevatorVelocityStatusSignal.getValue();
+    inputs.velocityRPS = elevatorVelocityStatusSignal.getValueAsDouble();
 
     // Retrieve the closed loop reference status signals directly from the motor in this method
     // instead of retrieving in advance because the status signal returned depends on the current
@@ -196,14 +194,13 @@ public class ElevatorIOTalonFX implements ElevatorIO {
     // signals if the tuning mode is enabled. It is critical that these input values are only used
     // for tuning and not used elsewhere in the subsystem.
     if (Constants.TUNING_MODE) {
-      inputs.closedLoopError =
-          Rotations.of(elevatorMotorLead.getClosedLoopError().getValueAsDouble());
-      inputs.closedLoopReference =
-          Rotations.of(elevatorMotorLead.getClosedLoopReference().getValueAsDouble());
+      inputs.closedLoopErrorRotations = elevatorMotorLead.getClosedLoopError().getValueAsDouble();
+      inputs.closedLoopReferenceRotations =
+          elevatorMotorLead.getClosedLoopReference().getValueAsDouble();
     }
 
-    inputs.angularPosition = elevatorPositionStatusSignal.getValue();
-    inputs.linearPosition = PULLEY_CIRCUMFERENCE.times(inputs.angularPosition.in(Rotations));
+    inputs.angularPositionRotations = elevatorPositionStatusSignal.getValueAsDouble();
+    inputs.linearPositionMeters = PULLEY_CIRCUMFERENCE_METERS * inputs.angularPositionRotations;
 
     // In order for a tunable to be useful, there must be code that checks if its value has changed.
     // When a subsystem has multiple tunables that are related, the ifChanged method is a convenient
@@ -244,7 +241,7 @@ public class ElevatorIOTalonFX implements ElevatorIO {
   }
 
   @Override
-  public void setMotorVoltage(Voltage voltage) {
+  public void setMotorVoltage(double voltage) {
     elevatorMotorLead.setControl(
         leadVoltageRequest.withLimitReverseMotion(false).withOutput(voltage));
   }
@@ -258,10 +255,10 @@ public class ElevatorIOTalonFX implements ElevatorIO {
   }
 
   @Override
-  public void setPosition(Distance position) {
+  public void setPositionMeters(double positionMeters) {
     elevatorMotorLead.setControl(
         leadPositionRequest.withPosition(
-            Rotations.of(position.div(PULLEY_CIRCUMFERENCE).magnitude())));
+            Rotations.of(positionMeters / PULLEY_CIRCUMFERENCE_METERS)));
   }
 
   private void configElevatorMotorLead(TalonFX motor) {

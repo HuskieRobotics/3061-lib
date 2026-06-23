@@ -1,13 +1,8 @@
 package frc.robot.configs;
 
-import static edu.wpi.first.units.Units.*;
-
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.Distance;
-import edu.wpi.first.units.measure.LinearVelocity;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.swerve_drivetrain.swerve.SwerveConstants;
 
@@ -52,8 +47,8 @@ public class VisionTestPlatformConfig extends RobotConfig {
   }
 
   @Override
-  public LinearVelocity getRobotMaxVelocity() {
-    return MetersPerSecond.of(0.0);
+  public double getRobotMaxVelocityMPS() {
+    return 0.0;
   }
 
   @Override
@@ -77,8 +72,8 @@ public class VisionTestPlatformConfig extends RobotConfig {
   }
 
   @Override
-  public Angle[] getSwerveSteerOffsets() {
-    return new Angle[] {};
+  public double[] getSwerveSteerOffsetsRots() {
+    return new double[] {};
   }
 
   @Override
@@ -87,17 +82,17 @@ public class VisionTestPlatformConfig extends RobotConfig {
   }
 
   @Override
-  public Distance getTrackwidth() {
-    return Meters.of(0.0);
+  public double getTrackwidthMeters() {
+    return 0.0;
   }
 
   @Override
-  public Distance getWheelbase() {
-    return Meters.of(0.0);
+  public double getWheelbaseMeters() {
+    return 0.0;
   }
 
   @Override
-  public Distance getWheelRadius() {
-    return Meters.of(0.0);
+  public double getWheelRadiusMeters() {
+    return 0.0;
   }
 }

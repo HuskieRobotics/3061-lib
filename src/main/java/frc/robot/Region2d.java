@@ -4,6 +4,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import java.awt.geom.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -39,9 +40,29 @@ public class Region2d {
    * Log the bounding rectangle of the region and the transition points to neighboring regions.
    * These can be visualized using AdvantageScope to confirm that the regions are properly defined.
    */
-  public void logPoints() {
+  public void logPoints(String nameForLog) {
+    // iterate through all the points in the Path2D and create a list of Pose2d objects
+    ArrayList<Pose2d> poses = new ArrayList<>();
+    PathIterator iterator = this.shape.getPathIterator(null);
+    double[] coords = new double[6];
+    while (!iterator.isDone()) {
+      int type = iterator.currentSegment(coords);
+      if (type != PathIterator.SEG_CLOSE) {
+        Pose2d pose = new Pose2d(coords[0], coords[1], new Rotation2d());
+        poses.add(pose);
+      }
+      iterator.next();
+    }
+    if (!poses.isEmpty()) {
+      // add the first point again at the end to close the loop when visualizing
+      poses.add(poses.get(0));
+    }
+
+    Logger.recordOutput("Region2d/" + nameForLog, poses.toArray(Pose2d[]::new));
+
     // log the bounding rectangle of the region
     Rectangle2D rect = this.shape.getBounds2D();
+
     Logger.recordOutput("Region2d/point0", new Pose2d(rect.getX(), rect.getY(), new Rotation2d()));
     Logger.recordOutput(
         "Region2d/point1",

@@ -1,7 +1,5 @@
 package frc.robot.commands;
 
-import static edu.wpi.first.units.Units.*;
-
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -9,10 +7,12 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.differential_drivetrain.DifferentialDrivetrain;
 import frc.lib.team3061.leds.LEDs;
 import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
+import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team3061.util.SysIdRoutineChooser;
 import frc.lib.team3061.vision.Vision;
 import frc.lib.team6328.util.LoggedTunableNumber;
@@ -23,6 +23,7 @@ import frc.robot.subsystems.elevator.ElevatorConstants;
 import frc.robot.subsystems.manipulator.Manipulator;
 import frc.robot.subsystems.shooter.Shooter;
 import java.util.List;
+import java.util.Optional;
 
 public class CrossSubsystemsCommandsFactory {
 
@@ -50,36 +51,37 @@ public class CrossSubsystemsCommandsFactory {
       new LoggedTunableNumber(
           "DriveToPoseExample/ThetaKi", RobotConfig.getInstance().getDriveToPoseThetaKI());
 
-  private static ProfiledPIDController xController =
+  private static final LoggedTunableNumber driveToPoseMaxVelocity =
+      new LoggedTunableNumber(
+          "DriveToBank/DriveToPoseMaxVelocity",
+          RobotConfig.getInstance().getDriveToPoseDriveMaxVelocityMPS());
+  private static final LoggedTunableNumber driveToPoseMaxAcceleration =
+      new LoggedTunableNumber(
+          "DriveToBank/DriveToPoseMaxAcceleration",
+          RobotConfig.getInstance().getDriveToPoseDriveMaxAccelerationMPSPS());
+
+  public static final ProfiledPIDController xController =
       new ProfiledPIDController(
           driveXKp.get(),
           driveKi.get(),
           driveXKd.get(),
           new TrapezoidProfile.Constraints(
-              RobotConfig.getInstance().getDriveToPoseDriveMaxVelocity().in(MetersPerSecond),
-              RobotConfig.getInstance()
-                  .getDriveToPoseDriveMaxAcceleration()
-                  .in(MetersPerSecondPerSecond)));
-  private static ProfiledPIDController yController =
+              driveToPoseMaxVelocity.get(), driveToPoseMaxAcceleration.get()));
+  public static final ProfiledPIDController yController =
       new ProfiledPIDController(
           driveYKp.get(),
           driveKi.get(),
           driveYKd.get(),
           new TrapezoidProfile.Constraints(
-              RobotConfig.getInstance().getDriveToPoseDriveMaxVelocity().in(MetersPerSecond),
-              RobotConfig.getInstance()
-                  .getDriveToPoseDriveMaxAcceleration()
-                  .in(MetersPerSecondPerSecond)));
-  private static ProfiledPIDController thetaController =
+              driveToPoseMaxVelocity.get(), driveToPoseMaxAcceleration.get()));
+  public static final ProfiledPIDController thetaController =
       new ProfiledPIDController(
           thetaKp.get(),
           thetaKi.get(),
           thetaKd.get(),
           new TrapezoidProfile.Constraints(
-              RobotConfig.getInstance().getDriveToPoseTurnMaxVelocity().in(RadiansPerSecond),
-              RobotConfig.getInstance()
-                  .getDriveToPoseTurnMaxAcceleration()
-                  .in(RadiansPerSecondPerSecond)));
+              RobotConfig.getInstance().getDriveToPoseTurnMaxVelocityRPS(),
+              RobotConfig.getInstance().getDriveToPoseTurnMaxAccelerationRPSPS()));
 
   private CrossSubsystemsCommandsFactory() {}
 
@@ -92,14 +94,31 @@ public class CrossSubsystemsCommandsFactory {
       Manipulator manipulator,
       Shooter shooter) {
 
+    oi.getClearAllFaults()
+        .onTrue(FaultReporter.getInstance().getClearAllFaultsCommand().ignoringDisable(true));
+    oi.getCheckForFaults()
+        .onTrue(FaultReporter.getInstance().getCheckForFaultsCommand().ignoringDisable(true));
+
+    oi.getDriveToPoseButton().onTrue(getDriveToPoseCommand(swerveDrivetrain, elevator, oi));
+    oi.getOverrideDriveToPoseButton().onTrue(getDriveToPoseOverrideCommand(swerveDrivetrain, oi));
+
+    oi.getSimulateCollisionButton()
+        .onTrue(
+            Commands.runOnce(
+                () ->
+                    swerveDrivetrain.resetPose(
+                        RobotOdometry.getInstance()
+                            .getEstimatedPose()
+                            .plus(new Transform2d(3.0, 3.0, new Rotation2d())))));
+
+    configureCrossSubsystemsTriggers(arm, elevator, manipulator, shooter, swerveDrivetrain);
+
     oi.getInterruptAll()
         .onTrue(
             getInterruptAllCommand(
-                swerveDrivetrain, vision, arm, elevator, manipulator, shooter, oi));
+                arm, elevator, manipulator, shooter, swerveDrivetrain, vision, oi));
 
-    oi.getDriveToPoseButton().onTrue(getDriveToPoseCommand(swerveDrivetrain, elevator, oi));
-
-    oi.getOverrideDriveToPoseButton().onTrue(getDriveToPoseOverrideCommand(swerveDrivetrain, oi));
+    oi.getSnakeDriveButton().toggleOnTrue(getSnakeDriveCommand(oi, swerveDrivetrain));
 
     registerSysIdCommands(oi);
   }
@@ -107,9 +126,34 @@ public class CrossSubsystemsCommandsFactory {
   public static void registerCommands(
       OperatorInterface oi, DifferentialDrivetrain differentialDrivetrain, Vision vision, Arm arm) {
 
-    oi.getInterruptAll().onTrue(getInterruptAllCommand(differentialDrivetrain, vision, arm, oi));
+    oi.getInterruptAll().onTrue(getInterruptAllCommand(arm, differentialDrivetrain, vision, oi));
 
     registerSysIdCommands(oi);
+  }
+
+  public static Command getSnakeDriveCommand(OperatorInterface oi, SwerveDrivetrain drivetrain) {
+    return new TeleopSwerve(
+            drivetrain,
+            oi::getTranslateX,
+            oi::getTranslateY,
+            oi::getRotate,
+            () -> {
+              if (Math.hypot(oi.getTranslateX(), oi.getTranslateY()) > 0.06) {
+                return Optional.of(new Rotation2d(oi.getTranslateX(), oi.getTranslateY()));
+              } else {
+                return Optional.empty();
+              }
+            })
+        .withName("Snake Drive Command");
+  }
+
+  private static void configureCrossSubsystemsTriggers(
+      Arm arm,
+      Elevator elevator,
+      Manipulator manipulator,
+      Shooter shooter,
+      SwerveDrivetrain swerveDrivetrain) {
+    /* add triggers for cross-subsystem interactions */
   }
 
   private static void registerSysIdCommands(OperatorInterface oi) {
@@ -122,30 +166,30 @@ public class CrossSubsystemsCommandsFactory {
   }
 
   private static Command getInterruptAllCommand(
-      SwerveDrivetrain swerveDrivetrain,
-      Vision vision,
       Arm arm,
       Elevator elevator,
       Manipulator manipulator,
       Shooter shooter,
+      SwerveDrivetrain swerveDrivetrain,
+      Vision vision,
       OperatorInterface oi) {
     return Commands.parallel(
-            new TeleopSwerve(swerveDrivetrain, oi::getTranslateX, oi::getTranslateY, oi::getRotate),
+            SwerveDrivetrainCommandFactory.getDefaultTeleopSwerveCommand(oi, swerveDrivetrain),
             Commands.runOnce(() -> vision.specifyCamerasToConsider(List.of(0, 1, 2, 3))),
-            Commands.runOnce(() -> arm.setAngle(Degrees.of(0.0)), arm),
+            Commands.runOnce(() -> arm.setAngleRotations(0.0), arm),
             Commands.runOnce(
                 () -> elevator.goToPosition(ElevatorConstants.Positions.BOTTOM), elevator),
-            Commands.runOnce(() -> manipulator.resetStateMachine(), manipulator),
-            Commands.runOnce(() -> shooter.setIdleVelocity(), shooter))
+            Commands.runOnce(manipulator::resetStateMachine, manipulator),
+            Commands.runOnce(shooter::setIdleVelocity, shooter))
         .withName("interrupt all");
   }
 
   private static Command getInterruptAllCommand(
-      DifferentialDrivetrain differentialDrivetrain, Vision vision, Arm arm, OperatorInterface oi) {
+      Arm arm, DifferentialDrivetrain differentialDrivetrain, Vision vision, OperatorInterface oi) {
     return Commands.parallel(
             new ArcadeDrive(differentialDrivetrain, oi::getTranslateX, oi::getRotate),
             Commands.runOnce(() -> vision.specifyCamerasToConsider(List.of(0, 1, 2, 3))),
-            Commands.runOnce(() -> arm.setAngle(Degrees.of(0.0)), arm))
+            Commands.runOnce(() -> arm.setAngleRotations(0.0), arm))
         .withName("interrupt all");
   }
 
@@ -160,7 +204,7 @@ public class CrossSubsystemsCommandsFactory {
             thetaController,
             new Transform2d(0.10, 0.05, Rotation2d.fromDegrees(5.0)),
             true,
-            (atPose) ->
+            atPose ->
                 LEDs.getInstance()
                     .requestState(atPose ? LEDs.States.AT_POSE : LEDs.States.AUTO_DRIVING_TO_POSE),
             CrossSubsystemsCommandsFactory::updatePIDConstants,
@@ -170,7 +214,7 @@ public class CrossSubsystemsCommandsFactory {
 
   private static Command getDriveToPoseOverrideCommand(
       SwerveDrivetrain drivetrain, OperatorInterface oi) {
-    return new TeleopSwerve(drivetrain, oi::getTranslateX, oi::getTranslateY, oi::getRotate)
+    return SwerveDrivetrainCommandFactory.getDefaultTeleopSwerveCommand(oi, drivetrain)
         .withName("Override driveToPose");
   }
 
@@ -202,9 +246,7 @@ public class CrossSubsystemsCommandsFactory {
 
     LoggedTunableNumber.ifChanged(
         thetaController.hashCode(),
-        pid -> {
-          thetaController.setPID(pid[0], pid[1], pid[2]);
-        },
+        pid -> thetaController.setPID(pid[0], pid[1], pid[2]),
         thetaKp,
         thetaKi,
         thetaKd);

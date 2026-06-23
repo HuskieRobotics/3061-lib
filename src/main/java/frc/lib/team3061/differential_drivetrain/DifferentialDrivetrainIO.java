@@ -1,14 +1,7 @@
 package frc.lib.team3061.differential_drivetrain;
 
-import static edu.wpi.first.units.Units.*;
-
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Force;
-import edu.wpi.first.units.measure.LinearAcceleration;
-import edu.wpi.first.units.measure.LinearVelocity;
 import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrainConstants.SysIDCharacterizationMode;
 import org.littletonrobotics.junction.AutoLog;
 
@@ -21,19 +14,19 @@ public interface DifferentialDrivetrainIO {
     double leftEncoderCount = 0.0;
     double rightEncoderCount = 0.0;
 
-    Distance leftPosition = Meters.of(0.0);
-    Distance rightPosition = Meters.of(0.0);
+    double leftPositionMeters = 0.0;
+    double rightPositionMeters = 0.0;
 
-    LinearVelocity leftVelocity = MetersPerSecond.of(0.0);
-    LinearVelocity rightVelocity = MetersPerSecond.of(0.0);
+    double leftVelocityMPS = 0.0;
+    double rightVelocityMPS = 0.0;
 
-    Angle heading = Degrees.of(0.0);
-    Angle pitch = Degrees.of(0.0);
-    Angle roll = Degrees.of(0.0);
+    double headingDeg = 0.0;
+    double pitchDeg = 0.0;
+    double rollDeg = 0.0;
 
-    LinearAcceleration xAccelerationG = MetersPerSecondPerSecond.of(0.0);
-    LinearAcceleration yAccelerationG = MetersPerSecondPerSecond.of(0.0);
-    LinearAcceleration zAccelerationG = MetersPerSecondPerSecond.of(0.0);
+    double xAccelerationMPSPS = 0.0;
+    double yAccelerationMPSPS = 0.0;
+    double zAccelerationMPSPS = 0.0;
   }
 
   /** Updates the set of loggable inputs. */
@@ -51,7 +44,7 @@ public interface DifferentialDrivetrainIO {
    * @param isOpenLoop true for open-loop control; false for closed-loop control
    */
   public default void driveRobotRelative(
-      LinearVelocity xVelocity, AngularVelocity rotationalVelocity, boolean isOpenLoop) {}
+      double xVelocityMPS, double rotationalVelocityRPS, boolean isOpenLoop) {}
 
   /**
    * Controls the drivetrain to move the robot with the desired velocities in the x, y, and

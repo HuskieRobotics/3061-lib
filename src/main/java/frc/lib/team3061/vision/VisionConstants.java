@@ -1,9 +1,5 @@
 package frc.lib.team3061.vision;
 
-import edu.wpi.first.wpilibj.Filesystem;
-import java.io.File;
-import java.nio.file.Path;
-
 public final class VisionConstants {
   private static final String CONSTRUCTOR_EXCEPTION = "constant class";
 
@@ -11,15 +7,9 @@ public final class VisionConstants {
     throw new IllegalStateException(CONSTRUCTOR_EXCEPTION);
   }
 
-  public static final Path APRILTAG_FIELD_LAYOUT_PATH =
-      new File(Filesystem.getDeployDirectory(), "2026-rebuilt-welded.json").toPath();
-  public static final Path OFFICIAL_APRILTAG_FIELD_LAYOUT_PATH =
-      new File(Filesystem.getDeployDirectory(), "2026-rebuilt-welded.json").toPath();
-  public static final int MAX_NUMBER_TAGS = 30;
-
   public static final String SUBSYSTEM_NAME = "Vision";
 
-  public static final boolean ENABLE_DETAILED_LOGGING = false;
+  public static final boolean ENABLE_POSE_PERSISTENCE_LOGGING = false;
   public static final boolean CALIBRATE_CAMERA_TRANSFORMS = false;
 
   // an accepted pose must be within this many seconds of the current time in order to qualify for
@@ -46,7 +36,7 @@ public final class VisionConstants {
 
   // the maximum error in the z component of the robot's pose for the pose to be considered valid
   // (assumes that the robot is always on the carpet)
-  public static final double MAX_Z_ERROR_METERS = 0.25;
+  public static final double MAX_Z_ERROR_METERS = 0.5;
 
   // the maximum distance off the field for the robot's pose for the pose to be considered valid
   public static final double FIELD_BORDER_MARGIN_METERS = 0.5;
@@ -73,5 +63,5 @@ public final class VisionConstants {
   public static final double SIM_ERROR_STD_DEV_PIXELS = 0.05;
 
   // the minimum confidence for a coral detection to be considered valid
-  public static final double CORAL_DETECT_CONFIDENCE_THRESHOLD = 0.35;
+  public static final double OBJECT_DETECT_CONFIDENCE_THRESHOLD = 0.80;
 }
