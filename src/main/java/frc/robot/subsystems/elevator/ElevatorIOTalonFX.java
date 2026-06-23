@@ -151,6 +151,7 @@ public class ElevatorIOTalonFX implements ElevatorIO {
             ElevatorConstants.MIN_HEIGHT_METERS,
             ElevatorConstants.MAX_HEIGHT_METERS,
             0.0,
+            true,
             ElevatorConstants.SUBSYSTEM_NAME,
             elevatorMotorLead);
   }

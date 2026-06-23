@@ -37,6 +37,7 @@ public class ElevatorSystemSim {
       double minHeightMeters,
       double maxHeightMeters,
       double startingHeightMeters,
+      boolean simulateGravity,
       String subsystemName,
       TalonFX... motors) {
     if (Constants.getMode() != Constants.Mode.SIM) {
@@ -65,7 +66,7 @@ public class ElevatorSystemSim {
             pulleyRadiusMeters,
             minHeightMeters,
             maxHeightMeters,
-            true,
+            simulateGravity,
             startingHeightMeters);
 
     this.mech2d = new LoggedMechanism2d(1, 1);
