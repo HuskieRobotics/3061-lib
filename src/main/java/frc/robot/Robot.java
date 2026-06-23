@@ -305,7 +305,7 @@ public class Robot extends LoggedRobot {
     if (AutonomousCommandsFactory.getInstance()
         .getAutonomousCommand()
         .getName()
-        .equals("Do Nothing")) {
+        .equals(AutonomousCommandsFactory.DO_NOTHING_AUTO_STR)) {
       LEDs.getInstance().requestState(LEDs.States.NO_AUTO_SELECTED);
       noAutoSelectedAlert.set(true);
     } else {
