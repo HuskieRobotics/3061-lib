@@ -21,6 +21,7 @@ import first.lib.team3061.sim.ElevatorSystemSim;
 import first.lib.team6328.util.LoggedTunableNumber;
 import first.robot.Constants;
 import org.wpilib.math.filter.Debouncer;
+import org.wpilib.math.system.DCMotor;
 import org.wpilib.units.measure.Angle;
 import org.wpilib.units.measure.AngularVelocity;
 import org.wpilib.units.measure.Current;
@@ -148,15 +149,15 @@ public class ElevatorIOTalonFX implements ElevatorIO {
     // when the physical mechanism is not available.
     elevatorSystemSim =
         new ElevatorSystemSim(
-            elevatorMotorLead,
-            ElevatorConstants.IS_INVERTED,
+            DCMotor.getKrakenX60Foc(2),
             ElevatorConstants.GEAR_RATIO,
             ElevatorConstants.ELEVATOR_MASS_KG,
             PULLEY_CIRCUMFERENCE_METERS / (Math.PI * 2.0),
             ElevatorConstants.MIN_HEIGHT_METERS,
             ElevatorConstants.MAX_HEIGHT_METERS,
             0.0,
-            ElevatorConstants.SUBSYSTEM_NAME);
+            ElevatorConstants.SUBSYSTEM_NAME,
+            elevatorMotorLead);
   }
 
   @Override
