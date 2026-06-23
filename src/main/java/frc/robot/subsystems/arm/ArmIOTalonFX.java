@@ -17,6 +17,7 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Current;
@@ -110,9 +111,8 @@ public class ArmIOTalonFX implements ArmIO {
     // physical mechanism is not available.
     this.angleMotorSim =
         new ArmSystemSim(
-            angleMotor,
+            DCMotor.getKrakenX60(1),
             angleEncoder,
-            ArmConstants.ANGLE_MOTOR_INVERTED,
             ArmConstants.SENSOR_TO_MECHANISM_RATIO,
             ArmConstants.ANGLE_MOTOR_GEAR_RATIO,
             Units.inchesToMeters(20.0),
@@ -121,7 +121,8 @@ public class ArmIOTalonFX implements ArmIO {
             Units.degreesToRadians(120.0),
             Units.degreesToRadians(10.0),
             true,
-            SUBSYSTEM_NAME);
+            SUBSYSTEM_NAME,
+            angleMotor);
   }
 
   @Override
