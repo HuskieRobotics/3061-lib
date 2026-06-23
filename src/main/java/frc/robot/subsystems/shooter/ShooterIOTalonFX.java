@@ -156,18 +156,9 @@ public class ShooterIOTalonFX implements ShooterIO {
     // are determined based on the mechanical design of the shooter.
     this.shootMotorBottomSim =
         new VelocitySystemSim(
-            shootMotorBottom,
-            ShooterConstants.SHOOT_BOTTOM_INVERTED,
-            0.05,
-            0.01,
-            ShooterConstants.SHOOT_MOTORS_GEAR_RATIO);
+            0.05, 0.01, ShooterConstants.SHOOT_MOTORS_GEAR_RATIO, shootMotorBottom);
     this.shootMotorTopSim =
-        new VelocitySystemSim(
-            shootMotorTop,
-            ShooterConstants.SHOOT_TOP_INVERTED,
-            0.05,
-            0.01,
-            ShooterConstants.SHOOT_MOTORS_GEAR_RATIO);
+        new VelocitySystemSim(0.05, 0.01, ShooterConstants.SHOOT_MOTORS_GEAR_RATIO, shootMotorTop);
   }
 
   @Override

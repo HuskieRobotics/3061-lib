@@ -15,6 +15,7 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
@@ -143,15 +144,15 @@ public class ElevatorIOTalonFX implements ElevatorIO {
     // when the physical mechanism is not available.
     elevatorSystemSim =
         new ElevatorSystemSim(
-            elevatorMotorLead,
-            ElevatorConstants.IS_INVERTED,
+            DCMotor.getKrakenX60Foc(2),
             ElevatorConstants.GEAR_RATIO,
             ElevatorConstants.ELEVATOR_MASS_KG,
             PULLEY_CIRCUMFERENCE_METERS / (Math.PI * 2.0),
             ElevatorConstants.MIN_HEIGHT_METERS,
             ElevatorConstants.MAX_HEIGHT_METERS,
             0.0,
-            ElevatorConstants.SUBSYSTEM_NAME);
+            ElevatorConstants.SUBSYSTEM_NAME,
+            elevatorMotorLead);
   }
 
   @Override
