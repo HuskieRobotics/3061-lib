@@ -1,7 +1,7 @@
 {
   "hubs": [
     {
-      "x": 226,
+      "x": 236,
       "y": 30,
       "width": 1651,
       "height": 1088,
@@ -51,7 +51,7 @@
           ]
         },
         "tabs": {
-          "selected": 1,
+          "selected": 6,
           "tabs": [
             {
               "type": 0,
@@ -514,6 +514,49 @@
                   0
                 ]
               },
+              "controlsHeight": 200
+            },
+            {
+              "type": 1,
+              "title": "SysId",
+              "controller": {
+                "leftSources": [],
+                "rightSources": [],
+                "discreteSources": [
+                  {
+                    "type": "stripes",
+                    "logKey": "SysId_State",
+                    "logType": "String",
+                    "visible": true,
+                    "options": {
+                      "color": "#2b66a2"
+                    }
+                  },
+                  {
+                    "type": "stripes",
+                    "logKey": "RobotEnable",
+                    "logType": "Boolean",
+                    "visible": true,
+                    "options": {
+                      "color": "#af2437"
+                    }
+                  }
+                ],
+                "leftLockedRange": null,
+                "rightLockedRange": null,
+                "leftUnitConversion": {
+                  "autoTarget": null,
+                  "preset": null
+                },
+                "rightUnitConversion": {
+                  "autoTarget": null,
+                  "preset": null
+                },
+                "leftFilter": 0,
+                "rightFilter": 0
+              },
+              "controllerUUID": "vihf16nc5bcyvpusip7h6ljis4xcbvsg",
+              "renderer": null,
               "controlsHeight": 200
             },
             {
