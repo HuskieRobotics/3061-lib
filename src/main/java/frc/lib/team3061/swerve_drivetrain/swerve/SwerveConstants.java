@@ -339,7 +339,7 @@ public abstract class SwerveConstants {
   public static final boolean ANGLE_ENABLE_CURRENT_LIMIT = true;
 
   public static final int DRIVE_CONTINUOUS_CURRENT_LIMIT = 40;
-  public static final int DRIVE_PEAK_CURRENT_LIMIT = 80;
+  public static final int DRIVE_PEAK_CURRENT_LIMIT = 65;
   public static final double DRIVE_PEAK_CURRENT_DURATION = 0.1;
   public static final boolean DRIVE_ENABLE_CURRENT_LIMIT = true;
 }

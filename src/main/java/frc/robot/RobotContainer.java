@@ -4,7 +4,7 @@
 
 package frc.robot;
 
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -21,11 +21,11 @@ import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
 import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrainIO;
 import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrainIOCTRE;
 import frc.lib.team3061.vision.Vision;
-import frc.lib.team3061.vision.VisionConstants;
 import frc.lib.team3061.vision.VisionIO;
 import frc.lib.team3061.vision.VisionIONorthstar;
 import frc.lib.team3061.vision.VisionIOPhotonVision;
 import frc.lib.team3061.vision.VisionIOSim;
+import frc.lib.team6328.util.FieldConstants;
 import frc.robot.Constants.Mode;
 import frc.robot.commands.ArmCommandFactory;
 import frc.robot.commands.AutonomousCommandsFactory;
@@ -33,11 +33,11 @@ import frc.robot.commands.CrossSubsystemsCommandsFactory;
 import frc.robot.commands.DifferentialDrivetrainCommandFactory;
 import frc.robot.commands.ElevatorCommandsFactory;
 import frc.robot.commands.SwerveDrivetrainCommandFactory;
-import frc.robot.configs.CalypsoRobotConfig;
 import frc.robot.configs.DefaultRobotConfig;
 import frc.robot.configs.NewPracticeRobotConfig;
 import frc.robot.configs.NorthstarTestPlatformConfig;
 import frc.robot.configs.PracticeBoardConfig;
+import frc.robot.configs.SavannaRobotConfig;
 import frc.robot.configs.VisionTestPlatformConfig;
 import frc.robot.configs.XRPRobotConfig;
 import frc.robot.operator_interface.OISelector;
@@ -56,8 +56,6 @@ import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShooterIO;
 import frc.robot.subsystems.shooter.ShooterIOTalonFX;
 import frc.robot.visualizations.RobotVisualization;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Optional;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
@@ -85,10 +83,6 @@ public class RobotContainer {
   private final LoggedNetworkNumber endgameAlert2 =
       new LoggedNetworkNumber("/Tuning/Endgame Alert #2", 10.0);
 
-  private static final String LAYOUT_FILE_MISSING =
-      "Could not find the specified AprilTags layout file";
-  private Alert layoutFileMissingAlert = new Alert(LAYOUT_FILE_MISSING, AlertType.kError);
-
   private Alert tuningAlert = new Alert("Tuning mode enabled", AlertType.kInfo);
 
   /**
@@ -101,6 +95,8 @@ public class RobotContainer {
      * that use it directly or indirectly. If this isn't done, a null pointer exception will result.
      */
     createRobotConfig();
+
+    constructField();
 
     // create real, simulated, or replay subsystems based on the mode and robot specified
     if (Constants.getMode() != Mode.REPLAY) {
@@ -166,16 +162,14 @@ public class RobotContainer {
     // disable all telemetry in the LiveWindow to reduce the processing during each iteration
     LiveWindow.disableAllTelemetry();
 
-    constructField();
-
     updateOI();
 
     // register autonomous commands
     if (RobotConfig.getInstance().getDrivetrainType() == RobotConfig.DRIVETRAIN_TYPE.DIFFERENTIAL) {
-      AutonomousCommandsFactory.getInstance().configureAutoCommands(differentialDrivetrain, vision);
+      AutonomousCommandsFactory.getInstance().configureAutoCommands(differentialDrivetrain);
     } else if (RobotConfig.getInstance().getDrivetrainType()
         == RobotConfig.DRIVETRAIN_TYPE.SWERVE) {
-      AutonomousCommandsFactory.getInstance().configureAutoCommands(swerveDrivetrain, vision);
+      AutonomousCommandsFactory.getInstance().configureAutoCommands(swerveDrivetrain);
     }
 
     // Alert when tuning
@@ -193,11 +187,11 @@ public class RobotContainer {
       case ROBOT_DEFAULT:
         config = new DefaultRobotConfig();
         break;
-      case ROBOT_PRACTICE, ROBOT_SIMBOT:
+      case ROBOT_PRACTICE:
         config = new NewPracticeRobotConfig();
         break;
-      case ROBOT_COMPETITION:
-        config = new CalypsoRobotConfig();
+      case ROBOT_COMPETITION, ROBOT_SIMBOT:
+        config = new SavannaRobotConfig();
         break;
       case ROBOT_PRACTICE_BOARD:
         config = new PracticeBoardConfig();
@@ -221,18 +215,9 @@ public class RobotContainer {
 
     CameraConfig[] cameraConfigs = config.getCameraConfigs();
     VisionIO[] visionIOs = new VisionIO[cameraConfigs.length];
-    AprilTagFieldLayout layout;
-    try {
-      layout = new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
-    } catch (IOException e) {
-      layout = new AprilTagFieldLayout(new ArrayList<>(), 16.4592, 8.2296);
-
-      layoutFileMissingAlert.setText(
-          LAYOUT_FILE_MISSING + ": " + VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
-      layoutFileMissingAlert.set(true);
-    }
     for (int i = 0; i < visionIOs.length; i++) {
-      visionIOs[i] = new VisionIOPhotonVision(cameraConfigs[i].id(), layout);
+      visionIOs[i] =
+          new VisionIONorthstar(FieldConstants.defaultAprilTagType.getLayout(), cameraConfigs[i]);
     }
     vision = new Vision(visionIOs);
 
@@ -249,18 +234,9 @@ public class RobotContainer {
 
     CameraConfig[] cameraConfigs = config.getCameraConfigs();
     VisionIO[] visionIOs = new VisionIO[cameraConfigs.length];
-    AprilTagFieldLayout layout;
-    try {
-      layout = new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
-    } catch (IOException e) {
-      layout = new AprilTagFieldLayout(new ArrayList<>(), 16.4592, 8.2296);
-
-      layoutFileMissingAlert.setText(
-          LAYOUT_FILE_MISSING + ": " + VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
-      layoutFileMissingAlert.set(true);
-    }
     for (int i = 0; i < visionIOs.length; i++) {
-      visionIOs[i] = new VisionIONorthstar(layout, cameraConfigs[i]);
+      visionIOs[i] =
+          new VisionIONorthstar(FieldConstants.defaultAprilTagType.getLayout(), cameraConfigs[i]);
     }
     vision = new Vision(visionIOs);
 
@@ -277,21 +253,11 @@ public class RobotContainer {
 
     CameraConfig[] cameraConfigs = config.getCameraConfigs();
     VisionIO[] visionIOs = new VisionIO[cameraConfigs.length];
-    AprilTagFieldLayout layout;
-    try {
-      layout = new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
-    } catch (IOException e) {
-      layout = new AprilTagFieldLayout(new ArrayList<>(), 16.4592, 8.2296);
-      layoutFileMissingAlert.setText(
-          LAYOUT_FILE_MISSING + ": " + VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
-      layoutFileMissingAlert.set(true);
-    }
-
     for (int i = 0; i < visionIOs.length; i++) {
       visionIOs[i] =
           new VisionIOSim(
               cameraConfigs[i].id(),
-              layout,
+              FieldConstants.defaultAprilTagType.getLayout(),
               swerveDrivetrain::getPose,
               cameraConfigs[i].robotToCameraTransform());
     }
@@ -319,7 +285,7 @@ public class RobotContainer {
   private void createPracticeBoardSubsystems() {
     // change the following to connect the subsystem being tested to actual hardware
     swerveDrivetrain = new SwerveDrivetrain(new SwerveDrivetrainIO() {});
-    vision = new Vision(new VisionIO[] {new VisionIO() {}});
+    vision = new Vision(new VisionIO[] {});
 
     // FIXME: initialize other subsystems
     arm = new Arm(new ArmIO() {});
@@ -335,18 +301,10 @@ public class RobotContainer {
 
     CameraConfig[] cameraConfigs = config.getCameraConfigs();
     VisionIO[] visionIOs = new VisionIO[cameraConfigs.length];
-    AprilTagFieldLayout layout;
-    try {
-      layout = new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
-    } catch (IOException e) {
-      layout = new AprilTagFieldLayout(new ArrayList<>(), 16.4592, 8.2296);
-
-      layoutFileMissingAlert.setText(
-          LAYOUT_FILE_MISSING + ": " + VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
-      layoutFileMissingAlert.set(true);
-    }
     for (int i = 0; i < visionIOs.length; i++) {
-      visionIOs[i] = new VisionIOPhotonVision(cameraConfigs[i].id(), layout);
+      visionIOs[i] =
+          new VisionIOPhotonVision(
+              cameraConfigs[i].id(), FieldConstants.defaultAprilTagType.getLayout());
     }
     vision = new Vision(visionIOs);
 
@@ -355,6 +313,7 @@ public class RobotContainer {
     elevator = new Elevator(new ElevatorIO() {});
     manipulator = new Manipulator(new ManipulatorIO() {});
     shooter = new Shooter(new ShooterIO() {});
+    visualization = new RobotVisualization(elevator);
   }
 
   private void createNorthstarTestPlatformSubsystems() {
@@ -363,18 +322,9 @@ public class RobotContainer {
 
     CameraConfig[] cameraConfigs = config.getCameraConfigs();
     VisionIO[] visionIOs = new VisionIO[cameraConfigs.length];
-    AprilTagFieldLayout layout;
-    try {
-      layout = new AprilTagFieldLayout(VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
-    } catch (IOException e) {
-      layout = new AprilTagFieldLayout(new ArrayList<>(), 16.4592, 8.2296);
-
-      layoutFileMissingAlert.setText(
-          LAYOUT_FILE_MISSING + ": " + VisionConstants.APRILTAG_FIELD_LAYOUT_PATH);
-      layoutFileMissingAlert.set(true);
-    }
     for (int i = 0; i < visionIOs.length; i++) {
-      visionIOs[i] = new VisionIONorthstar(layout, cameraConfigs[i]);
+      visionIOs[i] =
+          new VisionIONorthstar(FieldConstants.defaultAprilTagType.getLayout(), cameraConfigs[i]);
     }
     vision = new Vision(visionIOs);
 
@@ -482,6 +432,10 @@ public class RobotContainer {
       this.lastAlliance = alliance.get();
       Field2d.getInstance().updateAlliance(this.lastAlliance);
     }
+  }
+
+  public void setPathFollowingTargetPose(Pose2d pose) {
+    AutonomousCommandsFactory.getInstance().setPathFollowingTargetPose(pose);
   }
 
   public void periodic() {

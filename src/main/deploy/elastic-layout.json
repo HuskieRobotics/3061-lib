@@ -12,7 +12,7 @@
             "x": 0.0,
             "y": 0.0,
             "width": 256.0,
-            "height": 384.0,
+            "height": 512.0,
             "type": "Alerts",
             "properties": {
               "topic": "/SmartDashboard/Alerts",
@@ -21,10 +21,10 @@
           },
           {
             "title": "Auto Routine",
-            "x": 0.0,
-            "y": 384.0,
-            "width": 256.0,
-            "height": 128.0,
+            "x": 512.0,
+            "y": 0.0,
+            "width": 368.0,
+            "height": 256.0,
             "type": "ComboBox Chooser",
             "properties": {
               "topic": "/SmartDashboard/Auto Routine",
@@ -96,23 +96,10 @@
         "layouts": [],
         "containers": [
           {
-            "title": "ClearAllFaults",
-            "x": 80.0,
-            "y": 48.0,
-            "width": 256.0,
-            "height": 128.0,
-            "type": "Command",
-            "properties": {
-              "topic": "/SmartDashboard/SystemStatus/ClearAllFaults",
-              "period": 0.06,
-              "show_type": true
-            }
-          },
-          {
             "title": "SysId Chooser",
             "x": 80.0,
             "y": 192.0,
-            "width": 240.0,
+            "width": 256.0,
             "height": 128.0,
             "type": "ComboBox Chooser",
             "properties": {
@@ -122,22 +109,9 @@
             }
           },
           {
-            "title": "Enable Primary IR Sensors",
-            "x": 416.0,
-            "y": 48.0,
-            "width": 288.0,
-            "height": 128.0,
-            "type": "Toggle Button",
-            "properties": {
-              "topic": "/Tuning/operatorDashboard/Enable Primary IR Sensors",
-              "period": 0.06,
-              "data_type": "boolean"
-            }
-          },
-          {
             "title": "Enable Vision",
-            "x": 416.0,
-            "y": 192.0,
+            "x": 400.0,
+            "y": 48.0,
             "width": 288.0,
             "height": 128.0,
             "type": "Toggle Button",
@@ -156,23 +130,10 @@
         "layouts": [],
         "containers": [
           {
-            "title": "Drivetrain System Check",
-            "x": 576.0,
-            "y": 48.0,
-            "width": 256.0,
-            "height": 128.0,
-            "type": "Command",
-            "properties": {
-              "topic": "/SmartDashboard/SystemStatus/Drivetrain/SystemCheck",
-              "period": 0.06,
-              "show_type": true
-            }
-          },
-          {
-            "title": "CheckRan",
-            "x": 832.0,
-            "y": 48.0,
-            "width": 128.0,
+            "title": "Drivetrain CheckRan",
+            "x": 736.0,
+            "y": 16.0,
+            "width": 224.0,
             "height": 128.0,
             "type": "Boolean Box",
             "properties": {
@@ -188,7 +149,7 @@
           {
             "title": "SystemOK",
             "x": 960.0,
-            "y": 48.0,
+            "y": 16.0,
             "width": 128.0,
             "height": 128.0,
             "type": "Boolean Box",
@@ -201,48 +162,6 @@
               "true_icon": "None",
               "false_icon": "None"
             }
-          },
-          {
-            "title": "Faults",
-            "x": 576.0,
-            "y": 176.0,
-            "width": 512.0,
-            "height": 128.0,
-            "type": "Text Display",
-            "properties": {
-              "topic": "/AdvantageKit/RealOutputs/SystemStatus/Drivetrain/Faults",
-              "period": 0.06,
-              "data_type": "string[]",
-              "show_submit_button": false
-            }
-          },
-          {
-            "title": "LastFault",
-            "x": 576.0,
-            "y": 304.0,
-            "width": 256.0,
-            "height": 128.0,
-            "type": "Text Display",
-            "properties": {
-              "topic": "/AdvantageKit/RealOutputs/SystemStatus/Drivetrain/LastFault",
-              "period": 0.06,
-              "data_type": "string",
-              "show_submit_button": false
-            }
-          },
-          {
-            "title": "Status",
-            "x": 832.0,
-            "y": 304.0,
-            "width": 256.0,
-            "height": 128.0,
-            "type": "Text Display",
-            "properties": {
-              "topic": "/AdvantageKit/RealOutputs/SystemStatus/Drivetrain/Status",
-              "period": 0.06,
-              "data_type": "string",
-              "show_submit_button": false
-            }
           }
         ]
       }
@@ -253,32 +172,6 @@
         "layouts": [],
         "containers": [
           {
-            "title": "FR: activate calibration",
-            "x": 16.0,
-            "y": 128.0,
-            "width": 240.0,
-            "height": 128.0,
-            "type": "Toggle Switch",
-            "properties": {
-              "topic": "/northstar_FR/calibration/active",
-              "period": 0.06,
-              "data_type": "boolean"
-            }
-          },
-          {
-            "title": "FR: capture frame for cal",
-            "x": 256.0,
-            "y": 128.0,
-            "width": 240.0,
-            "height": 128.0,
-            "type": "Toggle Button",
-            "properties": {
-              "topic": "/northstar_FR/calibration/capture_flag",
-              "period": 0.06,
-              "data_type": "boolean"
-            }
-          },
-          {
             "title": "enable recording",
             "x": 16.0,
             "y": 0.0,
@@ -286,7 +179,7 @@
             "height": 128.0,
             "type": "Toggle Switch",
             "properties": {
-              "topic": "/SmartDashboard/Enable Recording",
+              "topic": "/Vision/Enable Recording",
               "period": 0.06,
               "data_type": "boolean"
             }
@@ -305,47 +198,8 @@
             }
           },
           {
-            "title": "BR: capture frame for cal",
-            "x": 256.0,
-            "y": 256.0,
-            "width": 240.0,
-            "height": 128.0,
-            "type": "Toggle Button",
-            "properties": {
-              "topic": "/northstar_BR/calibration/capture_flag",
-              "period": 0.06,
-              "data_type": "boolean"
-            }
-          },
-          {
-            "title": "FL: activate calibration",
-            "x": 16.0,
-            "y": 384.0,
-            "width": 240.0,
-            "height": 128.0,
-            "type": "Toggle Switch",
-            "properties": {
-              "topic": "/northstar_FL/calibration/active",
-              "period": 0.06,
-              "data_type": "boolean"
-            }
-          },
-          {
-            "title": "FL: capture frame for cal",
-            "x": 256.0,
-            "y": 384.0,
-            "width": 240.0,
-            "height": 128.0,
-            "type": "Toggle Button",
-            "properties": {
-              "topic": "/northstar_FL/calibration/capture_flag",
-              "period": 0.06,
-              "data_type": "boolean"
-            }
-          },
-          {
             "title": "BL: activate calibration",
-            "x": 528.0,
+            "x": 16.0,
             "y": 128.0,
             "width": 240.0,
             "height": 128.0,
@@ -355,44 +209,81 @@
               "period": 0.06,
               "data_type": "boolean"
             }
-          },
+          }
+        ]
+      }
+    },
+    {
+      "name": "Operator",
+      "grid_layout": {
+        "layouts": [],
+        "containers": [
           {
-            "title": "BL: capture frame for cal",
-            "x": 768.0,
-            "y": 128.0,
-            "width": 240.0,
-            "height": 128.0,
-            "type": "Toggle Button",
+            "title": "BL",
+            "x": 640.0,
+            "y": 304.0,
+            "width": 128.0,
+            "height": 112.0,
+            "type": "Boolean Box",
             "properties": {
-              "topic": "/northstar_BL/calibration/capture_flag",
+              "topic": "/AdvantageKit/RealOutputs/Vision/BL/sending frames",
               "period": 0.06,
-              "data_type": "boolean"
+              "data_type": "boolean",
+              "true_color": 4283215696,
+              "false_color": 4294198070,
+              "true_icon": "None",
+              "false_icon": "None"
             }
           },
           {
-            "title": "center: activate calibration",
-            "x": 528.0,
-            "y": 256.0,
-            "width": 240.0,
-            "height": 128.0,
-            "type": "Toggle Switch",
+            "title": "BR",
+            "x": 768.0,
+            "y": 304.0,
+            "width": 128.0,
+            "height": 112.0,
+            "type": "Boolean Box",
             "properties": {
-              "topic": "/northstar_center/calibration/active",
+              "topic": "/AdvantageKit/RealOutputs/Vision/BR/sending frames",
               "period": 0.06,
-              "data_type": "boolean"
+              "data_type": "boolean",
+              "true_color": 4283215696,
+              "false_color": 4294198070,
+              "true_icon": "None",
+              "false_icon": "None"
             }
           },
           {
-            "title": "center: capture frame for cal",
-            "x": 768.0,
-            "y": 256.0,
-            "width": 240.0,
-            "height": 128.0,
-            "type": "Toggle Button",
+            "title": "BCL",
+            "x": 640.0,
+            "y": 432.0,
+            "width": 128.0,
+            "height": 112.0,
+            "type": "Boolean Box",
             "properties": {
-              "topic": "/northstar_center/calibration/capture_flag",
+              "topic": "/AdvantageKit/RealOutputs/Vision/BCL/sending frames",
               "period": 0.06,
-              "data_type": "boolean"
+              "data_type": "boolean",
+              "true_color": 4283215696,
+              "false_color": 4294198070,
+              "true_icon": "None",
+              "false_icon": "None"
+            }
+          },
+          {
+            "title": "BCH",
+            "x": 768.0,
+            "y": 432.0,
+            "width": 128.0,
+            "height": 112.0,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/AdvantageKit/RealOutputs/Vision/BCH/sending frames",
+              "period": 0.06,
+              "data_type": "boolean",
+              "true_color": 4283215696,
+              "false_color": 4294198070,
+              "true_icon": "None",
+              "false_icon": "None"
             }
           }
         ]

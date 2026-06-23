@@ -21,32 +21,23 @@ public class FullOperatorConsoleOI extends OperatorDashboard {
 
   private final CommandXboxController operatorController;
 
-  private final CommandJoystick operatorPanel;
-  private final Trigger[] operatorPanelButtons;
-
-  public FullOperatorConsoleOI(
-      int translatePort, int rotatePort, int operatorControllerPort, int operatorPanelPort) {
+  public FullOperatorConsoleOI(int translatePort, int rotatePort, int operatorControllerPort) {
     translateJoystick = new CommandJoystick(translatePort);
     rotateJoystick = new CommandJoystick(rotatePort);
     operatorController = new CommandXboxController(operatorControllerPort);
-    operatorPanel = new CommandJoystick(operatorPanelPort);
 
     // buttons use 1-based indexing such that the index matches the button number; leave index 0 set
     // to null
     this.translateJoystickButtons = new Trigger[13];
     this.rotateJoystickButtons = new Trigger[13];
-    this.operatorPanelButtons = new Trigger[13];
 
     for (int i = 1; i < translateJoystickButtons.length; i++) {
       translateJoystickButtons[i] = translateJoystick.button(i);
       rotateJoystickButtons[i] = rotateJoystick.button(i);
     }
-    for (int i = 1; i < operatorPanelButtons.length; i++) {
-      operatorPanelButtons[i] = operatorPanel.button(i);
-    }
   }
 
-  // Translate Joystick
+  // Translation Joystick
   @Override
   public double getTranslateX() {
     return -translateJoystick.getY();
@@ -63,8 +54,18 @@ public class FullOperatorConsoleOI extends OperatorDashboard {
   }
 
   @Override
-  public Trigger getResetGyroButton() {
+  public Trigger getSnakeDriveButton() {
     return translateJoystickButtons[4];
+  }
+
+  @Override
+  public Trigger getInterruptAll() {
+    return translateJoystickButtons[5];
+  }
+
+  @Override
+  public Trigger getResetGyroButton() {
+    return translateJoystickButtons[8];
   }
 
   @Override
@@ -72,8 +73,7 @@ public class FullOperatorConsoleOI extends OperatorDashboard {
     return translateJoystickButtons[9];
   }
 
-  // Rotate Joystick
-
+  // Rotation Joystick
   @Override
   public double getRotate() {
     return -rotateJoystick.getX();
@@ -89,36 +89,44 @@ public class FullOperatorConsoleOI extends OperatorDashboard {
     return rotateJoystickButtons[5];
   }
 
+  @Override
+  public Trigger getCurrentPoseButton() {
+    return rotateJoystickButtons[6];
+  }
+
   // Operator Controller
   @Override
-  public Trigger getInterruptAll() {
-    return operatorController.start();
+  public Trigger getDrivetrainSystemTest() {
+    return operatorController.back().and(operatorController.b());
   }
 
   @Override
-  public Trigger getSysIdDynamicForward() {
+  public Trigger getShooterSystemTest() {
+    return operatorController.back().and(operatorController.start());
+  }
+
+  @Override
+  public Trigger getArmSystemTest() {
     return operatorController.back().and(operatorController.y());
   }
 
   @Override
-  public Trigger getSysIdDynamicReverse() {
+  public Trigger getElevatorSystemTest() {
     return operatorController.back().and(operatorController.x());
   }
 
   @Override
-  public Trigger getSysIdQuasistaticForward() {
-    return operatorController.start().and(operatorController.y());
+  public Trigger getManipulatorSystemTest() {
+    return operatorController.back().and(operatorController.a());
   }
 
   @Override
-  public Trigger getSysIdQuasistaticReverse() {
-    return operatorController.start().and(operatorController.x());
+  public Trigger getClearAllFaults() {
+    return operatorController.leftBumper().and(operatorController.rightBumper());
   }
 
-  // Operator Panel
-
   @Override
-  public Trigger getVisionIsEnabledTrigger() {
-    return operatorPanelButtons[10];
+  public Trigger getCheckForFaults() {
+    return operatorController.rightBumper();
   }
 }

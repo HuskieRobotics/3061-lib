@@ -1,14 +1,11 @@
 package frc.lib.team3061.differential_drivetrain;
 
-import static edu.wpi.first.units.Units.*;
 import static frc.lib.team3061.differential_drivetrain.DifferentialDrivetrainConstants.*;
 import static frc.robot.Constants.LOOP_PERIOD_SECS;
 
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Force;
-import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.BuiltInAccelerometer;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -54,10 +51,10 @@ public class DifferentialDrivetrainIOXRP implements DifferentialDrivetrainIO {
 
     // Use meters as unit for encoder distances
     leftEncoder.setDistancePerPulse(
-        (2 * Math.PI * RobotConfig.getInstance().getWheelRadius().in(Meters))
+        (2 * Math.PI * RobotConfig.getInstance().getWheelRadiusMeters())
             / XRP_COUNTS_PER_REVOLUTION);
     rightEncoder.setDistancePerPulse(
-        (2 * Math.PI * RobotConfig.getInstance().getWheelRadius().in(Meters))
+        (2 * Math.PI * RobotConfig.getInstance().getWheelRadiusMeters())
             / XRP_COUNTS_PER_REVOLUTION);
     resetEncoders();
   }
@@ -70,30 +67,27 @@ public class DifferentialDrivetrainIOXRP implements DifferentialDrivetrainIO {
     inputs.leftEncoderCount = leftEncoder.get();
     inputs.rightEncoderCount = rightEncoder.get();
 
-    inputs.leftPosition = Meters.of(leftEncoder.getDistance());
-    inputs.rightPosition = Meters.of(rightEncoder.getDistance());
+    inputs.leftPositionMeters = leftEncoder.getDistance();
+    inputs.rightPositionMeters = rightEncoder.getDistance();
 
-    inputs.leftVelocity =
-        MetersPerSecond.of(
-            leftVelocity.calculate(
-                (inputs.leftPosition.in(Meters) - this.prevLeftPositionMeters) / LOOP_PERIOD_SECS));
-    inputs.rightVelocity =
-        MetersPerSecond.of(
-            rightVelocity.calculate(
-                (inputs.rightPosition.in(Meters) - this.prevRightPositionMeters)
-                    / LOOP_PERIOD_SECS));
+    inputs.leftVelocityMPS =
+        leftVelocity.calculate(
+            (inputs.leftPositionMeters - this.prevLeftPositionMeters) / LOOP_PERIOD_SECS);
+    inputs.rightVelocityMPS =
+        rightVelocity.calculate(
+            (inputs.rightPositionMeters - this.prevRightPositionMeters) / LOOP_PERIOD_SECS);
 
-    inputs.heading = Degrees.of(gyro.getAngleZ());
-    inputs.pitch = Degrees.of(gyro.getAngleX());
-    inputs.roll = Degrees.of(gyro.getAngleY());
+    inputs.headingDeg = gyro.getAngleZ();
+    inputs.pitchDeg = gyro.getAngleX();
+    inputs.rollDeg = gyro.getAngleY();
 
     // convert from acceleration in Gs to m/s^2
-    inputs.xAccelerationG = MetersPerSecondPerSecond.of(accelerometer.getX() * 9.81);
-    inputs.yAccelerationG = MetersPerSecondPerSecond.of(accelerometer.getY() * 9.81);
-    inputs.zAccelerationG = MetersPerSecondPerSecond.of(accelerometer.getZ() * 9.81);
+    inputs.xAccelerationMPSPS = accelerometer.getX() * 9.81;
+    inputs.yAccelerationMPSPS = accelerometer.getY() * 9.81;
+    inputs.zAccelerationMPSPS = accelerometer.getZ() * 9.81;
 
-    this.prevLeftPositionMeters = inputs.leftPosition.in(Meters);
-    this.prevRightPositionMeters = inputs.rightPosition.in(Meters);
+    this.prevLeftPositionMeters = inputs.leftPositionMeters;
+    this.prevRightPositionMeters = inputs.rightPositionMeters;
   }
 
   /**
@@ -109,10 +103,10 @@ public class DifferentialDrivetrainIOXRP implements DifferentialDrivetrainIO {
    */
   @Override
   public void driveRobotRelative(
-      LinearVelocity xVelocity, AngularVelocity rotationalVelocity, boolean isOpenLoop) {
+      double xVelocityMPS, double rotationalVelocityRPS, boolean isOpenLoop) {
     diffDrive.arcadeDrive(
-        xVelocity.div(RobotConfig.getInstance().getRobotMaxVelocity()).magnitude(),
-        rotationalVelocity.div(RobotConfig.getInstance().getRobotMaxAngularVelocity()).magnitude());
+        xVelocityMPS / RobotConfig.getInstance().getRobotMaxVelocityMPS(),
+        rotationalVelocityRPS / RobotConfig.getInstance().getRobotMaxAngularVelocityRPS());
   }
 
   /**

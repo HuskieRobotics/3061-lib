@@ -1,9 +1,7 @@
 package frc.robot.subsystems.manipulator;
 
-import static edu.wpi.first.units.Units.*;
 import static frc.robot.subsystems.manipulator.ManipulatorConstants.*;
 
-import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -84,10 +82,6 @@ public class Manipulator extends SubsystemBase {
   public Manipulator(ManipulatorIO io) {
 
     this.io = io;
-
-    // Register this subsystem's system check command with the fault reporter. The system check
-    // command can be added to the Elastic Dashboard to execute the system test.
-    FaultReporter.getInstance().registerSystemCheck(SUBSYSTEM_NAME, getSystemCheckCommand());
   }
 
   /**
@@ -120,8 +114,7 @@ public class Manipulator extends SubsystemBase {
     WAITING_FOR_GAME_PIECE {
       @Override
       void onEnter(Manipulator subsystem) {
-        subsystem.setManipulatorMotorVoltage(
-            Volts.of(subsystem.manipulatorCollectionVoltage.get()));
+        subsystem.setManipulatorMotorVoltage(subsystem.manipulatorCollectionVoltage.get());
       }
 
       @Override
@@ -146,8 +139,7 @@ public class Manipulator extends SubsystemBase {
     INDEXING_GAME_PIECE_IN_MANIPULATOR {
       @Override
       void onEnter(Manipulator subsystem) {
-        subsystem.setManipulatorMotorVoltage(
-            Volts.of(subsystem.manipulatorCollectionVoltage.get()));
+        subsystem.setManipulatorMotorVoltage(subsystem.manipulatorCollectionVoltage.get());
 
         // If a state has a timeout, the timer must be restarted in the onEnter method.
         subsystem.inIndexingState.restart();
@@ -175,7 +167,7 @@ public class Manipulator extends SubsystemBase {
     GAME_PIECE_STUCK {
       @Override
       void onEnter(Manipulator subsystem) {
-        subsystem.setManipulatorMotorVoltage(Volts.of(subsystem.manipulatorEjectVoltage.get()));
+        subsystem.setManipulatorMotorVoltage(subsystem.manipulatorEjectVoltage.get());
 
         // If a state has a timeout, the timer must be restarted in the onEnter method.
         subsystem.ejectingTimer.restart();
@@ -199,7 +191,7 @@ public class Manipulator extends SubsystemBase {
     GAME_PIECE_IN_MANIPULATOR {
       @Override
       void onEnter(Manipulator subsystem) {
-        subsystem.setManipulatorMotorVoltage(Volts.of(0.0));
+        subsystem.setManipulatorMotorVoltage(0.0);
       }
 
       @Override
@@ -225,7 +217,7 @@ public class Manipulator extends SubsystemBase {
     RELEASE_GAME_PIECE {
       @Override
       void onEnter(Manipulator subsystem) {
-        subsystem.setManipulatorMotorVoltage(Volts.of(subsystem.manipulatorReleaseVoltage.get()));
+        subsystem.setManipulatorMotorVoltage(subsystem.manipulatorReleaseVoltage.get());
       }
 
       @Override
@@ -246,7 +238,7 @@ public class Manipulator extends SubsystemBase {
     UNINITIALIZED {
       @Override
       void onEnter(Manipulator subsystem) {
-        subsystem.setManipulatorMotorVoltage(Volts.of(0.0));
+        subsystem.setManipulatorMotorVoltage(0.0);
       }
 
       @Override
@@ -280,7 +272,7 @@ public class Manipulator extends SubsystemBase {
     Logger.recordOutput(SUBSYSTEM_NAME + "/State", this.state);
 
     // If a filter is used, it must be updated every periodic call.
-    currentSpikeDetector.update(inputs.manipulatorStatorCurrent.in(Amps));
+    currentSpikeDetector.update(inputs.manipulatorStatorCurrent);
 
     // If the testing mode is enabled, apply the specified voltage (if not zero). Only run the state
     // machine if testing mode is not enabled. Otherwise, the state machine will "fight" the
@@ -288,7 +280,7 @@ public class Manipulator extends SubsystemBase {
     // testing mode to ensure that the state machine won't "fight" Phoenix Tuner.
     if (testingMode.get() == 1) {
       if (manipulatorMotorVoltage.get() != 0) {
-        setManipulatorMotorVoltage(Volts.of(manipulatorMotorVoltage.get()));
+        setManipulatorMotorVoltage(manipulatorMotorVoltage.get());
       }
     } else {
       runStateMachine();
@@ -329,7 +321,7 @@ public class Manipulator extends SubsystemBase {
     state.execute(this);
   }
 
-  private void setManipulatorMotorVoltage(Voltage volts) {
+  private void setManipulatorMotorVoltage(double volts) {
     io.setManipulatorVoltage(volts);
   }
 
@@ -349,13 +341,13 @@ public class Manipulator extends SubsystemBase {
   // should always be decorated with an `until` condition that checks for faults in the subsystem
   // and an `andThen` condition that sets the subsystem to a safe state. This ensures that if any
   // faults are detected, the test will stop and the subsystem is always left in a safe state.
-  private Command getSystemCheckCommand() {
+  public Command getSystemCheckCommand() {
     return Commands.sequence(
-            Commands.runOnce(() -> io.setManipulatorVoltage(Volts.of(3.6))),
+            Commands.runOnce(() -> io.setManipulatorVoltage(3.6)),
             Commands.waitSeconds(1.0),
             Commands.runOnce(
                 () -> {
-                  if (inputs.manipulatorVelocity.lt(RotationsPerSecond.of(2.0))) {
+                  if (inputs.manipulatorVelocityRPS < 2.0) {
                     FaultReporter.getInstance()
                         .addFault(
                             SUBSYSTEM_NAME,
@@ -363,11 +355,11 @@ public class Manipulator extends SubsystemBase {
                             false);
                   }
                 }),
-            Commands.runOnce(() -> io.setManipulatorVoltage(Volts.of(-2.4))),
+            Commands.runOnce(() -> io.setManipulatorVoltage(-2.4)),
             Commands.waitSeconds(1.0),
             Commands.runOnce(
                 () -> {
-                  if (inputs.manipulatorVelocity.gt(RotationsPerSecond.of(-2.0))) {
+                  if (inputs.manipulatorVelocityRPS > -2.0) {
                     FaultReporter.getInstance()
                         .addFault(
                             SUBSYSTEM_NAME,
@@ -375,7 +367,6 @@ public class Manipulator extends SubsystemBase {
                             false);
                   }
                 }))
-        .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
-        .andThen(Commands.runOnce(() -> io.setManipulatorVoltage(Volts.of(0.0))));
+        .andThen(Commands.runOnce(() -> io.setManipulatorVoltage(0.0)));
   }
 }

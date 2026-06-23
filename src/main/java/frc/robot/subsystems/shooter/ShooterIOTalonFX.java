@@ -1,6 +1,5 @@
 package frc.robot.subsystems.shooter;
 
-import static edu.wpi.first.units.Units.*;
 import static frc.robot.subsystems.shooter.ShooterConstants.*;
 
 import com.ctre.phoenix6.BaseStatusSignal;
@@ -54,8 +53,8 @@ public class ShooterIOTalonFX implements ShooterIO {
   private StatusSignal<Double> gamePieceSignalStrengthStatusSignal;
   private StatusSignal<Boolean> gamePieceDetectedStatusSignal;
 
-  private AngularVelocity shootTopMotorReferenceVelocity = RotationsPerSecond.of(0.0);
-  private AngularVelocity shootBottomMotorReferenceVelocity = RotationsPerSecond.of(0.0);
+  private double shootTopMotorReferenceVelocityRPS = 0.0;
+  private double shootBottomMotorReferenceVelocityRPS = 0.0;
 
   private final Debouncer topMotorConnectedDebouncer = new Debouncer(0.5);
   private final Debouncer bottomMotorConnectedDebouncer = new Debouncer(0.5);
@@ -199,20 +198,22 @@ public class ShooterIOTalonFX implements ShooterIO {
                 gamePieceDetectedStatusSignal));
 
     // Updates Top Shooter Motor Inputs
-    inputs.shootMotorTopStatorCurrent = shootMotorTopStatorCurrentStatusSignal.getValue();
-    inputs.shootMotorTopSupplyCurrent = shootMotorTopSupplyCurrentStatusSignal.getValue();
-    inputs.shootMotorTopVelocity = shootMotorTopVelocityStatusSignal.getValue();
-    inputs.shootMotorTopTemperature = shootMotorTopTemperatureStatusSignal.getValue();
-    inputs.shootMotorTopVoltage = shootMotorTopVoltageStatusSignal.getValue();
-    inputs.shootMotorTopReferenceVelocity = this.shootTopMotorReferenceVelocity.copy();
+    inputs.shootMotorTopStatorCurrent = shootMotorTopStatorCurrentStatusSignal.getValueAsDouble();
+    inputs.shootMotorTopSupplyCurrent = shootMotorTopSupplyCurrentStatusSignal.getValueAsDouble();
+    inputs.shootMotorTopVelocityRPS = shootMotorTopVelocityStatusSignal.getValueAsDouble();
+    inputs.shootMotorTopTemperature = shootMotorTopTemperatureStatusSignal.getValueAsDouble();
+    inputs.shootMotorTopVoltage = shootMotorTopVoltageStatusSignal.getValueAsDouble();
+    inputs.shootMotorTopReferenceVelocityRPS = this.shootTopMotorReferenceVelocityRPS;
 
     // Updates Bottom Shooter Motor Inputs
-    inputs.shootMotorBottomStatorCurrent = shootMotorBottomStatorCurrentStatusSignal.getValue();
-    inputs.shootMotorBottomSupplyCurrent = shootMotorBottomSupplyCurrentStatusSignal.getValue();
-    inputs.shootMotorBottomVelocity = shootMotorBottomVelocityStatusSignal.getValue();
-    inputs.shootMotorBottomTemperature = shootMotorBottomTemperatureStatusSignal.getValue();
-    inputs.shootMotorBottomVoltage = shootMotorBottomVoltageStatusSignal.getValue();
-    inputs.shootMotorBottomReferenceVelocity = this.shootBottomMotorReferenceVelocity.copy();
+    inputs.shootMotorBottomStatorCurrent =
+        shootMotorBottomStatorCurrentStatusSignal.getValueAsDouble();
+    inputs.shootMotorBottomSupplyCurrent =
+        shootMotorBottomSupplyCurrentStatusSignal.getValueAsDouble();
+    inputs.shootMotorBottomVelocityRPS = shootMotorBottomVelocityStatusSignal.getValueAsDouble();
+    inputs.shootMotorBottomTemperature = shootMotorBottomTemperatureStatusSignal.getValueAsDouble();
+    inputs.shootMotorBottomVoltage = shootMotorBottomVoltageStatusSignal.getValueAsDouble();
+    inputs.shootMotorBottomReferenceVelocityRPS = this.shootBottomMotorReferenceVelocityRPS;
 
     // Update Game Piece Detection Inputs
     inputs.hasGamePiece = gamePieceDetectedStatusSignal.getValue();
@@ -225,15 +226,15 @@ public class ShooterIOTalonFX implements ShooterIO {
     // shootMotorTopReferenceVelocityRPS property should be used throughout the subsystem since it
     // will always be populated.
     if (Constants.TUNING_MODE) {
-      inputs.shootMotorTopClosedLoopReferenceVelocity =
-          RotationsPerSecond.of(shootMotorTop.getClosedLoopReference().getValue());
-      inputs.shootMotorTopClosedLoopErrorVelocity =
-          RotationsPerSecond.of(shootMotorTop.getClosedLoopError().getValue());
-      inputs.shootMotorBottomClosedLoopReferenceVelocity =
-          RotationsPerSecond.of(shootMotorBottom.getClosedLoopReference().getValue());
-      inputs.shootMotorBottomClosedLoopErrorVelocity =
-          RotationsPerSecond.of(shootMotorBottom.getClosedLoopError().getValue());
-      inputs.distanceToGamePiece = gamePieceDistanceStatusSignal.getValue();
+      inputs.shootMotorTopClosedLoopReferenceVelocityRPS =
+          shootMotorTop.getClosedLoopReference().getValueAsDouble();
+      inputs.shootMotorTopClosedLoopErrorVelocityRPS =
+          shootMotorTop.getClosedLoopError().getValueAsDouble();
+      inputs.shootMotorBottomClosedLoopReferenceVelocityRPS =
+          shootMotorBottom.getClosedLoopReference().getValueAsDouble();
+      inputs.shootMotorBottomClosedLoopErrorVelocityRPS =
+          shootMotorBottom.getClosedLoopError().getValueAsDouble();
+      inputs.distanceToGamePieceMeters = gamePieceDistanceStatusSignal.getValueAsDouble();
       inputs.signalStrength = gamePieceSignalStrengthStatusSignal.getValue();
     }
 
@@ -295,33 +296,33 @@ public class ShooterIOTalonFX implements ShooterIO {
   }
 
   @Override
-  public void setShooterWheelTopVelocity(AngularVelocity velocity) {
-    shootMotorTop.setControl(shootMotorTopVelocityRequest.withVelocity(velocity));
+  public void setShooterWheelTopVelocityRPS(double velocityRPS) {
+    shootMotorTop.setControl(shootMotorTopVelocityRequest.withVelocity(velocityRPS));
 
     // To improve performance, we store the reference velocity as an instance variable to avoid
     // having to retrieve the status signal object from the device in the updateInputs method.
-    this.shootTopMotorReferenceVelocity = velocity.copy();
+    this.shootTopMotorReferenceVelocityRPS = velocityRPS;
   }
 
   // While we cannot use subtypes of Measure in the inputs class due to logging limitations, we do
   // strive to use them (e.g., AngularVelocity) throughout the rest of the code to mitigate bugs due
   // to unit mismatches.
   @Override
-  public void setShooterWheelBottomVelocity(AngularVelocity velocity) {
-    shootMotorBottom.setControl(shootMotorBottomVelocityRequest.withVelocity(velocity));
+  public void setShooterWheelBottomVelocityRPS(double velocityRPS) {
+    shootMotorBottom.setControl(shootMotorBottomVelocityRequest.withVelocity(velocityRPS));
 
     // To improve performance, we store the reference velocity as an instance variable to avoid
     // having to retrieve the status signal object from the device in the updateInputs method.
-    this.shootBottomMotorReferenceVelocity = velocity.copy();
+    this.shootBottomMotorReferenceVelocityRPS = velocityRPS;
   }
 
   @Override
-  public void setShooterWheelTopCurrent(Current amps) {
+  public void setShooterWheelTopCurrent(double amps) {
     shootMotorTop.setControl(shootMotorTopCurrentRequest.withOutput(amps));
   }
 
   @Override
-  public void setShooterWheelBottomCurrent(Current amps) {
+  public void setShooterWheelBottomCurrent(double amps) {
     shootMotorBottom.setControl(shootMotorBottomCurrentRequest.withOutput(amps));
   }
 

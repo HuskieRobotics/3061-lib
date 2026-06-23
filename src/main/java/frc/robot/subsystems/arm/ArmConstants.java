@@ -1,8 +1,6 @@
 package frc.robot.subsystems.arm;
 
-import static edu.wpi.first.units.Units.*;
-
-import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.math.util.Units;
 
 public class ArmConstants {
 
@@ -44,9 +42,9 @@ public class ArmConstants {
   public static final double ANGLE_MOTOR_GEAR_RATIO = 45.0;
   public static final double SENSOR_TO_MECHANISM_RATIO = 4.0;
   public static final double MAGNET_OFFSET = -0.70727;
-  public static final Angle LOWER_ANGLE_LIMIT = Degrees.of(14.7);
-  public static final Angle UPPER_ANGLE_LIMIT = Degrees.of(135.0);
-  public static final Angle ANGLE_TOLERANCE = Degrees.of(1.5);
+  public static final double LOWER_ANGLE_LIMIT_ROTATIONS = Units.degreesToRotations(14.7);
+  public static final double UPPER_ANGLE_LIMIT_ROTATIONS = Units.degreesToRotations(135.0);
+  public static final double ANGLE_TOLERANCE_ROTATIONS = Units.degreesToRotations(1.5);
 
   public static final double ANGLE_MOTOR_MANUAL_CONTROL_VOLTAGE = 1.0;
 }

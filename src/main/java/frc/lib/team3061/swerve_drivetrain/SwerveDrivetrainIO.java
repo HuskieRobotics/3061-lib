@@ -1,7 +1,5 @@
 package frc.lib.team3061.swerve_drivetrain;
 
-import static edu.wpi.first.units.Units.*;
-
 import com.ctre.phoenix6.Utils;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -12,13 +10,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Force;
-import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.units.measure.Temperature;
-import edu.wpi.first.units.measure.Voltage;
 import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrainConstants.SysIDCharacterizationMode;
 import java.util.Optional;
 import org.littletonrobotics.junction.AutoLog;
@@ -28,17 +20,17 @@ public interface SwerveDrivetrainIO {
   @AutoLog
   public static class SwerveIOInputs {
     public boolean driveEnabled = false;
-    public Current driveStatorCurrent = Amps.of(0.0);
-    public Current driveSupplyCurrent = Amps.of(0.0);
-    public Temperature driveTemp = Celsius.of(0.0);
-    public Voltage driveVoltage = Volts.of(0.0);
+    public double driveStatorCurrent = 0.0;
+    public double driveSupplyCurrent = 0.0;
+    public double driveTemp = 0.0;
+    public double driveVoltage = 0.0;
 
-    public Angle steerAbsolutePosition = Degrees.of(0.0);
+    public double steerAbsolutePositionRot = 0.0;
 
     public boolean steerEnabled = false;
-    public Current steerStatorCurrent = Amps.of(0.0);
-    public Current steerSupplyCurrent = Amps.of(0.0);
-    public Temperature steerTemp = Celsius.of(0.0);
+    public double steerStatorCurrent = 0.0;
+    public double steerSupplyCurrent = 0.0;
+    public double steerTemp = 0.0;
 
     public double[] odometryDrivePositionsMeters = new double[] {};
     public Rotation2d[] odometryTurnPositions = new Rotation2d[] {};
@@ -69,10 +61,10 @@ public interface SwerveDrivetrainIO {
       new SwerveModuleState()
     };
 
-    Current averageDriveCurrent = Amps.of(0.0);
-    Angle rawHeading = Degrees.of(0.0);
-    Angle pitch = Degrees.of(0.0);
-    Angle roll = Degrees.of(0.0);
+    double averageDriveCurrent = 0.0;
+    double rawHeadingDeg = 0.0;
+    double pitchDeg = 0.0;
+    double rollDeg = 0.0;
     boolean gyroConnected = false;
 
     Pose2d customPose = new Pose2d();
@@ -87,8 +79,8 @@ public interface SwerveDrivetrainIO {
 
     Rotation2d averageSwerveReferenceAngle = new Rotation2d();
     Rotation2d averageSwerveMeasuredAngle = new Rotation2d();
-    LinearVelocity averageSwerveMeasuredSpeed = MetersPerSecond.of(0.0);
-    LinearVelocity averageSwerveReferenceSpeed = MetersPerSecond.of(0.0);
+    double averageSwerveMeasuredSpeed = 0.0;
+    double averageSwerveReferenceSpeed = 0.0;
   }
 
   public static class SwerveDrivetrainIOInputsCollection {
@@ -125,9 +117,9 @@ public interface SwerveDrivetrainIO {
    * @param isOpenLoop true for open-loop control; false for closed-loop control
    */
   public default void driveFieldRelative(
-      LinearVelocity xVelocity,
-      LinearVelocity yVelocity,
-      AngularVelocity rotationalVelocity,
+      double xVelocityMPS,
+      double yVelocityMPS,
+      double rotationalVelocityRadiansPerSecond,
       boolean isOpenLoop) {}
 
   /**
@@ -143,10 +135,7 @@ public interface SwerveDrivetrainIO {
    * @param isOpenLoop true for open-loop control; false for closed-loop control
    */
   public default void driveFieldRelativeFacingAngle(
-      LinearVelocity xVelocity,
-      LinearVelocity yVelocity,
-      Rotation2d targetDirection,
-      boolean isOpenLoop) {}
+      double xVelocityMPS, double yVelocityMPS, Rotation2d targetDirection, boolean isOpenLoop) {}
 
   /**
    * Sets the swerve modules wheels to point in the specified direction. The direction is specified
@@ -171,9 +160,9 @@ public interface SwerveDrivetrainIO {
    * @param isOpenLoop true for open-loop control; false for closed-loop control
    */
   public default void driveRobotRelative(
-      LinearVelocity xVelocity,
-      LinearVelocity yVelocity,
-      AngularVelocity rotationalVelocity,
+      double xVelocityMPS,
+      double yVelocityMPS,
+      double rotationalVelocityRadiansPerSecond,
       boolean isOpenLoop) {}
   /**
    * Controls the drivetrain to move the robot with the desired velocities in the x, y, and
@@ -189,6 +178,8 @@ public interface SwerveDrivetrainIO {
    */
   public default void applyRobotSpeeds(
       ChassisSpeeds speeds, Force[] forcesX, Force[] forcesY, boolean isOpenLoop) {}
+
+  public default void setDriveCurrent(double currentAmps) {}
 
   /**
    * Applies the specified characterization mode to the drivetrain with the specified value. This is

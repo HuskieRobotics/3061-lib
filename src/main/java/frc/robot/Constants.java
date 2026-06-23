@@ -28,9 +28,9 @@ public final class Constants {
   // set to true in order to change all Tunable values via AdvantageScope
   public static final boolean TUNING_MODE = true;
   public static final boolean DEMO_MODE = false;
+  public static final boolean ENABLE_EXTRA_LOGGING = false;
 
-  private static final RobotType ROBOT = RobotType.ROBOT_PRACTICE;
-
+  private static final RobotType ROBOT = RobotType.ROBOT_COMPETITION;
   private static final Alert invalidRobotAlert =
       new Alert("Invalid robot selected, using competition robot as default.", AlertType.kError);
 

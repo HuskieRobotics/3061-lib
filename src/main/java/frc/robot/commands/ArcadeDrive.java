@@ -20,16 +20,16 @@ public class ArcadeDrive extends Command {
    * lambdas. This command does not terminate.
    *
    * @param drivetrain The drivetrain subsystem on which this command will run
-   * @param xVelocitySupplier Lambda supplier of forward/backward speed [-1.0, 1.0]
-   * @param rotationVelocitySupplier Lambda supplier of rotational speed [-1.0, 1.0]
+   * @param xVelocityMPSSupplier Lambda supplier of forward/backward speed [-1.0, 1.0]
+   * @param rotationVelocityRPSSupplier Lambda supplier of rotational speed [-1.0, 1.0]
    */
   public ArcadeDrive(
       DifferentialDrivetrain drivetrain,
-      Supplier<Double> xVelocitySupplier,
-      Supplier<Double> rotationVelocitySupplier) {
+      Supplier<Double> xVelocityMPSSupplier,
+      Supplier<Double> rotationVelocityRPSSupplier) {
     this.drivetrain = drivetrain;
-    this.xVelocitySupplier = xVelocitySupplier;
-    this.rotationVelocitySupplier = rotationVelocitySupplier;
+    this.xVelocitySupplier = xVelocityMPSSupplier;
+    this.rotationVelocitySupplier = rotationVelocityRPSSupplier;
     addRequirements(drivetrain);
   }
 
@@ -41,18 +41,18 @@ public class ArcadeDrive extends Command {
   @Override
   public void execute() {
 
-    double xVelocity = xVelocitySupplier.get();
-    double rotationalVelocity = rotationVelocitySupplier.get();
+    double xVelocityMPS = xVelocitySupplier.get();
+    double rotationalVelocityRPS = rotationVelocitySupplier.get();
 
     drivetrain.arcadeDrive(
-        RobotConfig.getInstance().getRobotMaxVelocity().times(xVelocity),
-        RobotConfig.getInstance().getRobotMaxAngularVelocity().times(rotationalVelocity));
+        RobotConfig.getInstance().getRobotMaxVelocityMPS() * xVelocityMPS,
+        RobotConfig.getInstance().getRobotMaxAngularVelocityRPS() * rotationalVelocityRPS);
 
     Logger.recordOutput(
-        "ArcadeDrive/xVelocity", RobotConfig.getInstance().getRobotMaxVelocity().times(xVelocity));
+        "ArcadeDrive/xVelocity", RobotConfig.getInstance().getRobotMaxVelocityMPS() * xVelocityMPS);
     Logger.recordOutput(
         "ArcadeDrive/rotationalVelocity",
-        RobotConfig.getInstance().getRobotMaxAngularVelocity().times(rotationalVelocity));
+        RobotConfig.getInstance().getRobotMaxAngularVelocityRPS() * rotationalVelocityRPS);
   }
 
   // Called once the command ends or is interrupted.

@@ -5,12 +5,13 @@ import static frc.robot.subsystems.arm.ArmConstants.*;
 
 import com.ctre.phoenix6.SignalLogger;
 import edu.wpi.first.math.filter.Debouncer;
-import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.lib.team3015.subsystem.FaultReporter;
+import frc.lib.team3061.util.MathUtils;
 import frc.lib.team3061.util.SysIdRoutineChooser;
 import frc.lib.team6328.util.LoggedTracer;
 import frc.lib.team6328.util.LoggedTunableNumber;
@@ -54,7 +55,8 @@ public class Arm extends SubsystemBase {
   private final LoggedTunableNumber angleManualControlVoltage =
       new LoggedTunableNumber("Arm/ManualControlVoltage", ANGLE_MOTOR_MANUAL_CONTROL_VOLTAGE);
   private final LoggedTunableNumber pivotAngleDegrees =
-      new LoggedTunableNumber("Arm/AngleDegrees", LOWER_ANGLE_LIMIT.in(Degrees));
+      new LoggedTunableNumber(
+          "Arm/AngleDegrees", Units.rotationsToDegrees(LOWER_ANGLE_LIMIT_ROTATIONS));
 
   private final Debouncer atSetpointDebouncer = new Debouncer(0.1);
 
@@ -69,7 +71,8 @@ public class Arm extends SubsystemBase {
               Volts.of(2.0), // override default step voltage (7 V)
               null, // use default timeout (10 s)
               state -> SignalLogger.writeString("SysId_State", state.toString())),
-          new SysIdRoutine.Mechanism(output -> io.setAngleMotorVoltage(output), null, this));
+          new SysIdRoutine.Mechanism(
+              output -> io.setAngleMotorVoltage(output.in(Volts)), null, this));
 
   public Arm(ArmIO io) {
     this.io = io;
@@ -77,10 +80,6 @@ public class Arm extends SubsystemBase {
     // Register this subsystem's SysId routine with the SysIdRoutineChooser. This allows
     // the routine to be selected and executed from the dashboard.
     SysIdRoutineChooser.getInstance().addOption("Arm Voltage", sysIdRoutine);
-
-    // Register this subsystem's system check command with the fault reporter. The system check
-    // command can be added to the Elastic Dashboard to execute the system test.
-    FaultReporter.getInstance().registerSystemCheck(SUBSYSTEM_NAME, getSystemCheckCommand());
   }
 
   @Override
@@ -95,9 +94,9 @@ public class Arm extends SubsystemBase {
     // specified voltage (if not zero).
     if (testingMode.get() == 1) {
       if (pivotAngleDegrees.get() != 0) {
-        io.setAngle(Degrees.of(pivotAngleDegrees.get()));
+        io.setAngleRotations(Units.degreesToRotations(pivotAngleDegrees.get()));
       } else if (angleManualControlVoltage.get() != 0) {
-        io.setAngleMotorVoltage(Volts.of(angleManualControlVoltage.get()));
+        io.setAngleMotorVoltage(angleManualControlVoltage.get());
       }
     }
 
@@ -109,8 +108,8 @@ public class Arm extends SubsystemBase {
   // While we cannot use subtypes of Measure in the inputs class due to logging limitations, we do
   // strive to use them (e.g., Angle) throughout the rest of the code to mitigate bugs due to unit
   // mismatches.
-  public void setAngle(Angle angle) {
-    io.setAngle(angle);
+  public void setAngleRotations(double angleRotations) {
+    io.setAngleRotations(angleRotations);
   }
 
   public boolean isAngleAtSetpoint() {
@@ -118,40 +117,42 @@ public class Arm extends SubsystemBase {
     // The angle is considered at the setpoint if the angle is within tolerance for the period
     // specified when constructing the debouncer (e.g., 0.1 seconds or 5 loop iterations).
     return atSetpointDebouncer.calculate(
-        inputs.angleMotorReferenceAngle.isNear(inputs.position, ANGLE_TOLERANCE));
+        MathUtils.isNear(
+            inputs.angleMotorReferenceAngleRotations,
+            inputs.positionRotations,
+            ANGLE_TOLERANCE_ROTATIONS));
   }
 
-  private Command getSystemCheckCommand() {
+  public Command getSystemCheckCommand() {
     // A subsystem's system check command is used to verify the functionality of the subsystem. It
     // should perform a sequence of commands (usually encapsulated in another method). The command
     // should always be decorated with an `until` condition that checks for faults in the subsystem
     // and an `andThen` condition that sets the subsystem to a safe state. This ensures that if any
     // faults are detected, the test will stop and the subsystem is always left in a safe state.
     return Commands.sequence(
-            getPresetCheckCommand(Degrees.of(20.0)),
-            getPresetCheckCommand(Degrees.of(40.0)),
-            getPresetCheckCommand(Degrees.of(50.0)),
-            getPresetCheckCommand(Degrees.of(70.0)))
-        .until(() -> !FaultReporter.getInstance().getFaults(SUBSYSTEM_NAME).isEmpty())
-        .andThen(Commands.runOnce(() -> io.setAngle(LOWER_ANGLE_LIMIT)));
+            getPresetCheckCommand(Units.degreesToRotations(20.0)),
+            getPresetCheckCommand(Units.degreesToRotations(40.0)),
+            getPresetCheckCommand(Units.degreesToRotations(50.0)),
+            getPresetCheckCommand(Units.degreesToRotations(70.0)))
+        .andThen(Commands.runOnce(() -> io.setAngleRotations(LOWER_ANGLE_LIMIT_ROTATIONS)));
   }
 
-  private Command getPresetCheckCommand(Angle targetPosition) {
+  private Command getPresetCheckCommand(double targetPositionRotations) {
     return Commands.sequence(
-        Commands.runOnce(() -> this.setAngle(targetPosition)),
+        Commands.runOnce(() -> this.setAngleRotations(targetPositionRotations)),
         Commands.waitSeconds(2.0),
-        Commands.runOnce(() -> this.checkAngle(targetPosition)));
+        Commands.runOnce(() -> this.checkAngleRotations(targetPositionRotations)));
   }
 
-  private void checkAngle(Angle targetPosition) {
-    if (this.inputs.position.isNear(targetPosition, ANGLE_TOLERANCE)) {
+  private void checkAngleRotations(double targetPositionRotations) {
+    if (MathUtils.isNear(
+        this.inputs.positionRotations, targetPositionRotations, ANGLE_TOLERANCE_ROTATIONS))
       FaultReporter.getInstance()
           .addFault(
               SUBSYSTEM_NAME,
               "Shooter angle is out of tolerance, should be "
-                  + targetPosition
+                  + targetPositionRotations
                   + " but is "
-                  + this.inputs.position);
-    }
+                  + this.inputs.positionRotations);
   }
 }

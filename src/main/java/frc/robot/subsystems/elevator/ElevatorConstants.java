@@ -1,9 +1,6 @@
 package frc.robot.subsystems.elevator;
 
-import static edu.wpi.first.units.Units.*;
-
-import edu.wpi.first.units.measure.Distance;
-import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.math.util.Units;
 
 public class ElevatorConstants {
 
@@ -31,15 +28,15 @@ public class ElevatorConstants {
 
   // the following are determined based on the mechanical design of the elevator
   public static final boolean IS_INVERTED = true;
-  public static final Distance PULLEY_CIRCUMFERENCE = Inches.of(5.9055);
+  public static final double PULLEY_CIRCUMFERENCE_METERS = Units.inchesToMeters(5.9055);
   public static final int GEAR_RATIO = 5;
   public static final double ELEVATOR_MASS_KG = 4.5;
-  public static final Distance MAX_HEIGHT = Inches.of(74);
-  public static final Distance MIN_HEIGHT = Inches.of(0.0);
-  public static final Distance LINEAR_POSITION_TOLERANCE = Inches.of(0.25);
+  public static final double MAX_HEIGHT_METERS = Units.inchesToMeters(74);
+  public static final double MIN_HEIGHT_METERS = Units.inchesToMeters(0.0);
+  public static final double LINEAR_POSITION_TOLERANCE_METERS = Units.inchesToMeters(0.25);
 
-  public static final Voltage ELEVATOR_RAISE_SLOW_VOLTAGE = Volts.of(2.0);
-  public static final Voltage ELEVATOR_LOWERING_SLOW_VOLTAGE = Volts.of(-2.0);
+  public static final double ELEVATOR_RAISE_SLOW_VOLTAGE = 2.0;
+  public static final double ELEVATOR_LOWERING_SLOW_VOLTAGE = -2.0;
 
   // This is the current we watch for to detect that the elevator is jammed and needs to be stopped.
   public static final double JAMMED_CURRENT_AMPS = 59.0;
@@ -56,7 +53,7 @@ public class ElevatorConstants {
     TOP
   }
 
-  public static final Distance BOTTOM_HEIGHT = Inches.of(0.0);
-  public static final Distance MIDDLE_HEIGHT = Inches.of(45.0);
-  public static final Distance TOP_HEIGHT = Inches.of(70.0);
+  public static final double BOTTOM_HEIGHT_METERS = Units.inchesToMeters(0.0);
+  public static final double MIDDLE_HEIGHT_METERS = Units.inchesToMeters(45.0);
+  public static final double TOP_HEIGHT_METERS = Units.inchesToMeters(70.0);
 }

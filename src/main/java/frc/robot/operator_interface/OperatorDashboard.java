@@ -15,8 +15,15 @@ public class OperatorDashboard implements OperatorInterface {
   // disabled.
   public final LoggedTunableBoolean enableVision =
       new LoggedTunableBoolean("operatorDashboard/Enable Vision", true, true);
+
   public final LoggedTunableBoolean enablePrimaryIRSensors =
       new LoggedTunableBoolean("operatorDashboard/Enable Primary IR Sensors", true, true);
+
+  public final LoggedTunableBoolean autoSnapsEnabled =
+      new LoggedTunableBoolean("operatorDashboard/Auto Snaps Enabled", true, true);
+
+  public final LoggedTunableBoolean simulateCollisionButton =
+      new LoggedTunableBoolean("operatorDashboard/Simulate Collision", false, true);
 
   public OperatorDashboard() {}
 
@@ -28,5 +35,15 @@ public class OperatorDashboard implements OperatorInterface {
   @Override
   public Trigger getEnablePrimaryIRSensorsTrigger() {
     return new Trigger(() -> enablePrimaryIRSensors.get());
+  }
+
+  @Override
+  public Trigger getAutoSnapsEnabledTrigger() {
+    return new Trigger(() -> autoSnapsEnabled.get());
+  }
+
+  @Override
+  public Trigger getSimulateCollisionButton() {
+    return new Trigger(() -> simulateCollisionButton.get());
   }
 }

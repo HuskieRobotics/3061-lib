@@ -24,7 +24,7 @@ import edu.wpi.first.wpilibj.Timer;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team6328.util.FieldConstants;
-import frc.lib.team6328.util.SystemTimeValidReader;
+import frc.robot.Constants;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -33,6 +33,7 @@ public class VisionIONorthstar implements VisionIO {
   private final String deviceId;
   private final DoubleArraySubscriber observationSubscriber;
   private final DoubleArraySubscriber objDetectObservationSubscriber;
+  private final DoubleArraySubscriber powerMetricsSubscriber;
   private final IntegerSubscriber fpsAprilTagsSubscriber;
   private final IntegerSubscriber fpsObjDetectSubscriber;
   private final StringPublisher eventNamePublisher;
@@ -40,8 +41,6 @@ public class VisionIONorthstar implements VisionIO {
   private final IntegerPublisher matchNumberPublisher;
   private final IntegerPublisher timestampPublisher;
   private final BooleanPublisher isRecordingPublisher;
-
-  private final Timer slowPeriodicTimer = new Timer();
 
   private final List<VisionIO.PoseObservation> observations = new ArrayList<>();
   private final AprilTagFieldLayout aprilTagFieldLayout;
@@ -53,6 +52,7 @@ public class VisionIONorthstar implements VisionIO {
     this.aprilTagFieldLayout = layout;
     String layoutString = "";
     var northstarTable = NetworkTableInstance.getDefault().getTable(this.deviceId);
+    var powerTable = NetworkTableInstance.getDefault().getTable("northstar_power");
     var configTable = northstarTable.getSubTable("config");
 
     try {
@@ -99,15 +99,17 @@ public class VisionIONorthstar implements VisionIO {
                 PubSubOption.periodic(0.01));
     fpsAprilTagsSubscriber = outputTable.getIntegerTopic("fps_apriltags").subscribe(0);
     fpsObjDetectSubscriber = outputTable.getIntegerTopic("fps_objdetect").subscribe(0);
-
-    slowPeriodicTimer.start();
+    powerMetricsSubscriber =
+        powerTable
+            .getSubTable("output")
+            .getDoubleArrayTopic("power_metrics")
+            .subscribe(new double[] {});
   }
 
   public void updateInputs(
       VisionIOInputs inputs,
       AprilTagVisionIOInputs aprilTagInputs,
       ObjDetectVisionIOInputs objDetectInputs) {
-    boolean slowPeriodic = slowPeriodicTimer.advanceIfElapsed(1.0);
 
     observations.clear();
 
@@ -121,29 +123,30 @@ public class VisionIONorthstar implements VisionIO {
     }
 
     // Publish timestamp
-    if (slowPeriodic && SystemTimeValidReader.isValid()) {
-      timestampPublisher.set(WPIUtilJNI.getSystemTime() / 1000000);
-    }
+    timestampPublisher.set(WPIUtilJNI.getSystemTime() / 1000000);
 
-    if (slowPeriodic) {
-      eventNamePublisher.set(DriverStation.getEventName());
-      matchTypePublisher.set(DriverStation.getMatchType().ordinal());
-      matchNumberPublisher.set(DriverStation.getMatchNumber());
-    }
+    eventNamePublisher.set(DriverStation.getEventName());
+    matchTypePublisher.set(DriverStation.getMatchType().ordinal());
+    matchNumberPublisher.set(DriverStation.getMatchNumber());
 
     // Get AprilTag data
+    inputs.receivingFrames = false;
     var aprilTagQueue = observationSubscriber.readQueue();
-    aprilTagInputs.timestamps = new double[aprilTagQueue.length];
-    aprilTagInputs.frames = new double[aprilTagQueue.length][];
     for (int i = 0; i < aprilTagQueue.length; i++) {
-      aprilTagInputs.timestamps[i] = aprilTagQueue[i].timestamp / 1000000.0;
-      aprilTagInputs.frames[i] = aprilTagQueue[i].value;
-
-      processAprilTagFrame(aprilTagInputs.timestamps[i], aprilTagInputs.frames[i], observations);
+      inputs.receivingFrames = true;
+      processAprilTagFrame(
+          aprilTagQueue[i].timestamp / 1000000.0, aprilTagQueue[i].value, observations);
     }
     inputs.poseObservations = observations.toArray(new PoseObservation[0]);
-    if (slowPeriodic) {
-      aprilTagInputs.fps = fpsAprilTagsSubscriber.get();
+    aprilTagInputs.fps = fpsAprilTagsSubscriber.get();
+
+    if (Constants.ENABLE_EXTRA_LOGGING) {
+      aprilTagInputs.timestamps = new double[aprilTagQueue.length];
+      aprilTagInputs.frames = new double[aprilTagQueue.length][];
+      for (int i = 0; i < aprilTagQueue.length; i++) {
+        aprilTagInputs.timestamps[i] = aprilTagQueue[i].timestamp / 1000000.0;
+        aprilTagInputs.frames[i] = aprilTagQueue[i].value;
+      }
     }
 
     // Get object detection data
@@ -154,8 +157,30 @@ public class VisionIONorthstar implements VisionIO {
       objDetectInputs.timestamps[i] = objDetectQueue[i].timestamp / 1000000.0;
       objDetectInputs.frames[i] = objDetectQueue[i].value;
     }
-    if (slowPeriodic) {
-      objDetectInputs.fps = fpsObjDetectSubscriber.get();
+    objDetectInputs.fps = fpsObjDetectSubscriber.get();
+
+    // Get power metrics
+    double[] powerMetrics = powerMetricsSubscriber.get();
+    if (powerMetrics.length >= 4) {
+      inputs.cpuPower = powerMetrics[0];
+      inputs.gpuPower = powerMetrics[1];
+      inputs.anePower = powerMetrics[2];
+      switch ((int) powerMetrics[3]) {
+        case 0:
+          inputs.thermalPressure = "Nominal";
+          break;
+        case 1:
+          inputs.thermalPressure = "Fair";
+          break;
+        case 2:
+          inputs.thermalPressure = "Serious";
+          break;
+        case 3:
+          inputs.thermalPressure = "Critical";
+          break;
+        default:
+          inputs.thermalPressure = "Unknown";
+      }
     }
   }
 
@@ -216,13 +241,23 @@ public class VisionIONorthstar implements VisionIO {
           Rotation2d currentRotation = RobotOdometry.getInstance().getEstimatedPose().getRotation();
           Rotation2d visionRotation0 = robotPose0.toPose2d().getRotation();
           Rotation2d visionRotation1 = robotPose1.toPose2d().getRotation();
-          if (Math.abs(currentRotation.minus(visionRotation0).getRadians())
-              < Math.abs(currentRotation.minus(visionRotation1).getRadians())) {
-            cameraPose = cameraPose0;
-            ambiguity = error0;
+          if (DriverStation.isEnabled()) {
+            if (Math.abs(currentRotation.minus(visionRotation0).getRadians())
+                < Math.abs(currentRotation.minus(visionRotation1).getRadians())) {
+              cameraPose = cameraPose0;
+              ambiguity = error0;
+            } else {
+              cameraPose = cameraPose1;
+              ambiguity = error1;
+            }
           } else {
-            cameraPose = cameraPose1;
-            ambiguity = error1;
+            if (error0 < error1) {
+              cameraPose = cameraPose0;
+              ambiguity = error0;
+            } else {
+              cameraPose = cameraPose1;
+              ambiguity = error1;
+            }
           }
         }
         break;
@@ -234,11 +269,15 @@ public class VisionIONorthstar implements VisionIO {
     }
 
     List<Pose3d> tagPoses = new ArrayList<>();
-    for (int i = (values[0] == 1 ? 9 : 17); i < values.length; i += 10) {
-      int tagId = (int) values[i];
-      tagsSeenBitMap |= 1L << tagId;
-      Optional<Pose3d> tagPose = aprilTagFieldLayout.getTagPose(tagId);
-      tagPose.ifPresent(tagPoses::add);
+    int startIndex = (values[0] == 1 ? 9 : 17);
+    if (startIndex < values.length) {
+      int tagCount = (int) values[startIndex];
+      for (int i = startIndex + 1; i < startIndex + 1 + tagCount && i < values.length; i++) {
+        int tagId = (int) values[i];
+        tagsSeenBitMap |= 1L << tagId;
+        Optional<Pose3d> tagPose = aprilTagFieldLayout.getTagPose(tagId);
+        tagPose.ifPresent(tagPoses::add);
+      }
     }
     if (tagPoses.isEmpty()) return;
 

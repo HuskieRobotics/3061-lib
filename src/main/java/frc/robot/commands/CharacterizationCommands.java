@@ -13,8 +13,6 @@
 
 package frc.robot.commands;
 
-import static edu.wpi.first.units.Units.*;
-
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
@@ -31,8 +29,8 @@ public class CharacterizationCommands {
   private static final double WHEEL_RADIUS_RAMP_RATE = 0.05; // Rad/Sec^2
   private static final double DRIVE_RADIUS =
       Math.hypot(
-          RobotConfig.getInstance().getTrackwidth().in(Meters) / 2.0,
-          RobotConfig.getInstance().getWheelbase().in(Meters) / 2.0);
+          RobotConfig.getInstance().getTrackwidthMeters() / 2.0,
+          RobotConfig.getInstance().getWheelbaseMeters() / 2.0);
 
   private CharacterizationCommands() {}
 
@@ -51,12 +49,7 @@ public class CharacterizationCommands {
             Commands.run(
                 () -> {
                   double speed = limiter.calculate(WHEEL_RADIUS_MAX_VELOCITY);
-                  drive.drive(
-                      MetersPerSecond.of(0.0),
-                      MetersPerSecond.of(0.0),
-                      RadiansPerSecond.of(speed),
-                      true,
-                      false);
+                  drive.drive(0.0, 0.0, speed, true, false);
                 },
                 drive)),
 
@@ -69,14 +62,14 @@ public class CharacterizationCommands {
             Commands.runOnce(
                 () -> {
                   state.positions = drive.getWheelRadiusCharacterizationPosition();
-                  state.lastAngle = Rotation2d.fromRadians(drive.getYaw().in(Radians));
+                  state.lastAngle = Rotation2d.fromDegrees(drive.getYawDeg());
                   state.gyroDelta = 0.0;
                 }),
 
             // Update gyro delta
             Commands.run(
                     () -> {
-                      var rotation = Rotation2d.fromRadians(drive.getYaw().in(Radians));
+                      var rotation = Rotation2d.fromDegrees(drive.getYawDeg());
                       state.gyroDelta += Math.abs(rotation.minus(state.lastAngle).getRadians());
                       state.lastAngle = rotation;
                     })

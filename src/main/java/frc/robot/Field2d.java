@@ -117,7 +117,7 @@ public class Field2d {
         pathConstants,
         null,
         new GoalEndState(
-            RobotConfig.getInstance().getMoveToPathFinalVelocity(), end.getRotation()));
+            RobotConfig.getInstance().getMoveToPathFinalVelocityMPS(), end.getRotation()));
   }
 
   /**
