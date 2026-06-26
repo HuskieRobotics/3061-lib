@@ -1,0 +1,134 @@
+package first.lib.team3061.differential_drivetrain;
+
+import static first.lib.team3061.differential_drivetrain.DifferentialDrivetrainConstants.*;
+import static first.robot.Constants.LOOP_PERIOD_SECS;
+
+import first.lib.team3061.RobotConfig;
+import org.wpilib.drive.DifferentialDrive;
+import org.wpilib.hardware.rotation.Encoder;
+import org.wpilib.math.filter.LinearFilter;
+import org.wpilib.math.kinematics.ChassisVelocities;
+import org.wpilib.units.measure.Force;
+import org.wpilib.xrp.XRPGyro;
+import org.wpilib.xrp.XRPMotor;
+
+public class DifferentialDrivetrainIOXRP implements DifferentialDrivetrainIO {
+
+  // The XRP has the left and right motors set to
+  // channels 0 and 1 respectively
+  private final XRPMotor leftMotor = new XRPMotor(0);
+  private final XRPMotor rightMotor = new XRPMotor(1);
+
+  // The XRP has onboard encoders that are hardcoded
+  // to use DIO pins 4/5 and 6/7 for the left and right
+  private final Encoder leftEncoder = new Encoder(4, 5);
+  private final Encoder rightEncoder = new Encoder(6, 7);
+
+  // Set up the differential drive controller
+  private final DifferentialDrive diffDrive =
+      new DifferentialDrive(leftMotor::setThrottle, rightMotor::setThrottle);
+
+  // Set up the XRPGyro
+  private final XRPGyro gyro = new XRPGyro();
+
+  // Set up the BuiltInAccelerometer
+  // FIXME: determine how to access the XRP's accelerometer
+  // private final BuiltInAccelerometer accelerometer = new BuiltInAccelerometer();
+
+  private double prevLeftPositionMeters = 0;
+  private double prevRightPositionMeters = 0;
+  private LinearFilter leftVelocity = LinearFilter.movingAverage(10);
+  private LinearFilter rightVelocity = LinearFilter.movingAverage(10);
+
+  public DifferentialDrivetrainIOXRP() {
+    // disable motor safety since the corresponding thread overwhelms the XRP with value changes
+    this.diffDrive.setSafetyEnabled(false);
+
+    // We need to invert one side of the drivetrain so that positive voltages
+    // result in both sides moving forward. Depending on how your robot's
+    // gearbox is constructed, you might have to invert the left side instead.
+    rightMotor.setInverted(true);
+
+    // Use meters as unit for encoder distances
+    leftEncoder.setDistancePerPulse(
+        (2 * Math.PI * RobotConfig.getInstance().getWheelRadiusMeters())
+            / XRP_COUNTS_PER_REVOLUTION);
+    rightEncoder.setDistancePerPulse(
+        (2 * Math.PI * RobotConfig.getInstance().getWheelRadiusMeters())
+            / XRP_COUNTS_PER_REVOLUTION);
+    resetEncoders();
+  }
+
+  @Override
+  public void updateInputs(DifferentialDrivetrainIOInputs inputs) {
+    inputs.leftMotorSpeed = leftMotor.getThrottle();
+    inputs.rightMotorSpeed = rightMotor.getThrottle();
+
+    inputs.leftEncoderCount = leftEncoder.get();
+    inputs.rightEncoderCount = rightEncoder.get();
+
+    inputs.leftPositionMeters = leftEncoder.getDistance();
+    inputs.rightPositionMeters = rightEncoder.getDistance();
+
+    inputs.leftVelocityMPS =
+        leftVelocity.calculate(
+            (inputs.leftPositionMeters - this.prevLeftPositionMeters) / LOOP_PERIOD_SECS);
+    inputs.rightVelocityMPS =
+        rightVelocity.calculate(
+            (inputs.rightPositionMeters - this.prevRightPositionMeters) / LOOP_PERIOD_SECS);
+
+    inputs.headingDeg = gyro.getAngleZ();
+    inputs.pitchDeg = gyro.getAngleX();
+    inputs.rollDeg = gyro.getAngleY();
+
+    // convert from acceleration in Gs to m/s^2
+    // inputs.xAccelerationMPSPS = accelerometer.getX() * 9.81;
+    // inputs.yAccelerationMPSPS = accelerometer.getY() * 9.81;
+    // inputs.zAccelerationMPSPS = accelerometer.getZ() * 9.81;
+
+    this.prevLeftPositionMeters = inputs.leftPositionMeters;
+    this.prevRightPositionMeters = inputs.rightPositionMeters;
+  }
+
+  /**
+   * Controls the drivetrain to move the robot with the desired velocities in the x, y, and
+   * rotational directions. The velocities are specified from the robot's frame of reference. In the
+   * robot frame of reference, The origin of the robot is always the center of the robot. The
+   * positive x direction is forward; the positive y direction, left. Zero degrees is aligned to the
+   * positive x axis and increases in the CCW direction.
+   *
+   * @param xVelocity the desired velocity in the x direction (m/s)
+   * @param rotationalVelocity the desired rotational velocity (rad/s)
+   * @param isOpenLoop true for open-loop control; false for closed-loop control
+   */
+  @Override
+  public void driveRobotRelative(
+      double xVelocityMPS, double rotationalVelocityRPS, boolean isOpenLoop) {
+    diffDrive.arcadeDrive(
+        xVelocityMPS / RobotConfig.getInstance().getRobotMaxVelocityMPS(),
+        rotationalVelocityRPS / RobotConfig.getInstance().getRobotMaxAngularVelocityRPS());
+  }
+
+  /**
+   * Controls the drivetrain to move the robot with the desired velocities in the x, y, and
+   * rotational directions. The velocities are specified from the robot's frame of reference. In the
+   * robot frame of reference, The origin of the robot is always the center of the robot. The
+   * positive x direction is forward; the positive y direction, left. Zero degrees is aligned to the
+   * positive x axis and increases in the CCW direction.
+   *
+   * @param speeds the desired chassis speeds
+   * @param forcesX the robot-centric wheel forces in the x direction
+   * @param forcesY the robot-centric wheel forces in the y direction
+   * @param isOpenLoop true for open-loop control; false for closed-loop control
+   */
+  @Override
+  public void applyRobotSpeeds(
+      ChassisVelocities velocities, Force[] forcesX, Force[] forcesY, boolean isOpenLoop) {
+    diffDrive.arcadeDrive(velocities.vx, velocities.omega);
+  }
+
+  private void resetEncoders() {
+    leftEncoder.reset();
+    rightEncoder.reset();
+  }
+}

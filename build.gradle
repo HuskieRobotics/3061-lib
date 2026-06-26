@@ -132,7 +132,7 @@ tasks.withType(JavaCompile) {
 project.compileJava.dependsOn(createVersionFile)
 gversion {
     srcDir       = "src/main/java/"
-    classPackage = "frc.robot"
+    classPackage = "first.robot"
     className    = "BuildConstants"
     dateFormat   = "yyyy-MM-dd HH:mm:ss z"
     timeZone     = "America/Chicago"
