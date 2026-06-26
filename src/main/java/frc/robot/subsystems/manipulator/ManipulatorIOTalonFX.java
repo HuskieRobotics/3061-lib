@@ -9,16 +9,16 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import frc.lib.team254.Phoenix6Util;
+import frc.lib.team3015.subsystem.FaultReporter;
+import frc.lib.team3061.RobotConfig;
+import org.wpilib.driverstation.Alert;
+import org.wpilib.hardware.discrete.DigitalInput; // imported this class for the sensors
 import org.wpilib.math.filter.Debouncer;
 import org.wpilib.units.measure.AngularVelocity;
 import org.wpilib.units.measure.Current;
 import org.wpilib.units.measure.Temperature;
 import org.wpilib.units.measure.Voltage;
-import org.wpilib.util.Alert;
-import org.wpilib.util.Alert.AlertType;
-import org.wpilib.hardware.discrete.DigitalInput; // imported this class for the sensors
-import frc.lib.team254.Phoenix6Util;
-import frc.lib.team3015.subsystem.FaultReporter;
 
 public class ManipulatorIOTalonFX implements ManipulatorIO {
   // This mechanism has no close loop control; we just set the voltage directly.
@@ -29,7 +29,7 @@ public class ManipulatorIOTalonFX implements ManipulatorIO {
   private DigitalInput backupManipulatorIRSensor;
 
   private Alert manipulatorConfigAlert =
-      new Alert("Failed to apply configuration for manipulator.", AlertType.kError);
+      new Alert("Failed to apply configuration for manipulator.", Alert.Level.HIGH);
 
   private StatusSignal<Current> manipulatorMotorStatorCurrent;
   private StatusSignal<Current> manipulatorMotorSupplyCurrent;
@@ -41,7 +41,7 @@ public class ManipulatorIOTalonFX implements ManipulatorIO {
 
   public ManipulatorIOTalonFX() {
 
-    manipulatorMotor = new TalonFX(MANIPULATOR_MOTOR_ID);
+    manipulatorMotor = new TalonFX(MANIPULATOR_MOTOR_ID, RobotConfig.getInstance().getCANBus());
     manipulatorIRSensor = new DigitalInput(MANIPULATOR_IR_SENSOR_ID);
     backupManipulatorIRSensor = new DigitalInput(MANIPULATOR_IR_BACKUP_SENSOR_ID);
 

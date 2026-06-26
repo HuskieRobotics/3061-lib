@@ -1,7 +1,7 @@
 package frc.lib.team3061.vision;
 
-import org.wpilib.math.geometry.Pose3d;
 import org.littletonrobotics.junction.AutoLog;
+import org.wpilib.math.geometry.Pose3d;
 
 /**
  * The hardware abstraction interface for a PhotonVision-based co-processor that provides

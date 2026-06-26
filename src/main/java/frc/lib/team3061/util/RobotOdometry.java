@@ -2,16 +2,15 @@ package frc.lib.team3061.util;
 
 import static frc.robot.Constants.ENABLE_EXTRA_LOGGING;
 
-import com.ctre.phoenix6.Utils;
-import org.wpilib.math.linalg.Matrix;
+import java.util.Optional;
+import org.littletonrobotics.junction.Logger;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Transform2d;
 import org.wpilib.math.geometry.Twist2d;
-import org.wpilib.math.kinematics.ChassisSpeeds;
+import org.wpilib.math.kinematics.ChassisVelocities;
+import org.wpilib.math.linalg.Matrix;
 import org.wpilib.math.numbers.N1;
 import org.wpilib.math.numbers.N3;
-import java.util.Optional;
-import org.littletonrobotics.junction.Logger;
 
 @java.lang.SuppressWarnings({"java:S6548"})
 
@@ -27,7 +26,7 @@ public abstract class RobotOdometry {
   private static RobotOdometry robotOdometry;
   private CustomPoseEstimator customEstimator = null;
 
-  private ChassisSpeeds chassisSpeeds = null;
+  private ChassisVelocities chassisVelocities = null;
 
   /**
    * When tuning vision, it is useful to log vision pose estimates and display them in
@@ -107,9 +106,7 @@ public abstract class RobotOdometry {
 
       if (INCLUDE_VISION_POSE_ESTIMATES_IN_CUSTOM_ESTIMATOR && this.customEstimator != null) {
         this.customEstimator.addVisionMeasurement(
-            visionRobotPoseMeters,
-            Utils.fpgaToCurrentTime(adjustedTimestamp),
-            visionMeasurementStdDevs);
+            visionRobotPoseMeters, adjustedTimestamp, visionMeasurementStdDevs);
       }
     }
 
@@ -127,31 +124,30 @@ public abstract class RobotOdometry {
   }
 
   /**
-   * Sets the ChassisSpeeds for RobotOdometry (called from the drive train)
+   * Sets the ChassisVelocities for RobotOdometry (called from the drive train)
    *
    * @param customOdometry
    */
-  public void updateChassisSpeeds(ChassisSpeeds speeds) {
-    this.chassisSpeeds = speeds;
+  public void updateChassisVelocities(ChassisVelocities velocities) {
+    this.chassisVelocities = velocities;
   }
 
   /**
-   * Returns the ChassisSpeeds for RobotOdometry
+   * Returns the ChassisVelocities for RobotOdometry
    *
-   * @return ChassisSpeeds
+   * @return ChassisVelocities
    */
-  public ChassisSpeeds getRobotRelativeSpeeds() {
-    return this.chassisSpeeds;
+  public ChassisVelocities getRobotRelativeVelocities() {
+    return this.chassisVelocities;
   }
 
   /**
-   * Returns the Field Relative ChassisSpeeds for RobotOdometry
+   * Returns the Field Relative ChassisVelocities for RobotOdometry
    *
    * @param customOdometry
    */
-  public ChassisSpeeds getFieldRelativeSpeeds() {
-    return ChassisSpeeds.fromRobotRelativeSpeeds(
-        this.chassisSpeeds, this.getEstimatedPose().getRotation());
+  public ChassisVelocities getFieldRelativeVelocities() {
+    return this.chassisVelocities.toFieldRelative(this.getEstimatedPose().getRotation());
   }
 
   /**
@@ -162,14 +158,15 @@ public abstract class RobotOdometry {
    * @return the projected future pose of the robot
    */
   public Pose2d getFutureRobotPose(double secondsInFuture) {
-    ChassisSpeeds robotRelativeSpeeds = this.getRobotRelativeSpeeds();
+    ChassisVelocities robotRelativeVelocities = this.getRobotRelativeVelocities();
 
     return this.getEstimatedPose()
-        .exp(
+        .plus(
             new Twist2d(
-                robotRelativeSpeeds.vxMetersPerSecond * secondsInFuture,
-                robotRelativeSpeeds.vyMetersPerSecond * secondsInFuture,
-                robotRelativeSpeeds.omegaRadiansPerSecond * secondsInFuture));
+                    robotRelativeVelocities.vx * secondsInFuture,
+                    robotRelativeVelocities.vy * secondsInFuture,
+                    robotRelativeVelocities.omega * secondsInFuture)
+                .exp());
   }
 
   /**

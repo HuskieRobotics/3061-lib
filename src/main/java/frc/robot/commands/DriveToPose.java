@@ -2,20 +2,20 @@ package frc.robot.commands;
 
 import static org.wpilib.units.Units.*;
 
-import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj2.command.Command;
 import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
 import frc.robot.Field2d;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
+import org.wpilib.command2.Command;
+import org.wpilib.driverstation.Alliance;
+import org.wpilib.math.controller.ProfiledPIDController;
+import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.geometry.Transform2d;
+import org.wpilib.math.geometry.Translation2d;
+import org.wpilib.math.kinematics.ChassisVelocities;
+import org.wpilib.system.Timer;
 
 /**
  * This command, when executed, instructs the drivetrain subsystem to drive to the supplied pose in
@@ -158,9 +158,9 @@ public class DriveToPose extends Command {
 
     if (firstRun) {
       // reset the profiled PID controllers on the first run
-      ChassisSpeeds currentSpeeds = drivetrain.getRobotRelativeSpeeds();
+      ChassisVelocities currentVelocities = drivetrain.getRobotRelativeVelocities();
       Translation2d velocitiesInTargetFrame =
-          new Translation2d(currentSpeeds.vxMetersPerSecond, currentSpeeds.vyMetersPerSecond)
+          new Translation2d(currentVelocities.vx, currentVelocities.vy)
               .rotateBy(targetPose.getRotation().unaryMinus());
 
       Logger.recordOutput("/DriveToPose/Velocities (target frame)", velocitiesInTargetFrame);
@@ -168,8 +168,7 @@ public class DriveToPose extends Command {
       xController.reset(this.poseDifferenceInTargetFrame.getX(), velocitiesInTargetFrame.getX());
       yController.reset(this.poseDifferenceInTargetFrame.getY(), velocitiesInTargetFrame.getY());
       thetaController.reset(
-          this.poseDifferenceInTargetFrame.getRotation().getRadians(),
-          currentSpeeds.omegaRadiansPerSecond);
+          this.poseDifferenceInTargetFrame.getRotation().getRadians(), currentVelocities.omega);
     }
 
     // calculate new velocities in the frame of the target pose
@@ -189,7 +188,7 @@ public class DriveToPose extends Command {
         velocitiesInTargetFrame.rotateBy(targetPose.getRotation());
 
     // account for which side of the field the driver station is on
-    int allianceMultiplier = Field2d.getInstance().getAlliance() == Alliance.Blue ? 1 : -1;
+    int allianceMultiplier = Field2d.getInstance().getAlliance() == Alliance.BLUE ? 1 : -1;
 
     drivetrain.drive(
         allianceMultiplier * fieldRelativeVelocities.getX(),

@@ -1,16 +1,5 @@
 package frc.robot;
 
-import com.pathplanner.lib.path.GoalEndState;
-import com.pathplanner.lib.path.PathConstraints;
-import com.pathplanner.lib.path.PathPlannerPath;
-import com.pathplanner.lib.path.Waypoint;
-import org.wpilib.math.geometry.Pose2d;
-import org.wpilib.math.geometry.Rotation2d;
-import org.wpilib.math.geometry.Translation2d;
-import org.wpilib.driverstation.DriverStation;
-import org.wpilib.driverstation.DriverStation.Alliance;
-import frc.lib.team3061.RobotConfig;
-import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -18,6 +7,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import org.wpilib.driverstation.Alliance;
+import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.geometry.Translation2d;
 
 /**
  * This singleton class models the field as a collection of regions. This class is used to create a
@@ -32,7 +25,7 @@ public class Field2d {
 
   private Region2d[] regions;
 
-  private Alliance alliance = DriverStation.Alliance.Blue;
+  private Alliance alliance = Alliance.BLUE;
 
   /**
    * Get the singleton instance of the Field2d class.
@@ -45,6 +38,7 @@ public class Field2d {
     }
     return instance;
   }
+
   /**
    * Construct a Field2d from an array of regions. These regions should not be overlapping (aside
    * from edges) and any regions with overlapping edges should be neighbors (see
@@ -66,59 +60,59 @@ public class Field2d {
    * @param subsystem the drivetrain subsystem
    * @return the path from the starting pose to the ending pose; null if no path exists
    */
-  public PathPlannerPath makePath(
-      Pose2d start, Pose2d end, PathConstraints pathConstants, SwerveDrivetrain subsystem) {
-    Region2d startRegion = null;
-    Region2d endRegion = null;
+  // public PathPlannerPath makePath(
+  //     Pose2d start, Pose2d end, PathConstraints pathConstants, SwerveDrivetrain subsystem) {
+  //   Region2d startRegion = null;
+  //   Region2d endRegion = null;
 
-    // find the starting and ending regions
-    for (Region2d region : regions) {
-      if (region.contains(start)) {
-        startRegion = region;
-      }
-      if (region.contains(end)) {
-        endRegion = region;
-      }
-    }
+  //   // find the starting and ending regions
+  //   for (Region2d region : regions) {
+  //     if (region.contains(start)) {
+  //       startRegion = region;
+  //     }
+  //     if (region.contains(end)) {
+  //       endRegion = region;
+  //     }
+  //   }
 
-    // make sure both start and end are on the field
-    if (startRegion == null || endRegion == null) return null;
+  //   // make sure both start and end are on the field
+  //   if (startRegion == null || endRegion == null) return null;
 
-    // BFS to find the shortest path to the end
-    List<Region2d> path = breadthFirstSearch(startRegion, endRegion);
-    if (path.isEmpty()) return null;
+  //   // BFS to find the shortest path to the end
+  //   List<Region2d> path = breadthFirstSearch(startRegion, endRegion);
+  //   if (path.isEmpty()) return null;
 
-    // create point locations
-    ArrayList<Translation2d> pointLocations = new ArrayList<>();
+  //   // create point locations
+  //   ArrayList<Translation2d> pointLocations = new ArrayList<>();
 
-    // add the starting point
-    pointLocations.add(start.getTranslation());
+  //   // add the starting point
+  //   pointLocations.add(start.getTranslation());
 
-    // add all the transition points
-    for (int i = 0; i < path.size() - 1; i++) {
-      Region2d from = path.get(i);
-      Region2d to = path.get(i + 1);
-      pointLocations.add(from.getTransitionPoint(to));
-    }
+  //   // add all the transition points
+  //   for (int i = 0; i < path.size() - 1; i++) {
+  //     Region2d from = path.get(i);
+  //     Region2d to = path.get(i + 1);
+  //     pointLocations.add(from.getTransitionPoint(to));
+  //   }
 
-    // add a transition point if starting region & ending region same
-    if (startRegion == endRegion) {
-      pointLocations.add(
-          new Translation2d((start.getX() + end.getX()) / 2, (start.getY() + end.getY()) / 2));
-    }
+  //   // add a transition point if starting region & ending region same
+  //   if (startRegion == endRegion) {
+  //     pointLocations.add(
+  //         new Translation2d((start.getX() + end.getX()) / 2, (start.getY() + end.getY()) / 2));
+  //   }
 
-    // add the ending point
-    pointLocations.add(end.getTranslation());
+  //   // add the ending point
+  //   pointLocations.add(end.getTranslation());
 
-    List<Pose2d> pathPoses = createPathPoses(pointLocations);
-    List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(pathPoses);
-    return new PathPlannerPath(
-        waypoints,
-        pathConstants,
-        null,
-        new GoalEndState(
-            RobotConfig.getInstance().getMoveToPathFinalVelocityMPS(), end.getRotation()));
-  }
+  //   List<Pose2d> pathPoses = createPathPoses(pointLocations);
+  //   List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(pathPoses);
+  //   return new PathPlannerPath(
+  //       waypoints,
+  //       pathConstants,
+  //       null,
+  //       new GoalEndState(
+  //           RobotConfig.getInstance().getMoveToPathFinalVelocityMPS(), end.getRotation()));
+  // }
 
   /**
    * Create the path points based on the starting and ending poses and the point locations. The path
@@ -200,7 +194,7 @@ public class Field2d {
    *
    * @param newAlliance the new alliance color
    */
-  public void updateAlliance(DriverStation.Alliance newAlliance) {
+  public void updateAlliance(Alliance newAlliance) {
     this.alliance = newAlliance;
   }
 

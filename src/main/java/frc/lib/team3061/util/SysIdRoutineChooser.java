@@ -1,12 +1,12 @@
 package frc.lib.team3061.util;
 
+import java.util.HashMap;
+import java.util.Map;
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.SelectCommand;
 import org.wpilib.command2.sysid.SysIdRoutine;
 import org.wpilib.command2.sysid.SysIdRoutine.Direction;
-import java.util.HashMap;
-import java.util.Map;
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
  * Singleton class to manage SysId routines for dynamic and quasistatic testing. Each subsystem that

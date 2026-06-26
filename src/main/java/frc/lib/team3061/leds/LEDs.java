@@ -9,14 +9,6 @@
 
 package frc.lib.team3061.leds;
 
-import org.wpilib.math.util.MathUtil;
-import org.wpilib.driverstation.DriverStation;
-import org.wpilib.driverstation.DriverStation.Alliance;
-import org.wpilib.system.Notifier;
-import org.wpilib.system.Timer;
-import org.wpilib.util.Color;
-import org.wpilib.util.Color8Bit;
-import org.wpilib.command2.SubsystemBase;
 import frc.lib.team6328.util.LoggedTracer;
 import frc.robot.Constants;
 import frc.robot.Field2d;
@@ -24,6 +16,14 @@ import java.util.List;
 import java.util.TreeSet;
 import java.util.function.BiConsumer;
 import org.littletonrobotics.junction.Logger;
+import org.wpilib.command2.SubsystemBase;
+import org.wpilib.driverstation.Alliance;
+import org.wpilib.driverstation.RobotState;
+import org.wpilib.framework.RobotBase;
+import org.wpilib.system.Notifier;
+import org.wpilib.system.Timer;
+import org.wpilib.util.Color;
+import org.wpilib.util.Color8Bit;
 
 @SuppressWarnings("unused")
 public abstract class LEDs extends SubsystemBase {
@@ -56,39 +56,39 @@ public abstract class LEDs extends SubsystemBase {
    * the enum is the highest priority state.
    */
   public enum States {
-    ESTOPPED((leds, section) -> leds.solid(section, Color.kRed)),
-    FALLEN((leds, section) -> leds.strobe(Section.FULL, Color.kWhite, STROBE_FAST_DURATION)),
+    ESTOPPED((leds, section) -> leds.solid(section, Color.RED)),
+    FALLEN((leds, section) -> leds.strobe(Section.FULL, Color.WHITE, STROBE_FAST_DURATION)),
     AUTO_FADE(
         (leds, section) ->
             leds.solid(
-                1.0 - ((Timer.getFPGATimestamp() - leds.lastEnabledTime) / AUTO_FADE_TIME),
-                Color.kGreen)),
-    LOW_BATTERY((leds, section) -> leds.solid(section, Color.kOrange)),
+                1.0 - ((Timer.getTimestamp() - leds.lastEnabledTime) / AUTO_FADE_TIME),
+                Color.GREEN)),
+    LOW_BATTERY((leds, section) -> leds.solid(section, Color.ORANGE)),
     DISABLED_DEMO_MODE((leds, section) -> leds.updateToPridePattern()),
-    NO_AUTO_SELECTED((leds, section) -> leds.solid(section, Color.kYellow)),
+    NO_AUTO_SELECTED((leds, section) -> leds.solid(section, Color.YELLOW)),
     DISABLED(LEDs::updateToDisabledPattern),
     AUTO((leds, section) -> leds.pulse(section, PULSE_DURATION, 255, 127, 0)),
-    ENDGAME_ALERT((leds, section) -> leds.strobe(section, Color.kYellow, STROBE_SLOW_DURATION)),
-    ELEVATOR_JAMMED((leds, section) -> leds.strobe(section, Color.kBlue, STROBE_SLOW_DURATION)),
+    ENDGAME_ALERT((leds, section) -> leds.strobe(section, Color.YELLOW, STROBE_SLOW_DURATION)),
+    ELEVATOR_JAMMED((leds, section) -> leds.strobe(section, Color.BLUE, STROBE_SLOW_DURATION)),
     DRIVE_TO_POSE_CANCELED(
-        (leds, section) -> leds.strobe(section, Color.kPink, STROBE_SLOW_DURATION)),
+        (leds, section) -> leds.strobe(section, Color.PINK, STROBE_SLOW_DURATION)),
     EJECTING_GAME_PIECE(
         (leds, section) -> leds.strobe(section, new Color(255, 20, 0), STROBE_SLOW_DURATION)),
     RELEASING_GAME_PIECE(
-        (leds, section) -> leds.strobe(section, Color.kGreen, STROBE_SLOW_DURATION)),
+        (leds, section) -> leds.strobe(section, Color.GREEN, STROBE_SLOW_DURATION)),
     AUTO_DRIVING_TO_POSE((leds, section) -> leds.pulse(section, PULSE_DURATION, 255, 30, 0)),
-    AT_POSE((leds, section) -> leds.solid(section, Color.kGreen)),
-    HAS_GAME_PIECE((leds, section) -> leds.solid(section, Color.kBlue)),
-    INDEXING_GAME_PIECE((leds, section) -> leds.strobe(section, Color.kBlue, STROBE_SLOW_DURATION)),
+    AT_POSE((leds, section) -> leds.solid(section, Color.GREEN)),
+    HAS_GAME_PIECE((leds, section) -> leds.solid(section, Color.BLUE)),
+    INDEXING_GAME_PIECE((leds, section) -> leds.strobe(section, Color.BLUE, STROBE_SLOW_DURATION)),
     WAITING_FOR_GAME_PIECE(
         (leds, section) ->
             leds.wave(
                 section,
-                Color.kBlue,
+                Color.BLUE,
                 new Color(255, 20, 0),
                 WAVE_FAST_CYCLE_LENGTH,
                 WAVE_SLOW_DURATION)),
-    UNTILTING_ROBOT((leds, section) -> leds.strobe(section, Color.kRed, STROBE_SLOW_DURATION)),
+    UNTILTING_ROBOT((leds, section) -> leds.strobe(section, Color.RED, STROBE_SLOW_DURATION)),
     DEFAULT(LEDs::updateToDisabledPattern);
 
     public final BiConsumer<LEDs, Section> setter;
@@ -143,8 +143,7 @@ public abstract class LEDs extends SubsystemBase {
         new Notifier(
             () -> {
               synchronized (this) {
-                breath(
-                    Section.FULL, Color.kWhite, Color.kBlack, System.currentTimeMillis() / 1000.0);
+                breath(Section.FULL, Color.WHITE, Color.BLACK, System.currentTimeMillis() / 1000.0);
                 this.updateLEDs();
               }
             });
@@ -258,17 +257,16 @@ public abstract class LEDs extends SubsystemBase {
 
   private void updateToDisabledPattern(Section section) {
     if (assignedAlliance) {
-      if (Field2d.getInstance().getAlliance() == Alliance.Red) {
-        wave(section, Color.kRed, Color.kBlack, WAVE_ALLIANCE_CYCLE_LENGTH, WAVE_ALLIANCE_DURATION);
+      if (Field2d.getInstance().getAlliance() == Alliance.RED) {
+        wave(section, Color.RED, Color.BLACK, WAVE_ALLIANCE_CYCLE_LENGTH, WAVE_ALLIANCE_DURATION);
       } else {
-        wave(
-            section, Color.kBlue, Color.kBlack, WAVE_ALLIANCE_CYCLE_LENGTH, WAVE_ALLIANCE_DURATION);
+        wave(section, Color.BLUE, Color.BLACK, WAVE_ALLIANCE_CYCLE_LENGTH, WAVE_ALLIANCE_DURATION);
       }
     } else {
       wave(
           section,
           new Color(255, 30, 0),
-          Color.kDarkBlue,
+          Color.DARK_BLUE,
           WAVE_SLOW_CYCLE_LENGTH,
           WAVE_SLOW_DURATION);
     }
@@ -278,27 +276,27 @@ public abstract class LEDs extends SubsystemBase {
     stripes(
         Section.FULL,
         List.of(
-            Color.kBlack,
-            Color.kRed,
-            Color.kOrangeRed,
-            Color.kYellow,
-            Color.kGreen,
-            Color.kBlue,
-            Color.kPurple,
-            Color.kBlack,
+            Color.BLACK,
+            Color.RED,
+            Color.ORANGE_RED,
+            Color.YELLOW,
+            Color.GREEN,
+            Color.BLUE,
+            Color.PURPLE,
+            Color.BLACK,
             new Color(0.15, 0.3, 1.0),
-            Color.kDeepPink,
-            Color.kWhite,
-            Color.kDeepPink,
+            Color.DEEP_PINK,
+            Color.WHITE,
+            Color.DEEP_PINK,
             new Color(0.15, 0.3, 1.0)),
         3,
         5.0);
     switch (Field2d.getInstance().getAlliance()) {
-      case Red:
-        solid(Section.STATIC_LOW, Color.kRed);
+      case RED:
+        solid(Section.STATIC_LOW, Color.RED);
         break;
-      case Blue:
-        solid(Section.STATIC_LOW, Color.kBlue);
+      case BLUE:
+        solid(Section.STATIC_LOW, Color.BLUE);
         break;
       default:
         break;
@@ -307,34 +305,34 @@ public abstract class LEDs extends SubsystemBase {
 
   private void updateInternalState() {
     // check for alliance assignment when connected to FMS
-    if (DriverStation.isFMSAttached()) {
+    if (RobotState.isFMSAttached()) {
       assignedAlliance = true;
     } else {
       assignedAlliance = false;
     }
 
     // Update based on robot state
-    if (DriverStation.isDisabled()) {
+    if (RobotBase.isDisabled()) { // FIXME: should isDisabled be invoked on RobotBase or RobotState?
       this.requestState(States.DISABLED);
-      if (lastEnabledAuto && Timer.getFPGATimestamp() - lastEnabledTime < AUTO_FADE_MAX_TIME) {
+      if (lastEnabledAuto && Timer.getTimestamp() - lastEnabledTime < AUTO_FADE_MAX_TIME) {
         this.requestState(States.AUTO_FADE);
       }
     } else {
-      lastEnabledAuto = DriverStation.isAutonomous();
-      lastEnabledTime = Timer.getFPGATimestamp();
+      lastEnabledAuto = RobotBase.isAutonomous();
+      lastEnabledTime = Timer.getTimestamp();
 
-      if (DriverStation.isAutonomous()) {
+      if (RobotBase.isAutonomous()) {
         this.requestState(States.AUTO);
       }
     }
 
     // Update estop state
-    if (DriverStation.isEStopped()) {
+    if (RobotState.isEStopped()) {
       this.requestState(States.ESTOPPED);
     }
 
     // update for demo mode
-    if (Constants.DEMO_MODE && DriverStation.isDisabled()) {
+    if (Constants.DEMO_MODE && RobotBase.isDisabled()) {
       this.requestState(States.DISABLED_DEMO_MODE);
     }
   }
@@ -355,19 +353,19 @@ public abstract class LEDs extends SubsystemBase {
 
   private void solid(double percent, Color color) {
     if (color != null) {
-      for (int i = 0; i < MathUtil.clamp(LENGTH * percent, 0, LENGTH); i++) {
+      for (int i = 0; i < Math.clamp(LENGTH * percent, 0, LENGTH); i++) {
         setLEDBuffer(i, color);
       }
     }
   }
 
   private void strobe(Section section, Color color, double duration) {
-    boolean on = ((Timer.getFPGATimestamp() % duration) / duration) > 0.5;
-    solid(section, on ? color : Color.kBlack);
+    boolean on = ((Timer.getTimestamp() % duration) / duration) > 0.5;
+    solid(section, on ? color : Color.BLACK);
   }
 
   private void breath(Section section, Color c1, Color c2) {
-    breath(section, c1, c2, Timer.getFPGATimestamp());
+    breath(section, c1, c2, Timer.getTimestamp());
   }
 
   private void breath(Section section, Color c1, Color c2, double timestamp) {
@@ -380,7 +378,7 @@ public abstract class LEDs extends SubsystemBase {
   }
 
   private void rainbow(Section section, double cycleLength, double duration) {
-    double x = (1 - ((Timer.getFPGATimestamp() / duration) % 1.0)) * 180.0;
+    double x = (1 - ((Timer.getTimestamp() / duration) % 1.0)) * 180.0;
     double xDiffPerLed = 180.0 / cycleLength;
     for (int i = 0; i < section.end(); i++) {
       x += xDiffPerLed;
@@ -392,7 +390,7 @@ public abstract class LEDs extends SubsystemBase {
   }
 
   private void wave(Section section, Color c1, Color c2, double cycleLength, double duration) {
-    double x = (1 - ((Timer.getFPGATimestamp() % duration) / duration)) * 2.0 * Math.PI;
+    double x = (1 - ((Timer.getTimestamp() % duration) / duration)) * 2.0 * Math.PI;
     double xDiffPerLed = (2.0 * Math.PI) / cycleLength;
     for (int i = 0; i < section.end(); i++) {
       x += xDiffPerLed;
@@ -413,7 +411,7 @@ public abstract class LEDs extends SubsystemBase {
   }
 
   private void fire(Section section, double duration) {
-    double x = (1 - ((Timer.getFPGATimestamp() % duration) / duration)) * 2.0 * Math.PI;
+    double x = (1 - ((Timer.getTimestamp() % duration) / duration)) * 2.0 * Math.PI;
     double[] heat = new double[section.end() - section.start()];
     double xDiffPerLed = (2.0 * Math.PI) / heat.length;
 
@@ -442,7 +440,7 @@ public abstract class LEDs extends SubsystemBase {
   }
 
   private void pulse(Section section, double duration, int rValue, int gValue, int bValue) {
-    double x = (1 - ((Timer.getFPGATimestamp() % duration) / duration)) * 2.0 * Math.PI;
+    double x = (1 - ((Timer.getTimestamp() % duration) / duration)) * 2.0 * Math.PI;
     double[] heat = new double[section.end() - section.start()];
     double xDiffPerLed = (2.0 * Math.PI) / heat.length;
 
@@ -471,7 +469,7 @@ public abstract class LEDs extends SubsystemBase {
   }
 
   private void stripes(Section section, List<Color> colors, int length, double duration) {
-    int offset = (int) (Timer.getFPGATimestamp() % duration / duration * length * colors.size());
+    int offset = (int) (Timer.getTimestamp() % duration / duration * length * colors.size());
     for (int i = section.start(); i < section.end(); i++) {
       int colorIndex =
           (int) (Math.floor((double) (i - offset) / length) + colors.size()) % colors.size();

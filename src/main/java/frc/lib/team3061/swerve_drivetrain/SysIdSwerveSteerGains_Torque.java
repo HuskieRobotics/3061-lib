@@ -10,7 +10,7 @@ import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveControlParameters;
 import com.ctre.phoenix6.swerve.SwerveModule;
 import com.ctre.phoenix6.swerve.SwerveRequest;
-import edu.wpi.first.units.measure.*;
+import org.wpilib.units.measure.*;
 
 /**
  * SysId-specific SwerveRequest to characterize the steer module characteristics of a swerve
@@ -43,6 +43,7 @@ public class SysIdSwerveSteerGains_Torque implements SwerveRequest {
     TorqueCurrentToApply = current;
     return this;
   }
+
   /**
    * Sets the torque current to apply to the drive wheels.
    *

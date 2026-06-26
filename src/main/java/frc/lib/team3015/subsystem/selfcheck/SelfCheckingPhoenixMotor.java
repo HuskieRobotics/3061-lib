@@ -2,11 +2,11 @@ package frc.lib.team3015.subsystem.selfcheck;
 
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.TalonFX;
-import org.wpilib.math.filter.Debouncer;
-import org.wpilib.units.measure.Voltage;
 import frc.lib.team3015.subsystem.SubsystemFault;
 import java.util.ArrayList;
 import java.util.List;
+import org.wpilib.math.filter.Debouncer;
+import org.wpilib.units.measure.Voltage;
 
 public class SelfCheckingPhoenixMotor implements SelfChecking {
   private final String label;

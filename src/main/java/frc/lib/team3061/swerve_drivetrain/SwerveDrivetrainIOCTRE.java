@@ -1,8 +1,8 @@
 package frc.lib.team3061.swerve_drivetrain;
 
-import static org.wpilib.units.Units.*;
 import static frc.lib.team3061.swerve_drivetrain.SwerveDrivetrainConstants.*;
 import static frc.robot.Constants.*;
+import static org.wpilib.units.Units.*;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
@@ -24,18 +24,6 @@ import com.ctre.phoenix6.swerve.SwerveModuleConstants.ClosedLoopOutputType;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants.SteerFeedbackType;
 import com.ctre.phoenix6.swerve.SwerveModuleConstantsFactory;
 import com.ctre.phoenix6.swerve.SwerveRequest;
-import edu.wpi.first.math.filter.Debouncer;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.Current;
-import edu.wpi.first.units.measure.Force;
-import edu.wpi.first.units.measure.Temperature;
-import edu.wpi.first.units.measure.Voltage;
-import edu.wpi.first.wpilibj.Notifier;
-import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.Timer;
 import frc.lib.team254.Phoenix6Util;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
@@ -52,6 +40,18 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import org.wpilib.math.filter.Debouncer;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.geometry.Translation2d;
+import org.wpilib.math.kinematics.ChassisVelocities;
+import org.wpilib.system.Notifier;
+import org.wpilib.system.RobotController;
+import org.wpilib.system.Timer;
+import org.wpilib.units.measure.Angle;
+import org.wpilib.units.measure.Current;
+import org.wpilib.units.measure.Force;
+import org.wpilib.units.measure.Temperature;
+import org.wpilib.units.measure.Voltage;
 
 @java.lang.SuppressWarnings({"java:S1450"})
 public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, CANcoder>
@@ -297,7 +297,7 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
               false);
 
   private Translation2d centerOfRotation;
-  private ChassisSpeeds targetChassisSpeeds;
+  private ChassisVelocities targetChassisVelocities;
 
   private SwerveRequest.RobotCentric driveRobotCentricRequest = new SwerveRequest.RobotCentric();
   private SwerveRequest.FieldCentric driveFieldCentricRequest = new SwerveRequest.FieldCentric();
@@ -305,8 +305,8 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
       new SwerveRequest.FieldCentricFacingAngle();
   private SwerveRequest.SwerveDriveBrake brakeRequest = new SwerveRequest.SwerveDriveBrake();
   private SwerveRequest.PointWheelsAt pointRequest = new SwerveRequest.PointWheelsAt();
-  private SwerveRequest.ApplyRobotSpeeds applyRobotSpeedsRequest =
-      new SwerveRequest.ApplyRobotSpeeds();
+  private SwerveRequest.ApplyRobotVelocity applyRobotVelocityRequest =
+      new SwerveRequest.ApplyRobotVelocity();
 
   /* Swerve requests to apply during SysId characterization */
   private final SwerveRequest.SysIdSwerveTranslation translationCharacterizationVolts =
@@ -420,7 +420,7 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
 
     this.centerOfRotation = new Translation2d(); // default to (0,0)
 
-    this.targetChassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
+    this.targetChassisVelocities = new ChassisVelocities(0.0, 0.0, 0.0);
 
     // configure PID for drive facing angle
     this.driveFacingAngleRequest.HeadingController.setPID(
@@ -488,9 +488,9 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
     this.odometryLock.lock();
 
     // update and log the swerve modules telemetry
-    for (int i = 0; i < state.ModuleStates.length; i++) {
-      this.drivePositionQueues.get(i).offer(state.ModulePositions[i].distanceMeters);
-      this.steerPositionQueues.get(i).offer(state.ModuleStates[i].angle.getDegrees());
+    for (int i = 0; i < state.ModuleVelocities.length; i++) {
+      this.drivePositionQueues.get(i).offer(state.ModulePositions[i].distance);
+      this.steerPositionQueues.get(i).offer(state.ModuleVelocities[i].angle.getDegrees());
     }
 
     this.gyroYawQueue.offer(state.RawHeading.getDegrees());
@@ -498,7 +498,7 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
     // convert from the timebase used by getCurrentTimeSeconds to the FPGA timebase to enable
     // replays
     this.timestampQueue.offer(
-        Timer.getFPGATimestamp() - (Utils.getCurrentTimeSeconds() - state.Timestamp));
+        Timer.getTimestamp() - (Utils.getCurrentTimeSeconds() - state.Timestamp));
 
     if (Constants.ENABLE_EXTRA_LOGGING) {
       this.ctreTimestampQueue.offer(state.Timestamp);
@@ -516,8 +516,8 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
     }
 
     inputs.drivetrain.swerveModulePositions = this.getState().ModulePositions;
-    inputs.drivetrain.swerveMeasuredStates = this.getState().ModuleStates;
-    inputs.drivetrain.swerveReferenceStates = this.getState().ModuleTargets;
+    inputs.drivetrain.swerveMeasuredVelocities = this.getState().ModuleVelocities;
+    inputs.drivetrain.swerveReferenceVelocities = this.getState().ModuleTargets;
 
     if (TUNING_MODE) {
       double averageMeasuredRotations = 0.0;
@@ -528,9 +528,11 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
       // to facilitate tuning, coerce the measured swerve module states' positions to 0 to 0.5 so
       // they can be compared to the reference positions; we coerce to 0.5 instead of 1.0 since the
       // swerve module may run the drive motor backward to move to a closer position.
-      for (int i = 0; i < inputs.drivetrain.swerveMeasuredStates.length; i++) {
-        double measuredRotations = inputs.drivetrain.swerveMeasuredStates[i].angle.getRotations();
-        double referenceRotations = inputs.drivetrain.swerveReferenceStates[i].angle.getRotations();
+      for (int i = 0; i < inputs.drivetrain.swerveMeasuredVelocities.length; i++) {
+        double measuredRotations =
+            inputs.drivetrain.swerveMeasuredVelocities[i].angle.getRotations();
+        double referenceRotations =
+            inputs.drivetrain.swerveReferenceVelocities[i].angle.getRotations();
 
         // subtract the integer portion of the rotations
         measuredRotations = measuredRotations - Math.floor(measuredRotations);
@@ -555,28 +557,28 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
         averageMeasuredRotations += measuredRotations;
         averageReferenceRotations += referenceRotations;
         averageMeasuredSpeedMetersPerSecond +=
-            Math.abs(inputs.drivetrain.swerveMeasuredStates[i].speedMetersPerSecond);
+            Math.abs(inputs.drivetrain.swerveMeasuredVelocities[i].velocity);
         averageReferenceSpeedMetersPerSecond +=
-            Math.abs(inputs.drivetrain.swerveReferenceStates[i].speedMetersPerSecond);
+            Math.abs(inputs.drivetrain.swerveReferenceVelocities[i].velocity);
       }
       inputs.drivetrain.averageSwerveMeasuredAngle =
           Rotation2d.fromRotations(
-              averageMeasuredRotations / inputs.drivetrain.swerveMeasuredStates.length);
+              averageMeasuredRotations / inputs.drivetrain.swerveMeasuredVelocities.length);
       inputs.drivetrain.averageSwerveReferenceAngle =
           Rotation2d.fromRotations(
-              averageReferenceRotations / inputs.drivetrain.swerveReferenceStates.length);
+              averageReferenceRotations / inputs.drivetrain.swerveReferenceVelocities.length);
       inputs.drivetrain.averageSwerveMeasuredSpeed =
-          averageMeasuredSpeedMetersPerSecond / inputs.drivetrain.swerveMeasuredStates.length;
+          averageMeasuredSpeedMetersPerSecond / inputs.drivetrain.swerveMeasuredVelocities.length;
       inputs.drivetrain.averageSwerveReferenceSpeed =
-          averageReferenceSpeedMetersPerSecond / inputs.drivetrain.swerveReferenceStates.length;
+          averageReferenceSpeedMetersPerSecond / inputs.drivetrain.swerveReferenceVelocities.length;
     }
 
-    inputs.drivetrain.referenceChassisSpeeds =
-        new ChassisSpeeds(
-            this.targetChassisSpeeds.vxMetersPerSecond,
-            this.targetChassisSpeeds.vyMetersPerSecond,
-            this.targetChassisSpeeds.omegaRadiansPerSecond);
-    inputs.drivetrain.measuredChassisSpeeds = this.getState().Speeds;
+    inputs.drivetrain.referenceChassisVelocities =
+        new ChassisVelocities(
+            this.targetChassisVelocities.vx,
+            this.targetChassisVelocities.vy,
+            this.targetChassisVelocities.omega);
+    inputs.drivetrain.measuredChassisVelocities = this.getState().Velocity;
 
     inputs.drivetrain.averageDriveCurrent = this.getAverageDriveCurrent(inputs);
     inputs.drivetrain.rawHeadingDeg = this.getState().RawHeading.getDegrees();
@@ -670,9 +672,9 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
 
   @Override
   public void holdXStance() {
-    this.targetChassisSpeeds.vxMetersPerSecond = 0.0;
-    this.targetChassisSpeeds.vyMetersPerSecond = 0.0;
-    this.targetChassisSpeeds.omegaRadiansPerSecond = 0.0;
+    this.targetChassisVelocities.vx = 0.0;
+    this.targetChassisVelocities.vy = 0.0;
+    this.targetChassisVelocities.omega = 0.0;
 
     this.setControl(this.brakeRequest);
   }
@@ -684,14 +686,10 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
       double rotationalVelocityRadianPerSecond,
       boolean isOpenLoop) {
 
-    this.targetChassisSpeeds =
-        ChassisSpeeds.discretize(
-            ChassisSpeeds.fromFieldRelativeSpeeds(
-                xVelocityMPS,
-                yVelocityMPS,
-                rotationalVelocityRadianPerSecond,
-                RobotOdometry.getInstance().getEstimatedPose().getRotation()),
-            Constants.LOOP_PERIOD_SECS);
+    this.targetChassisVelocities =
+        new ChassisVelocities(xVelocityMPS, yVelocityMPS, rotationalVelocityRadianPerSecond)
+            .toRobotRelative(RobotOdometry.getInstance().getEstimatedPose().getRotation())
+            .discretize(Constants.LOOP_PERIOD_SECS);
 
     if (isOpenLoop) {
       this.setControl(
@@ -716,14 +714,10 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
   public void driveFieldRelativeFacingAngle(
       double xVelocityMPS, double yVelocityMPS, Rotation2d targetDirection, boolean isOpenLoop) {
 
-    this.targetChassisSpeeds =
-        ChassisSpeeds.discretize(
-            ChassisSpeeds.fromFieldRelativeSpeeds(
-                xVelocityMPS,
-                yVelocityMPS,
-                0.0,
-                RobotOdometry.getInstance().getEstimatedPose().getRotation()),
-            Constants.LOOP_PERIOD_SECS);
+    this.targetChassisVelocities =
+        new ChassisVelocities(xVelocityMPS, yVelocityMPS, 0.0)
+            .toRobotRelative(RobotOdometry.getInstance().getEstimatedPose().getRotation())
+            .discretize(Constants.LOOP_PERIOD_SECS);
 
     if (isOpenLoop) {
       this.setControl(
@@ -746,9 +740,9 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
 
   @Override
   public void pointWheelsAt(Rotation2d targetDirection) {
-    this.targetChassisSpeeds.vxMetersPerSecond = 0.0;
-    this.targetChassisSpeeds.vyMetersPerSecond = 0.0;
-    this.targetChassisSpeeds.omegaRadiansPerSecond = 0.0;
+    this.targetChassisVelocities.vx = 0.0;
+    this.targetChassisVelocities.vy = 0.0;
+    this.targetChassisVelocities.omega = 0.0;
 
     this.setControl(this.pointRequest.withModuleDirection(targetDirection));
   }
@@ -760,10 +754,9 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
       double rotationalVelocityRadiansPerSecond,
       boolean isOpenLoop) {
 
-    this.targetChassisSpeeds =
-        ChassisSpeeds.discretize(
-            new ChassisSpeeds(xVelocityMPS, yVelocityMPS, rotationalVelocityRadiansPerSecond),
-            Constants.LOOP_PERIOD_SECS);
+    this.targetChassisVelocities =
+        new ChassisVelocities(xVelocityMPS, yVelocityMPS, rotationalVelocityRadiansPerSecond)
+            .discretize(Constants.LOOP_PERIOD_SECS);
 
     if (isOpenLoop) {
       this.setControl(
@@ -786,25 +779,25 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
 
   @Override
   public void applyRobotSpeeds(
-      ChassisSpeeds speeds, Force[] forcesX, Force[] forcesY, boolean isOpenLoop) {
+      ChassisVelocities speeds, Force[] forcesX, Force[] forcesY, boolean isOpenLoop) {
 
-    this.targetChassisSpeeds = ChassisSpeeds.discretize(speeds, Constants.LOOP_PERIOD_SECS);
+    this.targetChassisVelocities = speeds.discretize(Constants.LOOP_PERIOD_SECS);
 
     if (isOpenLoop) {
       this.setControl(
-          this.applyRobotSpeedsRequest
+          this.applyRobotVelocityRequest
               .withDriveRequestType(SwerveModule.DriveRequestType.OpenLoopVoltage)
               .withSteerRequestType(SwerveModule.SteerRequestType.MotionMagicExpo)
-              .withSpeeds(this.targetChassisSpeeds)
+              .withVelocity(this.targetChassisVelocities)
               .withWheelForceFeedforwardsX(forcesX)
               .withWheelForceFeedforwardsY(forcesY)
               .withCenterOfRotation(this.centerOfRotation));
     } else {
       this.setControl(
-          this.applyRobotSpeedsRequest
+          this.applyRobotVelocityRequest
               .withDriveRequestType(SwerveModule.DriveRequestType.Velocity)
               .withSteerRequestType(SwerveModule.SteerRequestType.MotionMagicExpo)
-              .withSpeeds(this.targetChassisSpeeds)
+              .withVelocity(this.targetChassisVelocities)
               .withWheelForceFeedforwardsX(forcesX)
               .withWheelForceFeedforwardsY(forcesY)
               .withCenterOfRotation(this.centerOfRotation));
@@ -856,10 +849,10 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
           for (SwerveModule<TalonFX, TalonFX, CANcoder> swerveModule : this.getModules()) {
             swerveModule
                 .getDriveMotor()
-                .setNeutralMode(enable ? NeutralModeValue.Brake : NeutralModeValue.Coast, 0.25);
+                .configNeutralMode(enable ? NeutralModeValue.Brake : NeutralModeValue.Coast, 0.25);
             swerveModule
                 .getSteerMotor()
-                .setNeutralMode(enable ? NeutralModeValue.Brake : NeutralModeValue.Coast, 0.25);
+                .configNeutralMode(enable ? NeutralModeValue.Brake : NeutralModeValue.Coast, 0.25);
           }
         });
   }

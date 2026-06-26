@@ -5,23 +5,6 @@
 package frc.robot;
 
 import com.ctre.phoenix6.CANBus;
-import com.pathplanner.lib.commands.PathfindingCommand;
-import com.pathplanner.lib.pathfinding.Pathfinding;
-import com.pathplanner.lib.util.PathPlannerLogging;
-import org.wpilib.hardware.hal.AllianceStationID;
-import org.wpilib.math.geometry.Pose2d;
-import org.wpilib.net.WebServer;
-import org.wpilib.util.Alert;
-import org.wpilib.util.Alert.AlertType;
-import org.wpilib.driverstation.DriverStation;
-import org.wpilib.system.Filesystem;
-import org.wpilib.framework.IterativeRobotBase;
-import org.wpilib.system.RobotController;
-import org.wpilib.system.Timer;
-import org.wpilib.system.Watchdog;
-import org.wpilib.simulation.DriverStationSim;
-import org.wpilib.command2.Command;
-import org.wpilib.command2.CommandScheduler;
 import frc.lib.team254.Phoenix6Util;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.leds.LEDs;
@@ -39,6 +22,19 @@ import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
+import org.wpilib.command2.Command;
+import org.wpilib.command2.CommandScheduler;
+import org.wpilib.driverstation.Alert;
+import org.wpilib.driverstation.DriverStationErrors;
+import org.wpilib.framework.IterativeRobotBase;
+import org.wpilib.framework.RobotBase;
+import org.wpilib.hardware.hal.AllianceStationID;
+import org.wpilib.net.WebServer;
+import org.wpilib.simulation.DriverStationSim;
+import org.wpilib.system.Filesystem;
+import org.wpilib.system.RobotController;
+import org.wpilib.system.Timer;
+import org.wpilib.system.Watchdog;
 
 @java.lang.SuppressWarnings({"java:S1192", "java:S106"})
 
@@ -63,18 +59,19 @@ public class Robot extends LoggedRobot {
   private final Timer canivoreErrorTimer = new Timer();
 
   private final Alert canivoreErrorAlert =
-      new Alert("CANivore error detected, robot may not be controllable.", AlertType.kError);
+      new Alert("CANivore error detected, robot may not be controllable.", Alert.Level.HIGH);
   private final Alert logReceiverQueueAlert =
-      new Alert("Logging queue exceeded capacity, data will NOT be logged.", AlertType.kError);
+      new Alert("Logging queue exceeded capacity, data will NOT be logged.", Alert.Level.HIGH);
   private final Alert lowBatteryAlert =
       new Alert(
           "Battery voltage is very low, consider turning off the robot or replacing the battery.",
-          AlertType.kWarning);
+          Alert.Level.MEDIUM);
   private final Alert jitAlert =
-      new Alert("Please wait to enable, JITing in progress.", AlertType.kWarning);
+      new Alert("Please wait to enable, JITing in progress.", Alert.Level.MEDIUM);
 
   private final Alert noAutoSelectedAlert =
-      new Alert("No auto selected: please select an auto", AlertType.kWarning);
+      new Alert("No auto selected: please select an auto", Alert.Level.MEDIUM);
+
   /** Create a new Robot. */
   public Robot() {
     // start code loading LED animation
@@ -131,7 +128,7 @@ public class Robot extends LoggedRobot {
     WebServer.start(5800, Filesystem.getDeployDirectory().getPath());
 
     // DO THIS FIRST
-    Pathfinding.setPathfinder(new LocalADStarAK());
+    // Pathfinding.setPathfinder(new LocalADStarAK());
 
     // Start system time valid reader
     SystemTimeValidReader.start();
@@ -156,24 +153,24 @@ public class Robot extends LoggedRobot {
 
     // Default to blue alliance in sim
     if (Constants.getMode() == Constants.Mode.SIM) {
-      DriverStationSim.setAllianceStationId(AllianceStationID.Blue1);
+      DriverStationSim.setAllianceStationId(AllianceStationID.BLUE_1);
       DriverStationSim.notifyNewData();
     }
 
     // Logging of autonomous paths
     // Logging callback for current robot pose
-    PathPlannerLogging.setLogCurrentPoseCallback(
-        pose -> Logger.recordOutput("PathFollowing/currentPose", pose));
+    // PathPlannerLogging.setLogCurrentPoseCallback(
+    //     pose -> Logger.recordOutput("PathFollowing/currentPose", pose));
 
-    // Logging callback for target robot pose
-    PathPlannerLogging.setLogTargetPoseCallback(
-        pose -> {
-          Logger.recordOutput("PathFollowing/targetPose", pose);
-          robotContainer.setPathFollowingTargetPose(pose);
-        });
-    // Logging callback for the active path, this is sent as a list of poses
-    PathPlannerLogging.setLogActivePathCallback(
-        poses -> Logger.recordOutput("PathFollowing/activePath", poses.toArray(new Pose2d[0])));
+    // // Logging callback for target robot pose
+    // PathPlannerLogging.setLogTargetPoseCallback(
+    //     pose -> {
+    //       Logger.recordOutput("PathFollowing/targetPose", pose);
+    //       robotContainer.setPathFollowingTargetPose(pose);
+    //     });
+    // // Logging callback for the active path, this is sent as a list of poses
+    // PathPlannerLogging.setLogActivePathCallback(
+    //     poses -> Logger.recordOutput("PathFollowing/activePath", poses.toArray(new Pose2d[0])));
 
     // Start timers
     canInitialErrorTimer.restart();
@@ -187,7 +184,7 @@ public class Robot extends LoggedRobot {
       Watchdog watchdog = (Watchdog) watchdogField.get(this);
       watchdog.setTimeout(0.2);
     } catch (Exception e) {
-      DriverStation.reportWarning("Failed to disable loop overrun warnings", false);
+      DriverStationErrors.reportWarning("Failed to disable loop overrun warnings", false);
     }
 
     CommandScheduler.getInstance().setPeriod(0.2);
@@ -204,11 +201,7 @@ public class Robot extends LoggedRobot {
     // need to be loaded. To help alleviate this issue, you can run a warmup command in the
     // background when code starts.
     // DO THIS AFTER CONFIGURATION OF YOUR DESIRED PATHFINDER
-    CommandScheduler.getInstance().schedule(PathfindingCommand.warmupCommand());
-
-    // if (!TUNING_MODE) {
-    //   Threads.setCurrentThreadPriority(true, 1);
-    // }
+    // CommandScheduler.getInstance().schedule(PathfindingCommand.warmupCommand());
   }
 
   /**
@@ -254,7 +247,7 @@ public class Robot extends LoggedRobot {
     }
 
     // Update low battery alert
-    if (DriverStation.isEnabled()) {
+    if (RobotBase.isEnabled()) {
       disabledTimer.reset();
     }
     double batteryVoltage = RobotController.getBatteryVoltage();
@@ -269,7 +262,7 @@ public class Robot extends LoggedRobot {
 
     // Print auto duration
     if (autonomousCommand != null && !autonomousCommand.isScheduled() && !autoMessagePrinted) {
-      if (DriverStation.isAutonomousEnabled()) {
+      if (RobotBase.isAutonomousEnabled()) {
         System.out.println(
             String.format("*** Auto finished in %.2f secs ***", Timer.getTimestamp() - autoStart));
       } else {
@@ -340,12 +333,5 @@ public class Robot extends LoggedRobot {
     }
 
     robotContainer.teleopInit();
-  }
-
-  /** This method is invoked at the start of the test period. */
-  @Override
-  public void testInit() {
-    // Cancels all running commands at the start of test mode.
-    CommandScheduler.getInstance().cancelAll();
   }
 }

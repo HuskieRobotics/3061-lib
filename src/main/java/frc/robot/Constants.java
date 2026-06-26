@@ -8,8 +8,7 @@
 
 package frc.robot;
 
-import org.wpilib.util.Alert;
-import org.wpilib.util.Alert.AlertType;
+import org.wpilib.driverstation.Alert;
 import org.wpilib.framework.RobotBase;
 
 /**
@@ -32,7 +31,7 @@ public final class Constants {
 
   private static final RobotType ROBOT = RobotType.ROBOT_COMPETITION;
   private static final Alert invalidRobotAlert =
-      new Alert("Invalid robot selected, using competition robot as default.", AlertType.kError);
+      new Alert("Invalid robot selected, using competition robot as default.", Alert.Level.HIGH);
 
   // FIXME: update for various robots
   public enum RobotType {

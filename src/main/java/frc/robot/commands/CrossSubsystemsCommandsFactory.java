@@ -1,12 +1,5 @@
 package frc.robot.commands;
 
-import org.wpilib.math.controller.ProfiledPIDController;
-import org.wpilib.math.geometry.Pose2d;
-import org.wpilib.math.geometry.Rotation2d;
-import org.wpilib.math.geometry.Transform2d;
-import org.wpilib.math.trajectory.TrapezoidProfile;
-import org.wpilib.command2.Command;
-import org.wpilib.command2.Commands;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.differential_drivetrain.DifferentialDrivetrain;
@@ -24,6 +17,13 @@ import frc.robot.subsystems.manipulator.Manipulator;
 import frc.robot.subsystems.shooter.Shooter;
 import java.util.List;
 import java.util.Optional;
+import org.wpilib.command2.Command;
+import org.wpilib.command2.Commands;
+import org.wpilib.math.controller.ProfiledPIDController;
+import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.geometry.Transform2d;
+import org.wpilib.math.trajectory.TrapezoidProfile;
 
 public class CrossSubsystemsCommandsFactory {
 

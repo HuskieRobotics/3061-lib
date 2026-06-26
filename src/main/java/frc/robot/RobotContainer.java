@@ -4,14 +4,6 @@
 
 package frc.robot;
 
-import org.wpilib.math.geometry.Pose2d;
-import org.wpilib.util.Alert;
-import org.wpilib.util.Alert.AlertType;
-import org.wpilib.driverstation.DriverStation;
-import org.wpilib.driverstation.DriverStation.Alliance;
-import org.wpilib.livewindow.LiveWindow;
-import org.wpilib.command2.Commands;
-import org.wpilib.command2.button.Trigger;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.RobotConfig.CameraConfig;
 import frc.lib.team3061.differential_drivetrain.DifferentialDrivetrain;
@@ -58,6 +50,13 @@ import frc.robot.subsystems.shooter.ShooterIOTalonFX;
 import frc.robot.visualizations.RobotVisualization;
 import java.util.Optional;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
+import org.wpilib.command2.Commands;
+import org.wpilib.command2.button.Trigger;
+import org.wpilib.driverstation.Alert;
+import org.wpilib.driverstation.Alliance;
+import org.wpilib.driverstation.MatchState;
+import org.wpilib.framework.RobotBase;
+import org.wpilib.math.geometry.Pose2d;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -83,7 +82,7 @@ public class RobotContainer {
   private final LoggedNetworkNumber endgameAlert2 =
       new LoggedNetworkNumber("/Tuning/Endgame Alert #2", 10.0);
 
-  private Alert tuningAlert = new Alert("Tuning mode enabled", AlertType.kInfo);
+  private Alert tuningAlert = new Alert("Tuning mode enabled", Alert.Level.LOW);
 
   /**
    * Create the container for the robot. Contains subsystems, operator interface (OI) devices, and
@@ -158,9 +157,6 @@ public class RobotContainer {
       shooter = new Shooter(new ShooterIO() {});
       visualization = new RobotVisualization(elevator);
     }
-
-    // disable all telemetry in the LiveWindow to reduce the processing during each iteration
-    LiveWindow.disableAllTelemetry();
 
     updateOI();
 
@@ -379,17 +375,17 @@ public class RobotContainer {
     // Endgame alerts
     new Trigger(
             () ->
-                DriverStation.isTeleopEnabled()
-                    && DriverStation.getMatchTime() > 0.0
-                    && DriverStation.getMatchTime() <= Math.round(endgameAlert1.get()))
+                RobotBase.isTeleopEnabled()
+                    && MatchState.getMatchTime() > 0.0
+                    && MatchState.getMatchTime() <= Math.round(endgameAlert1.get()))
         .onTrue(
             Commands.run(() -> LEDs.getInstance().requestState(LEDs.States.ENDGAME_ALERT))
                 .withTimeout(1));
     new Trigger(
             () ->
-                DriverStation.isTeleopEnabled()
-                    && DriverStation.getMatchTime() > 0.0
-                    && DriverStation.getMatchTime() <= Math.round(endgameAlert2.get()))
+                RobotBase.isTeleopEnabled()
+                    && MatchState.getMatchTime() > 0.0
+                    && MatchState.getMatchTime() <= Math.round(endgameAlert2.get()))
         .onTrue(
             Commands.sequence(
                 Commands.run(() -> LEDs.getInstance().requestState(LEDs.States.ENDGAME_ALERT))
@@ -427,7 +423,7 @@ public class RobotContainer {
    * singleton.
    */
   public void checkAllianceColor() {
-    Optional<Alliance> alliance = DriverStation.getAlliance();
+    Optional<Alliance> alliance = MatchState.getAlliance();
     if (alliance.isPresent() && alliance.get() != lastAlliance) {
       this.lastAlliance = alliance.get();
       Field2d.getInstance().updateAlliance(this.lastAlliance);

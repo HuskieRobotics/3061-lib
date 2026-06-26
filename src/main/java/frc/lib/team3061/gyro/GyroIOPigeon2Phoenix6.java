@@ -8,13 +8,13 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.sim.Pigeon2SimState;
-import org.wpilib.math.filter.Debouncer;
-import org.wpilib.units.measure.Angle;
-import org.wpilib.units.measure.AngularVelocity;
-import org.wpilib.system.RobotController;
 import frc.lib.team254.Phoenix6Util;
 import frc.lib.team3061.RobotConfig;
 import frc.robot.Constants;
+import org.wpilib.math.filter.Debouncer;
+import org.wpilib.system.RobotController;
+import org.wpilib.units.measure.Angle;
+import org.wpilib.units.measure.AngularVelocity;
 
 public class GyroIOPigeon2Phoenix6 implements GyroIO {
 

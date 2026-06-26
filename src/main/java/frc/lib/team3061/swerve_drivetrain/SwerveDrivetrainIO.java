@@ -1,19 +1,19 @@
 package frc.lib.team3061.swerve_drivetrain;
 
 import com.ctre.phoenix6.Utils;
-import org.wpilib.math.linalg.Matrix;
-import org.wpilib.math.geometry.Pose2d;
-import org.wpilib.math.geometry.Rotation2d;
-import org.wpilib.math.geometry.Translation2d;
-import org.wpilib.math.kinematics.ChassisSpeeds;
-import org.wpilib.math.kinematics.SwerveModulePosition;
-import org.wpilib.math.kinematics.SwerveModuleState;
-import org.wpilib.math.numbers.N1;
-import org.wpilib.math.numbers.N3;
-import org.wpilib.units.measure.Force;
 import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrainConstants.SysIDCharacterizationMode;
 import java.util.Optional;
 import org.littletonrobotics.junction.AutoLog;
+import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.geometry.Translation2d;
+import org.wpilib.math.kinematics.ChassisVelocities;
+import org.wpilib.math.kinematics.SwerveModulePosition;
+import org.wpilib.math.kinematics.SwerveModuleVelocity;
+import org.wpilib.math.linalg.Matrix;
+import org.wpilib.math.numbers.N1;
+import org.wpilib.math.numbers.N3;
+import org.wpilib.units.measure.Force;
 
 @java.lang.SuppressWarnings({"java:S1104"})
 public interface SwerveDrivetrainIO {
@@ -39,8 +39,8 @@ public interface SwerveDrivetrainIO {
   /** Contains all of the input data received from hardware. */
   @AutoLog
   public static class SwerveDrivetrainIOInputs {
-    ChassisSpeeds referenceChassisSpeeds = new ChassisSpeeds();
-    ChassisSpeeds measuredChassisSpeeds = new ChassisSpeeds();
+    ChassisVelocities referenceChassisVelocities = new ChassisVelocities();
+    ChassisVelocities measuredChassisVelocities = new ChassisVelocities();
 
     SwerveModulePosition[] swerveModulePositions = {
       new SwerveModulePosition(),
@@ -48,17 +48,17 @@ public interface SwerveDrivetrainIO {
       new SwerveModulePosition(),
       new SwerveModulePosition()
     };
-    SwerveModuleState[] swerveReferenceStates = {
-      new SwerveModuleState(),
-      new SwerveModuleState(),
-      new SwerveModuleState(),
-      new SwerveModuleState()
+    SwerveModuleVelocity[] swerveReferenceVelocities = {
+      new SwerveModuleVelocity(),
+      new SwerveModuleVelocity(),
+      new SwerveModuleVelocity(),
+      new SwerveModuleVelocity()
     };
-    SwerveModuleState[] swerveMeasuredStates = {
-      new SwerveModuleState(),
-      new SwerveModuleState(),
-      new SwerveModuleState(),
-      new SwerveModuleState()
+    SwerveModuleVelocity[] swerveMeasuredVelocities = {
+      new SwerveModuleVelocity(),
+      new SwerveModuleVelocity(),
+      new SwerveModuleVelocity(),
+      new SwerveModuleVelocity()
     };
 
     double averageDriveCurrent = 0.0;
@@ -164,6 +164,7 @@ public interface SwerveDrivetrainIO {
       double yVelocityMPS,
       double rotationalVelocityRadiansPerSecond,
       boolean isOpenLoop) {}
+
   /**
    * Controls the drivetrain to move the robot with the desired velocities in the x, y, and
    * rotational directions. The velocities are specified from the robot's frame of reference. In the
@@ -177,7 +178,7 @@ public interface SwerveDrivetrainIO {
    * @param isOpenLoop true for open-loop control; false for closed-loop control
    */
   public default void applyRobotSpeeds(
-      ChassisSpeeds speeds, Force[] forcesX, Force[] forcesY, boolean isOpenLoop) {}
+      ChassisVelocities velocities, Force[] forcesX, Force[] forcesY, boolean isOpenLoop) {}
 
   public default void setDriveCurrent(double currentAmps) {}
 

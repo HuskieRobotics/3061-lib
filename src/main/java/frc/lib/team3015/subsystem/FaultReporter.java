@@ -8,19 +8,19 @@ import com.ctre.phoenix6.hardware.CANrange;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.revrobotics.spark.SparkMax;
-import org.wpilib.util.Alert;
-import org.wpilib.driverstation.DriverStation;
-import org.wpilib.hardware.motor.PWMMotorController;
-import org.wpilib.command2.Command;
-import org.wpilib.command2.CommandScheduler;
-import org.wpilib.command2.Commands;
-import org.wpilib.command2.button.Trigger;
 import frc.lib.team3015.subsystem.selfcheck.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.littletonrobotics.junction.Logger;
+import org.wpilib.command2.Command;
+import org.wpilib.command2.CommandScheduler;
+import org.wpilib.command2.Commands;
+import org.wpilib.command2.button.Trigger;
+import org.wpilib.driverstation.Alert;
+import org.wpilib.framework.RobotBase;
+import org.wpilib.hardware.motor.PWMMotorController;
 
 /**
  * The FaultReporter class is a singleton that is used to check for and publish faults related to
@@ -174,7 +174,7 @@ public class FaultReporter {
       Alert alert =
           new Alert(
               subsystemName + ": " + fault.description,
-              fault.isWarning ? Alert.AlertType.kWarning : Alert.AlertType.kError);
+              fault.isWarning ? Alert.Level.MEDIUM : Alert.Level.HIGH);
       alert.set(true);
       subsystemAlerts.add(alert);
     }
@@ -366,7 +366,7 @@ public class FaultReporter {
    * registered devices.
    */
   private void checkForFaultsWhenDisabled() {
-    if (DriverStation.isDisabled()) {
+    if (RobotBase.isDisabled()) {
       checkForFaults();
     }
   }

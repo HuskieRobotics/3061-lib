@@ -1,18 +1,9 @@
 package frc.robot.subsystems.elevator;
 
-import static org.wpilib.units.Units.*;
 import static frc.robot.subsystems.elevator.ElevatorConstants.*;
+import static org.wpilib.units.Units.*;
 
 import com.ctre.phoenix6.SignalLogger;
-import edu.wpi.first.math.filter.Debouncer;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.Alert;
-import edu.wpi.first.wpilibj.Alert.AlertType;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.lib.team254.CurrentSpikeDetector;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.leds.LEDs;
@@ -22,6 +13,14 @@ import frc.lib.team6328.util.LoggedTracer;
 import frc.lib.team6328.util.LoggedTunableNumber;
 import frc.robot.subsystems.elevator.ElevatorConstants.Positions;
 import org.littletonrobotics.junction.Logger;
+import org.wpilib.command2.Command;
+import org.wpilib.command2.CommandScheduler;
+import org.wpilib.command2.Commands;
+import org.wpilib.command2.SubsystemBase;
+import org.wpilib.command2.sysid.SysIdRoutine;
+import org.wpilib.driverstation.Alert;
+import org.wpilib.math.filter.Debouncer;
+import org.wpilib.math.util.Units;
 
 /**
  * Example subsystem for controlling an elevator.
@@ -54,7 +53,7 @@ public class Elevator extends SubsystemBase {
   private Positions targetPosition = Positions.BOTTOM;
 
   private Alert jammedAlert =
-      new Alert("Elevator jam detected. Use manual control.", AlertType.kError);
+      new Alert("Elevator jam detected. Use manual control.", Alert.Level.HIGH);
 
   private CurrentSpikeDetector jamDetector =
       new CurrentSpikeDetector(JAMMED_CURRENT_AMPS, JAMMED_TIME_THRESHOLD_SECONDS);

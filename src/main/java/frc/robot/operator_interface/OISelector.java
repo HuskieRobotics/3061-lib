@@ -8,12 +8,11 @@
 
 package frc.robot.operator_interface;
 
-import org.wpilib.util.Alert;
-import org.wpilib.util.Alert.AlertType;
-import org.wpilib.driverstation.DriverStation;
-import org.wpilib.command2.CommandScheduler;
 import frc.robot.Constants;
 import frc.robot.Constants.RobotType;
+import org.wpilib.command2.CommandScheduler;
+import org.wpilib.driverstation.Alert;
+import org.wpilib.driverstation.internal.DriverStationBackend;
 
 @java.lang.SuppressWarnings({"java:S3776"})
 
@@ -23,9 +22,9 @@ import frc.robot.Constants.RobotType;
 public class OISelector {
   private static String[] lastJoystickNames = new String[] {null, null, null, null, null, null};
   private static final Alert noOperatorInterfaceWarning =
-      new Alert("No operator controller(s) connected.", AlertType.kWarning);
+      new Alert("No operator controller(s) connected.", Alert.Level.MEDIUM);
   private static final Alert nonCompetitionOperatorInterfaceWarning =
-      new Alert("Non-competition operator controller connected.", AlertType.kWarning);
+      new Alert("Non-competition operator controller connected.", Alert.Level.MEDIUM);
 
   private static OperatorInterface oi = null;
 
@@ -45,8 +44,8 @@ public class OISelector {
    */
   private static boolean didJoysticksChange() {
     boolean joysticksChanged = false;
-    for (int port = 0; port < DriverStation.kJoystickPorts; port++) {
-      String name = DriverStation.getJoystickName(port);
+    for (int port = 0; port < DriverStationBackend.JOYSTICK_PORTS; port++) {
+      String name = DriverStationBackend.getJoystickName(port);
       if (!name.equals(lastJoystickNames[port])) {
         lastJoystickNames[port] = name;
         joysticksChanged = true;
@@ -63,12 +62,12 @@ public class OISelector {
     Integer firstPort = null;
     Integer secondPort = null;
     Integer xBoxPort = null;
-    for (int port = 0; port < DriverStation.kJoystickPorts; port++) {
-      if (DriverStation.getJoystickName(port).toLowerCase().contains("xbox")) {
+    for (int port = 0; port < DriverStationBackend.JOYSTICK_PORTS; port++) {
+      if (DriverStationBackend.getJoystickName(port).toLowerCase().contains("xbox")) {
         if (xBoxPort == null) {
           xBoxPort = port;
         }
-      } else if (!DriverStation.getJoystickName(port).equals("")) {
+      } else if (!DriverStationBackend.getJoystickName(port).equals("")) {
         if (firstPort == null) {
           firstPort = port;
         } else if (secondPort == null) {

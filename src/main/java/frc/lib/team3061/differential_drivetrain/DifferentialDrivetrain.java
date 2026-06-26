@@ -6,22 +6,19 @@ package frc.lib.team3061.differential_drivetrain;
 
 import static frc.lib.team3061.differential_drivetrain.DifferentialDrivetrainConstants.*;
 
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.controllers.PPLTVController;
-import com.pathplanner.lib.util.DriveFeedforwards;
-import org.wpilib.math.geometry.Pose2d;
-import org.wpilib.math.geometry.Rotation2d;
-import org.wpilib.math.kinematics.ChassisSpeeds;
-import org.wpilib.math.kinematics.DifferentialDriveWheelSpeeds;
-import org.wpilib.driverstation.DriverStation.Alliance;
-import org.wpilib.system.Timer;
-import org.wpilib.command2.SubsystemBase;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.util.DifferentialRobotOdometry;
 import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team6328.util.LoggedTracer;
 import frc.robot.Field2d;
 import org.littletonrobotics.junction.Logger;
+import org.wpilib.command2.SubsystemBase;
+import org.wpilib.driverstation.Alliance;
+import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.kinematics.ChassisVelocities;
+import org.wpilib.math.kinematics.DifferentialDriveWheelVelocities;
+import org.wpilib.system.Timer;
 
 public class DifferentialDrivetrain extends SubsystemBase {
   private final DifferentialDrivetrainIO io;
@@ -37,18 +34,18 @@ public class DifferentialDrivetrain extends SubsystemBase {
     this.odometry = new DifferentialRobotOdometry();
     RobotOdometry.setInstance(this.odometry);
 
-    AutoBuilder.configure(
-        this::getPose, // Robot pose supplier
-        this::resetPose, // Method to reset odometry (will be called if your auto has a starting
-        // pose)
-        this::getRobotRelativeSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-        this::applyRobotSpeeds, // Method that will drive the robot given ROBOT RELATIVE
-        // ChassisSpeeds
-        new PPLTVController(0.02),
-        RobotConfig.getInstance().getPathPlannerRobotConfig(),
-        this::shouldFlipAutoPath,
-        this // Reference to this subsystem to set requirements
-        );
+    // AutoBuilder.configure(
+    //     this::getPose, // Robot pose supplier
+    //     this::resetPose, // Method to reset odometry (will be called if your auto has a starting
+    //     // pose)
+    //     this::getRobotRelativeVelocities, // ChassisVelocities supplier. MUST BE ROBOT RELATIVE
+    //     this::applyRobotVelocities, // Method that will drive the robot given ROBOT RELATIVE
+    //     // ChassisVelocities
+    //     new PPLTVController(0.02),
+    //     RobotConfig.getInstance().getPathPlannerRobotConfig(),
+    //     this::shouldFlipAutoPath,
+    //     this // Reference to this subsystem to set requirements
+    //     );
   }
 
   public void arcadeDrive(double xVelocityMPS, double rotationalVelocityRPS) {
@@ -86,32 +83,34 @@ public class DifferentialDrivetrain extends SubsystemBase {
   }
 
   /**
-   * Returns the robot-relative speeds of the robot.
+   * Returns the robot-relative velocities of the robot.
    *
-   * @return the robot-relative speeds of the robot
+   * @return the robot-relative velocities of the robot
    */
-  private ChassisSpeeds getRobotRelativeSpeeds() {
+  private ChassisVelocities getRobotRelativeVelocities() {
 
     return RobotConfig.getInstance()
         .getDifferentialDriveKinematics()
-        .toChassisSpeeds(
-            new DifferentialDriveWheelSpeeds(
+        .toChassisVelocities(
+            new DifferentialDriveWheelVelocities(
                 this.inputs.leftVelocityMPS, this.inputs.rightVelocityMPS));
   }
+
   /**
    * Applies the specified robot-relative speeds to the drivetrain along with the specified feed
    * forward forces.
    *
-   * @param chassisSpeeds the robot-relative speeds of the robot
+   * @param chassisVelocities the robot-relative speeds of the robot
    * @param feedforwards the feed forward forces to apply
    */
-  private void applyRobotSpeeds(ChassisSpeeds chassisSpeeds, DriveFeedforwards feedforwards) {
-    this.io.applyRobotSpeeds(
-        chassisSpeeds,
-        feedforwards.robotRelativeForcesX(),
-        feedforwards.robotRelativeForcesY(),
-        false);
-  }
+  // private void applyRobotVelocities(
+  //     ChassisVelocities chassisVelocities, DriveFeedforwards feedforwards) {
+  //   this.io.applyRobotVelocities(
+  //       chassisVelocities,
+  //       feedforwards.robotRelativeForcesX(),
+  //       feedforwards.robotRelativeForcesY(),
+  //       false);
+  // }
 
   /**
    * Returns true if the auto path, which is always defined for a blue alliance robot, should be
@@ -120,7 +119,7 @@ public class DifferentialDrivetrain extends SubsystemBase {
    * @return true if the auto path should be flipped to the red alliance side of the field
    */
   private boolean shouldFlipAutoPath() {
-    return Field2d.getInstance().getAlliance() == Alliance.Red;
+    return Field2d.getInstance().getAlliance() == Alliance.RED;
   }
 
   @Override
@@ -130,7 +129,7 @@ public class DifferentialDrivetrain extends SubsystemBase {
 
     // update odometry
     this.odometry.updateWithTime(
-        Timer.getFPGATimestamp(),
+        Timer.getTimestamp(), // FIXME: verify this is the correct timestamp (timebase) to use
         Rotation2d.fromDegrees(inputs.headingDeg),
         inputs.leftPositionMeters,
         inputs.rightPositionMeters);

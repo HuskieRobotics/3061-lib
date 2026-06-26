@@ -1,7 +1,7 @@
 package frc.lib.team3015.subsystem;
 
-import org.wpilib.system.Timer;
 import java.util.Objects;
+import org.wpilib.system.Timer;
 
 public class SubsystemFault {
   public final String description;

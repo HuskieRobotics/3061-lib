@@ -1,11 +1,11 @@
 package frc.robot.commands;
 
-import org.wpilib.math.util.Units;
-import org.wpilib.command2.InstantCommand;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.robot.operator_interface.OperatorInterface;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmConstants;
+import org.wpilib.command2.InstantCommand;
+import org.wpilib.math.util.Units;
 
 public class ArmCommandFactory {
 

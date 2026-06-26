@@ -6,9 +6,9 @@ package frc.lib.team3061.gyro;
 
 import static org.wpilib.units.Units.*;
 
+import org.littletonrobotics.junction.AutoLog;
 import org.wpilib.units.measure.Angle;
 import org.wpilib.units.measure.AngularVelocity;
-import org.littletonrobotics.junction.AutoLog;
 
 @java.lang.SuppressWarnings({"java:S1104"})
 

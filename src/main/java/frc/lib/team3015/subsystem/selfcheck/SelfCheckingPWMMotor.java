@@ -1,9 +1,9 @@
 package frc.lib.team3015.subsystem.selfcheck;
 
-import org.wpilib.hardware.motor.PWMMotorController;
 import frc.lib.team3015.subsystem.SubsystemFault;
 import java.util.ArrayList;
 import java.util.List;
+import org.wpilib.hardware.motor.PWMMotorController;
 
 public class SelfCheckingPWMMotor implements SelfChecking {
   private final String label;

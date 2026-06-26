@@ -1,10 +1,10 @@
 package frc.robot.configs;
 
+import frc.lib.team3061.RobotConfig;
+import frc.lib.team3061.swerve_drivetrain.swerve.SwerveConstants;
 import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.geometry.Transform3d;
 import org.wpilib.math.geometry.Translation3d;
-import frc.lib.team3061.RobotConfig;
-import frc.lib.team3061.swerve_drivetrain.swerve.SwerveConstants;
 
 /*
  * Refer to the README for how to represent your robot's configuration. For more information on

@@ -5,17 +5,17 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.sim.CANcoderSimState;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
-import org.wpilib.math.system.plant.DCMotor;
-import org.wpilib.math.util.Units;
-import org.wpilib.system.RobotController;
-import org.wpilib.simulation.SingleJointedArmSim;
-import org.wpilib.util.Color;
-import org.wpilib.util.Color8Bit;
 import frc.robot.Constants;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
+import org.wpilib.math.system.DCMotor;
+import org.wpilib.math.util.Units;
+import org.wpilib.simulation.SingleJointedArmSim;
+import org.wpilib.system.RobotController;
+import org.wpilib.util.Color;
+import org.wpilib.util.Color8Bit;
 
 public class ArmSystemSim {
 
@@ -116,8 +116,8 @@ public class ArmSystemSim {
     this.arm =
         armPivot.append(
             new LoggedMechanismLigament2d(
-                "Arm", length, startingAngle, 6, new Color8Bit(Color.kYellow)));
-    this.armTower.setColor(new Color8Bit(Color.kBlue));
+                "Arm", length, startingAngle, 6, new Color8Bit(Color.YELLOW)));
+    this.armTower.setColor(new Color8Bit(Color.BLUE));
 
     this.subsystemName = subsystemName;
   }
@@ -141,11 +141,11 @@ public class ArmSystemSim {
     this.systemSim.update(Constants.LOOP_PERIOD_SECS);
 
     // update the simulated TalonFX based on the model outputs
-    double mechanismRadians = this.systemSim.getAngleRads();
+    double mechanismRadians = this.systemSim.getAngle();
     double mechanismRotations = mechanismRadians / (2 * Math.PI);
     double sensorRotations = mechanismRotations * this.sensorToMechanismRatio;
     double motorRotations = sensorRotations * this.rotorToSensorRatio;
-    double mechanismRadiansPerSec = this.systemSim.getVelocityRadPerSec();
+    double mechanismRadiansPerSec = this.systemSim.getVelocity();
     double mechanismRPS = mechanismRadiansPerSec / (2 * Math.PI);
     double encoderRPS = mechanismRPS * this.sensorToMechanismRatio;
     double motorRPS = encoderRPS * this.rotorToSensorRatio;

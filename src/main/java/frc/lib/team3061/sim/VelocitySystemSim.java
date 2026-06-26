@@ -3,11 +3,11 @@ package frc.lib.team3061.sim;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
-import org.wpilib.math.numbers.N1;
-import org.wpilib.math.system.plant.LinearSystemId;
-import org.wpilib.system.RobotController;
-import org.wpilib.simulation.LinearSystemSim;
 import frc.robot.Constants;
+import org.wpilib.math.numbers.N1;
+import org.wpilib.math.system.Models;
+import org.wpilib.simulation.LinearSystemSim;
+import org.wpilib.system.RobotController;
 
 public class VelocitySystemSim {
 
@@ -31,7 +31,7 @@ public class VelocitySystemSim {
             ? ChassisReference.Clockwise_Positive
             : ChassisReference.CounterClockwise_Positive;
 
-    this.systemSim = new LinearSystemSim<>(LinearSystemId.identifyVelocitySystem(kV, kA));
+    this.systemSim = new LinearSystemSim<>(Models.flywheelFromSysId(kV, kA));
   }
 
   public void updateSim() {

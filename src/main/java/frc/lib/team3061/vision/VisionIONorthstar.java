@@ -11,16 +11,6 @@ import static frc.lib.team3061.vision.VisionConstants.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.wpilib.vision.apriltag.AprilTagFieldLayout;
-import org.wpilib.math.geometry.Pose3d;
-import org.wpilib.math.geometry.Quaternion;
-import org.wpilib.math.geometry.Rotation2d;
-import org.wpilib.math.geometry.Rotation3d;
-import org.wpilib.math.geometry.Transform3d;
-import org.wpilib.networktables.*;
-import org.wpilib.util.WPIUtilJNI;
-import org.wpilib.driverstation.DriverStation;
-import org.wpilib.system.Timer;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team6328.util.FieldConstants;
@@ -28,6 +18,17 @@ import frc.robot.Constants;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.wpilib.driverstation.MatchState;
+import org.wpilib.framework.RobotBase;
+import org.wpilib.math.geometry.Pose3d;
+import org.wpilib.math.geometry.Quaternion;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.geometry.Rotation3d;
+import org.wpilib.math.geometry.Transform3d;
+import org.wpilib.networktables.*;
+import org.wpilib.system.Timer;
+import org.wpilib.util.WPIUtilJNI;
+import org.wpilib.vision.apriltag.AprilTagFieldLayout;
 
 public class VisionIONorthstar implements VisionIO {
   private final String deviceId;
@@ -84,8 +85,8 @@ public class VisionIONorthstar implements VisionIO {
             .getDoubleArrayTopic("observations")
             .subscribe(
                 new double[] {},
-                PubSubOption.keepDuplicates(true),
-                PubSubOption.sendAll(true),
+                PubSubOption.KEEP_DUPLICATES,
+                PubSubOption.SEND_ALL,
                 PubSubOption.pollStorage(5),
                 PubSubOption.periodic(0.01));
     objDetectObservationSubscriber =
@@ -93,8 +94,8 @@ public class VisionIONorthstar implements VisionIO {
             .getDoubleArrayTopic("objdetect_observations")
             .subscribe(
                 new double[] {},
-                PubSubOption.keepDuplicates(true),
-                PubSubOption.sendAll(true),
+                PubSubOption.KEEP_DUPLICATES,
+                PubSubOption.SEND_ALL,
                 PubSubOption.pollStorage(5),
                 PubSubOption.periodic(0.01));
     fpsAprilTagsSubscriber = outputTable.getIntegerTopic("fps_apriltags").subscribe(0);
@@ -116,7 +117,7 @@ public class VisionIONorthstar implements VisionIO {
     // Update NT connection status
     inputs.connected = false;
     for (var client : NetworkTableInstance.getDefault().getConnections()) {
-      if (client.remote_id.startsWith(this.deviceId)) {
+      if (client.remoteId.startsWith(this.deviceId)) {
         inputs.connected = true;
         break;
       }
@@ -125,9 +126,9 @@ public class VisionIONorthstar implements VisionIO {
     // Publish timestamp
     timestampPublisher.set(WPIUtilJNI.getSystemTime() / 1000000);
 
-    eventNamePublisher.set(DriverStation.getEventName());
-    matchTypePublisher.set(DriverStation.getMatchType().ordinal());
-    matchNumberPublisher.set(DriverStation.getMatchNumber());
+    eventNamePublisher.set(MatchState.getEventName());
+    matchTypePublisher.set(MatchState.getMatchType().ordinal());
+    matchNumberPublisher.set(MatchState.getMatchNumber());
 
     // Get AprilTag data
     inputs.receivingFrames = false;
@@ -241,7 +242,7 @@ public class VisionIONorthstar implements VisionIO {
           Rotation2d currentRotation = RobotOdometry.getInstance().getEstimatedPose().getRotation();
           Rotation2d visionRotation0 = robotPose0.toPose2d().getRotation();
           Rotation2d visionRotation1 = robotPose1.toPose2d().getRotation();
-          if (DriverStation.isEnabled()) {
+          if (RobotBase.isEnabled()) {
             if (Math.abs(currentRotation.minus(visionRotation0).getRadians())
                 < Math.abs(currentRotation.minus(visionRotation1).getRadians())) {
               cameraPose = cameraPose0;
@@ -292,7 +293,7 @@ public class VisionIONorthstar implements VisionIO {
         new PoseObservation(
             timestamp,
             cameraPose,
-            Timer.getFPGATimestamp() - timestamp,
+            Timer.getTimestamp() - timestamp,
             ambiguity,
             reprojectionError,
             tagsSeenBitMap,

@@ -4,15 +4,15 @@
 
 package frc.robot.operator_interface;
 
-import org.wpilib.command2.button.CommandXboxController;
+import org.wpilib.command2.button.CommandNiDsXboxController;
 import org.wpilib.command2.button.Trigger;
 
 /** Class for controlling the robot with a single Xbox controller. */
 public class SingleHandheldOI extends OperatorDashboard {
-  private final CommandXboxController controller;
+  private final CommandNiDsXboxController controller;
 
   public SingleHandheldOI(int port) {
-    controller = new CommandXboxController(port);
+    controller = new CommandNiDsXboxController(port);
   }
 
   @Override

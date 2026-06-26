@@ -1,7 +1,7 @@
 package frc.robot.operator_interface;
 
-import org.wpilib.command2.button.Trigger;
 import frc.lib.team6328.util.LoggedTunableBoolean;
+import org.wpilib.command2.button.Trigger;
 
 /**
  * OperatorDashboard is a class that implements the OperatorInterface. It is not a joystick,

@@ -4,40 +4,11 @@
 
 package frc.lib.team3061.swerve_drivetrain;
 
-import static org.wpilib.units.Units.*;
 import static frc.lib.team3061.swerve_drivetrain.SwerveDrivetrainConstants.*;
 import static frc.robot.Constants.*;
+import static org.wpilib.units.Units.*;
 
 import com.ctre.phoenix6.SignalLogger;
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.config.PIDConstants;
-import com.pathplanner.lib.controllers.PPHolonomicDriveController;
-import com.pathplanner.lib.path.PathPlannerPath;
-import com.pathplanner.lib.util.DriveFeedforwards;
-import edu.wpi.first.math.Matrix;
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.filter.SlewRateLimiter;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Twist2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import edu.wpi.first.math.numbers.N1;
-import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.wpilibj.Alert;
-import edu.wpi.first.wpilibj.Alert.AlertType;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.leds.LEDs;
@@ -52,10 +23,32 @@ import frc.lib.team6328.util.LoggedTracer;
 import frc.lib.team6328.util.LoggedTunableNumber;
 import frc.robot.Constants;
 import frc.robot.Field2d;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
+import org.wpilib.command2.Command;
+import org.wpilib.command2.Commands;
+import org.wpilib.command2.SubsystemBase;
+import org.wpilib.command2.sysid.SysIdRoutine;
+import org.wpilib.driverstation.Alert;
+import org.wpilib.driverstation.Alliance;
+import org.wpilib.framework.RobotBase;
+import org.wpilib.math.controller.PIDController;
+import org.wpilib.math.filter.SlewRateLimiter;
+import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Pose3d;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.geometry.Transform2d;
+import org.wpilib.math.geometry.Translation2d;
+import org.wpilib.math.geometry.Twist2d;
+import org.wpilib.math.kinematics.ChassisVelocities;
+import org.wpilib.math.kinematics.SwerveModulePosition;
+import org.wpilib.math.linalg.Matrix;
+import org.wpilib.math.numbers.N1;
+import org.wpilib.math.numbers.N3;
+import org.wpilib.math.util.Units;
+import org.wpilib.system.Timer;
+import org.wpilib.units.measure.Angle;
 
 /**
  * This subsystem models the robot's drivetrain mechanism. It consists of a four swerve modules in
@@ -138,9 +131,9 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
   private static final double ACCELERATION_LIMITING_MAX_ANGULAR_VELOCITY_RPS = 4.0;
 
   private Alert noPoseAlert =
-      new Alert("Attempted to reset pose from vision, but no pose was found.", AlertType.kWarning);
+      new Alert("Attempted to reset pose from vision, but no pose was found.", Alert.Level.MEDIUM);
   private Alert pathFileMissingAlert =
-      new Alert("Could not find the specified path file.", AlertType.kError);
+      new Alert("Could not find the specified path file.", Alert.Level.HIGH);
 
   private final SwerveRobotOdometry odometry;
   private int constrainPoseToFieldCount = 0;
@@ -273,27 +266,28 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
 
     this.autoThetaController.enableContinuousInput(-Math.PI, Math.PI);
 
-    AutoBuilder.configure(
-        this::getPose, // Robot pose supplier
-        this::resetPose, // Method to reset odometry (will be called if your auto has a starting
-        // pose)
-        this::getRobotRelativeSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-        this::applyRobotSpeeds, // Method that will drive the robot given ROBOT RELATIVE
-        // ChassisSpeeds
-        new PPHolonomicDriveController( // HolonomicPathFollowerConfig, this should likely live in
-            // your Constants class
-            new com.pathplanner.lib.config.PIDConstants(
-                RobotConfig.getInstance().getAutoDriveKP(),
-                RobotConfig.getInstance().getAutoDriveKI(),
-                RobotConfig.getInstance().getAutoDriveKD()), // Translation PID constants
-            new PIDConstants(
-                RobotConfig.getInstance().getAutoTurnKP(),
-                RobotConfig.getInstance().getAutoTurnKI(),
-                RobotConfig.getInstance().getAutoTurnKD())), // Rotation PID constants
-        RobotConfig.getInstance().getPathPlannerRobotConfig(),
-        this::shouldFlipAutoPath,
-        this // Reference to this subsystem to set requirements
-        );
+    // AutoBuilder.configure(
+    //     this::getPose, // Robot pose supplier
+    //     this::resetPose, // Method to reset odometry (will be called if your auto has a starting
+    //     // pose)
+    //     this::getRobotRelativeVelocities, // ChassisVelocities supplier. MUST BE ROBOT RELATIVE
+    //     this::applyRoboVelocities, // Method that will drive the robot given ROBOT RELATIVE
+    //     // ChassisVelocities
+    //     new PPHolonomicDriveController( // HolonomicPathFollowerConfig, this should likely live
+    // in
+    //         // your Constants class
+    //         new com.pathplanner.lib.config.PIDConstants(
+    //             RobotConfig.getInstance().getAutoDriveKP(),
+    //             RobotConfig.getInstance().getAutoDriveKI(),
+    //             RobotConfig.getInstance().getAutoDriveKD()), // Translation PID constants
+    //         new PIDConstants(
+    //             RobotConfig.getInstance().getAutoTurnKP(),
+    //             RobotConfig.getInstance().getAutoTurnKI(),
+    //             RobotConfig.getInstance().getAutoTurnKD())), // Rotation PID constants
+    //     RobotConfig.getInstance().getPathPlannerRobotConfig(),
+    //     this::shouldFlipAutoPath,
+    //     this // Reference to this subsystem to set requirements
+    //     );
 
     this.odometry = new SwerveRobotOdometry();
     RobotOdometry.setInstance(this.odometry);
@@ -316,34 +310,35 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
   }
 
   /**
-   * Returns the robot-relative speeds of the robot.
+   * Returns the robot-relative velocities of the robot.
    *
-   * @return the robot-relative speeds of the robot
+   * @return the robot-relative velocities of the robot
    */
-  public ChassisSpeeds getRobotRelativeSpeeds() {
-    return this.inputs.drivetrain.measuredChassisSpeeds;
+  public ChassisVelocities getRobotRelativeVelocities() {
+    return this.inputs.drivetrain.measuredChassisVelocities;
   }
 
   /**
-   * Applies the specified robot-relative speeds to the drivetrain along with the specified feed
+   * Applies the specified robot-relative velocities to the drivetrain along with the specified feed
    * forward forces.
    *
-   * @param chassisSpeeds the robot-relative speeds of the robot
+   * @param chassisVelocities the robot-relative velocities of the robot
    * @param feedforwards the feed forward forces to apply
    */
-  public void applyRobotSpeeds(ChassisSpeeds chassisSpeeds, DriveFeedforwards feedforwards) {
+  // public void applyRobotSpeeds(
+  //     ChassisVelocities chassisVelocities, DriveFeedforwards feedforwards) {
 
-    // always calculate whenever we are driving so that we maintain a history of recent values
-    this.xFilter.calculate(chassisSpeeds.vxMetersPerSecond);
-    this.yFilter.calculate(chassisSpeeds.vyMetersPerSecond);
-    this.thetaFilter.calculate(chassisSpeeds.omegaRadiansPerSecond);
+  //   // always calculate whenever we are driving so that we maintain a history of recent values
+  //   this.xFilter.calculate(chassisVelocities.vx);
+  //   this.yFilter.calculate(chassisVelocities.vy);
+  //   this.thetaFilter.calculate(chassisVelocities.omega);
 
-    this.io.applyRobotSpeeds(
-        chassisSpeeds,
-        feedforwards.robotRelativeForcesX(),
-        feedforwards.robotRelativeForcesY(),
-        false);
-  }
+  //   this.io.applyRobotSpeeds(
+  //       chassisVelocities,
+  //       feedforwards.robotRelativeForcesX(),
+  //       feedforwards.robotRelativeForcesY(),
+  //       false);
+  // }
 
   /**
    * Zeroes the gyroscope. This sets the current rotation of the robot to zero degrees. This method
@@ -531,7 +526,7 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
       // station. As a result, "forward" from a field-relative perspective when on the red
       // alliance, is in the negative x direction. Similarly, "left" from a field-relative
       // perspective when on the red alliance is in the negative y direction.
-      if (Field2d.getInstance().getAlliance() != Alliance.Blue) {
+      if (Field2d.getInstance().getAlliance() != Alliance.BLUE) {
         xVelocityMPS = xVelocityMPS * -1;
         yVelocityMPS = yVelocityMPS * -1;
       }
@@ -584,7 +579,7 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
       }
     }
 
-    if (Field2d.getInstance().getAlliance() != Alliance.Blue) {
+    if (Field2d.getInstance().getAlliance() != Alliance.BLUE) {
       xVelocityMPS = xVelocityMPS * -1;
       yVelocityMPS = yVelocityMPS * -1;
     }
@@ -636,7 +631,7 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
     // update odometry
     for (int i = 0; i < inputs.drivetrain.odometryTimestamps.length; i++) {
       for (int moduleIndex = 0; moduleIndex < this.modulePositions.length; moduleIndex++) {
-        this.modulePositions[moduleIndex].distanceMeters =
+        this.modulePositions[moduleIndex].distance =
             inputs.swerve[moduleIndex].odometryDrivePositionsMeters[i];
         this.modulePositions[moduleIndex].angle =
             inputs.swerve[moduleIndex].odometryTurnPositions[i];
@@ -649,7 +644,7 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
     }
 
     // give chassis speeds to odometry for public access throughout the robot
-    this.odometry.updateChassisSpeeds(this.getRobotRelativeSpeeds());
+    this.odometry.updateChassisVelocities(this.getRobotRelativeVelocities());
 
     // custom pose vs default pose
     Pose2d pose = this.odometry.getEstimatedPose();
@@ -687,8 +682,8 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
       Logger.recordOutput(
           SUBSYSTEM_NAME + "/Speed",
           Math.hypot(
-              inputs.drivetrain.measuredChassisSpeeds.vxMetersPerSecond,
-              inputs.drivetrain.measuredChassisSpeeds.vyMetersPerSecond),
+              inputs.drivetrain.measuredChassisVelocities.vx,
+              inputs.drivetrain.measuredChassisVelocities.vy),
           MetersPerSecond);
     }
 
@@ -831,7 +826,7 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
     double[] positions = new double[inputs.swerve.length];
     for (int i = 0; i < inputs.swerve.length; i++) {
       positions[i] =
-          inputs.drivetrain.swerveModulePositions[i].distanceMeters
+          inputs.drivetrain.swerveModulePositions[i].distance
               / (RobotConfig.getInstance().getWheelRadiusMeters());
     }
     return positions;
@@ -843,7 +838,7 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
    */
   public void captureInitialConditions() {
     for (int i = 0; i < this.inputs.swerve.length; i++) {
-      this.initialDistance[i] = inputs.drivetrain.swerveModulePositions[i].distanceMeters;
+      this.initialDistance[i] = inputs.drivetrain.swerveModulePositions[i].distance;
     }
   }
 
@@ -857,29 +852,29 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
    * @param autoName the name of the autonomous path
    * @param measureDistance true to measure the distance traveled by the robot; false otherwise
    */
-  public void captureFinalConditions(String autoName, boolean measureDistance) {
-    try {
-      List<Pose2d> pathPoses = PathPlannerPath.fromPathFile(autoName).getPathPoses();
-      Pose2d targetPose = pathPoses.get(pathPoses.size() - 1);
-      Logger.recordOutput(SUBSYSTEM_NAME + "/AutoPoseDiff", targetPose.minus(this.customPose));
+  // public void captureFinalConditions(String autoName, boolean measureDistance) {
+  //   try {
+  //     List<Pose2d> pathPoses = PathPlannerPath.fromPathFile(autoName).getPathPoses();
+  //     Pose2d targetPose = pathPoses.get(pathPoses.size() - 1);
+  //     Logger.recordOutput(SUBSYSTEM_NAME + "/AutoPoseDiff", targetPose.minus(this.customPose));
 
-      if (measureDistance) {
-        double distance = 0.0;
-        for (int i = 0; i < this.inputs.swerve.length; i++) {
-          distance +=
-              Math.abs(
-                  inputs.drivetrain.swerveModulePositions[i].distanceMeters
-                      - this.initialDistance[i]);
-        }
+  //     if (measureDistance) {
+  //       double distance = 0.0;
+  //       for (int i = 0; i < this.inputs.swerve.length; i++) {
+  //         distance +=
+  //             Math.abs(
+  //                 inputs.drivetrain.swerveModulePositions[i].distance
+  //                     - this.initialDistance[i]);
+  //       }
 
-        distance /= this.inputs.swerve.length;
-        Logger.recordOutput(SUBSYSTEM_NAME + "/AutoDistanceDiff", distance, Meters);
-      }
-    } catch (Exception e) {
-      pathFileMissingAlert.setText("Could not find the specified path file: " + autoName);
-      pathFileMissingAlert.set(true);
-    }
-  }
+  //       distance /= this.inputs.swerve.length;
+  //       Logger.recordOutput(SUBSYSTEM_NAME + "/AutoDistanceDiff", distance, Meters);
+  //     }
+  //   } catch (Exception e) {
+  //     pathFileMissingAlert.setText("Could not find the specified path file: " + autoName);
+  //     pathFileMissingAlert.set(true);
+  //   }
+  // }
 
   /**
    * Returns true if the auto path, which is always defined for a blue alliance robot, should be
@@ -888,7 +883,7 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
    * @return true if the auto path should be flipped to the red alliance side of the field
    */
   public boolean shouldFlipAutoPath() {
-    return Field2d.getInstance().getAlliance() == Alliance.Red;
+    return Field2d.getInstance().getAlliance() == Alliance.RED;
   }
 
   /**
@@ -896,19 +891,18 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
    * stopped moving for the specified period of time, and brake mode is enabled; disable it.
    */
   private void updateBrakeMode() {
-    if (DriverStation.isEnabled()) {
+    if (RobotBase.isEnabled()) {
       if (!brakeMode) {
         brakeMode = true;
         setBrakeMode(true);
       }
       brakeModeTimer.restart();
 
-    } else if (!DriverStation.isEnabled()) {
+    } else if (!RobotBase.isEnabled()) {
       boolean stillMoving = false;
       double velocityLimit = RobotConfig.getInstance().getRobotMaxCoastVelocityMPS();
-      if (Math.abs(this.inputs.drivetrain.measuredChassisSpeeds.vxMetersPerSecond) > velocityLimit
-          || Math.abs(this.inputs.drivetrain.measuredChassisSpeeds.vyMetersPerSecond)
-              > velocityLimit) {
+      if (Math.abs(this.inputs.drivetrain.measuredChassisVelocities.vx) > velocityLimit
+          || Math.abs(this.inputs.drivetrain.measuredChassisVelocities.vy) > velocityLimit) {
         stillMoving = true;
         brakeModeTimer.restart();
       }
@@ -961,11 +955,12 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
     // project the current rotational velocity as that will adversely affect the control loop
     // attempting to reach the rotational setpoint.
     return this.getPose()
-        .exp(
+        .plus(
             new Twist2d(
-                this.getRobotRelativeSpeeds().vxMetersPerSecond * translationSecondsInFuture,
-                this.getRobotRelativeSpeeds().vyMetersPerSecond * translationSecondsInFuture,
-                this.getRobotRelativeSpeeds().omegaRadiansPerSecond * rotationSecondsInFuture));
+                    this.getRobotRelativeVelocities().vx * translationSecondsInFuture,
+                    this.getRobotRelativeVelocities().vy * translationSecondsInFuture,
+                    this.getRobotRelativeVelocities().omega * rotationSecondsInFuture)
+                .exp());
   }
 
   public Pose2d getCustomEstimatedPose() {
@@ -1105,7 +1100,7 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
 
     // Checks the velocity of the swerve module depending on if there is an offset
     double velocityMeasuredMPS =
-        inputs.drivetrain.swerveMeasuredStates[swerveModuleNumber].speedMetersPerSecond;
+        inputs.drivetrain.swerveMeasuredVelocities[swerveModuleNumber].velocity;
     if (!isOffset) {
       if (!MathUtils.isNear(velocityMeasuredMPS, velocityTargetMPS, velocityToleranceMPS)) {
         FaultReporter.getInstance()

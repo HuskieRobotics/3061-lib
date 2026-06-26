@@ -1,8 +1,8 @@
 package frc.lib.team254;
 
-import org.wpilib.system.Timer;
-import org.wpilib.command2.button.Trigger;
 import java.util.function.BooleanSupplier;
+import org.wpilib.command2.button.Trigger;
+import org.wpilib.system.Timer;
 
 public class CurrentSpikeDetector implements BooleanSupplier {
   private double currentThresholdAmps;

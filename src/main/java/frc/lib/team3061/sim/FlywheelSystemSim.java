@@ -5,11 +5,11 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
-import org.wpilib.math.system.plant.DCMotor;
-import org.wpilib.math.system.plant.LinearSystemId;
-import org.wpilib.system.RobotController;
-import org.wpilib.simulation.FlywheelSim;
 import frc.robot.Constants;
+import org.wpilib.math.system.DCMotor;
+import org.wpilib.math.system.Models;
+import org.wpilib.simulation.FlywheelSim;
+import org.wpilib.system.RobotController;
 
 public class FlywheelSystemSim {
 
@@ -39,7 +39,7 @@ public class FlywheelSystemSim {
     DCMotor dcMotors = DCMotor.getKrakenX60Foc(motors.length);
     this.systemSim =
         new FlywheelSim(
-            LinearSystemId.createFlywheelSystem(dcMotors, momentOfInertia, gearRatio), dcMotors);
+            Models.flywheelFromPhysicalConstants(dcMotors, momentOfInertia, gearRatio), dcMotors);
   }
 
   public void updateSim() {

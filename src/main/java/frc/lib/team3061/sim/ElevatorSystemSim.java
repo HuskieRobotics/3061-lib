@@ -3,16 +3,16 @@ package frc.lib.team3061.sim;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
-import org.wpilib.math.system.plant.DCMotor;
-import org.wpilib.system.RobotController;
-import org.wpilib.simulation.ElevatorSim;
-import org.wpilib.util.Color;
-import org.wpilib.util.Color8Bit;
 import frc.robot.Constants;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
+import org.wpilib.math.system.DCMotor;
+import org.wpilib.simulation.ElevatorSim;
+import org.wpilib.system.RobotController;
+import org.wpilib.util.Color;
+import org.wpilib.util.Color8Bit;
 
 public class ElevatorSystemSim {
 
@@ -68,7 +68,7 @@ public class ElevatorSystemSim {
     this.elevatorExtension =
         elevatorBase.append(
             new LoggedMechanismLigament2d(
-                "ElevatorExtension", minHeightMeters, 90.0, 6, new Color8Bit(Color.kYellow)));
+                "ElevatorExtension", minHeightMeters, 90.0, 6, new Color8Bit(Color.YELLOW)));
 
     this.subsystemName = subsystemName;
   }
@@ -89,10 +89,10 @@ public class ElevatorSystemSim {
     this.systemSim.update(Constants.LOOP_PERIOD_SECS);
 
     // update the simulated TalonFX based on the model outputs
-    double mechanismLength = this.systemSim.getPositionMeters();
+    double mechanismLength = this.systemSim.getPosition();
     double pulleyRotations = mechanismLength / (2 * Math.PI * this.pulleyRadiusMeters);
     double motorRotations = pulleyRotations * this.gearRatio;
-    double mechanismMetersPerSec = this.systemSim.getVelocityMetersPerSecond();
+    double mechanismMetersPerSec = this.systemSim.getVelocity();
     double pulleyRPS = mechanismMetersPerSec / (2 * Math.PI * this.pulleyRadiusMeters);
     double motorRPS = pulleyRPS * this.gearRatio;
     this.motorSimState.setRawRotorPosition(motorRotations);

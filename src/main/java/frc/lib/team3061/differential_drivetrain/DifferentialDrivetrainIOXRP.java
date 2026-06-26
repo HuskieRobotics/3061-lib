@@ -3,15 +3,14 @@ package frc.lib.team3061.differential_drivetrain;
 import static frc.lib.team3061.differential_drivetrain.DifferentialDrivetrainConstants.*;
 import static frc.robot.Constants.LOOP_PERIOD_SECS;
 
-import org.wpilib.math.filter.LinearFilter;
-import org.wpilib.math.kinematics.ChassisSpeeds;
-import org.wpilib.units.measure.Force;
-import org.wpilib.BuiltInAccelerometer;
-import org.wpilib.hardware.rotation.Encoder;
+import frc.lib.team3061.RobotConfig;
 import org.wpilib.drive.DifferentialDrive;
+import org.wpilib.hardware.rotation.Encoder;
+import org.wpilib.math.filter.LinearFilter;
+import org.wpilib.math.kinematics.ChassisVelocities;
+import org.wpilib.units.measure.Force;
 import org.wpilib.xrp.XRPGyro;
 import org.wpilib.xrp.XRPMotor;
-import frc.lib.team3061.RobotConfig;
 
 public class DifferentialDrivetrainIOXRP implements DifferentialDrivetrainIO {
 
@@ -27,13 +26,14 @@ public class DifferentialDrivetrainIOXRP implements DifferentialDrivetrainIO {
 
   // Set up the differential drive controller
   private final DifferentialDrive diffDrive =
-      new DifferentialDrive(leftMotor::set, rightMotor::set);
+      new DifferentialDrive(leftMotor::setThrottle, rightMotor::setThrottle);
 
   // Set up the XRPGyro
   private final XRPGyro gyro = new XRPGyro();
 
   // Set up the BuiltInAccelerometer
-  private final BuiltInAccelerometer accelerometer = new BuiltInAccelerometer();
+  // FIXME: determine how to access the XRP's accelerometer
+  // private final BuiltInAccelerometer accelerometer = new BuiltInAccelerometer();
 
   private double prevLeftPositionMeters = 0;
   private double prevRightPositionMeters = 0;
@@ -61,8 +61,8 @@ public class DifferentialDrivetrainIOXRP implements DifferentialDrivetrainIO {
 
   @Override
   public void updateInputs(DifferentialDrivetrainIOInputs inputs) {
-    inputs.leftMotorSpeed = leftMotor.get();
-    inputs.rightMotorSpeed = rightMotor.get();
+    inputs.leftMotorSpeed = leftMotor.getThrottle();
+    inputs.rightMotorSpeed = rightMotor.getThrottle();
 
     inputs.leftEncoderCount = leftEncoder.get();
     inputs.rightEncoderCount = rightEncoder.get();
@@ -82,9 +82,9 @@ public class DifferentialDrivetrainIOXRP implements DifferentialDrivetrainIO {
     inputs.rollDeg = gyro.getAngleY();
 
     // convert from acceleration in Gs to m/s^2
-    inputs.xAccelerationMPSPS = accelerometer.getX() * 9.81;
-    inputs.yAccelerationMPSPS = accelerometer.getY() * 9.81;
-    inputs.zAccelerationMPSPS = accelerometer.getZ() * 9.81;
+    // inputs.xAccelerationMPSPS = accelerometer.getX() * 9.81;
+    // inputs.yAccelerationMPSPS = accelerometer.getY() * 9.81;
+    // inputs.zAccelerationMPSPS = accelerometer.getZ() * 9.81;
 
     this.prevLeftPositionMeters = inputs.leftPositionMeters;
     this.prevRightPositionMeters = inputs.rightPositionMeters;
@@ -123,8 +123,8 @@ public class DifferentialDrivetrainIOXRP implements DifferentialDrivetrainIO {
    */
   @Override
   public void applyRobotSpeeds(
-      ChassisSpeeds speeds, Force[] forcesX, Force[] forcesY, boolean isOpenLoop) {
-    diffDrive.arcadeDrive(speeds.vxMetersPerSecond, speeds.omegaRadiansPerSecond);
+      ChassisVelocities velocities, Force[] forcesX, Force[] forcesY, boolean isOpenLoop) {
+    diffDrive.arcadeDrive(velocities.vx, velocities.omega);
   }
 
   private void resetEncoders() {

@@ -1,15 +1,15 @@
 package frc.robot.visualizations;
 
-import org.wpilib.math.util.Units;
-import org.wpilib.framework.RobotBase;
-import org.wpilib.util.Color;
-import org.wpilib.util.Color8Bit;
 import frc.lib.team3061.RobotConfig;
 import frc.robot.subsystems.elevator.Elevator;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
+import org.wpilib.framework.RobotBase;
+import org.wpilib.math.util.Units;
+import org.wpilib.util.Color;
+import org.wpilib.util.Color8Bit;
 
 public class RobotVisualization {
 

@@ -3,22 +3,6 @@ package frc.lib.team3061.vision;
 import static frc.lib.team3061.vision.VisionConstants.*;
 import static frc.robot.Constants.*;
 
-import org.wpilib.vision.apriltag.AprilTagFieldLayout;
-import org.wpilib.math.linalg.Matrix;
-import org.wpilib.math.linalg.VecBuilder;
-import org.wpilib.math.filter.Debouncer;
-import org.wpilib.math.filter.Debouncer.DebounceType;
-import org.wpilib.math.geometry.Pose2d;
-import org.wpilib.math.geometry.Pose3d;
-import org.wpilib.math.geometry.Transform3d;
-import org.wpilib.math.geometry.Translation2d;
-import org.wpilib.math.numbers.N1;
-import org.wpilib.math.numbers.N3;
-import org.wpilib.util.Alert;
-import org.wpilib.util.Alert.AlertType;
-import org.wpilib.driverstation.DriverStation;
-import org.wpilib.system.Timer;
-import org.wpilib.command2.SubsystemBase;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team3061.vision.VisionIO.PoseObservation;
@@ -33,6 +17,22 @@ import java.util.Map;
 import java.util.Optional;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
+import org.wpilib.command2.SubsystemBase;
+import org.wpilib.driverstation.Alert;
+import org.wpilib.driverstation.RobotState;
+import org.wpilib.framework.RobotBase;
+import org.wpilib.math.filter.Debouncer;
+import org.wpilib.math.filter.Debouncer.DebounceType;
+import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Pose3d;
+import org.wpilib.math.geometry.Transform3d;
+import org.wpilib.math.geometry.Translation2d;
+import org.wpilib.math.linalg.Matrix;
+import org.wpilib.math.linalg.VecBuilder;
+import org.wpilib.math.numbers.N1;
+import org.wpilib.math.numbers.N3;
+import org.wpilib.system.Timer;
+import org.wpilib.vision.apriltag.AprilTagFieldLayout;
 
 /**
  * The Vision subsystem is responsible for updating the robot's estimated pose based on a collection
@@ -64,9 +64,9 @@ public class Vision extends SubsystemBase {
   private AprilTagFieldLayout layout;
 
   private Alert northstarThermalAlertWarning =
-      new Alert("Northstar co-processor thermal pressure is high.", AlertType.kWarning);
+      new Alert("Northstar co-processor thermal pressure is high.", Alert.Level.MEDIUM);
   private Alert northstarThermalAlertError =
-      new Alert("Northstar co-processor thermal pressure is critical!", AlertType.kError);
+      new Alert("Northstar co-processor thermal pressure is critical!", Alert.Level.HIGH);
 
   private boolean isEnabled = true;
   private final Debouncer isVisionUpdatingDebounce =
@@ -142,7 +142,7 @@ public class Vision extends SubsystemBase {
               "camera "
                   + RobotConfig.getInstance().getCameraConfigs()[i].location()
                   + " is disconnected",
-              AlertType.kError);
+              Alert.Level.HIGH);
       this.camerasToConsider.add(i);
 
       tagPoses.add(new ArrayList<>());
@@ -216,7 +216,7 @@ public class Vision extends SubsystemBase {
     // Update recording state
     boolean shouldRecord =
         // Ensure that match info can be published before recording
-        fmsAttachedDebouncer.calculate(DriverStation.isFMSAttached()) || recordingRequest.get();
+        fmsAttachedDebouncer.calculate(RobotState.isFMSAttached()) || recordingRequest.get();
     for (VisionIO io : this.visionIOs) {
       io.setRecording(shouldRecord);
     }
@@ -315,7 +315,7 @@ public class Vision extends SubsystemBase {
               acceptPoseForPoseReset
                   && (arePoseRotationsReasonable(estimatedRobotPose3d)
                       || observation.type() == PoseObservationType.MULTI_TAG
-                      || DriverStation.isDisabled());
+                      || RobotBase.isDisabled());
 
           if (acceptPoseForPoseReset) {
             stdDev = getStandardDeviations(cameraIndex, observation);
@@ -585,8 +585,8 @@ public class Vision extends SubsystemBase {
 
   /**
    * The standard deviations of the estimated pose from {@link #getEstimatedGlobalPose()}, for use
-   * with {@link edu.wpi.first.math.estimator.SwerveDrivePoseEstimator SwerveDrivePoseEstimator}.
-   * This should only be used when there are targets visible.
+   * with {@link org.wpilib.math.estimator.SwerveDrivePoseEstimator SwerveDrivePoseEstimator}. This
+   * should only be used when there are targets visible.
    *
    * @param estimatedPose The estimated pose to guess standard deviations for.
    */
@@ -608,7 +608,7 @@ public class Vision extends SubsystemBase {
     // only trust the rotation component for multi-tag strategies; for single-tag, set the standard
     // deviation to infinity
     double thetaStdDev =
-        (observation.type() == PoseObservationType.MULTI_TAG || DriverStation.isDisabled())
+        (observation.type() == PoseObservationType.MULTI_TAG || RobotBase.isDisabled())
             ? thetaStdDevCoefficient.get()
                 * Math.pow(observation.averageTagDistance(), 2.0)
                 * (reprojectionErrorScaleFactor.get() * observation.reprojectionError())

@@ -15,21 +15,20 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.UpdateModeValue;
-import org.wpilib.math.filter.Debouncer;
-import org.wpilib.units.measure.AngularVelocity;
-import org.wpilib.units.measure.Current;
-import org.wpilib.units.measure.Distance;
-import org.wpilib.units.measure.Temperature;
-import org.wpilib.units.measure.Voltage;
-import org.wpilib.util.Alert;
-import org.wpilib.util.Alert.AlertType;
-import org.wpilib.system.RobotController;
 import frc.lib.team254.Phoenix6Util;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.sim.VelocitySystemSim;
 import frc.lib.team6328.util.LoggedTunableNumber;
 import frc.robot.Constants;
+import org.wpilib.driverstation.Alert;
+import org.wpilib.math.filter.Debouncer;
+import org.wpilib.system.RobotController;
+import org.wpilib.units.measure.AngularVelocity;
+import org.wpilib.units.measure.Current;
+import org.wpilib.units.measure.Distance;
+import org.wpilib.units.measure.Temperature;
+import org.wpilib.units.measure.Voltage;
 
 public class ShooterIOTalonFX implements ShooterIO {
 
@@ -64,11 +63,11 @@ public class ShooterIOTalonFX implements ShooterIO {
   private VelocitySystemSim shootMotorBottomSim;
 
   private Alert topMotorConfigAlert =
-      new Alert("Failed to apply configuration for shooter top motor.", AlertType.kError);
+      new Alert("Failed to apply configuration for shooter top motor.", Alert.Level.HIGH);
   private Alert bottomMotorConfigAlert =
-      new Alert("Failed to apply configuration for shooter bottom motor.", AlertType.kError);
+      new Alert("Failed to apply configuration for shooter bottom motor.", Alert.Level.HIGH);
   private Alert gamePieceDetectorConfigAlert =
-      new Alert("Failed to apply configuration for shooter game piece detector.", AlertType.kError);
+      new Alert("Failed to apply configuration for shooter game piece detector.", Alert.Level.HIGH);
 
   // The following enables tuning of the PID and feedforward values for the arm by changing values
   // via AdvantageScope and not needing to change values in code, compile, and re-deploy.

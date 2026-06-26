@@ -8,14 +8,13 @@
 
 package frc.lib.team3061.pneumatics;
 
-import org.wpilib.util.Alert;
-import org.wpilib.util.Alert.AlertType;
-import org.wpilib.system.Timer;
-import org.wpilib.command2.SubsystemBase;
 import frc.robot.Constants;
 import java.util.ArrayList;
 import java.util.List;
 import org.littletonrobotics.junction.Logger;
+import org.wpilib.command2.SubsystemBase;
+import org.wpilib.driverstation.Alert;
+import org.wpilib.system.Timer;
 
 /** The pneumatics subsystem. */
 public class Pneumatics extends SubsystemBase {
@@ -37,7 +36,7 @@ public class Pneumatics extends SubsystemBase {
   private Timer noPressureTimer = new Timer();
   private Timer compressorEnabledTimer = new Timer();
   private Alert dumpValveAlert =
-      new Alert("Cannot build pressure. Is the dump value open?", AlertType.kError);
+      new Alert("Cannot build pressure. Is the dump value open?", Alert.Level.HIGH);
 
   /**
    * Create a new pneumatics subsystem.

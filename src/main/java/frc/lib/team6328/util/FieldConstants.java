@@ -8,18 +8,17 @@ package frc.lib.team6328.util;
 // the root directory of this project.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.wpilib.vision.apriltag.AprilTagFieldLayout;
-import org.wpilib.math.geometry.Pose2d;
-import org.wpilib.math.geometry.Translation2d;
-import org.wpilib.math.geometry.Translation3d;
-import org.wpilib.math.util.Units;
-import org.wpilib.util.Alert;
-import org.wpilib.util.Alert.AlertType;
-import org.wpilib.system.Filesystem;
 import java.io.IOException;
 import java.nio.file.Path;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.wpilib.driverstation.Alert;
+import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Translation2d;
+import org.wpilib.math.geometry.Translation3d;
+import org.wpilib.math.util.Units;
+import org.wpilib.system.Filesystem;
+import org.wpilib.vision.apriltag.AprilTagFieldLayout;
 
 @java.lang.SuppressWarnings({"java:S112", "java:S115", "java:S1118", "java:S3077"})
 
@@ -329,8 +328,8 @@ public class FieldConstants {
     private Alert noAprilTagLayoutAlert =
         new Alert(
             "No AprilTag layout file found. Update APRILTAG_FIELD_LAYOUT_PATH in VisionConstants.java",
-            AlertType.kWarning);
-    private Alert unofficialAprilTagLayoutAlert = new Alert("", AlertType.kInfo);
+            Alert.Level.MEDIUM);
+    private Alert unofficialAprilTagLayoutAlert = new Alert("", Alert.Level.LOW);
 
     AprilTagLayoutType(String name) {
       this.name = name;

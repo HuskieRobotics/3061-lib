@@ -1,10 +1,10 @@
 package frc.lib.team254;
 
-import org.wpilib.util.sendable.SendableBuilder;
-import org.wpilib.command2.Command;
-import org.wpilib.command2.CommandScheduler;
 import java.util.ArrayList;
 import java.util.List;
+import org.wpilib.command2.Command;
+import org.wpilib.command2.CommandScheduler;
+import org.wpilib.util.sendable.SendableBuilder;
 
 /**
  * A command composition that runs a list of commands in sequence. But faster.

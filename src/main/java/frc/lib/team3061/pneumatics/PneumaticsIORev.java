@@ -10,9 +10,9 @@ package frc.lib.team3061.pneumatics;
 
 import static frc.robot.Constants.*;
 
+import frc.lib.team3061.RobotConfig;
 import org.wpilib.hardware.discrete.AnalogInput;
 import org.wpilib.hardware.pneumatic.PneumaticHub;
-import frc.lib.team3061.RobotConfig;
 
 /**
  * Implementation of PneumaticsIO for REV Robotics Pneumatics Hub, dual REV Robotics pressure

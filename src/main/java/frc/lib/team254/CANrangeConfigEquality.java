@@ -43,6 +43,7 @@ public class CANrangeConfigEquality {
         && MathUtil.isNear(a.FOVRangeX, b.FOVRangeX, PHOENIX_CONFIG_EPSILON)
         && MathUtil.isNear(a.FOVRangeY, b.FOVRangeY, PHOENIX_CONFIG_EPSILON);
   }
+
   /**
    * Returns true if the two specified Proximity params configurations are equal; otherwise, false.
    *

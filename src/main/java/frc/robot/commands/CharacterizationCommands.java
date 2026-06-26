@@ -13,15 +13,15 @@
 
 package frc.robot.commands;
 
-import org.wpilib.math.filter.SlewRateLimiter;
-import org.wpilib.math.geometry.Rotation2d;
-import org.wpilib.math.util.Units;
-import org.wpilib.command2.Command;
-import org.wpilib.command2.Commands;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import org.wpilib.command2.Command;
+import org.wpilib.command2.Commands;
+import org.wpilib.math.filter.SlewRateLimiter;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.util.Units;
 
 @java.lang.SuppressWarnings({"java:S106"})
 public class CharacterizationCommands {

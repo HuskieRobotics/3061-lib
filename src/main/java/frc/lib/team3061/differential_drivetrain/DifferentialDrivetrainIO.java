@@ -1,9 +1,9 @@
 package frc.lib.team3061.differential_drivetrain;
 
-import org.wpilib.math.kinematics.ChassisSpeeds;
-import org.wpilib.units.measure.Force;
 import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrainConstants.SysIDCharacterizationMode;
 import org.littletonrobotics.junction.AutoLog;
+import org.wpilib.math.kinematics.ChassisVelocities;
+import org.wpilib.units.measure.Force;
 
 public interface DifferentialDrivetrainIO {
   @AutoLog
@@ -59,7 +59,7 @@ public interface DifferentialDrivetrainIO {
    * @param isOpenLoop true for open-loop control; false for closed-loop control
    */
   public default void applyRobotSpeeds(
-      ChassisSpeeds speeds, Force[] forcesX, Force[] forcesY, boolean isOpenLoop) {}
+      ChassisVelocities velocities, Force[] forcesX, Force[] forcesY, boolean isOpenLoop) {}
 
   /**
    * Applies the specified characterization mode to the drivetrain with the specified value. This is

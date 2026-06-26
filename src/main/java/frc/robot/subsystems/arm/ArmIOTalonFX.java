@@ -16,20 +16,19 @@ import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
-import org.wpilib.math.filter.Debouncer;
-import org.wpilib.math.util.Units;
-import org.wpilib.units.measure.Angle;
-import org.wpilib.units.measure.Current;
-import org.wpilib.units.measure.Temperature;
-import org.wpilib.units.measure.Voltage;
-import org.wpilib.util.Alert;
-import org.wpilib.util.Alert.AlertType;
 import frc.lib.team254.Phoenix6Util;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.sim.ArmSystemSim;
 import frc.lib.team6328.util.LoggedTunableNumber;
 import frc.robot.Constants;
+import org.wpilib.driverstation.Alert;
+import org.wpilib.math.filter.Debouncer;
+import org.wpilib.math.util.Units;
+import org.wpilib.units.measure.Angle;
+import org.wpilib.units.measure.Current;
+import org.wpilib.units.measure.Temperature;
+import org.wpilib.units.measure.Voltage;
 
 public class ArmIOTalonFX implements ArmIO {
 
@@ -49,7 +48,7 @@ public class ArmIOTalonFX implements ArmIO {
 
   private ArmSystemSim angleMotorSim;
 
-  private Alert configAlert = new Alert("Failed to apply configuration for arm.", AlertType.kError);
+  private Alert configAlert = new Alert("Failed to apply configuration for arm.", Alert.Level.HIGH);
 
   // The following enables tuning of the PID and feedforward values for the arm by changing values
   // via AdvantageScope and not needing to change values in code, compile, and re-deploy.

@@ -1,10 +1,5 @@
 package frc.robot.commands;
 
-import org.wpilib.math.geometry.Rotation2d;
-import org.wpilib.math.util.Units;
-import org.wpilib.command2.Command;
-import org.wpilib.command2.Commands;
-import org.wpilib.command2.button.Trigger;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.leds.LEDs;
 import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
@@ -15,6 +10,11 @@ import frc.robot.operator_interface.OISelector;
 import frc.robot.operator_interface.OperatorInterface;
 import java.util.Optional;
 import java.util.function.Supplier;
+import org.wpilib.command2.Command;
+import org.wpilib.command2.Commands;
+import org.wpilib.command2.button.Trigger;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.util.Units;
 
 public class SwerveDrivetrainCommandFactory {
 

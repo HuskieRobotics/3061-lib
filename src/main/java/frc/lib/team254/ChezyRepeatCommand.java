@@ -2,9 +2,9 @@ package frc.lib.team254;
 
 import static org.wpilib.util.ErrorMessages.requireNonNullParam;
 
-import org.wpilib.util.sendable.SendableBuilder;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.CommandScheduler;
+import org.wpilib.util.sendable.SendableBuilder;
 
 public class ChezyRepeatCommand extends Command {
   private final Command m_command;

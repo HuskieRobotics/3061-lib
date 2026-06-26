@@ -1,11 +1,11 @@
 package frc.lib.team3061.util;
 
 import com.ctre.phoenix6.Utils;
-import org.wpilib.math.linalg.Matrix;
+import java.util.Optional;
 import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.linalg.Matrix;
 import org.wpilib.math.numbers.N1;
 import org.wpilib.math.numbers.N3;
-import java.util.Optional;
 
 public interface CustomPoseEstimator {
   /**

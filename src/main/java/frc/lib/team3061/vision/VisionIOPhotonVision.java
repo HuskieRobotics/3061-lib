@@ -1,8 +1,5 @@
 package frc.lib.team3061.vision;
 
-import org.wpilib.vision.apriltag.AprilTagFieldLayout;
-import org.wpilib.math.geometry.Transform3d;
-import org.wpilib.system.Timer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -11,6 +8,9 @@ import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 import org.photonvision.targeting.PhotonPipelineResult;
+import org.wpilib.math.geometry.Transform3d;
+import org.wpilib.system.Timer;
+import org.wpilib.vision.apriltag.AprilTagFieldLayout;
 
 public class VisionIOPhotonVision implements VisionIO {
   protected final PhotonCamera camera;

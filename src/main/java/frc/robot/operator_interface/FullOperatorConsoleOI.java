@@ -5,7 +5,7 @@
 package frc.robot.operator_interface;
 
 import org.wpilib.command2.button.CommandJoystick;
-import org.wpilib.command2.button.CommandXboxController;
+import org.wpilib.command2.button.CommandNiDsXboxController;
 import org.wpilib.command2.button.Trigger;
 
 /**
@@ -19,12 +19,12 @@ public class FullOperatorConsoleOI extends OperatorDashboard {
   private final CommandJoystick rotateJoystick;
   private final Trigger[] rotateJoystickButtons;
 
-  private final CommandXboxController operatorController;
+  private final CommandNiDsXboxController operatorController;
 
   public FullOperatorConsoleOI(int translatePort, int rotatePort, int operatorControllerPort) {
     translateJoystick = new CommandJoystick(translatePort);
     rotateJoystick = new CommandJoystick(rotatePort);
-    operatorController = new CommandXboxController(operatorControllerPort);
+    operatorController = new CommandNiDsXboxController(operatorControllerPort);
 
     // buttons use 1-based indexing such that the index matches the button number; leave index 0 set
     // to null

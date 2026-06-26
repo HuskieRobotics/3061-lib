@@ -4,11 +4,11 @@
 
 package frc.robot.commands;
 
-import org.wpilib.command2.Command;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.differential_drivetrain.DifferentialDrivetrain;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
+import org.wpilib.command2.Command;
 
 public class ArcadeDrive extends Command {
   private final DifferentialDrivetrain drivetrain;

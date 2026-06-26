@@ -1,7 +1,7 @@
 package frc.robot.subsystems.elevator;
 
-import static org.wpilib.units.Units.*;
 import static frc.robot.subsystems.elevator.ElevatorConstants.*;
+import static org.wpilib.units.Units.*;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
@@ -14,20 +14,19 @@ import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import edu.wpi.first.math.filter.Debouncer;
-import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.Current;
-import edu.wpi.first.units.measure.Temperature;
-import edu.wpi.first.units.measure.Voltage;
-import edu.wpi.first.wpilibj.Alert;
-import edu.wpi.first.wpilibj.Alert.AlertType;
 import frc.lib.team254.Phoenix6Util;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.sim.ElevatorSystemSim;
 import frc.lib.team6328.util.LoggedTunableNumber;
 import frc.robot.Constants;
+import org.wpilib.driverstation.Alert;
+import org.wpilib.math.filter.Debouncer;
+import org.wpilib.units.measure.Angle;
+import org.wpilib.units.measure.AngularVelocity;
+import org.wpilib.units.measure.Current;
+import org.wpilib.units.measure.Temperature;
+import org.wpilib.units.measure.Voltage;
 
 public class ElevatorIOTalonFX implements ElevatorIO {
 
@@ -39,9 +38,9 @@ public class ElevatorIOTalonFX implements ElevatorIO {
   private VoltageOut leadVoltageRequest;
 
   private Alert leadConfigAlert =
-      new Alert("Failed to apply configuration for subsystem.", AlertType.kError);
+      new Alert("Failed to apply configuration for subsystem.", Alert.Level.HIGH);
   private Alert followerConfigAlert =
-      new Alert("Failed to apply configuration for subsystem.", AlertType.kError);
+      new Alert("Failed to apply configuration for subsystem.", Alert.Level.HIGH);
 
   private StatusSignal<Current> leadStatorCurrent;
   private StatusSignal<Current> followerStatorCurrent;
