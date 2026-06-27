@@ -18,12 +18,12 @@ public class LoggedTracer {
 
   /** Reset the clock. */
   public static void reset() {
-    startTime = Timer.getFPGATimestamp();
+    startTime = Timer.getTimestamp();
   }
 
   /** Save the time elapsed since the last reset or record. */
   public static void record(String epochName) {
-    double now = Timer.getFPGATimestamp();
+    double now = Timer.getTimestamp();
     Logger.recordOutput("LoggedTracer/" + epochName + "MS", (now - startTime) * 1000.0);
     startTime = now;
   }

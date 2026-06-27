@@ -13,7 +13,7 @@ import org.littletonrobotics.junction.Logger;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
-import org.wpilib.driverstation.DriverStation;
+import org.wpilib.framework.RobotBase;
 import org.wpilib.system.Timer;
 
 /**
@@ -123,7 +123,7 @@ public class Manipulator extends SubsystemBase {
         LEDs.getInstance().requestState(States.WAITING_FOR_GAME_PIECE);
 
         // Often preloading a game piece requires a special case state transition.
-        if (DriverStation.isDisabled() && subsystem.isManipulatorIRBlocked()) {
+        if (RobotBase.isDisabled() && subsystem.isManipulatorIRBlocked()) {
           subsystem.setState(State.GAME_PIECE_IN_MANIPULATOR);
         }
         // check if the game piece is detected by the manipulator

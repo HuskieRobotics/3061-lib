@@ -30,7 +30,7 @@ public class LEDsCANdle extends LEDs {
 
     ledBuffer = new Color8Bit[ACTUAL_LENGTH];
     for (int i = 0; i < ACTUAL_LENGTH; i++) {
-      ledBuffer[i] = convertTo8BitColor(Color.kBlack);
+      ledBuffer[i] = convertTo8BitColor(Color.BLACK);
     }
   }
 

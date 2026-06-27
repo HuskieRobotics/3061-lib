@@ -23,7 +23,6 @@ public class LEDsRIO extends LEDs {
 
     leds.setLength(ACTUAL_LENGTH);
     leds.setData(buffer);
-    leds.start();
   }
 
   @Override

@@ -72,7 +72,7 @@ public class VisionIOPhotonVision implements VisionIO {
                 new PoseObservation(
                     result.getTimestampSeconds(),
                     estimate.estimatedPose,
-                    Timer.getFPGATimestamp() - result.getTimestampSeconds(),
+                    Timer.getTimestamp() - result.getTimestampSeconds(),
                     averageAmbiguity,
                     result.multitagResult.isPresent()
                         ? result.multitagResult.get().estimatedPose.bestReprojErr

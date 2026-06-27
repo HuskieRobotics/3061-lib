@@ -47,7 +47,7 @@ public class PneumaticsIORev implements PneumaticsIO {
      * Our SMC flow sensor (PFM711-N7-C-R) provides analog output from 1V to 5V.
      * 1V corresponds to 0 L/min; 5V corresponds to 100 L/min.
      */
-    inputs.flowLPM = ((flowSensor.getAverageVoltage() * 25) - 25);
+    inputs.flowLPM = ((flowSensor.getVoltage() * 25) - 25);
     inputs.volumeL += (inputs.flowLPM * LOOP_PERIOD_SECS) / 60;
   }
 

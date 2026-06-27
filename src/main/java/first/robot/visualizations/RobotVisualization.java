@@ -48,7 +48,7 @@ public class RobotVisualization {
         intakeVisualization2D.getRoot("ledDisplay", 0.0, kLEDHeight); // this goes above the robot
     ledDisplayBox =
         new LoggedMechanismLigament2d(
-            "LED State", kLEDLength, 0.0, 1.0, new Color8Bit(Color.kBlack));
+            "LED State", kLEDLength, 0.0, 1.0, new Color8Bit(Color.BLACK));
     ledDisplayRoot.append(ledDisplayBox);
 
     // Intake
@@ -57,7 +57,7 @@ public class RobotVisualization {
         intakeVisualization2D.getRoot("intakeRoot", kIntakeRootPosX, kIntakeRootPosY);
     intakeBox =
         new LoggedMechanismLigament2d(
-            "intake", kIntakeDepth, 0.0, 80.0, new Color8Bit(Color.kWhite));
+            "intake", kIntakeDepth, 0.0, 80.0, new Color8Bit(Color.WHITE));
     intakeRoot.append(this.intakeBox);
     climberVisualization2D =
         new LoggedMechanism2d(RobotConfig.getInstance().getRobotLengthWithBumpersMeters(), 3.0);
@@ -68,7 +68,7 @@ public class RobotVisualization {
         climberVisualization2D.getRoot("climberRoot", kClimberRootPosY, kClimberRootPosZ);
     climberBox =
         new LoggedMechanismLigament2d(
-            "climber", kClimberLength, 0.0, 5.0, new Color8Bit(Color.kOrange));
+            "climber", kClimberLength, 0.0, 5.0, new Color8Bit(Color.ORANGE));
     climberRoot.append(this.climberBox);
   }
 
