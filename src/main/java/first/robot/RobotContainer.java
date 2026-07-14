@@ -212,8 +212,7 @@ public class RobotContainer {
     CameraConfig[] cameraConfigs = config.getCameraConfigs();
     VisionIO[] visionIOs = new VisionIO[cameraConfigs.length];
     for (int i = 0; i < visionIOs.length; i++) {
-      visionIOs[i] =
-          new VisionIONorthstar(FieldConstants.defaultAprilTagType.getLayout(), cameraConfigs[i]);
+      visionIOs[i] = new VisionIONorthstar(FieldConstants.defaultAprilTagType, cameraConfigs[i]);
     }
     vision = new Vision(visionIOs);
 
@@ -231,8 +230,7 @@ public class RobotContainer {
     CameraConfig[] cameraConfigs = config.getCameraConfigs();
     VisionIO[] visionIOs = new VisionIO[cameraConfigs.length];
     for (int i = 0; i < visionIOs.length; i++) {
-      visionIOs[i] =
-          new VisionIONorthstar(FieldConstants.defaultAprilTagType.getLayout(), cameraConfigs[i]);
+      visionIOs[i] = new VisionIONorthstar(FieldConstants.defaultAprilTagType, cameraConfigs[i]);
     }
     vision = new Vision(visionIOs);
 
@@ -319,8 +317,7 @@ public class RobotContainer {
     CameraConfig[] cameraConfigs = config.getCameraConfigs();
     VisionIO[] visionIOs = new VisionIO[cameraConfigs.length];
     for (int i = 0; i < visionIOs.length; i++) {
-      visionIOs[i] =
-          new VisionIONorthstar(FieldConstants.defaultAprilTagType.getLayout(), cameraConfigs[i]);
+      visionIOs[i] = new VisionIONorthstar(FieldConstants.defaultAprilTagType, cameraConfigs[i]);
     }
     vision = new Vision(visionIOs);
 

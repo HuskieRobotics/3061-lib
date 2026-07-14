@@ -7,8 +7,8 @@ package first.lib.team6328.util;
 // license that can be found in the LICENSE file at
 // the root directory of this project.
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -347,7 +347,7 @@ public class FieldConstants {
                       fieldType.getJsonFolder(),
                       name + ".json");
               layout = new AprilTagFieldLayout(p);
-              layoutString = new ObjectMapper().writeValueAsString(layout);
+              layoutString = Files.readString(p);
               noAprilTagLayoutAlert.set(false);
 
               // AprilTag layout alert

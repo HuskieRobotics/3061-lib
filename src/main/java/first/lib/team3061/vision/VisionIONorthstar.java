@@ -9,8 +9,6 @@ package first.lib.team3061.vision;
 
 import static first.lib.team3061.vision.VisionConstants.*;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import first.lib.team3061.RobotConfig;
 import first.lib.team3061.util.RobotOdometry;
 import first.lib.team6328.util.FieldConstants;
@@ -47,21 +45,15 @@ public class VisionIONorthstar implements VisionIO {
   private final AprilTagFieldLayout aprilTagFieldLayout;
   private final Transform3d robotToCameraTransform;
 
-  public VisionIONorthstar(AprilTagFieldLayout layout, RobotConfig.CameraConfig camera) {
+  public VisionIONorthstar(
+      FieldConstants.AprilTagLayoutType layoutType, RobotConfig.CameraConfig camera) {
     this.deviceId = "northstar_" + camera.location();
     this.robotToCameraTransform = camera.robotToCameraTransform();
-    this.aprilTagFieldLayout = layout;
-    String layoutString = "";
+    this.aprilTagFieldLayout = layoutType.getLayout();
+    String layoutString = layoutType.getLayoutString();
     var northstarTable = NetworkTableInstance.getDefault().getTable(this.deviceId);
     var powerTable = NetworkTableInstance.getDefault().getTable("northstar_power");
     var configTable = northstarTable.getSubTable("config");
-
-    try {
-      layoutString = new ObjectMapper().writeValueAsString(layout);
-    } catch (JsonProcessingException e) {
-      throw new RuntimeException(
-          "Failed to serialize AprilTag layout JSON " + toString() + "for Northstar");
-    }
 
     configTable.getStringTopic("camera_id").publish().set(camera.id());
     configTable.getIntegerTopic("camera_resolution_width").publish().set(camera.width());
