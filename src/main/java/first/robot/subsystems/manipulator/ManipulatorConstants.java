@@ -11,8 +11,8 @@ public class ManipulatorConstants {
   public static final String SUBSYSTEM_NAME = "Manipulator";
 
   public static final int MANIPULATOR_MOTOR_ID = 56;
-  public static final int MANIPULATOR_IR_SENSOR_ID = 0;
-  public static final int MANIPULATOR_IR_BACKUP_SENSOR_ID = 1;
+  public static final int MANIPULATOR_IR_SENSOR_ID = 1;
+  public static final int MANIPULATOR_IR_BACKUP_SENSOR_ID = 2;
 
   // the following are determined based on the mechanical design of the arm
   public static final boolean MANIPULATOR_MOTOR_INVERTED = false;
