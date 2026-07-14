@@ -2,7 +2,7 @@ package first.lib.team3061;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
-// import com.pathplanner.lib.config.ModuleConfig;
+import com.pathplanner.lib.config.ModuleConfig;
 import first.lib.team3061.swerve_drivetrain.swerve.SwerveConstants;
 import lombok.Builder;
 import org.wpilib.math.geometry.Pose3d;
@@ -10,6 +10,7 @@ import org.wpilib.math.geometry.Transform3d;
 import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.math.kinematics.DifferentialDriveKinematics;
 import org.wpilib.math.kinematics.SwerveDriveKinematics;
+import org.wpilib.math.system.DCMotor;
 
 @java.lang.SuppressWarnings({"java:S3010", "java:S3400"})
 public abstract class RobotConfig {
@@ -490,19 +491,19 @@ public abstract class RobotConfig {
    * @throws IOException
    * @throws ParseException
    */
-  // public com.pathplanner.lib.config.RobotConfig getPathPlannerRobotConfig() {
-  //   return new com.pathplanner.lib.config.RobotConfig(
-  //       getMassKG(),
-  //       getMomentOfInertiaKGMM(),
-  //       new ModuleConfig(
-  //           getWheelRadiusMeters(),
-  //           getRobotMaxVelocityMPS(),
-  //           getWheelCOF(),
-  //           DCMotor.getKrakenX60(1).withReduction(getSwerveConstants().getDriveGearRatio()),
-  //           SwerveConstants.DRIVE_PEAK_CURRENT_LIMIT,
-  //           1),
-  //       getSwerveModulePositions());
-  // }
+  public com.pathplanner.lib.config.RobotConfig getPathPlannerRobotConfig() {
+    return new com.pathplanner.lib.config.RobotConfig(
+        getMassKG(),
+        getMomentOfInertiaKGMM(),
+        new ModuleConfig(
+            getWheelRadiusMeters(),
+            getRobotMaxVelocityMPS(),
+            getWheelCOF(),
+            DCMotor.getKrakenX60(1).withReduction(getSwerveConstants().getDriveGearRatio()),
+            SwerveConstants.DRIVE_PEAK_CURRENT_LIMIT,
+            1),
+        getSwerveModulePositions());
+  }
 
   /**
    * Returns the mass of the robot. Defaults to 50 kg.

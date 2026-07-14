@@ -5,6 +5,7 @@
 package first.robot;
 
 import com.ctre.phoenix6.CANBus;
+import com.pathplanner.lib.util.PathPlannerLogging;
 import first.lib.team254.Phoenix6Util;
 import first.lib.team3061.RobotConfig;
 import first.lib.team3061.leds.LEDs;
@@ -29,6 +30,7 @@ import org.wpilib.driverstation.DriverStationErrors;
 import org.wpilib.framework.IterativeRobotBase;
 import org.wpilib.framework.RobotBase;
 import org.wpilib.hardware.hal.AllianceStationID;
+import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.net.WebServer;
 import org.wpilib.simulation.DriverStationSim;
 import org.wpilib.system.Filesystem;
@@ -159,18 +161,18 @@ public class Robot extends LoggedRobot {
 
     // Logging of autonomous paths
     // Logging callback for current robot pose
-    // PathPlannerLogging.setLogCurrentPoseCallback(
-    //     pose -> Logger.recordOutput("PathFollowing/currentPose", pose));
+    PathPlannerLogging.setLogCurrentPoseCallback(
+        pose -> Logger.recordOutput("PathFollowing/currentPose", pose));
 
-    // // Logging callback for target robot pose
-    // PathPlannerLogging.setLogTargetPoseCallback(
-    //     pose -> {
-    //       Logger.recordOutput("PathFollowing/targetPose", pose);
-    //       robotContainer.setPathFollowingTargetPose(pose);
-    //     });
-    // // Logging callback for the active path, this is sent as a list of poses
-    // PathPlannerLogging.setLogActivePathCallback(
-    //     poses -> Logger.recordOutput("PathFollowing/activePath", poses.toArray(new Pose2d[0])));
+    // Logging callback for target robot pose
+    PathPlannerLogging.setLogTargetPoseCallback(
+        pose -> {
+          Logger.recordOutput("PathFollowing/targetPose", pose);
+          robotContainer.setPathFollowingTargetPose(pose);
+        });
+    // Logging callback for the active path, this is sent as a list of poses
+    PathPlannerLogging.setLogActivePathCallback(
+        poses -> Logger.recordOutput("PathFollowing/activePath", poses.toArray(new Pose2d[0])));
 
     // Start timers
     canInitialErrorTimer.restart();

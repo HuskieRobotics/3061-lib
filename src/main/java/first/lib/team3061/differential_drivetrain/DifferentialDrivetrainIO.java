@@ -58,7 +58,7 @@ public interface DifferentialDrivetrainIO {
    * @param forcesY the robot-centric wheel forces in the y direction
    * @param isOpenLoop true for open-loop control; false for closed-loop control
    */
-  public default void applyRobotSpeeds(
+  public default void applyRobotVelocities(
       ChassisVelocities velocities, Force[] forcesX, Force[] forcesY, boolean isOpenLoop) {}
 
   /**

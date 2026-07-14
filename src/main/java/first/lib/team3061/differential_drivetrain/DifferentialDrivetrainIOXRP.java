@@ -122,7 +122,7 @@ public class DifferentialDrivetrainIOXRP implements DifferentialDrivetrainIO {
    * @param isOpenLoop true for open-loop control; false for closed-loop control
    */
   @Override
-  public void applyRobotSpeeds(
+  public void applyRobotVelocities(
       ChassisVelocities velocities, Force[] forcesX, Force[] forcesY, boolean isOpenLoop) {
     diffDrive.arcadeDrive(velocities.vx, velocities.omega);
   }

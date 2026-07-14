@@ -1,9 +1,10 @@
 package first.robot.configs;
 
-// import com.pathplanner.lib.config.ModuleConfig;
+import com.pathplanner.lib.config.ModuleConfig;
 import first.lib.team3061.RobotConfig;
 import first.lib.team3061.swerve_drivetrain.swerve.SwerveConstants;
 import org.wpilib.math.geometry.Translation2d;
+import org.wpilib.math.system.DCMotor;
 
 /*
  * Refer to the README for how to represent your robot's configuration. For more information on
@@ -146,20 +147,20 @@ public class XRPRobotConfig extends RobotConfig {
     return AUTO_TURN_D_CONTROLLER;
   }
 
-  // @Override
-  // public com.pathplanner.lib.config.RobotConfig getPathPlannerRobotConfig() {
-  //   return new com.pathplanner.lib.config.RobotConfig(
-  //       getMassKG(),
-  //       getMomentOfInertiaKGMM(),
-  //       new ModuleConfig(
-  //           getWheelRadiusMeters(),
-  //           2.0, // this is greater than the true value, but makes PathPlanner generate paths
-  //           getWheelCOF(),
-  //           DCMotor.getKrakenX60(1).withReduction(10.0), // completely fictitious
-  //           40.0, // completely fictitious
-  //           1),
-  //       getTrackwidthMeters());
-  // }
+  @Override
+  public com.pathplanner.lib.config.RobotConfig getPathPlannerRobotConfig() {
+    return new com.pathplanner.lib.config.RobotConfig(
+        getMassKG(),
+        getMomentOfInertiaKGMM(),
+        new ModuleConfig(
+            getWheelRadiusMeters(),
+            2.0, // this is greater than the true value, but makes PathPlanner generate paths
+            getWheelCOF(),
+            DCMotor.getKrakenX60(1).withReduction(10.0), // completely fictitious
+            40.0, // completely fictitious
+            1),
+        getTrackwidthMeters());
+  }
 
   @Override
   public double getMassKG() {

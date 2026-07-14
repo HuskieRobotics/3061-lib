@@ -9,6 +9,10 @@ import static first.robot.Constants.*;
 import static org.wpilib.units.Units.*;
 
 import com.ctre.phoenix6.SignalLogger;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.util.DriveFeedforwards;
 import first.lib.team3015.subsystem.FaultReporter;
 import first.lib.team3061.RobotConfig;
 import first.lib.team3061.leds.LEDs;
@@ -23,6 +27,7 @@ import first.lib.team6328.util.LoggedTracer;
 import first.lib.team6328.util.LoggedTunableNumber;
 import first.robot.Constants;
 import first.robot.Field2d;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
@@ -266,28 +271,27 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
 
     this.autoThetaController.enableContinuousInput(-Math.PI, Math.PI);
 
-    // AutoBuilder.configure(
-    //     this::getPose, // Robot pose supplier
-    //     this::resetPose, // Method to reset odometry (will be called if your auto has a starting
-    //     // pose)
-    //     this::getRobotRelativeVelocities, // ChassisVelocities supplier. MUST BE ROBOT RELATIVE
-    //     this::applyRoboVelocities, // Method that will drive the robot given ROBOT RELATIVE
-    //     // ChassisVelocities
-    //     new PPHolonomicDriveController( // HolonomicPathFollowerConfig, this should likely live
-    // in
-    //         // your Constants class
-    //         new com.pathplanner.lib.config.PIDConstants(
-    //             RobotConfig.getInstance().getAutoDriveKP(),
-    //             RobotConfig.getInstance().getAutoDriveKI(),
-    //             RobotConfig.getInstance().getAutoDriveKD()), // Translation PID constants
-    //         new PIDConstants(
-    //             RobotConfig.getInstance().getAutoTurnKP(),
-    //             RobotConfig.getInstance().getAutoTurnKI(),
-    //             RobotConfig.getInstance().getAutoTurnKD())), // Rotation PID constants
-    //     RobotConfig.getInstance().getPathPlannerRobotConfig(),
-    //     this::shouldFlipAutoPath,
-    //     this // Reference to this subsystem to set requirements
-    //     );
+    AutoBuilder.configure(
+        this::getPose, // Robot pose supplier
+        this::resetPose, // Method to reset odometry (will be called if your auto has a starting
+        // pose)
+        this::getRobotRelativeVelocities, // ChassisVelocities supplier. MUST BE ROBOT RELATIVE
+        this::applyRobotVelocities, // Method that will drive the robot given ROBOT RELATIVE
+        // ChassisVelocities
+        new PPHolonomicDriveController( // HolonomicPathFollowerConfig, this should likely live in
+            // your Constants class
+            new com.pathplanner.lib.config.PIDConstants(
+                RobotConfig.getInstance().getAutoDriveKP(),
+                RobotConfig.getInstance().getAutoDriveKI(),
+                RobotConfig.getInstance().getAutoDriveKD()), // Translation PID constants
+            new com.pathplanner.lib.config.PIDConstants(
+                RobotConfig.getInstance().getAutoTurnKP(),
+                RobotConfig.getInstance().getAutoTurnKI(),
+                RobotConfig.getInstance().getAutoTurnKD())), // Rotation PID constants
+        RobotConfig.getInstance().getPathPlannerRobotConfig(),
+        this::shouldFlipAutoPath,
+        this // Reference to this subsystem to set requirements
+        );
 
     this.odometry = new SwerveRobotOdometry();
     RobotOdometry.setInstance(this.odometry);
@@ -325,20 +329,20 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
    * @param chassisVelocities the robot-relative velocities of the robot
    * @param feedforwards the feed forward forces to apply
    */
-  // public void applyRobotSpeeds(
-  //     ChassisVelocities chassisVelocities, DriveFeedforwards feedforwards) {
+  public void applyRobotVelocities(
+      ChassisVelocities chassisVelocities, DriveFeedforwards feedforwards) {
 
-  //   // always calculate whenever we are driving so that we maintain a history of recent values
-  //   this.xFilter.calculate(chassisVelocities.vx);
-  //   this.yFilter.calculate(chassisVelocities.vy);
-  //   this.thetaFilter.calculate(chassisVelocities.omega);
+    // always calculate whenever we are driving so that we maintain a history of recent values
+    this.xFilter.calculate(chassisVelocities.vx);
+    this.yFilter.calculate(chassisVelocities.vy);
+    this.thetaFilter.calculate(chassisVelocities.omega);
 
-  //   this.io.applyRobotSpeeds(
-  //       chassisVelocities,
-  //       feedforwards.robotRelativeForcesX(),
-  //       feedforwards.robotRelativeForcesY(),
-  //       false);
-  // }
+    this.io.applyRobotSpeeds(
+        chassisVelocities,
+        feedforwards.robotRelativeForcesX(),
+        feedforwards.robotRelativeForcesY(),
+        false);
+  }
 
   /**
    * Zeroes the gyroscope. This sets the current rotation of the robot to zero degrees. This method
@@ -852,29 +856,28 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
    * @param autoName the name of the autonomous path
    * @param measureDistance true to measure the distance traveled by the robot; false otherwise
    */
-  // public void captureFinalConditions(String autoName, boolean measureDistance) {
-  //   try {
-  //     List<Pose2d> pathPoses = PathPlannerPath.fromPathFile(autoName).getPathPoses();
-  //     Pose2d targetPose = pathPoses.get(pathPoses.size() - 1);
-  //     Logger.recordOutput(SUBSYSTEM_NAME + "/AutoPoseDiff", targetPose.minus(this.customPose));
+  public void captureFinalConditions(String autoName, boolean measureDistance) {
+    try {
+      List<Pose2d> pathPoses = PathPlannerPath.fromPathFile(autoName).getPathPoses();
+      Pose2d targetPose = pathPoses.get(pathPoses.size() - 1);
+      Logger.recordOutput(SUBSYSTEM_NAME + "/AutoPoseDiff", targetPose.minus(this.customPose));
 
-  //     if (measureDistance) {
-  //       double distance = 0.0;
-  //       for (int i = 0; i < this.inputs.swerve.length; i++) {
-  //         distance +=
-  //             Math.abs(
-  //                 inputs.drivetrain.swerveModulePositions[i].distance
-  //                     - this.initialDistance[i]);
-  //       }
+      if (measureDistance) {
+        double distance = 0.0;
+        for (int i = 0; i < this.inputs.swerve.length; i++) {
+          distance +=
+              Math.abs(
+                  inputs.drivetrain.swerveModulePositions[i].distance - this.initialDistance[i]);
+        }
 
-  //       distance /= this.inputs.swerve.length;
-  //       Logger.recordOutput(SUBSYSTEM_NAME + "/AutoDistanceDiff", distance, Meters);
-  //     }
-  //   } catch (Exception e) {
-  //     pathFileMissingAlert.setText("Could not find the specified path file: " + autoName);
-  //     pathFileMissingAlert.set(true);
-  //   }
-  // }
+        distance /= this.inputs.swerve.length;
+        Logger.recordOutput(SUBSYSTEM_NAME + "/AutoDistanceDiff", distance, Meters);
+      }
+    } catch (Exception e) {
+      pathFileMissingAlert.setText("Could not find the specified path file: " + autoName);
+      pathFileMissingAlert.set(true);
+    }
+  }
 
   /**
    * Returns true if the auto path, which is always defined for a blue alliance robot, should be

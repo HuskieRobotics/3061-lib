@@ -6,6 +6,9 @@ package first.lib.team3061.differential_drivetrain;
 
 import static first.lib.team3061.differential_drivetrain.DifferentialDrivetrainConstants.*;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.controllers.PPLTVController;
+import com.pathplanner.lib.util.DriveFeedforwards;
 import first.lib.team3061.RobotConfig;
 import first.lib.team3061.util.DifferentialRobotOdometry;
 import first.lib.team3061.util.RobotOdometry;
@@ -34,18 +37,18 @@ public class DifferentialDrivetrain extends SubsystemBase {
     this.odometry = new DifferentialRobotOdometry();
     RobotOdometry.setInstance(this.odometry);
 
-    // AutoBuilder.configure(
-    //     this::getPose, // Robot pose supplier
-    //     this::resetPose, // Method to reset odometry (will be called if your auto has a starting
-    //     // pose)
-    //     this::getRobotRelativeVelocities, // ChassisVelocities supplier. MUST BE ROBOT RELATIVE
-    //     this::applyRobotVelocities, // Method that will drive the robot given ROBOT RELATIVE
-    //     // ChassisVelocities
-    //     new PPLTVController(0.02),
-    //     RobotConfig.getInstance().getPathPlannerRobotConfig(),
-    //     this::shouldFlipAutoPath,
-    //     this // Reference to this subsystem to set requirements
-    //     );
+    AutoBuilder.configure(
+        this::getPose, // Robot pose supplier
+        this::resetPose, // Method to reset odometry (will be called if your auto has a starting
+        // pose)
+        this::getRobotRelativeVelocities, // ChassisVelocities supplier. MUST BE ROBOT RELATIVE
+        this::applyRobotVelocities, // Method that will drive the robot given ROBOT RELATIVE
+        // ChassisVelocities
+        new PPLTVController(0.02),
+        RobotConfig.getInstance().getPathPlannerRobotConfig(),
+        this::shouldFlipAutoPath,
+        this // Reference to this subsystem to set requirements
+        );
   }
 
   public void arcadeDrive(double xVelocityMPS, double rotationalVelocityRPS) {
@@ -103,14 +106,14 @@ public class DifferentialDrivetrain extends SubsystemBase {
    * @param chassisVelocities the robot-relative speeds of the robot
    * @param feedforwards the feed forward forces to apply
    */
-  // private void applyRobotVelocities(
-  //     ChassisVelocities chassisVelocities, DriveFeedforwards feedforwards) {
-  //   this.io.applyRobotVelocities(
-  //       chassisVelocities,
-  //       feedforwards.robotRelativeForcesX(),
-  //       feedforwards.robotRelativeForcesY(),
-  //       false);
-  // }
+  private void applyRobotVelocities(
+      ChassisVelocities chassisVelocities, DriveFeedforwards feedforwards) {
+    this.io.applyRobotVelocities(
+        chassisVelocities,
+        feedforwards.robotRelativeForcesX(),
+        feedforwards.robotRelativeForcesY(),
+        false);
+  }
 
   /**
    * Returns true if the auto path, which is always defined for a blue alliance robot, should be
