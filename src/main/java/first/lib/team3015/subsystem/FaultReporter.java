@@ -86,7 +86,7 @@ public class FaultReporter {
    * @param systemCheckCommand the system check command to register
    * @return
    */
-  public Command registerSystemCheck(
+  public void registerSystemCheck(
       String subsystemName, Command systemCheckCommand, Trigger systemCheckTrigger) {
     String statusTable = SYSTEM_STATUS + subsystemName;
     SubsystemFaults subsystemFaults =
@@ -98,8 +98,6 @@ public class FaultReporter {
     Logger.recordOutput(statusTable + CHECK_RAN, false);
 
     subsystemsFaults.put(subsystemName, subsystemFaults);
-
-    return wrappedSystemCheckCommand;
   }
 
   public Command getClearAllFaultsCommand() {
