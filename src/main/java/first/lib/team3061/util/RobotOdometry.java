@@ -2,6 +2,7 @@ package first.lib.team3061.util;
 
 import static first.robot.Constants.ENABLE_EXTRA_LOGGING;
 
+import com.ctre.phoenix6.Utils;
 import java.util.Optional;
 import org.littletonrobotics.junction.Logger;
 import org.wpilib.math.geometry.Pose2d;
@@ -11,6 +12,7 @@ import org.wpilib.math.kinematics.ChassisVelocities;
 import org.wpilib.math.linalg.Matrix;
 import org.wpilib.math.numbers.N1;
 import org.wpilib.math.numbers.N3;
+import org.wpilib.system.Timer;
 
 @java.lang.SuppressWarnings({"java:S6548"})
 
@@ -100,13 +102,19 @@ public abstract class RobotOdometry {
 
     double adjustedTimestamp = timestampSeconds + latencyAdjustmentSeconds;
     Logger.recordOutput("RobotOdometry/visionTime", adjustedTimestamp);
+    Logger.recordOutput("RobotOdometry/Phoenix Time", Utils.getCurrentTimeSeconds());
 
     if (INCLUDE_VISION_POSE_ESTIMATES) {
       this.addVisionMeasurement(visionRobotPoseMeters, adjustedTimestamp, visionMeasurementStdDevs);
 
       if (INCLUDE_VISION_POSE_ESTIMATES_IN_CUSTOM_ESTIMATOR && this.customEstimator != null) {
+        // FIXME: after future releases research the timebases used by CTRE and WPILib in both
+        // simulation and on the robot and determine if they are equal, which they should be, but
+        // they aren't now.
+        double phoenixTimestamp =
+            adjustedTimestamp - (Timer.getTimestamp() - Utils.getCurrentTimeSeconds());
         this.customEstimator.addVisionMeasurement(
-            visionRobotPoseMeters, adjustedTimestamp, visionMeasurementStdDevs);
+            visionRobotPoseMeters, phoenixTimestamp, visionMeasurementStdDevs);
       }
     }
 
