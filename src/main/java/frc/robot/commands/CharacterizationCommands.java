@@ -22,11 +22,17 @@ import frc.lib.team3061.RobotConfig;
 import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import org.littletonrobotics.junction.Logger;
 
 @java.lang.SuppressWarnings({"java:S106"})
 public class CharacterizationCommands {
   private static final double WHEEL_RADIUS_MAX_VELOCITY = 0.5; // Rad/Sec
   private static final double WHEEL_RADIUS_RAMP_RATE = 0.05; // Rad/Sec^2
+
+  // Minimum average wheel travel (radians) before the running estimate is logged. Until the
+  // wheels have actually moved, wheelDelta is ~0 and the computed radius is Infinity/NaN.
+  private static final double WHEEL_DELTA_LOGGING_THRESHOLD = 1e-6;
+
   private static final double DRIVE_RADIUS =
       Math.hypot(
           RobotConfig.getInstance().getTrackwidthMeters() / 2.0,
@@ -66,39 +72,73 @@ public class CharacterizationCommands {
                   state.gyroDelta = 0.0;
                 }),
 
-            // Update gyro delta
+            // Update gyro delta and log the running estimate
             Commands.run(
                     () -> {
                       var rotation = Rotation2d.fromDegrees(drive.getYawDeg());
                       state.gyroDelta += Math.abs(rotation.minus(state.lastAngle).getRadians());
                       state.lastAngle = rotation;
+
+                      WheelRadiusResult result =
+                          computeResult(
+                              state.positions,
+                              drive.getWheelRadiusCharacterizationPosition(),
+                              state.gyroDelta);
+
+                      // Skip logging until the wheels have moved, to avoid publishing
+                      // Infinity/NaN on the first loops (wheelDelta ~ 0).
+                      if (result.wheelDelta() > WHEEL_DELTA_LOGGING_THRESHOLD) {
+                        Logger.recordOutput(
+                            "WheelRadiusCharacterization/WheelDelta", result.wheelDelta());
+                        Logger.recordOutput(
+                            "WheelRadiusCharacterization/WheelRadiusMeters",
+                            result.wheelRadiusMeters());
+                        Logger.recordOutput(
+                            "WheelRadiusCharacterization/WheelRadiusInches",
+                            Units.metersToInches(result.wheelRadiusMeters()));
+                      }
                     })
 
                 // When cancelled, calculate and print results
                 .finallyDo(
                     () -> {
-                      double[] positions = drive.getWheelRadiusCharacterizationPosition();
-                      double wheelDelta = 0.0;
-                      for (int i = 0; i < 4; i++) {
-                        wheelDelta += Math.abs(positions[i] - state.positions[i]) / 4.0;
-                      }
-                      double wheelRadius = (state.gyroDelta * DRIVE_RADIUS) / wheelDelta;
+                      WheelRadiusResult result =
+                          computeResult(
+                              state.positions,
+                              drive.getWheelRadiusCharacterizationPosition(),
+                              state.gyroDelta);
 
                       NumberFormat formatter = new DecimalFormat("#0.000000");
                       System.out.println(
                           "********** Wheel Radius Characterization Results **********");
                       System.out.println(
-                          "\tWheel Delta: " + formatter.format(wheelDelta) + " radians");
+                          "\tWheel Delta: " + formatter.format(result.wheelDelta()) + " radians");
                       System.out.println(
-                          "\tGyro Delta: " + formatter.format(state.gyroDelta) + " radians");
+                          "\tGyro Delta: " + formatter.format(result.gyroDelta()) + " radians");
                       System.out.println(
                           "\tWheel Radius: "
-                              + formatter.format(wheelRadius)
+                              + formatter.format(result.wheelRadiusMeters())
                               + " meters, "
-                              + formatter.format(Units.metersToInches(wheelRadius))
+                              + formatter.format(Units.metersToInches(result.wheelRadiusMeters()))
                               + " inches");
                     })));
   }
+
+  /**
+   * Computes the average wheel travel (radians) since the starting positions and the resulting
+   * wheel radius (meters) implied by the accumulated gyro rotation.
+   */
+  private static WheelRadiusResult computeResult(
+      double[] startPositions, double[] endPositions, double gyroDelta) {
+    double wheelDelta = 0.0;
+    for (int i = 0; i < 4; i++) {
+      wheelDelta += Math.abs(endPositions[i] - startPositions[i]) / 4.0;
+    }
+    double wheelRadiusMeters = (gyroDelta * DRIVE_RADIUS) / wheelDelta;
+    return new WheelRadiusResult(wheelDelta, gyroDelta, wheelRadiusMeters);
+  }
+
+  private record WheelRadiusResult(double wheelDelta, double gyroDelta, double wheelRadiusMeters) {}
 
   private static class WheelRadiusCharacterizationState {
     double[] positions = new double[4];
