@@ -24,7 +24,9 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
@@ -642,10 +644,45 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
             inputs.swerve[moduleIndex].odometryTurnPositions[i];
       }
 
-      this.odometry.updateWithTime(
-          inputs.drivetrain.odometryTimestamps[i],
-          inputs.drivetrain.odometryYawPositions[i],
-          modulePositions);
+      // check for skidding (refer to https://www.pramit.gg/post/is-my-robot-skidding for details)
+      SwerveDriveKinematics kinematics = RobotConfig.getInstance().getSwerveDriveKinematics();
+      ChassisSpeeds speeds = kinematics.toChassisSpeeds(inputs.drivetrain.swerveMeasuredStates);
+      double omega = speeds.omegaRadiansPerSecond;
+      SwerveModuleState[] rotationOnly =
+          kinematics.toSwerveModuleStates(new ChassisSpeeds(0, 0, omega));
+      double maxTranslation = 0;
+      double minTranslation = Double.POSITIVE_INFINITY;
+      for (int moduleIndex = 0; moduleIndex < this.modulePositions.length; moduleIndex++) {
+        Translation2d measured =
+            new Translation2d(
+                inputs.drivetrain.swerveMeasuredStates[moduleIndex].speedMetersPerSecond,
+                inputs.drivetrain.swerveMeasuredStates[moduleIndex].angle);
+        Translation2d rotational =
+            new Translation2d(
+                rotationOnly[moduleIndex].speedMetersPerSecond, rotationOnly[moduleIndex].angle);
+        Translation2d translational = measured.minus(rotational);
+        maxTranslation = Math.max(Math.abs(translational.getNorm()), maxTranslation);
+        minTranslation = Math.min(Math.abs(translational.getNorm()), minTranslation);
+      }
+
+      if (ENABLE_EXTRA_LOGGING) {
+        Logger.recordOutput(SUBSYSTEM_NAME + "/maxTranslation", maxTranslation);
+        Logger.recordOutput(SUBSYSTEM_NAME + "/minTranslation", minTranslation);
+      }
+
+      double skidRatio = 1.0;
+      // only calculate the skid ratio if the robot has a significant translation
+      if (minTranslation > 1e-4 && maxTranslation > .01) {
+        skidRatio = maxTranslation / minTranslation;
+      }
+      Logger.recordOutput(SUBSYSTEM_NAME + "/skidRatio", skidRatio);
+
+      if (skidRatio < SKID_RATIO_THRESHOLD) {
+        this.odometry.updateWithTime(
+            inputs.drivetrain.odometryTimestamps[i],
+            inputs.drivetrain.odometryYawPositions[i],
+            modulePositions);
+      }
     }
 
     // give chassis speeds to odometry for public access throughout the robot
