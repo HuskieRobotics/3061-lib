@@ -12,6 +12,7 @@ import static first.lib.team3061.vision.VisionConstants.*;
 import first.lib.team3061.RobotConfig;
 import first.lib.team3061.util.RobotOdometry;
 import first.lib.team6328.util.FieldConstants;
+import first.lib.team6328.util.LoggedTunableNumber;
 import first.robot.Constants;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +46,14 @@ public class VisionIONorthstar implements VisionIO {
   private final Field field;
   private final Transform3d robotToCameraTransform;
 
+  private final LoggedTunableNumber exposure;
+  private final LoggedTunableNumber gain;
+  private final LoggedTunableNumber denoise;
+
+  private final IntegerPublisher exposurePublisher;
+  private final DoublePublisher gainPublisher;
+  private final DoublePublisher denoisePublisher;
+
   public VisionIONorthstar(
       FieldConstants.AprilTagLayoutType layoutType, RobotConfig.CameraConfig camera) {
     this.deviceId = "northstar_" + camera.location();
@@ -59,9 +68,12 @@ public class VisionIONorthstar implements VisionIO {
     configTable.getIntegerTopic("camera_resolution_width").publish().set(camera.width());
     configTable.getIntegerTopic("camera_resolution_height").publish().set(camera.height());
     configTable.getIntegerTopic("camera_auto_exposure").publish().set(camera.autoExposure());
-    configTable.getIntegerTopic("camera_exposure").publish().set(camera.exposure());
-    configTable.getDoubleTopic("camera_gain").publish().set(camera.gain());
-    configTable.getDoubleTopic("camera_denoise").publish().set(camera.denoise());
+    exposurePublisher = configTable.getIntegerTopic("camera_exposure").publish();
+    exposurePublisher.set(camera.exposure());
+    gainPublisher = configTable.getDoubleTopic("camera_gain").publish();
+    gainPublisher.set(camera.gain());
+    denoisePublisher = configTable.getDoubleTopic("camera_denoise").publish();
+    denoisePublisher.set(camera.denoise());
     configTable.getDoubleTopic("fiducial_size_m").publish().set(FieldConstants.aprilTagWidth);
     configTable.getStringTopic("tag_layout").publish().set(layoutString);
     isRecordingPublisher = configTable.getBooleanTopic("is_recording").publish();
@@ -97,6 +109,11 @@ public class VisionIONorthstar implements VisionIO {
             .getSubTable("output")
             .getDoubleArrayTopic("power_metrics")
             .subscribe(new double[] {});
+
+    exposure =
+        new LoggedTunableNumber("Vision/" + camera.location() + "/Exposure", camera.exposure());
+    gain = new LoggedTunableNumber("Vision/" + camera.location() + "/Gain", camera.gain());
+    denoise = new LoggedTunableNumber("Vision/" + camera.location() + "/Denoise", camera.denoise());
   }
 
   public void updateInputs(
@@ -175,6 +192,17 @@ public class VisionIONorthstar implements VisionIO {
           inputs.thermalPressure = "Unknown";
       }
     }
+
+    LoggedTunableNumber.ifChanged(
+        hashCode(),
+        cameraSettings -> {
+          exposurePublisher.set((int) exposure.get());
+          gainPublisher.set(gain.get());
+          denoisePublisher.set(denoise.get());
+        },
+        exposure,
+        gain,
+        denoise);
   }
 
   public void setRecording(boolean active) {
