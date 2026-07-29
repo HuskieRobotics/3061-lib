@@ -24,6 +24,7 @@ public interface SwerveDrivetrainIO {
     public double driveSupplyCurrent = 0.0;
     public double driveTemp = 0.0;
     public double driveVoltage = 0.0;
+    public double driveRotations = 0.0;
 
     public double steerAbsolutePositionRot = 0.0;
 
@@ -201,9 +202,10 @@ public interface SwerveDrivetrainIO {
   /**
    * Sets the brake mode of the drivetrain.
    *
-   * @param enable true to enable brake mode; false to disable brake mode
+   * @param enableDrive true to enable brake mode for drive motors; false to disable
+   * @param enableSteer true to enable brake mode for steer motors; false to disable
    */
-  public default void setBrakeMode(boolean enable) {}
+  public default void setBrakeMode(boolean enableDrive, boolean enableSteer) {}
 
   /**
    * Sets the custom odometry of the robot to the specified pose. This method should only be invoked
