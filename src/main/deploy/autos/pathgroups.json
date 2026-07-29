@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "groups": [
+    {
+      "group_id": "group-2cd90de9-87f8-41a7-a69e-df0f3469f997",
+      "display_name": "Tuning",
+      "path_file_names": [
+        "crossTrackTuning.json",
+        "rotationTuning.json",
+        "translationTuning.json"
+      ]
+    }
+  ]
+}

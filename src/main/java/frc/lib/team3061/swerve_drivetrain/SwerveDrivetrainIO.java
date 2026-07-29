@@ -164,6 +164,21 @@ public interface SwerveDrivetrainIO {
       double yVelocityMPS,
       double rotationalVelocityRadiansPerSecond,
       boolean isOpenLoop) {}
+
+  /**
+   * Controls the drivetrain to move the robot with the desired velocities in the x, y, and
+   * rotational directions. The velocities are specified from the robot's frame of reference. In the
+   * robot frame of reference, The origin of the robot is always the center of the robot. The
+   * positive x direction is forward; the positive y direction, left. Zero degrees is aligned to the
+   * positive x axis and increases in the CCW direction.
+   *
+   * @param speeds the desired chassis speeds
+   * @param forcesX the robot-centric wheel forces in the x direction
+   * @param forcesY the robot-centric wheel forces in the y direction
+   * @param isOpenLoop true for open-loop control; false for closed-loop control
+   */
+  public default void applyRobotSpeeds(ChassisSpeeds speeds, boolean isOpenLoop) {}
+
   /**
    * Controls the drivetrain to move the robot with the desired velocities in the x, y, and
    * rotational directions. The velocities are specified from the robot's frame of reference. In the

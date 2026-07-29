@@ -487,6 +487,39 @@ public abstract class RobotConfig {
   }
 
   /**
+   * Returns the proportional constant for the PID controller for cross-track motion when following
+   * autonomous paths. Defaults to 0.
+   *
+   * @return the proportional constant for the PID controller for cross-track motion when following
+   *     autonomous paths
+   */
+  public double getAutoCrossTrackKP() {
+    return 0.0;
+  }
+
+  /**
+   * Returns the integral constant for the PID controller for cross-track motion when following
+   * autonomous paths. Defaults to 0.
+   *
+   * @return the integral constant for the PID controller for cross-track motion when following
+   *     autonomous paths
+   */
+  public double getAutoCrossTrackKI() {
+    return 0.0;
+  }
+
+  /**
+   * Returns the derivative constant for the PID controller for cross-track motion when following
+   * autonomous paths. Defaults to 0.
+   *
+   * @return the derivative constant for the PID controller for cross-track motion when following
+   *     autonomous paths
+   */
+  public double getAutoCrossTrackKD() {
+    return 0.0;
+  }
+
+  /**
    * Returns the robot's configuration as specified in the PathPlanner GUI.
    *
    * @return
