@@ -1,7 +1,9 @@
 package frc.lib.team3061.sim;
 
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.sim.CANcoderSimState;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
@@ -19,8 +21,7 @@ import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 
 public class ArmSystemSim {
 
-  private TalonFX motor;
-  private TalonFXSimState motorSimState;
+  private TalonFXSimState[] motorSimStates;
   private SingleJointedArmSim systemSim;
   private double sensorToMechanismRatio;
   private double startingAngleRad;
@@ -39,8 +40,7 @@ public class ArmSystemSim {
   private LoggedMechanismLigament2d arm;
 
   public ArmSystemSim(
-      TalonFX motor,
-      boolean motorInverted,
+      DCMotor gearbox,
       double sensorToMechanismRatio,
       double length,
       double mass,
@@ -48,11 +48,11 @@ public class ArmSystemSim {
       double maxAngle,
       double startingAngle,
       boolean simulateGravity,
-      String subsystemName) {
+      String subsystemName,
+      TalonFX... motors) {
     this(
-        motor,
+        gearbox,
         null,
-        motorInverted,
         sensorToMechanismRatio,
         1,
         length,
@@ -61,13 +61,13 @@ public class ArmSystemSim {
         maxAngle,
         startingAngle,
         simulateGravity,
-        subsystemName);
+        subsystemName,
+        motors);
   }
 
   public ArmSystemSim(
-      TalonFX motor,
+      DCMotor gearbox,
       CANcoder encoder,
-      boolean motorInverted,
       double sensorToMechanismRatio,
       double rotorToSensorRatio,
       double length,
@@ -76,19 +76,25 @@ public class ArmSystemSim {
       double maxAngle,
       double startingAngle,
       boolean simulateGravity,
-      String subsystemName) {
+      String subsystemName,
+      TalonFX... motors) {
     if (Constants.getMode() != Constants.Mode.SIM) {
       return;
     }
 
-    this.motor = motor;
     this.sensorToMechanismRatio = sensorToMechanismRatio;
     this.startingAngleRad = startingAngle;
-    this.motorSimState = this.motor.getSimState();
-    this.motorSimState.Orientation =
-        motorInverted
-            ? ChassisReference.Clockwise_Positive
-            : ChassisReference.CounterClockwise_Positive;
+
+    this.motorSimStates = new TalonFXSimState[motors.length];
+    for (int i = 0; i < motors.length; i++) {
+      TalonFXConfiguration config = new TalonFXConfiguration();
+      motors[i].getConfigurator().refresh(config);
+      this.motorSimStates[i] = motors[i].getSimState();
+      this.motorSimStates[i].Orientation =
+          config.MotorOutput.Inverted == InvertedValue.Clockwise_Positive
+              ? ChassisReference.Clockwise_Positive
+              : ChassisReference.CounterClockwise_Positive;
+    }
 
     this.hasExternalEncoder = encoder != null;
     if (this.hasExternalEncoder) {
@@ -101,7 +107,7 @@ public class ArmSystemSim {
 
     this.systemSim =
         new SingleJointedArmSim(
-            DCMotor.getKrakenX60(1),
+            gearbox,
             sensorToMechanismRatio * rotorToSensorRatio,
             SingleJointedArmSim.estimateMOI(length, mass),
             length,
@@ -128,13 +134,16 @@ public class ArmSystemSim {
     }
 
     // update the sim states supply voltage based on the simulated battery
-    this.motorSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
+    for (TalonFXSimState motorSimState : this.motorSimStates) {
+      motorSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
+    }
+
     if (this.hasExternalEncoder) {
       this.encoderSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
     }
 
     // update the input voltages of the models based on the outputs of the simulated TalonFXs
-    double motorVoltage = this.motorSimState.getMotorVoltage();
+    double motorVoltage = this.motorSimStates[0].getMotorVoltage();
     this.systemSim.setInput(motorVoltage);
 
     // update the models
@@ -149,10 +158,13 @@ public class ArmSystemSim {
     double mechanismRPS = mechanismRadiansPerSec / (2 * Math.PI);
     double encoderRPS = mechanismRPS * this.sensorToMechanismRatio;
     double motorRPS = encoderRPS * this.rotorToSensorRatio;
-    this.motorSimState.setRawRotorPosition(
-        motorRotations
-            - (Units.radiansToRotations(startingAngleRad) * this.sensorToMechanismRatio));
-    this.motorSimState.setRotorVelocity(motorRPS);
+
+    for (TalonFXSimState motorSimState : this.motorSimStates) {
+      motorSimState.setRotorVelocity(motorRPS);
+      motorSimState.setRawRotorPosition(
+          motorRotations
+              - (Units.radiansToRotations(startingAngleRad) * this.sensorToMechanismRatio));
+    }
 
     if (this.hasExternalEncoder) {
       this.encoderSimState.setRawPosition(sensorRotations);
