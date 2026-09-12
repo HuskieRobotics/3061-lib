@@ -960,5 +960,7 @@ public abstract class RobotConfig {
       int exposure,
       double gain,
       double denoise,
-      double stdDevFactor) {}
+      double stdDevFactor,
+      double cameraBalanceRed,
+      double cameraBalanceBlue) {}
 }

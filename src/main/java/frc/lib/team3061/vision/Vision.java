@@ -54,6 +54,7 @@ public class Vision extends SubsystemBase {
   private double[] lastTimestamps;
   private int[] cyclesWithNoResults;
   private int[] updatePoseCount;
+  private int[] rejectedPoseCount;
 
   private static final double DISCONNECTED_TIMEOUT_SECONDS = 0.5;
   private final Timer[] disconnectedTimers;
@@ -119,6 +120,7 @@ public class Vision extends SubsystemBase {
     this.lastTimestamps = new double[visionIOs.length];
     this.cyclesWithNoResults = new int[visionIOs.length];
     this.updatePoseCount = new int[visionIOs.length];
+    this.rejectedPoseCount = new int[visionIOs.length];
     this.inputs = new VisionIOInputsAutoLogged[visionIOs.length];
     this.aprilTagInputs = new AprilTagVisionIOInputsAutoLogged[visionIOs.length];
     this.objDetectInputs = new ObjDetectVisionIOInputsAutoLogged[visionIOs.length];
@@ -361,6 +363,14 @@ public class Vision extends SubsystemBase {
                 SUBSYSTEM_NAME + "/" + cameraLocation + "/UpdatePoseCount",
                 this.updatePoseCount[cameraIndex]);
           } else {
+
+            if (isEnabled && this.camerasToConsider.contains(cameraIndex)) {
+              this.rejectedPoseCount[cameraIndex]++;
+              Logger.recordOutput(
+                  SUBSYSTEM_NAME + "/" + cameraLocation + "/RejectedPoseCount",
+                  this.rejectedPoseCount[cameraIndex]);
+            }
+
             robotPosesRejected.get(cameraIndex).add(estimatedRobotPose3d);
             final int finalCameraIndex = cameraIndex;
             for (int tagID = 1; tagID < FieldConstants.aprilTagCount; tagID++) {
@@ -412,6 +422,10 @@ public class Vision extends SubsystemBase {
         }
       }
 
+      Logger.recordOutput(
+          SUBSYSTEM_NAME + "/" + cameraLocation + "/CyclesWithNoResults",
+          this.cyclesWithNoResults[cameraIndex]);
+
       if (ENABLE_EXTRA_LOGGING) {
         // Log data for this camera
         if (stdDev != null) {
@@ -422,9 +436,6 @@ public class Vision extends SubsystemBase {
         Logger.recordOutput(
             SUBSYSTEM_NAME + "/" + cameraLocation + "/LatencySecs",
             Timer.getTimestamp() - this.lastTimestamps[cameraIndex]);
-        Logger.recordOutput(
-            SUBSYSTEM_NAME + "/" + cameraLocation + "/CyclesWithNoResults",
-            this.cyclesWithNoResults[cameraIndex]);
         Logger.recordOutput(
             SUBSYSTEM_NAME + "/" + cameraLocation + "/TagPoses",
             tagPoses.get(cameraIndex).toArray(Pose3d[]::new));
