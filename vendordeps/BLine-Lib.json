@@ -1,0 +1,20 @@
+{
+  "fileName": "BLine-Lib.json",
+  "name": "BLine-Lib",
+  "version": "v0.9.1",
+  "frcYear": "2026",
+  "uuid": "4b7270e9-4e8d-4e7b-8cf0-5805f12c3c7d",
+  "mavenUrls": [
+    "https://jitpack.io"
+  ],
+  "jsonUrl": "https://bline-metrics.edan-liahovetsky.workers.dev/vendor/BLine-Lib.json",
+  "javaDependencies": [
+    {
+      "groupId": "com.github.edanliahovetsky",
+      "artifactId": "BLine-Lib",
+      "version": "v0.9.1"
+    }
+  ],
+  "jniDependencies": [],
+  "cppDependencies": []
+}

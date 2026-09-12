@@ -29,6 +29,7 @@ import frc.lib.team6328.util.LoggedTracer;
 import frc.lib.team6328.util.SystemTimeValidReader;
 import frc.robot.Constants.Mode;
 import frc.robot.commands.AutonomousCommandsFactory;
+import frc.robot.lib.BLine.FollowPath;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
@@ -160,7 +161,7 @@ public class Robot extends LoggedRobot {
       DriverStationSim.notifyNewData();
     }
 
-    // Logging of autonomous paths
+    // Logging of PathPlanner autonomous paths
     // Logging callback for current robot pose
     PathPlannerLogging.setLogCurrentPoseCallback(
         pose -> Logger.recordOutput("PathFollowing/currentPose", pose));
@@ -174,6 +175,13 @@ public class Robot extends LoggedRobot {
     // Logging callback for the active path, this is sent as a list of poses
     PathPlannerLogging.setLogActivePathCallback(
         poses -> Logger.recordOutput("PathFollowing/activePath", poses.toArray(new Pose2d[0])));
+
+    // Logging of BLine autonomous paths
+    FollowPath.setDoubleLoggingConsumer(p -> Logger.recordOutput(p.getFirst(), p.getSecond()));
+    FollowPath.setBooleanLoggingConsumer(p -> Logger.recordOutput(p.getFirst(), p.getSecond()));
+    FollowPath.setPoseLoggingConsumer(p -> Logger.recordOutput(p.getFirst(), p.getSecond()));
+    FollowPath.setTranslationListLoggingConsumer(
+        p -> Logger.recordOutput(p.getFirst(), p.getSecond()));
 
     // Start timers
     canInitialErrorTimer.restart();
@@ -297,7 +305,7 @@ public class Robot extends LoggedRobot {
     if (AutonomousCommandsFactory.getInstance()
         .getAutonomousCommand()
         .getName()
-        .equals("Do Nothing")) {
+        .equals(AutonomousCommandsFactory.DO_NOTHING_AUTO_STR)) {
       LEDs.getInstance().requestState(LEDs.States.NO_AUTO_SELECTED);
       noAutoSelectedAlert.set(true);
     } else {

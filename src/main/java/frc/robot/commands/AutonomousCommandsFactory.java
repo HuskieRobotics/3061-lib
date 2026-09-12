@@ -1,10 +1,10 @@
 package frc.robot.commands;
 
 import com.pathplanner.lib.commands.PathPlannerAuto;
-import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.util.FlippingUtil;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
@@ -15,10 +15,13 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.lib.team3061.differential_drivetrain.DifferentialDrivetrain;
 import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
 import frc.lib.team3061.util.RobotOdometry;
+import frc.robot.lib.BLine.Path;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 public class AutonomousCommandsFactory {
+
+  public static String DO_NOTHING_AUTO_STR = "Do Nothing";
 
   private static AutonomousCommandsFactory autonomousCommandFactory = null;
 
@@ -56,7 +59,8 @@ public class AutonomousCommandsFactory {
 
   public void configureAutoCommands(SwerveDrivetrain drivetrain) {
     // add commands to the auto chooser
-    autoChooser.addDefaultOption("Do Nothing", new InstantCommand());
+    autoChooser.addDefaultOption(
+        DO_NOTHING_AUTO_STR, new InstantCommand().withName(DO_NOTHING_AUTO_STR));
 
     /************ Start Point ************
      *
@@ -66,29 +70,9 @@ public class AutonomousCommandsFactory {
 
     Command startPoint =
         Commands.runOnce(
-            () -> {
-              try {
-                drivetrain.resetPose(
-                    PathPlannerPath.fromPathFile("Start Point").getStartingDifferentialPose());
-              } catch (Exception e) {
-                pathFileMissingAlert.setText("Could not find the specified path file: Start Point");
-                pathFileMissingAlert.set(true);
-              }
-            },
-            drivetrain);
+                () -> drivetrain.resetPose(new Pose2d(3.0, 3.0, new Rotation2d())), drivetrain)
+            .withName("Start Point");
     autoChooser.addOption("Start Point", startPoint);
-
-    /************ Distance Test ************
-     *
-     * used for empirically determining the wheel radius
-     *
-     */
-    autoChooser.addOption(
-        "Distance Test Slow", createTuningAutoPath("DistanceTestSlow", true, drivetrain));
-    autoChooser.addOption(
-        "Distance Test Med", createTuningAutoPath("DistanceTestMed", true, drivetrain));
-    autoChooser.addOption(
-        "Distance Test Fast", createTuningAutoPath("DistanceTestFast", true, drivetrain));
 
     /************ Auto Tuning ************
      *
@@ -96,14 +80,10 @@ public class AutonomousCommandsFactory {
      *
      */
     autoChooser.addOption(
-        "Rotation Test Slow", createTuningAutoPath("RotationTestSlow", false, drivetrain));
+        "Translation Tuning", createTuningAutoPath("translationTuning", drivetrain));
+    autoChooser.addOption("Rotation Tuning", createTuningAutoPath("rotationTuning", drivetrain));
     autoChooser.addOption(
-        "Rotation Test Fast", createTuningAutoPath("RotationTestFast", false, drivetrain));
-
-    autoChooser.addOption(
-        "Oval Test Slow", createTuningAutoPath("OvalTestSlow", false, drivetrain));
-    autoChooser.addOption(
-        "Oval Test Fast", createTuningAutoPath("OvalTestFast", false, drivetrain));
+        "Cross Track Tuning", createTuningAutoPath("crossTrackTuning", drivetrain));
 
     /************ Drive Velocity Tuning ************
      *
@@ -142,16 +122,7 @@ public class AutonomousCommandsFactory {
 
     Command startPoint =
         Commands.runOnce(
-            () -> {
-              try {
-                drivetrain.resetPose(
-                    PathPlannerPath.fromPathFile("Start Point").getStartingDifferentialPose());
-              } catch (Exception e) {
-                pathFileMissingAlert.setText("Could not find the specified path file: Start Point");
-                pathFileMissingAlert.set(true);
-              }
-            },
-            drivetrain);
+            () -> drivetrain.resetPose(new Pose2d(3.0, 3.0, new Rotation2d())), drivetrain);
     autoChooser.addOption("Start Point", startPoint);
 
     /************ Differential Auto ************
@@ -165,62 +136,69 @@ public class AutonomousCommandsFactory {
 
   private Command getDriveVelocityTuningCommand(SwerveDrivetrain drivetrain) {
     return Commands.sequence(
-        Commands.runOnce(drivetrain::disableFieldRelative, drivetrain),
-        Commands.repeatingSequence(
-            Commands.deadline(
-                Commands.waitSeconds(1.0),
-                Commands.run(() -> drivetrain.drive(2.0, 0.0, 0.0, false, false), drivetrain)),
-            Commands.deadline(
-                Commands.waitSeconds(1.0),
-                Commands.run(() -> drivetrain.drive(-0.5, 0.0, 0.0, false, false), drivetrain)),
-            Commands.deadline(
-                Commands.waitSeconds(1.0),
-                Commands.run(() -> drivetrain.drive(1.0, 0.0, 0.0, false, false), drivetrain)),
-            Commands.deadline(
-                Commands.waitSeconds(1.0),
-                Commands.run(() -> drivetrain.drive(3.0, 0.0, 0.0, false, false), drivetrain)),
-            Commands.deadline(
-                Commands.waitSeconds(2.0),
-                Commands.run(() -> drivetrain.drive(1.0, 0.0, 0.0, false, false), drivetrain)),
-            Commands.deadline(
-                Commands.waitSeconds(2.0),
-                Commands.run(() -> drivetrain.drive(-1.0, 0.0, 0.0, false, false), drivetrain)),
-            Commands.deadline(
-                Commands.waitSeconds(1.0),
-                Commands.run(() -> drivetrain.drive(-3.0, 0.0, 0.0, false, false), drivetrain)),
-            Commands.deadline(
-                Commands.waitSeconds(2.0),
-                Commands.run(() -> drivetrain.drive(-1.0, 0.0, 0.0, false, false), drivetrain))));
+            Commands.runOnce(drivetrain::disableFieldRelative, drivetrain),
+            Commands.repeatingSequence(
+                Commands.deadline(
+                    Commands.waitSeconds(1.0),
+                    Commands.run(() -> drivetrain.drive(2.0, 0.0, 0.0, false, false), drivetrain)),
+                Commands.deadline(
+                    Commands.waitSeconds(1.0),
+                    Commands.run(() -> drivetrain.drive(-0.5, 0.0, 0.0, false, false), drivetrain)),
+                Commands.deadline(
+                    Commands.waitSeconds(1.0),
+                    Commands.run(() -> drivetrain.drive(1.0, 0.0, 0.0, false, false), drivetrain)),
+                Commands.deadline(
+                    Commands.waitSeconds(1.0),
+                    Commands.run(() -> drivetrain.drive(3.0, 0.0, 0.0, false, false), drivetrain)),
+                Commands.deadline(
+                    Commands.waitSeconds(2.0),
+                    Commands.run(() -> drivetrain.drive(1.0, 0.0, 0.0, false, false), drivetrain)),
+                Commands.deadline(
+                    Commands.waitSeconds(2.0),
+                    Commands.run(() -> drivetrain.drive(-1.0, 0.0, 0.0, false, false), drivetrain)),
+                Commands.deadline(
+                    Commands.waitSeconds(1.0),
+                    Commands.run(() -> drivetrain.drive(-3.0, 0.0, 0.0, false, false), drivetrain)),
+                Commands.deadline(
+                    Commands.waitSeconds(2.0),
+                    Commands.run(
+                        () -> drivetrain.drive(-1.0, 0.0, 0.0, false, false), drivetrain))))
+        .withName("Drive Velocity Tuning");
   }
 
   private Command getSwerveRotationTuningCommand(SwerveDrivetrain drivetrain) {
     return Commands.sequence(
-        Commands.runOnce(drivetrain::enableFieldRelative, drivetrain),
-        Commands.repeatingSequence(
-            Commands.deadline(
-                Commands.waitSeconds(0.5),
-                Commands.run(() -> drivetrain.drive(0.1, 0.1, 0.0, true, false), drivetrain)),
-            Commands.deadline(
-                Commands.waitSeconds(0.5),
-                Commands.run(() -> drivetrain.drive(-0.1, 0.1, 0.0, true, false), drivetrain)),
-            Commands.deadline(
-                Commands.waitSeconds(0.5),
-                Commands.run(() -> drivetrain.drive(-0.1, -0.1, 0.0, true, false), drivetrain)),
-            Commands.deadline(
-                Commands.waitSeconds(0.5),
-                Commands.run(() -> drivetrain.drive(0.1, -0.1, 0.0, true, false), drivetrain))));
+            Commands.runOnce(drivetrain::enableFieldRelative, drivetrain),
+            Commands.repeatingSequence(
+                Commands.deadline(
+                    Commands.waitSeconds(0.5),
+                    Commands.run(() -> drivetrain.drive(0.1, 0.1, 0.0, true, false), drivetrain)),
+                Commands.deadline(
+                    Commands.waitSeconds(0.5),
+                    Commands.run(() -> drivetrain.drive(-0.1, 0.1, 0.0, true, false), drivetrain)),
+                Commands.deadline(
+                    Commands.waitSeconds(0.5),
+                    Commands.run(() -> drivetrain.drive(-0.1, -0.1, 0.0, true, false), drivetrain)),
+                Commands.deadline(
+                    Commands.waitSeconds(0.5),
+                    Commands.run(() -> drivetrain.drive(0.1, -0.1, 0.0, true, false), drivetrain))))
+        .withName("Swerve Rotation Tuning");
   }
 
   private Command getDriveWheelRadiusCharacterizationCommand(SwerveDrivetrain drivetrain) {
     return CharacterizationCommands.wheelRadiusCharacterization(drivetrain);
   }
 
-  private Command createTuningAutoPath(
-      String autoName, boolean measureDistance, SwerveDrivetrain drivetrain) {
+  private Command createTuningAutoPath(String autoName, SwerveDrivetrain drivetrain) {
+    Path path = new Path(autoName);
     return Commands.sequence(
-        Commands.runOnce(drivetrain::captureInitialConditions),
-        new PathPlannerAuto(autoName),
-        Commands.runOnce(() -> drivetrain.captureFinalConditions(autoName, measureDistance)));
+            Commands.runOnce(drivetrain::captureInitialConditions),
+            Commands.runOnce(() -> drivetrain.resetPose(path.getStartPose())),
+            Commands.runOnce(
+                () ->
+                    drivetrain.pointWheelsAt(path.getInitialModuleDirection(drivetrain::getPose))),
+            drivetrain.getPathBuilder().build(path))
+        .withName(autoName);
   }
 
   private boolean fallenBehindPath() {
