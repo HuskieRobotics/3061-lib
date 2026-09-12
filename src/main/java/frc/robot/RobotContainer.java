@@ -44,17 +44,13 @@ import frc.robot.operator_interface.OISelector;
 import frc.robot.operator_interface.OperatorInterface;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmIO;
-import frc.robot.subsystems.arm.ArmIOTalonFX;
 import frc.robot.subsystems.arm.ArmIOXRP;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.ElevatorIO;
-import frc.robot.subsystems.elevator.ElevatorIOTalonFX;
 import frc.robot.subsystems.manipulator.Manipulator;
 import frc.robot.subsystems.manipulator.ManipulatorIO;
-import frc.robot.subsystems.manipulator.ManipulatorIOTalonFX;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShooterIO;
-import frc.robot.subsystems.shooter.ShooterIOTalonFX;
 import frc.robot.visualizations.RobotVisualization;
 import java.util.Optional;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
@@ -222,10 +218,10 @@ public class RobotContainer {
     vision = new Vision(visionIOs);
 
     // FIXME: initialize other subsystems
-    arm = new Arm(new ArmIOTalonFX());
-    elevator = new Elevator(new ElevatorIOTalonFX());
-    manipulator = new Manipulator(new ManipulatorIOTalonFX());
-    shooter = new Shooter(new ShooterIOTalonFX());
+    arm = new Arm(new ArmIO() {});
+    elevator = new Elevator(new ElevatorIO() {});
+    manipulator = new Manipulator(new ManipulatorIO() {});
+    shooter = new Shooter(new ShooterIO() {});
     visualization = new RobotVisualization(elevator);
   }
 
@@ -264,10 +260,10 @@ public class RobotContainer {
     vision = new Vision(visionIOs);
 
     // FIXME: initialize other subsystems
-    arm = new Arm(new ArmIOTalonFX());
-    elevator = new Elevator(new ElevatorIOTalonFX());
-    manipulator = new Manipulator(new ManipulatorIOTalonFX());
-    shooter = new Shooter(new ShooterIOTalonFX());
+    arm = new Arm(new ArmIO() {});
+    elevator = new Elevator(new ElevatorIO() {});
+    manipulator = new Manipulator(new ManipulatorIO() {});
+    shooter = new Shooter(new ShooterIO() {});
     visualization = new RobotVisualization(elevator);
   }
 
