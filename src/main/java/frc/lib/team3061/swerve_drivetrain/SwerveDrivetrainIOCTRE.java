@@ -348,6 +348,7 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
     StatusSignal<Current> driveSupplyCurrent;
     StatusSignal<Temperature> driveTemp;
     StatusSignal<Voltage> driveVoltage;
+    StatusSignal<Angle> driveRotations;
 
     StatusSignal<Angle> steerAbsolutePositionRot;
     StatusSignal<DeviceEnableValue> steerEnabled;
@@ -361,6 +362,7 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
       driveSupplyCurrent = module.getDriveMotor().getSupplyCurrent();
       driveTemp = module.getDriveMotor().getDeviceTemp();
       driveVoltage = module.getDriveMotor().getMotorVoltage();
+      driveRotations = module.getDriveMotor().getPosition();
 
       steerAbsolutePositionRot = module.getEncoder().getAbsolutePosition();
 
@@ -376,6 +378,7 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
           driveSupplyCurrent,
           driveTemp,
           driveVoltage,
+          driveRotations,
           steerAbsolutePositionRot,
           steerEnabled,
           steerStatorCurrent,
@@ -396,6 +399,10 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
       inputs.steerStatorCurrent = steerStatorCurrent.getValueAsDouble();
       inputs.steerSupplyCurrent = steerSupplyCurrent.getValueAsDouble();
       inputs.steerTemp = steerTemp.getValueAsDouble();
+
+      if (TUNING_MODE) {
+        inputs.driveRotations = driveRotations.getValueAsDouble();
+      }
     }
   }
 
@@ -848,7 +855,7 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
   }
 
   @Override
-  public void setBrakeMode(boolean enable) {
+  public void setBrakeMode(boolean enableDrive, boolean enableSteer) {
     // Change the neutral mode configuration in a separate thread since changing the configuration
     // of a CTRE device may take a significant amount of time (~200 ms).
     brakeModeExecutor.execute(
@@ -856,10 +863,12 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
           for (SwerveModule<TalonFX, TalonFX, CANcoder> swerveModule : this.getModules()) {
             swerveModule
                 .getDriveMotor()
-                .setNeutralMode(enable ? NeutralModeValue.Brake : NeutralModeValue.Coast, 0.25);
+                .setNeutralMode(
+                    enableDrive ? NeutralModeValue.Brake : NeutralModeValue.Coast, 0.25);
             swerveModule
                 .getSteerMotor()
-                .setNeutralMode(enable ? NeutralModeValue.Brake : NeutralModeValue.Coast, 0.25);
+                .setNeutralMode(
+                    enableSteer ? NeutralModeValue.Brake : NeutralModeValue.Coast, 0.25);
           }
         });
   }

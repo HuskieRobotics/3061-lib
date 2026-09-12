@@ -899,7 +899,7 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
     if (DriverStation.isEnabled()) {
       if (!brakeMode) {
         brakeMode = true;
-        setBrakeMode(true);
+        setBrakeMode(true, true);
       }
       brakeModeTimer.restart();
 
@@ -915,13 +915,17 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
 
       if (brakeMode && !stillMoving && brakeModeTimer.hasElapsed(BREAK_MODE_DELAY_SEC)) {
         brakeMode = false;
-        setBrakeMode(false);
+        setBrakeMode(false, false);
       }
     }
   }
 
-  private void setBrakeMode(boolean enable) {
-    this.io.setBrakeMode(enable);
+  private void setBrakeMode(boolean enableDrive, boolean enableSteer) {
+    this.io.setBrakeMode(enableDrive, enableSteer);
+  }
+
+  public void coastDriveWheels() {
+    this.io.setBrakeMode(false, true);
   }
 
   public void enableRotationOverride() {
