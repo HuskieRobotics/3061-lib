@@ -328,6 +328,10 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
   Queue<Double> timestampQueue;
   Queue<Double> ctreTimestampQueue;
 
+  // incremented whenever the queues are full and the oldest sample has to be evicted; a non-zero
+  // value means a loop overrun exceeded ODOMETRY_QUEUE_CAPACITY_SECONDS of buffering
+  private int droppedOdometrySampleCount = 0;
+
   // gyro status signals
   private StatusSignal<Angle> pitchStatusSignal;
   private StatusSignal<Angle> rollStatusSignal;
@@ -436,14 +440,21 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
     this.driveFieldCentricRequest.ForwardPerspective =
         SwerveRequest.ForwardPerspectiveValue.BlueAlliance;
 
-    // create queues for updates from CTRE's odometry thread
+    // create queues for updates from CTRE's odometry thread; size them to hold
+    // ODOMETRY_QUEUE_CAPACITY_SECONDS worth of samples so that a loop overrun does not overflow
+    // them
+    int queueCapacity =
+        (int)
+            Math.ceil(
+                RobotConfig.getInstance().getOdometryUpdateFrequency()
+                    * ODOMETRY_QUEUE_CAPACITY_SECONDS);
     for (int i = 0; i < 4; i++) {
-      this.drivePositionQueues.add(new ArrayBlockingQueue<>(20));
-      this.steerPositionQueues.add(new ArrayBlockingQueue<>(20));
+      this.drivePositionQueues.add(new ArrayBlockingQueue<>(queueCapacity));
+      this.steerPositionQueues.add(new ArrayBlockingQueue<>(queueCapacity));
     }
-    this.gyroYawQueue = new ArrayBlockingQueue<>(20);
-    this.timestampQueue = new ArrayBlockingQueue<>(20);
-    this.ctreTimestampQueue = new ArrayBlockingQueue<>(20);
+    this.gyroYawQueue = new ArrayBlockingQueue<>(queueCapacity);
+    this.timestampQueue = new ArrayBlockingQueue<>(queueCapacity);
+    this.ctreTimestampQueue = new ArrayBlockingQueue<>(queueCapacity);
 
     this.registerTelemetry(this::updateTelemetry);
 
@@ -484,24 +495,55 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
     }
   }
 
+  /**
+   * Adds a sample to one of the odometry queues, evicting the oldest sample if the queue is full.
+   *
+   * <p>The queues hold absolute measurements rather than deltas, so the newest sample is the most
+   * valuable: it is the one that determines the robot's current pose, and the Drivetrain subsystem
+   * computes its wheel deltas across whatever gaps remain. Queue#offer discards the sample being
+   * added when the queue is full, which is therefore backwards.
+   *
+   * <p>The Drivetrain subsystem reads the drained arrays by a common index, so they must stay the
+   * same length. Every index-aligned queue has the same capacity and receives exactly one sample
+   * per invocation of updateTelemetry, so they all evict on the same invocation and stay aligned.
+   * Only ctreTimestampQueue is conditional, and it is drained on its own for logging.
+   *
+   * @param queue the queue to add the sample to
+   * @param sample the sample to add
+   * @return true if the oldest sample had to be evicted to make room
+   */
+  private boolean offerEvictingOldest(Queue<Double> queue, double sample) {
+    if (queue.offer(sample)) {
+      return false;
+    }
+    queue.poll();
+    queue.offer(sample);
+    return true;
+  }
+
   private void updateTelemetry(SwerveDriveState state) {
     this.odometryLock.lock();
 
     // update and log the swerve modules telemetry
     for (int i = 0; i < state.ModuleStates.length; i++) {
-      this.drivePositionQueues.get(i).offer(state.ModulePositions[i].distanceMeters);
-      this.steerPositionQueues.get(i).offer(state.ModuleStates[i].angle.getDegrees());
+      this.offerEvictingOldest(
+          this.drivePositionQueues.get(i), state.ModulePositions[i].distanceMeters);
+      this.offerEvictingOldest(
+          this.steerPositionQueues.get(i), state.ModuleStates[i].angle.getDegrees());
     }
 
-    this.gyroYawQueue.offer(state.RawHeading.getDegrees());
+    this.offerEvictingOldest(this.gyroYawQueue, state.RawHeading.getDegrees());
 
     // convert from the timebase used by getCurrentTimeSeconds to the FPGA timebase to enable
-    // replays
-    this.timestampQueue.offer(
-        Timer.getFPGATimestamp() - (Utils.getCurrentTimeSeconds() - state.Timestamp));
+    // replays. All of the queues evict in lockstep, so count a dropped sample once, here.
+    if (this.offerEvictingOldest(
+        this.timestampQueue,
+        Timer.getFPGATimestamp() - (Utils.getCurrentTimeSeconds() - state.Timestamp))) {
+      this.droppedOdometrySampleCount++;
+    }
 
     if (Constants.ENABLE_EXTRA_LOGGING) {
-      this.ctreTimestampQueue.offer(state.Timestamp);
+      this.offerEvictingOldest(this.ctreTimestampQueue, state.Timestamp);
     }
 
     this.odometryLock.unlock();
@@ -620,6 +662,9 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
       this.drivePositionQueues.get(i).clear();
       this.steerPositionQueues.get(i).clear();
     }
+
+    // read under the lock; the counter is incremented from CTRE's odometry thread
+    inputs.drivetrain.droppedOdometrySamples = this.droppedOdometrySampleCount;
 
     this.odometryLock.unlock();
 

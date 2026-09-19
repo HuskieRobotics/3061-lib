@@ -73,6 +73,12 @@ public interface SwerveDrivetrainIO {
     int successfulDAQs;
     int failedDAQs;
 
+    /**
+     * Incremented whenever the odometry queues were full and the oldest sample had to be evicted. A
+     * non-zero value means a loop overrun exceeded the queues' buffering capacity.
+     */
+    int droppedOdometrySamples;
+
     double[] odometryTimestamps = new double[] {};
     double[] odometryCTRETimestamps = new double[] {};
     Rotation2d[] odometryYawPositions = new Rotation2d[] {};
