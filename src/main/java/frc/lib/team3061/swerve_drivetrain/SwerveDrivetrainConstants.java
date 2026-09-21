@@ -31,11 +31,11 @@ public class SwerveDrivetrainConstants {
   public static final double ODOMETRY_QUEUE_CAPACITY_SECONDS = 0.5;
 
   /**
-   * Multiplier applied to the robot's maximum velocity when validating the wheel distance delta of
-   * an odometry sample. Wheel slip lets a wheel travel faster than the chassis, so this must be
-   * greater than 1.0 to avoid rejecting valid samples.
+   * Multiplier applied to the robot's maximum velocity and maximum angular velocity when validating
+   * the wheel distance and yaw deltas of an odometry sample. Wheel slip lets a wheel travel faster
+   * than the chassis, so this must be greater than 1.0 to avoid rejecting valid samples.
    */
-  public static final double ODOMETRY_MAX_WHEEL_DELTA_SCALAR = 3.0;
+  public static final double ODOMETRY_MAX_DELTA_SCALAR = 3.0;
 
   /**
    * Minimum wheel distance delta, in meters, that is always considered valid regardless of the
@@ -45,11 +45,14 @@ public class SwerveDrivetrainConstants {
   public static final double ODOMETRY_MIN_WHEEL_DELTA_METERS = 0.05;
 
   /**
-   * Maximum change in the gyro's yaw, in degrees, that is considered valid between two consecutive
-   * odometry samples. A disconnected Pigeon reports a raw yaw of zero, which appears as an enormous
-   * jump.
+   * Minimum change in the gyro's yaw, in degrees, that is always considered valid regardless of the
+   * elapsed time between samples. The counterpart to ODOMETRY_MIN_WHEEL_DELTA_METERS: it keeps
+   * timestamp jitter from rejecting valid samples when the elapsed time is very small, and is sized
+   * so that the elapsed-time term takes over at roughly the nominal sample spacing. At 250 Hz and a
+   * maximum angular velocity of 540 deg/s, that term is 6.5 degrees, and the robot can physically
+   * rotate only 2.2 degrees between samples.
    */
-  public static final double ODOMETRY_MAX_YAW_DELTA_DEG = 45.0;
+  public static final double ODOMETRY_MIN_YAW_DELTA_DEG = 7.5;
 
   /**
    * Maximum distance, in meters, that the estimated pose may be outside of the field before it is

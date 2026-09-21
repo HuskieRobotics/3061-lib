@@ -773,10 +773,10 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
   private void updateOdometry() {
     // The queues in the hardware-specific layer are drained together, so these arrays are expected
     // to be the same length. Bail out rather than risk an exception if that ever changes.
-    int sampleCount = inputs.drivetrain.odometryTimestamps.length;
-    if (sampleCount > inputs.drivetrain.odometryYawPositions.length) {
-      sampleCount = inputs.drivetrain.odometryYawPositions.length;
-    }
+    int sampleCount =
+        Math.min(
+            inputs.drivetrain.odometryTimestamps.length,
+            inputs.drivetrain.odometryYawPositions.length);
     for (int moduleIndex = 0; moduleIndex < this.modulePositions.length; moduleIndex++) {
       sampleCount =
           Math.min(
@@ -797,8 +797,7 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
 
     // The skid ratio is derived from inputs.drivetrain.swerveMeasuredStates, which is a single
     // snapshot of the module velocities taken once per iteration, so it is the same for every
-    // sample drained below. Compute it once here rather than recomputing identical kinematics for
-    // each of the up-to-ODOMETRY_QUEUE_CAPACITY_SECONDS-worth of samples in the loop.
+    // sample drained below.
     boolean skidding = this.computeSkidRatio() >= SKID_RATIO_THRESHOLD;
 
     for (int i = 0; i < sampleCount; i++) {
@@ -953,8 +952,12 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
    * together there is no clean reference and the correction can only partially help. And because it
    * assumes a bad wheel reports too much distance, a wheel that reports too little -- one that is
    * dragging, or whose encoder is miscalibrated -- becomes the reference and its deficit is spread
-   * to the other three, which is worse than not correcting at all. Using the second smallest
-   * translation instead trades the first case for the second.
+   * to the other three, which is worse than not correcting at all.
+   *
+   * <p>An alternative this method does not take is to use the second smallest translation as the
+   * reference rather than the smallest. That would fix the under-reporting wheel, but it gives up
+   * the case of three wheels slipping at once, which the smallest recovers exactly and the second
+   * smallest degrades to worse than no correction.
    *
    * @param displacements the measured displacement of each module since the last accepted sample
    * @param dtheta the change in the robot's heading over the same interval
@@ -1011,7 +1014,7 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
         Math.max(
             ODOMETRY_MIN_WHEEL_DELTA_METERS,
             RobotConfig.getInstance().getRobotMaxVelocityMPS()
-                * ODOMETRY_MAX_WHEEL_DELTA_SCALAR
+                * ODOMETRY_MAX_DELTA_SCALAR
                 * elapsedTime);
 
     for (int moduleIndex = 0; moduleIndex < this.modulePositions.length; moduleIndex++) {
@@ -1026,19 +1029,28 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
 
     double maxYawDelta =
         Math.max(
-            ODOMETRY_MAX_YAW_DELTA_DEG,
+            ODOMETRY_MIN_YAW_DELTA_DEG,
             Units.radiansToDegrees(RobotConfig.getInstance().getRobotMaxAngularVelocityRPS())
-                * ODOMETRY_MAX_WHEEL_DELTA_SCALAR
+                * ODOMETRY_MAX_DELTA_SCALAR
                 * elapsedTime);
-    // Compare against the raw, unwrapped yaw of the last accepted sample. Rotation2d.minus wraps to
-    // +/-180 degrees, which is what makes a disconnected gyro's jump to zero detectable here.
+
+    // Subtract the headings as plain degrees rather than with Rotation2d.minus. A gyro that has
+    // dropped off the bus reports a raw yaw of zero, and minus wraps its result to +/-180 degrees,
+    // which hides that jump whenever the robot is near a whole number of turns: in the log that
+    // motivated this check the heading was 720.21 degrees, whose wrapped difference from zero is
+    // 0.21 degrees and would have been accepted at any threshold.
+    //
+    // WARNING: this relies on these Rotation2d values carrying a continuous angle. Rotation2d
+    // stores the value it was constructed with verbatim, so getDegrees returns 720.21 here, but it
+    // normalizes to +/-180 degrees on any arithmetic (minus, plus, rotateBy, interpolate). These
+    // come straight from Rotation2d.fromDegrees in SwerveDrivetrainIOCTRE, which preserves the
+    // winding that Phoenix reports. If anything is ever inserted into that path that operates on
+    // them, this check silently degrades to detecting the jump only when the robot is far enough
+    // from a whole number of turns -- no compile error and no exception, just weaker detection.
     double yawDelta =
         Math.abs(
-            inputs
-                .drivetrain
-                .odometryYawPositions[sampleIndex]
-                .minus(this.lastAcceptedOdometryYaw)
-                .getDegrees());
+            inputs.drivetrain.odometryYawPositions[sampleIndex].getDegrees()
+                - this.lastAcceptedOdometryYaw.getDegrees());
 
     return yawDelta <= maxYawDelta;
   }
