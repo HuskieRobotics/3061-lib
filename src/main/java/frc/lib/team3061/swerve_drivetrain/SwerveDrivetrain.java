@@ -158,6 +158,20 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
   private double lastAcceptedOdometryTimestamp = -1.0;
   private Rotation2d lastAcceptedOdometryYaw = new Rotation2d();
   private int rejectedOdometrySampleCount = 0;
+  private int skidCorrectedSampleCount = 0;
+
+  /*
+   * The module positions most recently handed to the pose estimator. While the robot is skidding
+   * these diverge from the raw measurements in modulePositions, so the estimator's baseline has to
+   * be tracked separately. Refer to removeSkid.
+   */
+  private SwerveModulePosition[] integratedModulePositions =
+      new SwerveModulePosition[] {
+        new SwerveModulePosition(),
+        new SwerveModulePosition(),
+        new SwerveModulePosition(),
+        new SwerveModulePosition()
+      };
 
   private final Alert odometryUnhealthyAlert =
       new Alert(
@@ -444,6 +458,15 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
   public void resetPose(Pose2d pose) {
     this.odometry.resetPose(
         Rotation2d.fromDegrees(this.inputs.drivetrain.rawHeadingDeg), this.modulePositions, pose);
+
+    // resetPosition sets the estimator's baseline to the raw positions passed above, so the
+    // skid-corrected baseline has to be resynchronized or the next sample's delta would be the
+    // accumulated difference between the two.
+    for (int moduleIndex = 0; moduleIndex < this.modulePositions.length; moduleIndex++) {
+      this.integratedModulePositions[moduleIndex].distanceMeters =
+          this.modulePositions[moduleIndex].distanceMeters;
+      this.integratedModulePositions[moduleIndex].angle = this.modulePositions[moduleIndex].angle;
+    }
   }
 
   /**
@@ -772,6 +795,12 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
     this.odometryUnhealthyAlert.set(
         !inputs.drivetrain.gyroConnected || (sampleCount > 0 && !daqAdvanced));
 
+    // The skid ratio is derived from inputs.drivetrain.swerveMeasuredStates, which is a single
+    // snapshot of the module velocities taken once per iteration, so it is the same for every
+    // sample drained below. Compute it once here rather than recomputing identical kinematics for
+    // each of the up-to-ODOMETRY_QUEUE_CAPACITY_SECONDS-worth of samples in the loop.
+    boolean skidding = this.computeSkidRatio() >= SKID_RATIO_THRESHOLD;
+
     for (int i = 0; i < sampleCount; i++) {
       if (!isOdometrySampleValid(i)) {
         // Do not commit this sample to modulePositions. The pose estimator computes its wheel
@@ -781,59 +810,181 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
         continue;
       }
 
-      for (int moduleIndex = 0; moduleIndex < this.modulePositions.length; moduleIndex++) {
-        this.modulePositions[moduleIndex].distanceMeters =
-            inputs.swerve[moduleIndex].odometryDrivePositionsMeters[i];
-        this.modulePositions[moduleIndex].angle =
-            inputs.swerve[moduleIndex].odometryTurnPositions[i];
-      }
-
-      this.lastAcceptedOdometryTimestamp = inputs.drivetrain.odometryTimestamps[i];
-      this.lastAcceptedOdometryYaw = inputs.drivetrain.odometryYawPositions[i];
-
-      // check for skidding (refer to https://www.pramit.gg/post/is-my-robot-skidding for details)
-      SwerveDriveKinematics kinematics = RobotConfig.getInstance().getSwerveDriveKinematics();
-      ChassisSpeeds speeds = kinematics.toChassisSpeeds(inputs.drivetrain.swerveMeasuredStates);
-      double omega = speeds.omegaRadiansPerSecond;
-      SwerveModuleState[] rotationOnly =
-          kinematics.toSwerveModuleStates(new ChassisSpeeds(0, 0, omega));
-      double maxTranslation = 0;
-      double minTranslation = Double.POSITIVE_INFINITY;
-      for (int moduleIndex = 0; moduleIndex < this.modulePositions.length; moduleIndex++) {
-        Translation2d measured =
-            new Translation2d(
-                inputs.drivetrain.swerveMeasuredStates[moduleIndex].speedMetersPerSecond,
-                inputs.drivetrain.swerveMeasuredStates[moduleIndex].angle);
-        Translation2d rotational =
-            new Translation2d(
-                rotationOnly[moduleIndex].speedMetersPerSecond, rotationOnly[moduleIndex].angle);
-        Translation2d translational = measured.minus(rotational);
-        maxTranslation = Math.max(Math.abs(translational.getNorm()), maxTranslation);
-        minTranslation = Math.min(Math.abs(translational.getNorm()), minTranslation);
-      }
-
-      if (ENABLE_EXTRA_LOGGING) {
-        Logger.recordOutput(SUBSYSTEM_NAME + "/maxTranslation", maxTranslation);
-        Logger.recordOutput(SUBSYSTEM_NAME + "/minTranslation", minTranslation);
-      }
-
-      double skidRatio = 1.0;
-      // only calculate the skid ratio if the robot has a significant translation
-      if (minTranslation > 1e-4 && maxTranslation > .01) {
-        skidRatio = maxTranslation / minTranslation;
-      }
-      Logger.recordOutput(SUBSYSTEM_NAME + "/skidRatio", skidRatio);
-
-      if (skidRatio < SKID_RATIO_THRESHOLD) {
-        this.odometry.updateWithTime(
-            inputs.drivetrain.odometryTimestamps[i],
-            inputs.drivetrain.odometryYawPositions[i],
-            modulePositions);
-      }
+      this.integrateOdometrySample(i, skidding);
     }
 
     Logger.recordOutput(
+        SUBSYSTEM_NAME + "/SkidCorrectedSampleCount", this.skidCorrectedSampleCount);
+
+    Logger.recordOutput(
         SUBSYSTEM_NAME + "/RejectedOdometrySampleCount", this.rejectedOdometrySampleCount);
+  }
+
+  /**
+   * Returns the ratio between the translational speed of the fastest module and that of the
+   * slowest, after the rotational component of each module's velocity has been removed. A robot
+   * that is tracking cleanly has all four modules translating at the same speed, giving a ratio of
+   * 1.0; a wheel that is slipping spins faster than the rest and drives the ratio up. Refer to
+   * https://www.pramit.gg/post/is-my-robot-skidding for details.
+   *
+   * @return the skid ratio, or 1.0 if the robot is not translating enough to compute one
+   */
+  private double computeSkidRatio() {
+    SwerveDriveKinematics kinematics = RobotConfig.getInstance().getSwerveDriveKinematics();
+    ChassisSpeeds speeds = kinematics.toChassisSpeeds(inputs.drivetrain.swerveMeasuredStates);
+    SwerveModuleState[] rotationOnly =
+        kinematics.toSwerveModuleStates(new ChassisSpeeds(0, 0, speeds.omegaRadiansPerSecond));
+
+    double maxTranslation = 0.0;
+    double minTranslation = Double.POSITIVE_INFINITY;
+    for (int moduleIndex = 0; moduleIndex < this.modulePositions.length; moduleIndex++) {
+      Translation2d measured =
+          new Translation2d(
+              inputs.drivetrain.swerveMeasuredStates[moduleIndex].speedMetersPerSecond,
+              inputs.drivetrain.swerveMeasuredStates[moduleIndex].angle);
+      Translation2d rotational =
+          new Translation2d(
+              rotationOnly[moduleIndex].speedMetersPerSecond, rotationOnly[moduleIndex].angle);
+      double translation = measured.minus(rotational).getNorm();
+      maxTranslation = Math.max(translation, maxTranslation);
+      minTranslation = Math.min(translation, minTranslation);
+    }
+
+    if (ENABLE_EXTRA_LOGGING) {
+      Logger.recordOutput(SUBSYSTEM_NAME + "/maxTranslation", maxTranslation);
+      Logger.recordOutput(SUBSYSTEM_NAME + "/minTranslation", minTranslation);
+    }
+
+    double skidRatio = 1.0;
+    // only calculate the skid ratio if the robot has a significant translation
+    if (minTranslation > 1e-4 && maxTranslation > .01) {
+      skidRatio = maxTranslation / minTranslation;
+    }
+    Logger.recordOutput(SUBSYSTEM_NAME + "/skidRatio", skidRatio);
+
+    return skidRatio;
+  }
+
+  /**
+   * Integrates one validated odometry sample into the pose estimator and advances the baselines
+   * that subsequent samples are measured against.
+   *
+   * @param sampleIndex the index of the sample to integrate
+   * @param skidding true if the modules are slipping and the wheel distances should be corrected
+   *     before they are integrated
+   */
+  private void integrateOdometrySample(int sampleIndex, boolean skidding) {
+    boolean firstSample = this.lastAcceptedOdometryTimestamp < 0.0;
+
+    if (firstSample) {
+      // There is no previous sample to take a displacement against, so seed both baselines.
+      for (int moduleIndex = 0; moduleIndex < this.modulePositions.length; moduleIndex++) {
+        this.integratedModulePositions[moduleIndex].distanceMeters =
+            inputs.swerve[moduleIndex].odometryDrivePositionsMeters[sampleIndex];
+        this.integratedModulePositions[moduleIndex].angle =
+            inputs.swerve[moduleIndex].odometryTurnPositions[sampleIndex];
+      }
+    } else {
+      // The displacement of each module since the last accepted sample, as a vector in the robot
+      // frame: how far the wheel rolled, in the direction the wheel was pointing.
+      Translation2d[] displacements = new Translation2d[this.modulePositions.length];
+      for (int moduleIndex = 0; moduleIndex < this.modulePositions.length; moduleIndex++) {
+        displacements[moduleIndex] =
+            new Translation2d(
+                inputs.swerve[moduleIndex].odometryDrivePositionsMeters[sampleIndex]
+                    - this.modulePositions[moduleIndex].distanceMeters,
+                inputs.swerve[moduleIndex].odometryTurnPositions[sampleIndex]);
+      }
+
+      if (skidding) {
+        displacements =
+            this.removeSkid(
+                displacements,
+                inputs.drivetrain.odometryYawPositions[sampleIndex].minus(
+                    this.lastAcceptedOdometryYaw));
+        this.skidCorrectedSampleCount++;
+      }
+
+      // SwerveDriveKinematics.toTwist2d takes each module's delta as the scalar difference in
+      // distanceMeters directed along the *end* angle, so storing the magnitude and the direction
+      // of the desired displacement makes the estimator integrate exactly that vector. This turns
+      // distanceMeters into an unsigned path length rather than a signed odometer, which is
+      // immaterial because only the difference between consecutive samples is ever read.
+      for (int moduleIndex = 0; moduleIndex < this.modulePositions.length; moduleIndex++) {
+        this.integratedModulePositions[moduleIndex].distanceMeters +=
+            displacements[moduleIndex].getNorm();
+        this.integratedModulePositions[moduleIndex].angle = displacements[moduleIndex].getAngle();
+      }
+    }
+
+    for (int moduleIndex = 0; moduleIndex < this.modulePositions.length; moduleIndex++) {
+      this.modulePositions[moduleIndex].distanceMeters =
+          inputs.swerve[moduleIndex].odometryDrivePositionsMeters[sampleIndex];
+      this.modulePositions[moduleIndex].angle =
+          inputs.swerve[moduleIndex].odometryTurnPositions[sampleIndex];
+    }
+
+    this.lastAcceptedOdometryTimestamp = inputs.drivetrain.odometryTimestamps[sampleIndex];
+    this.lastAcceptedOdometryYaw = inputs.drivetrain.odometryYawPositions[sampleIndex];
+
+    this.odometry.updateWithTime(
+        inputs.drivetrain.odometryTimestamps[sampleIndex],
+        inputs.drivetrain.odometryYawPositions[sampleIndex],
+        this.integratedModulePositions);
+  }
+
+  /**
+   * Replaces the measured module displacements with the displacements the modules would have had if
+   * none of them were slipping.
+   *
+   * <p>Each module's displacement is the sum of a rotational component, which is fixed by the
+   * change in heading and the module's location, and a translational component, which is common to
+   * all four modules when the robot is tracking cleanly. A slipping wheel rolls farther than it
+   * carries the chassis, so it inflates its own translational component; the smallest of the four
+   * is the one least contaminated by slip. Attributing that one to every module discards the
+   * slipped distance instead of integrating it.
+   *
+   * <p>Skipping the update entirely would not discard anything: the pose estimator's baseline only
+   * advances when it is given a sample, so the next accepted sample's delta would span the skid and
+   * reintroduce every slipped meter.
+   *
+   * <p>This recovers the true chassis displacement exactly as long as at least one wheel is not
+   * slipping, and is a no-op when none of them are. It has two limitations. If all four wheels slip
+   * together there is no clean reference and the correction can only partially help. And because it
+   * assumes a bad wheel reports too much distance, a wheel that reports too little -- one that is
+   * dragging, or whose encoder is miscalibrated -- becomes the reference and its deficit is spread
+   * to the other three, which is worse than not correcting at all. Using the second smallest
+   * translation instead trades the first case for the second.
+   *
+   * @param displacements the measured displacement of each module since the last accepted sample
+   * @param dtheta the change in the robot's heading over the same interval
+   * @return the corrected displacement of each module
+   */
+  private Translation2d[] removeSkid(Translation2d[] displacements, Rotation2d dtheta) {
+    // Kinematics is linear, so supplying an angular displacement where an angular velocity is
+    // expected yields a linear displacement where a linear velocity is expected.
+    SwerveModuleState[] rotationOnly =
+        RobotConfig.getInstance()
+            .getSwerveDriveKinematics()
+            .toSwerveModuleStates(new ChassisSpeeds(0, 0, dtheta.getRadians()));
+
+    Translation2d[] rotational = new Translation2d[displacements.length];
+    Translation2d smallestTranslation = null;
+    for (int moduleIndex = 0; moduleIndex < displacements.length; moduleIndex++) {
+      rotational[moduleIndex] =
+          new Translation2d(
+              rotationOnly[moduleIndex].speedMetersPerSecond, rotationOnly[moduleIndex].angle);
+      Translation2d translational = displacements[moduleIndex].minus(rotational[moduleIndex]);
+      if (smallestTranslation == null || translational.getNorm() < smallestTranslation.getNorm()) {
+        smallestTranslation = translational;
+      }
+    }
+
+    Translation2d[] corrected = new Translation2d[displacements.length];
+    for (int moduleIndex = 0; moduleIndex < displacements.length; moduleIndex++) {
+      corrected[moduleIndex] = smallestTranslation.plus(rotational[moduleIndex]);
+    }
+    return corrected;
   }
 
   /**
