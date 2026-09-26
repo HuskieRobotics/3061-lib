@@ -85,6 +85,9 @@ public class SavannaRobotConfig extends RobotConfig {
   private static final double AUTO_TURN_P_CONTROLLER = 3.0;
   private static final double AUTO_TURN_I_CONTROLLER = 0.0;
   private static final double AUTO_TURN_D_CONTROLLER = 0.0;
+  private static final double AUTO_CROSS_TRACK_P_CONTROLLER = 2.0;
+  private static final double AUTO_CROSS_TRACK_I_CONTROLLER = 0.0;
+  private static final double AUTO_CROSS_TRACK_D_CONTROLLER = 0.0;
 
   // Drive to Pose constants
   private static final double DRIVE_TO_POSE_DRIVE_KP =
@@ -437,6 +440,21 @@ public class SavannaRobotConfig extends RobotConfig {
   @Override
   public double getAutoTurnKD() {
     return AUTO_TURN_D_CONTROLLER;
+  }
+
+  @Override
+  public double getAutoCrossTrackKP() {
+    return AUTO_CROSS_TRACK_P_CONTROLLER;
+  }
+
+  @Override
+  public double getAutoCrossTrackKI() {
+    return AUTO_CROSS_TRACK_I_CONTROLLER;
+  }
+
+  @Override
+  public double getAutoCrossTrackKD() {
+    return AUTO_CROSS_TRACK_D_CONTROLLER;
   }
 
   @Override

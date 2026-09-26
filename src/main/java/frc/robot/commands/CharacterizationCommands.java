@@ -40,64 +40,65 @@ public class CharacterizationCommands {
     WheelRadiusCharacterizationState state = new WheelRadiusCharacterizationState();
 
     return Commands.parallel(
-        // Drive control sequence
-        Commands.sequence(
-            // Reset acceleration limiter
-            Commands.runOnce(() -> limiter.reset(0.0)),
+            // Drive control sequence
+            Commands.sequence(
+                // Reset acceleration limiter
+                Commands.runOnce(() -> limiter.reset(0.0)),
 
-            // Turn in place, accelerating up to full speed
-            Commands.run(
-                () -> {
-                  double speed = limiter.calculate(WHEEL_RADIUS_MAX_VELOCITY);
-                  drive.drive(0.0, 0.0, speed, true, false);
-                },
-                drive)),
-
-        // Measurement sequence
-        Commands.sequence(
-            // Wait for modules to fully orient before starting measurement
-            Commands.waitSeconds(1.0),
-
-            // Record starting measurement
-            Commands.runOnce(
-                () -> {
-                  state.positions = drive.getWheelRadiusCharacterizationPosition();
-                  state.lastAngle = Rotation2d.fromDegrees(drive.getYawDeg());
-                  state.gyroDelta = 0.0;
-                }),
-
-            // Update gyro delta
-            Commands.run(
+                // Turn in place, accelerating up to full speed
+                Commands.run(
                     () -> {
-                      var rotation = Rotation2d.fromDegrees(drive.getYawDeg());
-                      state.gyroDelta += Math.abs(rotation.minus(state.lastAngle).getRadians());
-                      state.lastAngle = rotation;
-                    })
+                      double speed = limiter.calculate(WHEEL_RADIUS_MAX_VELOCITY);
+                      drive.drive(0.0, 0.0, speed, true, false);
+                    },
+                    drive)),
 
-                // When cancelled, calculate and print results
-                .finallyDo(
+            // Measurement sequence
+            Commands.sequence(
+                // Wait for modules to fully orient before starting measurement
+                Commands.waitSeconds(1.0),
+
+                // Record starting measurement
+                Commands.runOnce(
                     () -> {
-                      double[] positions = drive.getWheelRadiusCharacterizationPosition();
-                      double wheelDelta = 0.0;
-                      for (int i = 0; i < 4; i++) {
-                        wheelDelta += Math.abs(positions[i] - state.positions[i]) / 4.0;
-                      }
-                      double wheelRadius = (state.gyroDelta * DRIVE_RADIUS) / wheelDelta;
+                      state.positions = drive.getWheelRadiusCharacterizationPosition();
+                      state.lastAngle = Rotation2d.fromDegrees(drive.getYawDeg());
+                      state.gyroDelta = 0.0;
+                    }),
 
-                      NumberFormat formatter = new DecimalFormat("#0.000000");
-                      System.out.println(
-                          "********** Wheel Radius Characterization Results **********");
-                      System.out.println(
-                          "\tWheel Delta: " + formatter.format(wheelDelta) + " radians");
-                      System.out.println(
-                          "\tGyro Delta: " + formatter.format(state.gyroDelta) + " radians");
-                      System.out.println(
-                          "\tWheel Radius: "
-                              + formatter.format(wheelRadius)
-                              + " meters, "
-                              + formatter.format(Units.metersToInches(wheelRadius))
-                              + " inches");
-                    })));
+                // Update gyro delta
+                Commands.run(
+                        () -> {
+                          var rotation = Rotation2d.fromDegrees(drive.getYawDeg());
+                          state.gyroDelta += Math.abs(rotation.minus(state.lastAngle).getRadians());
+                          state.lastAngle = rotation;
+                        })
+
+                    // When cancelled, calculate and print results
+                    .finallyDo(
+                        () -> {
+                          double[] positions = drive.getWheelRadiusCharacterizationPosition();
+                          double wheelDelta = 0.0;
+                          for (int i = 0; i < 4; i++) {
+                            wheelDelta += Math.abs(positions[i] - state.positions[i]) / 4.0;
+                          }
+                          double wheelRadius = (state.gyroDelta * DRIVE_RADIUS) / wheelDelta;
+
+                          NumberFormat formatter = new DecimalFormat("#0.000000");
+                          System.out.println(
+                              "********** Wheel Radius Characterization Results **********");
+                          System.out.println(
+                              "\tWheel Delta: " + formatter.format(wheelDelta) + " radians");
+                          System.out.println(
+                              "\tGyro Delta: " + formatter.format(state.gyroDelta) + " radians");
+                          System.out.println(
+                              "\tWheel Radius: "
+                                  + formatter.format(wheelRadius)
+                                  + " meters, "
+                                  + formatter.format(Units.metersToInches(wheelRadius))
+                                  + " inches");
+                        })))
+        .withName("Drive Wheel Radius Characterization");
   }
 
   private static class WheelRadiusCharacterizationState {
