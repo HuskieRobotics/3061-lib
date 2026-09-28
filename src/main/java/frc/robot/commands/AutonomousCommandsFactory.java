@@ -128,6 +128,14 @@ public class AutonomousCommandsFactory {
     autoChooser.addOption( // start by driving slowing in a circle to align wheels
         "Drive Wheel Radius Characterization",
         this.getDriveWheelRadiusCharacterizationCommand(drivetrain));
+
+    /************ Drive Wheel Radius Check ************
+     *
+     * useful for checking the drive wheel radius
+     *
+     */
+    autoChooser.addOption( // start by driving slowing in a circle to align wheels
+        "Drive Wheel Radius Check", this.getDriveWheelRadiusCheckCommand(drivetrain));
   }
 
   public void configureAutoCommands(DifferentialDrivetrain drivetrain) {
@@ -213,6 +221,14 @@ public class AutonomousCommandsFactory {
 
   private Command getDriveWheelRadiusCharacterizationCommand(SwerveDrivetrain drivetrain) {
     return CharacterizationCommands.wheelRadiusCharacterization(drivetrain);
+  }
+
+  private Command getDriveWheelRadiusCheckCommand(SwerveDrivetrain drivetrain) {
+    return Commands.sequence(
+        Commands.deadline(
+            Commands.waitSeconds(1.0),
+            Commands.run(() -> drivetrain.drive(0.5, 0.0, 0.0, true, false), drivetrain)),
+        Commands.runOnce(drivetrain::coastDriveWheels, drivetrain));
   }
 
   private Command createTuningAutoPath(
