@@ -1,6 +1,51 @@
 {
+  "schema_version": 1,
+  "editor_config": {
+    "gui": {
+      "robot": {
+        "length_meters": 0.76835,
+        "width_meters": 0.93345
+      },
+      "protrusions": {
+        "enabled": false,
+        "distance_meters": 0.0,
+        "side": "none",
+        "default_state": "",
+        "show_on_event_keys": [],
+        "hide_on_event_keys": []
+      },
+      "field": {
+        "selected_field_id": "frc2026-rebuilt",
+        "custom_fields": []
+      }
+    },
+    "kinematic_constraints": {
+      "default_auto_velocity_velocity_safety_factor": 0.9,
+      "default_auto_velocity_acceleration_safety_factor": 0.8,
+      "default_auto_velocity_merge_tolerance_meters_per_sec": 0.3
+    }
+  },
+  "active_path_file_name": "first-straight.json",
+  "active_path_group_id": null,
+  "path_groups": [
+    {
+      "group_id": "group-2cd90de9-87f8-41a7-a69e-df0f3469f997",
+      "display_name": "Tuning",
+      "path_file_names": [
+        "crossTrackTuning.json",
+        "rotationTuning.json",
+        "translationTuning.json"
+      ]
+    }
+  ],
+  "linked_targets": [],
   "paths": {
+    "translationTuning.json": {
+      "display_name": "translationTuning",
+      "editor_metadata": null
+    },
     "crossTrackTuning.json": {
+      "display_name": "crossTrackTuning",
       "editor_metadata": {
         "ranged_constraints": [
           {
@@ -44,6 +89,15 @@
           }
         ]
       }
+    },
+    "rotationTuning.json": {
+      "display_name": "rotationTuning",
+      "editor_metadata": null
+    },
+    "first-straight.json": {
+      "display_name": "first-straight",
+      "editor_metadata": null
     }
-  }
+  },
+  "field_assets": {}
 }
