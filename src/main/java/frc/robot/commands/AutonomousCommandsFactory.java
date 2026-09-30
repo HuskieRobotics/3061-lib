@@ -85,6 +85,7 @@ public class AutonomousCommandsFactory {
     autoChooser.addOption("Rotation Tuning", createTuningAutoPath("rotationTuning", drivetrain));
     autoChooser.addOption(
         "Cross Track Tuning", createTuningAutoPath("crossTrackTuning", drivetrain));
+    autoChooser.addOption("first-straight", createTuningAutoPath("first-straight", drivetrain));
 
     /************ Drive Velocity Tuning ************
      *
