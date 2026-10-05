@@ -25,7 +25,7 @@
       "default_auto_velocity_merge_tolerance_meters_per_sec": 0.3
     }
   },
-  "active_path_file_name": "first-straight.json",
+  "active_path_file_name": "crossTrackTuning.json",
   "active_path_group_id": null,
   "path_groups": [
     {
@@ -40,6 +40,10 @@
   ],
   "linked_targets": [],
   "paths": {
+    "first-straight.json": {
+      "display_name": "first-straight",
+      "editor_metadata": null
+    },
     "translationTuning.json": {
       "display_name": "translationTuning",
       "editor_metadata": null
@@ -92,10 +96,6 @@
     },
     "rotationTuning.json": {
       "display_name": "rotationTuning",
-      "editor_metadata": null
-    },
-    "first-straight.json": {
-      "display_name": "first-straight",
       "editor_metadata": null
     }
   },
