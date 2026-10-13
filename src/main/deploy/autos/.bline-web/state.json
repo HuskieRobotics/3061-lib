@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "editor_config": {
+    "gui": {
+      "robot": {
+        "length_meters": 0.76835,
+        "width_meters": 0.93345
+      },
+      "protrusions": {
+        "enabled": false,
+        "distance_meters": 0.0,
+        "side": "none",
+        "default_state": "",
+        "show_on_event_keys": [],
+        "hide_on_event_keys": []
+      },
+      "field": {
+        "selected_field_id": "frc2026-rebuilt",
+        "custom_fields": []
+      }
+    },
+    "kinematic_constraints": {
+      "default_auto_velocity_velocity_safety_factor": 0.9,
+      "default_auto_velocity_acceleration_safety_factor": 0.8,
+      "default_auto_velocity_merge_tolerance_meters_per_sec": 0.3
+    }
+  },
+  "active_path_file_name": "crossTrackTuning.json",
+  "active_path_group_id": null,
+  "path_groups": [
+    {
+      "group_id": "group-2cd90de9-87f8-41a7-a69e-df0f3469f997",
+      "display_name": "Tuning",
+      "path_file_names": [
+        "crossTrackTuning.json",
+        "rotationTuning.json",
+        "translationTuning.json"
+      ]
+    }
+  ],
+  "linked_targets": [],
+  "paths": {
+    "first-straight.json": {
+      "display_name": "first-straight",
+      "editor_metadata": null
+    },
+    "translationTuning.json": {
+      "display_name": "translationTuning",
+      "editor_metadata": null
+    },
+    "crossTrackTuning.json": {
+      "display_name": "crossTrackTuning",
+      "editor_metadata": {
+        "ranged_constraints": [
+          {
+            "key": "max_velocity_meters_per_sec",
+            "value": 2.46,
+            "start_ordinal": 1,
+            "end_ordinal": 1,
+            "source": "auto_velocity",
+            "auto_velocity": {
+              "velocity_safety_factor": 0.9,
+              "acceleration_safety_factor": 0.8,
+              "merge_tolerance_meters_per_sec": 0.3,
+              "input_signature": "{\"pathElements\":[{\"type\":\"waypoint\",\"xMeters\":3,\"yMeters\":3,\"handoffRadiusMeters\":0.2,\"rotationRadians\":0,\"profiledRotation\":true},{\"type\":\"waypoint\",\"xMeters\":5,\"yMeters\":5,\"handoffRadiusMeters\":0.2,\"rotationRadians\":1.5708,\"profiledRotation\":true},{\"type\":\"waypoint\",\"xMeters\":7,\"yMeters\":3,\"handoffRadiusMeters\":0.2,\"rotationRadians\":3.14159,\"profiledRotation\":true},{\"type\":\"waypoint\",\"xMeters\":5,\"yMeters\":1,\"handoffRadiusMeters\":0.2,\"rotationRadians\":4.71239,\"profiledRotation\":true},{\"type\":\"waypoint\",\"xMeters\":3,\"yMeters\":3,\"handoffRadiusMeters\":0.2,\"rotationRadians\":0,\"profiledRotation\":true}],\"scalarConstraints\":{\"maxVelocityMps\":null,\"maxAccelerationMps2\":null,\"maxVelocityDegPerSec\":null,\"maxAccelerationDegPerSec\":null},\"rotationRangedConstraints\":[],\"config\":{\"maxVelocityMps\":4.936,\"maxAccelerationMps2\":12,\"handoffRadiusMeters\":0.2,\"maxVelocityDegPerSec\":720,\"maxAccelerationDegPerSec\":1500,\"autoVelocityVelocitySafetyFactor\":0.9,\"autoVelocityAccelerationSafetyFactor\":0.8},\"options\":{\"velocitySafetyFactor\":0.9,\"accelerationSafetyFactor\":0.8,\"sampleStepMeters\":null}}"
+            }
+          },
+          {
+            "key": "max_velocity_meters_per_sec",
+            "value": 1.55,
+            "start_ordinal": 2,
+            "end_ordinal": 4,
+            "source": "auto_velocity",
+            "auto_velocity": {
+              "velocity_safety_factor": 0.9,
+              "acceleration_safety_factor": 0.8,
+              "merge_tolerance_meters_per_sec": 0.3,
+              "input_signature": "{\"pathElements\":[{\"type\":\"waypoint\",\"xMeters\":3,\"yMeters\":3,\"handoffRadiusMeters\":0.2,\"rotationRadians\":0,\"profiledRotation\":true},{\"type\":\"waypoint\",\"xMeters\":5,\"yMeters\":5,\"handoffRadiusMeters\":0.2,\"rotationRadians\":1.5708,\"profiledRotation\":true},{\"type\":\"waypoint\",\"xMeters\":7,\"yMeters\":3,\"handoffRadiusMeters\":0.2,\"rotationRadians\":3.14159,\"profiledRotation\":true},{\"type\":\"waypoint\",\"xMeters\":5,\"yMeters\":1,\"handoffRadiusMeters\":0.2,\"rotationRadians\":4.71239,\"profiledRotation\":true},{\"type\":\"waypoint\",\"xMeters\":3,\"yMeters\":3,\"handoffRadiusMeters\":0.2,\"rotationRadians\":0,\"profiledRotation\":true}],\"scalarConstraints\":{\"maxVelocityMps\":null,\"maxAccelerationMps2\":null,\"maxVelocityDegPerSec\":null,\"maxAccelerationDegPerSec\":null},\"rotationRangedConstraints\":[],\"config\":{\"maxVelocityMps\":4.936,\"maxAccelerationMps2\":12,\"handoffRadiusMeters\":0.2,\"maxVelocityDegPerSec\":720,\"maxAccelerationDegPerSec\":1500,\"autoVelocityVelocitySafetyFactor\":0.9,\"autoVelocityAccelerationSafetyFactor\":0.8},\"options\":{\"velocitySafetyFactor\":0.9,\"accelerationSafetyFactor\":0.8,\"sampleStepMeters\":null}}"
+            }
+          },
+          {
+            "key": "max_velocity_meters_per_sec",
+            "value": 3.14,
+            "start_ordinal": 5,
+            "end_ordinal": 5,
+            "source": "auto_velocity",
+            "auto_velocity": {
+              "velocity_safety_factor": 0.9,
+              "acceleration_safety_factor": 0.8,
+              "merge_tolerance_meters_per_sec": 0.3,
+              "input_signature": "{\"pathElements\":[{\"type\":\"waypoint\",\"xMeters\":3,\"yMeters\":3,\"handoffRadiusMeters\":0.2,\"rotationRadians\":0,\"profiledRotation\":true},{\"type\":\"waypoint\",\"xMeters\":5,\"yMeters\":5,\"handoffRadiusMeters\":0.2,\"rotationRadians\":1.5708,\"profiledRotation\":true},{\"type\":\"waypoint\",\"xMeters\":7,\"yMeters\":3,\"handoffRadiusMeters\":0.2,\"rotationRadians\":3.14159,\"profiledRotation\":true},{\"type\":\"waypoint\",\"xMeters\":5,\"yMeters\":1,\"handoffRadiusMeters\":0.2,\"rotationRadians\":4.71239,\"profiledRotation\":true},{\"type\":\"waypoint\",\"xMeters\":3,\"yMeters\":3,\"handoffRadiusMeters\":0.2,\"rotationRadians\":0,\"profiledRotation\":true}],\"scalarConstraints\":{\"maxVelocityMps\":null,\"maxAccelerationMps2\":null,\"maxVelocityDegPerSec\":null,\"maxAccelerationDegPerSec\":null},\"rotationRangedConstraints\":[],\"config\":{\"maxVelocityMps\":4.936,\"maxAccelerationMps2\":12,\"handoffRadiusMeters\":0.2,\"maxVelocityDegPerSec\":720,\"maxAccelerationDegPerSec\":1500,\"autoVelocityVelocitySafetyFactor\":0.9,\"autoVelocityAccelerationSafetyFactor\":0.8},\"options\":{\"velocitySafetyFactor\":0.9,\"accelerationSafetyFactor\":0.8,\"sampleStepMeters\":null}}"
+            }
+          }
+        ]
+      }
+    },
+    "rotationTuning.json": {
+      "display_name": "rotationTuning",
+      "editor_metadata": null
+    }
+  },
+  "field_assets": {}
+}

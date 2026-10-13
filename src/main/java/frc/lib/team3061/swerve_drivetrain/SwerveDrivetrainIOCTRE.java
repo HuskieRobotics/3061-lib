@@ -785,6 +785,28 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
   }
 
   @Override
+  public void applyRobotSpeeds(ChassisSpeeds speeds, boolean isOpenLoop) {
+
+    this.targetChassisSpeeds = ChassisSpeeds.discretize(speeds, Constants.LOOP_PERIOD_SECS);
+
+    if (isOpenLoop) {
+      this.setControl(
+          this.applyRobotSpeedsRequest
+              .withDriveRequestType(SwerveModule.DriveRequestType.OpenLoopVoltage)
+              .withSteerRequestType(SwerveModule.SteerRequestType.MotionMagicExpo)
+              .withSpeeds(this.targetChassisSpeeds)
+              .withCenterOfRotation(this.centerOfRotation));
+    } else {
+      this.setControl(
+          this.applyRobotSpeedsRequest
+              .withDriveRequestType(SwerveModule.DriveRequestType.Velocity)
+              .withSteerRequestType(SwerveModule.SteerRequestType.MotionMagicExpo)
+              .withSpeeds(this.targetChassisSpeeds)
+              .withCenterOfRotation(this.centerOfRotation));
+    }
+  }
+
+  @Override
   public void applyRobotSpeeds(
       ChassisSpeeds speeds, Force[] forcesX, Force[] forcesY, boolean isOpenLoop) {
 
