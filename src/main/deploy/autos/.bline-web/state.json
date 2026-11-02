@@ -26,7 +26,7 @@
     }
   },
   "active_path_file_name": "crossTrackTuning.json",
-  "active_path_group_id": null,
+  "active_path_group_id": "group-2cd90de9-87f8-41a7-a69e-df0f3469f997",
   "path_groups": [
     {
       "group_id": "group-2cd90de9-87f8-41a7-a69e-df0f3469f997",
@@ -34,18 +34,23 @@
       "path_file_names": [
         "crossTrackTuning.json",
         "rotationTuning.json",
-        "translationTuning.json"
+        "translationTuning.json",
+        "first-straight.json"
       ]
     }
   ],
   "linked_targets": [],
   "paths": {
+    "translationTuning.json": {
+      "display_name": "translationTuning",
+      "editor_metadata": null
+    },
     "first-straight.json": {
       "display_name": "first-straight",
       "editor_metadata": null
     },
-    "translationTuning.json": {
-      "display_name": "translationTuning",
+    "rotationTuning.json": {
+      "display_name": "rotationTuning",
       "editor_metadata": null
     },
     "crossTrackTuning.json": {
@@ -93,10 +98,6 @@
           }
         ]
       }
-    },
-    "rotationTuning.json": {
-      "display_name": "rotationTuning",
-      "editor_metadata": null
     }
   },
   "field_assets": {}
