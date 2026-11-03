@@ -24,5 +24,14 @@
         "profiled_rotation": true
       }
     }
-  ]
+  ],
+  "constraints": {
+    "max_velocity_meters_per_sec": [
+      {
+        "value": 0.5,
+        "start_ordinal": 0,
+        "end_ordinal": 1
+      }
+    ]
+  }
 }
