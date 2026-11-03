@@ -13,6 +13,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.util.DriveFeedforwards;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -306,7 +307,9 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
                 autoXController,
                 autoYController,
                 autoThetaController)
-            .withDefaultShouldFlip();
+            .withDefaultShouldFlip()
+            .withTRatioBasedTranslationHandoffs(true);
+    ;
 
     this.odometry = new SwerveRobotOdometry();
     RobotOdometry.setInstance(this.odometry);
@@ -734,6 +737,12 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
               inputs.drivetrain.measuredChassisSpeeds.vxMetersPerSecond,
               inputs.drivetrain.measuredChassisSpeeds.vyMetersPerSecond),
           MetersPerSecond);
+
+      // convert rawHeadingDeg, which can continuously increase or decrease to +/- 180 degrees for
+      // logging
+      double headingDeg =
+          MathUtil.inputModulus(this.inputs.drivetrain.rawHeadingDeg, -180.0, 180.0);
+      Logger.recordOutput(SUBSYSTEM_NAME + "/Heading (Deg)", headingDeg);
     }
 
     // update the brake mode based on the robot's velocity and state (enabled/disabled)
