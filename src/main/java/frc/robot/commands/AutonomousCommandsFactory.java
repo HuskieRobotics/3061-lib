@@ -81,11 +81,13 @@ public class AutonomousCommandsFactory {
      *
      */
     autoChooser.addOption(
-        "Translation Tuning", createTuningAutoPath("translationTuning", drivetrain));
-    autoChooser.addOption("Rotation Tuning", createTuningAutoPath("rotationTuning", drivetrain));
+        "Translation Tuning", createTuningAutoPath("translationTuning", drivetrain, true));
     autoChooser.addOption(
-        "Cross Track Tuning", createTuningAutoPath("crossTrackTuning", drivetrain));
-    autoChooser.addOption("first-straight", createTuningAutoPath("first-straight", drivetrain));
+        "Rotation Tuning", createTuningAutoPath("rotationTuning", drivetrain, true));
+    autoChooser.addOption(
+        "Cross Track Tuning", createTuningAutoPath("crossTrackTuning", drivetrain, false));
+    autoChooser.addOption(
+        "first-straight", createTuningAutoPath("first-straight", drivetrain, true));
 
     /************ Drive Velocity Tuning ************
      *
@@ -191,11 +193,16 @@ public class AutonomousCommandsFactory {
     return CharacterizationCommands.wheelRadiusCharacterization(drivetrain);
   }
 
-  private Command createTuningAutoPath(String autoName, SwerveDrivetrain drivetrain) {
+  private Command createTuningAutoPath(
+      String autoName, SwerveDrivetrain drivetrain, boolean resetPose) {
     Path path = new Path(autoName);
+    Command resetPathCommand =
+        resetPose
+            ? Commands.runOnce(() -> drivetrain.resetPose(path.getStartPose()))
+            : Commands.none();
     return Commands.sequence(
             Commands.runOnce(drivetrain::captureInitialConditions),
-            Commands.runOnce(() -> drivetrain.resetPose(path.getStartPose())),
+            resetPathCommand,
             Commands.runOnce(
                 () ->
                     drivetrain.pointWheelsAt(path.getInitialModuleDirection(drivetrain::getPose))),
