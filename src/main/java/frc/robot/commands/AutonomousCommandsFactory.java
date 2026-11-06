@@ -85,6 +85,8 @@ public class AutonomousCommandsFactory {
     autoChooser.addOption(
         "Rotation Tuning", createTuningAutoPath("rotationTuning", drivetrain, true));
     autoChooser.addOption(
+        "Cross Track Reset Pose", createTuningAutoPath("cte-start", drivetrain, true));
+    autoChooser.addOption(
         "Cross Track Tuning", createTuningAutoPath("crossTrackTuning", drivetrain, false));
     autoChooser.addOption(
         "first-straight", createTuningAutoPath("first-straight", drivetrain, true));
