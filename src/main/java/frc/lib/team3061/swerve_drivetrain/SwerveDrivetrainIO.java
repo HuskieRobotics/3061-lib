@@ -24,7 +24,7 @@ public interface SwerveDrivetrainIO {
     public double driveSupplyCurrent = 0.0;
     public double driveTemp = 0.0;
     public double driveVoltage = 0.0;
-    public double driveRotations = 0.0;
+    public double driveWheelRotations = 0.0;
 
     public double steerAbsolutePositionRot = 0.0;
 

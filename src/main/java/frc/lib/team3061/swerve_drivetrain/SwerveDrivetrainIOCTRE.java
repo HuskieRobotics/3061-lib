@@ -356,7 +356,11 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
     StatusSignal<Current> steerSupplyCurrent;
     StatusSignal<Temperature> steerTemp;
 
-    ModuleStatusSignals(SwerveModule<TalonFX, TalonFX, CANcoder> module) {
+    private final double driveGearRatio;
+
+    ModuleStatusSignals(SwerveModule<TalonFX, TalonFX, CANcoder> module, double driveGearRatio) {
+      this.driveGearRatio = driveGearRatio;
+
       driveEnabled = module.getDriveMotor().getDeviceEnable();
       driveStatorCurrent = module.getDriveMotor().getStatorCurrent();
       driveSupplyCurrent = module.getDriveMotor().getSupplyCurrent();
@@ -401,7 +405,10 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
       inputs.steerTemp = steerTemp.getValueAsDouble();
 
       if (TUNING_MODE) {
-        inputs.driveRotations = driveRotations.getValueAsDouble();
+        // CTRE forces the drive motor's SensorToMechanismRatio to 1.0, so the position is in rotor
+        // rotations; divide by this module's gear ratio (which may differ between the front and
+        // back modules) to convert to wheel rotations
+        inputs.driveWheelRotations = driveRotations.getValueAsDouble() / driveGearRatio;
       }
     }
   }
@@ -421,8 +428,15 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
         backLeft,
         backRight);
 
+    // must be in the same order as the modules passed to the constructor above
+    double[] driveGearRatios = {
+      frontLeft.DriveMotorGearRatio,
+      frontRight.DriveMotorGearRatio,
+      backLeft.DriveMotorGearRatio,
+      backRight.DriveMotorGearRatio
+    };
     for (int i = 0; i < this.getModules().length; i++) {
-      this.moduleStatusSignals[i] = new ModuleStatusSignals(this.getModule(i));
+      this.moduleStatusSignals[i] = new ModuleStatusSignals(this.getModule(i), driveGearRatios[i]);
     }
 
     this.centerOfRotation = new Translation2d(); // default to (0,0)
