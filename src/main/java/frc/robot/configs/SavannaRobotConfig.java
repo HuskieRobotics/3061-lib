@@ -39,7 +39,7 @@ public class SavannaRobotConfig extends RobotConfig {
 
   private static final double TRACKWIDTH_METERS = 0.628650;
   private static final double WHEELBASE_METERS = 0.476250;
-  private static final double WHEEL_RADIUS_METERS = 0.0515507563;
+  private static final double WHEEL_RADIUS_METERS = 0.04886315737;
   private static final Translation2d FRONT_RIGHT_CORNER_POSITION =
       new Translation2d(0.302940, -0.379140);
 
