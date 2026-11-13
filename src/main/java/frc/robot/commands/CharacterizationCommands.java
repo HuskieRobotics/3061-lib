@@ -26,7 +26,7 @@ import org.littletonrobotics.junction.Logger;
 
 @java.lang.SuppressWarnings({"java:S106"})
 public class CharacterizationCommands {
-  private static final double WHEEL_RADIUS_MAX_VELOCITY = 0.5; // Rad/Sec
+  private static final double WHEEL_RADIUS_MAX_VELOCITY = 2.0; // Rad/Sec
   private static final double WHEEL_RADIUS_RAMP_RATE = 0.05; // Rad/Sec^2
 
   // Minimum average wheel travel (radians) before the running estimate is logged. Until the
