@@ -348,6 +348,7 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
     StatusSignal<Current> driveSupplyCurrent;
     StatusSignal<Temperature> driveTemp;
     StatusSignal<Voltage> driveVoltage;
+    StatusSignal<Angle> driveRotations;
 
     StatusSignal<Angle> steerAbsolutePositionRot;
     StatusSignal<DeviceEnableValue> steerEnabled;
@@ -355,12 +356,17 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
     StatusSignal<Current> steerSupplyCurrent;
     StatusSignal<Temperature> steerTemp;
 
-    ModuleStatusSignals(SwerveModule<TalonFX, TalonFX, CANcoder> module) {
+    private final double driveGearRatio;
+
+    ModuleStatusSignals(SwerveModule<TalonFX, TalonFX, CANcoder> module, double driveGearRatio) {
+      this.driveGearRatio = driveGearRatio;
+
       driveEnabled = module.getDriveMotor().getDeviceEnable();
       driveStatorCurrent = module.getDriveMotor().getStatorCurrent();
       driveSupplyCurrent = module.getDriveMotor().getSupplyCurrent();
       driveTemp = module.getDriveMotor().getDeviceTemp();
       driveVoltage = module.getDriveMotor().getMotorVoltage();
+      driveRotations = module.getDriveMotor().getPosition();
 
       steerAbsolutePositionRot = module.getEncoder().getAbsolutePosition();
 
@@ -376,6 +382,7 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
           driveSupplyCurrent,
           driveTemp,
           driveVoltage,
+          driveRotations,
           steerAbsolutePositionRot,
           steerEnabled,
           steerStatorCurrent,
@@ -396,6 +403,13 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
       inputs.steerStatorCurrent = steerStatorCurrent.getValueAsDouble();
       inputs.steerSupplyCurrent = steerSupplyCurrent.getValueAsDouble();
       inputs.steerTemp = steerTemp.getValueAsDouble();
+
+      if (TUNING_MODE) {
+        // CTRE forces the drive motor's SensorToMechanismRatio to 1.0, so the position is in rotor
+        // rotations; divide by this module's gear ratio (which may differ between the front and
+        // back modules) to convert to wheel rotations
+        inputs.driveWheelRotations = driveRotations.getValueAsDouble() / driveGearRatio;
+      }
     }
   }
 
@@ -414,8 +428,15 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
         backLeft,
         backRight);
 
+    // must be in the same order as the modules passed to the constructor above
+    double[] driveGearRatios = {
+      frontLeft.DriveMotorGearRatio,
+      frontRight.DriveMotorGearRatio,
+      backLeft.DriveMotorGearRatio,
+      backRight.DriveMotorGearRatio
+    };
     for (int i = 0; i < this.getModules().length; i++) {
-      this.moduleStatusSignals[i] = new ModuleStatusSignals(this.getModule(i));
+      this.moduleStatusSignals[i] = new ModuleStatusSignals(this.getModule(i), driveGearRatios[i]);
     }
 
     this.centerOfRotation = new Translation2d(); // default to (0,0)
@@ -848,7 +869,7 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
   }
 
   @Override
-  public void setBrakeMode(boolean enable) {
+  public void setBrakeMode(boolean enableDrive, boolean enableSteer) {
     // Change the neutral mode configuration in a separate thread since changing the configuration
     // of a CTRE device may take a significant amount of time (~200 ms).
     brakeModeExecutor.execute(
@@ -856,10 +877,12 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
           for (SwerveModule<TalonFX, TalonFX, CANcoder> swerveModule : this.getModules()) {
             swerveModule
                 .getDriveMotor()
-                .setNeutralMode(enable ? NeutralModeValue.Brake : NeutralModeValue.Coast, 0.25);
+                .setNeutralMode(
+                    enableDrive ? NeutralModeValue.Brake : NeutralModeValue.Coast, 0.25);
             swerveModule
                 .getSteerMotor()
-                .setNeutralMode(enable ? NeutralModeValue.Brake : NeutralModeValue.Coast, 0.25);
+                .setNeutralMode(
+                    enableSteer ? NeutralModeValue.Brake : NeutralModeValue.Coast, 0.25);
           }
         });
   }
