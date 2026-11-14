@@ -228,6 +228,7 @@ public class AutonomousCommandsFactory {
         Commands.deadline(
             Commands.waitSeconds(1.0),
             Commands.run(() -> drivetrain.drive(0.5, 0.0, 0.0, true, false), drivetrain)),
+        Commands.run(() -> drivetrain.drive(0.0, 0.0, 0.0, true, false), drivetrain),
         Commands.runOnce(drivetrain::coastDriveWheels, drivetrain));
   }
 
