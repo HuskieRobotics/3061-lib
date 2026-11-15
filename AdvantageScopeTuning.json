@@ -1,10 +1,10 @@
 {
   "hubs": [
     {
-      "x": 320,
-      "y": 1185,
-      "width": 1512,
-      "height": 949,
+      "x": 669,
+      "y": 30,
+      "width": 1339,
+      "height": 1122,
       "state": {
         "sidebar": {
           "width": 300,
@@ -31,11 +31,17 @@
             "/RealOutputs/RobotOdometry/visionPoseDiff/rotation",
             "/RealOutputs/Drivetrain/Pose/translation",
             "/RealOutputs/FollowPath",
-            "/Drivetrain/MeasuredChassisSpeeds"
+            "/Drivetrain/MeasuredChassisSpeeds",
+            "/Drivetrain",
+            "/Drivetrain/SwerveModulePositions/0",
+            "/RealOutputs/Drivetrain",
+            "/RealOutputs/WheelRadiusCharacterization",
+            "/Drivetrain/BL",
+            "/DriverStation"
           ]
         },
         "tabs": {
-          "selected": 4,
+          "selected": 10,
           "tabs": [
             {
               "type": 0,
@@ -755,6 +761,106 @@
                   0
                 ]
               },
+              "controlsHeight": 200
+            },
+            {
+              "type": 1,
+              "title": "WheelRadius",
+              "controller": {
+                "leftSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "/RealOutputs/WheelRadiusCharacterization/WheelRadiusMeters",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#e5b31b",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "rightSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "/RealOutputs/WheelRadiusCharacterization/WheelDelta",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#2b66a2",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "discreteSources": [],
+                "leftLockedRange": null,
+                "rightLockedRange": null,
+                "leftUnitConversion": {
+                  "autoTarget": null,
+                  "preset": null
+                },
+                "rightUnitConversion": {
+                  "autoTarget": null,
+                  "preset": null
+                },
+                "leftFilter": 0,
+                "rightFilter": 0
+              },
+              "controllerUUID": "u87hzc66ma690aubo7wrjwuyvvmu7ti6",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
+              "type": 1,
+              "title": "WheelRadiusBest",
+              "controller": {
+                "leftSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "/Drivetrain/BL/DriveWheelRotations",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#2b66a2",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "rightSources": [],
+                "discreteSources": [
+                  {
+                    "type": "stripes",
+                    "logKey": "/DriverStation/Autonomous",
+                    "logType": "Boolean",
+                    "visible": true,
+                    "options": {
+                      "color": "#af2437"
+                    }
+                  },
+                  {
+                    "type": "stripes",
+                    "logKey": "/DriverStation/Enabled",
+                    "logType": "Boolean",
+                    "visible": true,
+                    "options": {
+                      "color": "#80588e"
+                    }
+                  }
+                ],
+                "leftLockedRange": null,
+                "rightLockedRange": null,
+                "leftUnitConversion": {
+                  "autoTarget": null,
+                  "preset": null
+                },
+                "rightUnitConversion": {
+                  "autoTarget": null,
+                  "preset": null
+                },
+                "leftFilter": 0,
+                "rightFilter": 0
+              },
+              "controllerUUID": "sqcom51jzl450x6b14m4q9a6v3vdfn5m",
+              "renderer": null,
               "controlsHeight": 200
             },
             {
@@ -1651,7 +1757,7 @@
             {
               "type": 5,
               "title": "Console",
-              "controller": null,
+              "controller": "/RealOutputs/Console",
               "controllerUUID": "fv0a91w7hjdekc3xszjzgckhhlyuy1ib",
               "renderer": {
                 "highlight": false
