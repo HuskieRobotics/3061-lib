@@ -95,6 +95,9 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
       new LoggedTunableNumber("AutoDrive/TurnKi", RobotConfig.getInstance().getAutoTurnKI());
   private final LoggedTunableNumber autoTurnKd =
       new LoggedTunableNumber("AutoDrive/TurnKd", RobotConfig.getInstance().getAutoTurnKD());
+  private final LoggedTunableNumber autoCrossTrackKp =
+      new LoggedTunableNumber(
+          "AutoDrive/CrossTrackKp", RobotConfig.getInstance().getAutoCrossTrackKP());
 
   private final LoggedTunableNumber slowModeMultiplierTuneable =
       new LoggedTunableNumber(
@@ -114,6 +117,8 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
       new PIDController(autoDriveKp.get(), autoDriveKi.get(), autoDriveKd.get());
   private final PIDController autoThetaController =
       new PIDController(autoTurnKp.get(), autoTurnKi.get(), autoTurnKd.get());
+  private final PIDController autoCrossTrackController =
+      new PIDController(autoCrossTrackKp.get(), 0.0, 0.0);
 
   private FollowPath.Builder pathBuilder;
 
@@ -304,9 +309,9 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
                 this::getPose,
                 this::getRobotRelativeSpeeds,
                 this::applyRobotSpeeds,
-                autoXController,
-                autoYController,
-                autoThetaController)
+                autoXController, // for translation
+                autoThetaController, // for rotation
+                autoCrossTrackController) // for cross-track
             .withDefaultShouldFlip()
             .withTRatioBasedTranslationHandoffs(true);
     ;
@@ -764,6 +769,8 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
         autoTurnKp,
         autoTurnKi,
         autoTurnKd);
+    LoggedTunableNumber.ifChanged(
+        hashCode(), v -> autoCrossTrackController.setP(v[0]), autoCrossTrackKp);
 
     LoggedTunableNumber.ifChanged(
         hashCode(), limits -> slowModeMultiplier = limits[0], slowModeMultiplierTuneable);
