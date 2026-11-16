@@ -29,8 +29,8 @@ public class CharacterizationCommands {
   private static final double WHEEL_RADIUS_MAX_VELOCITY = 2.0; // Rad/Sec
   private static final double WHEEL_RADIUS_RAMP_RATE = 0.05; // Rad/Sec^2
 
-  // Minimum average wheel travel (radians) before the running estimate is logged. Until the
-  // wheels have actually moved, wheelDelta is ~0 and the computed radius is Infinity/NaN.
+  // Minimum average wheel travel (radians) before the running estimate is logged.
+  // Until the wheels have actually moved, wheelDelta is ~0 and the computed radius is Infinity/NaN.
   private static final double WHEEL_DELTA_LOGGING_THRESHOLD = 1e-6;
 
   private static final double DRIVE_RADIUS =
@@ -46,10 +46,10 @@ public class CharacterizationCommands {
     WheelRadiusCharacterizationState state = new WheelRadiusCharacterizationState();
 
     return Commands.parallel(
-            // Drive control sequence
-            Commands.sequence(
-                // Reset acceleration limiter
-                Commands.runOnce(() -> limiter.reset(0.0)),
+        // Drive control sequence
+        Commands.sequence(
+            // Reset acceleration limiter
+            Commands.runOnce(() -> limiter.reset(0.0)),
 
             // Turn in place, accelerating up to full speed
             Commands.run(
@@ -98,14 +98,8 @@ public class CharacterizationCommands {
                             Units.metersToInches(result.wheelRadiusMeters()));
                       }
                     })
-
-            // Measurement sequence
-            Commands.sequence(
-                // Wait for modules to fully orient before starting measurement
-                Commands.waitSeconds(1.0),
-
-                // Record starting measurement
-                Commands.runOnce(
+                // When cancelled, calculate and print results
+                .finallyDo(
                     () -> {
                       WheelRadiusResult result =
                           computeResult(
