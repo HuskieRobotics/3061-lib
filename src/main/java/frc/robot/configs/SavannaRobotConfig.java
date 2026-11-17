@@ -15,25 +15,25 @@ import frc.lib.team3061.swerve_drivetrain.swerve.SwerveConstants;
 import frc.lib.team6328.util.FieldConstants;
 
 public class SavannaRobotConfig extends RobotConfig {
-  private static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 24;
+  private static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 61;
   private static final int FRONT_LEFT_MODULE_STEER_MOTOR = 53;
   private static final int FRONT_LEFT_MODULE_STEER_ENCODER = 25;
-  private static final double FRONT_LEFT_MODULE_STEER_OFFSET_ROT = -0.071045;
+  private static final double FRONT_LEFT_MODULE_STEER_OFFSET_ROT = -0.069824;
 
-  private static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 61;
+  private static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 24;
   private static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 51;
   private static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 24;
-  private static final double FRONT_RIGHT_MODULE_STEER_OFFSET_ROT = 0.025879;
+  private static final double FRONT_RIGHT_MODULE_STEER_OFFSET_ROT = 0.024414;
 
   private static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 40;
   private static final int BACK_LEFT_MODULE_STEER_MOTOR = 25;
   private static final int BACK_LEFT_MODULE_STEER_ENCODER = 17;
-  private static final double BACK_LEFT_MODULE_STEER_OFFSET_ROT = 0.469727;
+  private static final double BACK_LEFT_MODULE_STEER_OFFSET_ROT = 0.471436;
 
   private static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 35;
   private static final int BACK_RIGHT_MODULE_STEER_MOTOR = 52;
   private static final int BACK_RIGHT_MODULE_STEER_ENCODER = 23;
-  private static final double BACK_RIGHT_MODULE_STEER_OFFSET_ROT = -0.166748;
+  private static final double BACK_RIGHT_MODULE_STEER_OFFSET_ROT = -0.165527;
 
   private static final int GYRO_ID = 18;
 
@@ -79,10 +79,10 @@ public class SavannaRobotConfig extends RobotConfig {
   private static final String CAN_BUS_NAME = "canbus1";
   private static final CANBus CAN_BUS = new CANBus(CAN_BUS_NAME);
 
-  private static final double AUTO_DRIVE_P_CONTROLLER = 2.0;
+  private static final double AUTO_DRIVE_P_CONTROLLER = 3.5;
   private static final double AUTO_DRIVE_I_CONTROLLER = 0.0;
   private static final double AUTO_DRIVE_D_CONTROLLER = 0.0;
-  private static final double AUTO_TURN_P_CONTROLLER = 1.0;
+  private static final double AUTO_TURN_P_CONTROLLER = 5;
   private static final double AUTO_TURN_I_CONTROLLER = 0.0;
   private static final double AUTO_TURN_D_CONTROLLER = 0.0;
   private static final double AUTO_CROSS_TRACK_P_CONTROLLER = 0.2;
