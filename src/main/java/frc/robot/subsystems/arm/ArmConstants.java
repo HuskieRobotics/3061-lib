@@ -47,4 +47,9 @@ public class ArmConstants {
   public static final double ANGLE_TOLERANCE_ROTATIONS = Units.degreesToRotations(1.5);
 
   public static final double ANGLE_MOTOR_MANUAL_CONTROL_VOLTAGE = 1.0;
+
+  public static final double ARM_STOWED_POSITION = Units.degreesToRadians(0);
+  public static final double ARM_LOWER_SETPOINT = Units.degreesToRotations(45);
+  public static final double ARM_MIDDLE_SETPOINT = Units.degreesToRotations(90);
+  public static final double ARM_HIGHER_SETPOINT = Units.degreesToRotations(135);
 }

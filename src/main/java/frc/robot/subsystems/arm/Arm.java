@@ -155,4 +155,19 @@ public class Arm extends SubsystemBase {
                   + " but is "
                   + this.inputs.positionRotations);
   }
+
+public Command getMoveArmToSetpointsCommands() {
+  return Commands.sequence(
+    Commands.runOnce(() -> io.setAngleRotations(ARM_LOWER_SETPOINT)),
+    Commands.waitUntil(1),
+    Commands.runOnce(() -> checkAngleRotations(ARM_LOWER_SETPOINT)),
+    Commands.runOnce(() -> io.setAngleRotations(ARM_MIDDLE_SETPOINT)),
+    Commands.waitUntil(1),
+    Commands.runOnce(() -> checkAngleRotations(ARM_MIDDLE_SETPOINT)),
+    Commands.runOnce(() -> io.setAngleRotations(ARM_HIGHER_SETPOINT)),
+    Commands.waitUntil(1),
+    Commands.runOnce(() -> checkAngleRotations(ARM_HIGHER_SETPOINT))
+  );
+}
+
 }
