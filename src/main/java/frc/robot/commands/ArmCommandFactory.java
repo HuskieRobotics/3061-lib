@@ -1,7 +1,5 @@
 package frc.robot.commands;
 
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.lib.team3015.subsystem.FaultReporter;
 import frc.robot.operator_interface.OperatorInterface;
 import frc.robot.subsystems.arm.Arm;
@@ -13,23 +11,20 @@ public class ArmCommandFactory {
 
   public static void registerCommands(OperatorInterface oi, Arm arm) {
 
+    oi.getMoveArmStowPositionTrigger()
+        .onTrue(
+            arm.getMoveArmToCommand(ArmConstants.ARM_STOWED_POSITION)
+                .withName("Move Arm to Stow Position"));
+
     oi.getMoveArmMiddlePositionTrigger()
         .onTrue(
-            new InstantCommand(() -> arm.setAngleRotations(Units.degreesToRotations(45.0)), arm)
+            arm.getMoveArmToCommand(ArmConstants.ARM_MIDDLE_SETPOINT)
                 .withName("Move Arm to Middle Position"));
-    oi.getMoveArmMiddlePositionTrigger()
-        .onFalse(
-            new InstantCommand(() -> arm.setAngleRotations(Units.degreesToRotations(0.0)), arm)
-                .withName("Reset Arm to Zero Position"));
 
     oi.getMoveArmHighPositionTrigger()
         .onTrue(
-            new InstantCommand(() -> arm.setAngleRotations(Units.degreesToRotations(90.0)), arm)
+            arm.getMoveArmToCommand(ArmConstants.ARM_HIGHER_SETPOINT)
                 .withName("Move Arm to High Position"));
-    oi.getMoveArmHighPositionTrigger()
-        .onFalse(
-            new InstantCommand(() -> arm.setAngleRotations(Units.degreesToRotations(0.0)), arm)
-                .withName("Reset Arm to Zero Position"));
 
     // Register this subsystem's system check command with the fault reporter. The system check
     // command can be added to the Elastic Dashboard to execute the system test.

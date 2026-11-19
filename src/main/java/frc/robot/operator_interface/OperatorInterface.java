@@ -111,6 +111,10 @@ public interface OperatorInterface {
   }
 
   // XRP EXAMPLE TRIGGERS
+  public default Trigger getMoveArmStowPositionTrigger() {
+    return new Trigger(() -> false);
+  }
+
   public default Trigger getMoveArmMiddlePositionTrigger() {
     return new Trigger(() -> false);
   }

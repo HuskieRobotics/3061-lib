@@ -156,18 +156,9 @@ public class Arm extends SubsystemBase {
                   + this.inputs.positionRotations);
   }
 
-public Command getMoveArmToSetpointsCommands() {
-  return Commands.sequence(
-    Commands.runOnce(() -> io.setAngleRotations(ARM_LOWER_SETPOINT)),
-    Commands.waitUntil(1),
-    Commands.runOnce(() -> checkAngleRotations(ARM_LOWER_SETPOINT)),
-    Commands.runOnce(() -> io.setAngleRotations(ARM_MIDDLE_SETPOINT)),
-    Commands.waitUntil(1),
-    Commands.runOnce(() -> checkAngleRotations(ARM_MIDDLE_SETPOINT)),
-    Commands.runOnce(() -> io.setAngleRotations(ARM_HIGHER_SETPOINT)),
-    Commands.waitUntil(1),
-    Commands.runOnce(() -> checkAngleRotations(ARM_HIGHER_SETPOINT))
-  );
-}
-
+  public Command getMoveArmToCommand(double angleRotations) {
+    return Commands.sequence(
+        Commands.runOnce(() -> io.setAngleRotations(angleRotations)),
+        Commands.waitUntil((this::isAngleAtSetpoint)));
+  }
 }
