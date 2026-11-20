@@ -5,6 +5,8 @@
 package frc.robot;
 
 import com.ctre.phoenix6.CANBus;
+import com.ctre.phoenix6.SignalLogger;
+import com.ctre.phoenix6.StatusCode;
 import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.PathPlannerLogging;
@@ -61,6 +63,9 @@ public class Robot extends LoggedRobot {
   private final Timer disabledTimer = new Timer();
   private final Timer canInitialErrorTimer = new Timer();
   private final Timer canivoreErrorTimer = new Timer();
+
+  private final Alert signalLogErrorAlert =
+      new Alert("SignalLog error detected: setPath failed.", AlertType.kError);
 
   private final Alert canivoreErrorAlert =
       new Alert("CANivore error detected, robot may not be controllable.", AlertType.kError);
@@ -191,6 +196,11 @@ public class Robot extends LoggedRobot {
     }
 
     CommandScheduler.getInstance().setPeriod(0.2);
+
+    StatusCode status = SignalLogger.setPath("/media/sda1");
+    if (status != StatusCode.OK) {
+      signalLogErrorAlert.set(true);
+    }
 
     // Instantiate our RobotContainer. This will perform all our button bindings,
     // and put our autonomous chooser on the dashboard.

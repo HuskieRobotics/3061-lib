@@ -323,6 +323,15 @@ public class VisionIONorthstar implements VisionIO {
     }
     double avgDistance = totalDistance / tagPoses.size();
 
+    // clamp the timestamp to the FPGA timestamp if the timestamp is in the future yet is close to
+    // the FPGA timestamp. We don't want to do this universally since it is possible that there are
+    // old samples in the queue from a different timebase, which could be far in the future.
+    double originalTimestamp = timestamp;
+    if (timestamp > Timer.getFPGATimestamp()
+        && timestamp - Timer.getFPGATimestamp() < MAX_TIMESTAMP_FUTURE_DELTA) {
+      timestamp = Timer.getFPGATimestamp();
+    }
+
     observations.add(
         new PoseObservation(
             timestamp,
@@ -333,6 +342,7 @@ public class VisionIONorthstar implements VisionIO {
             tagsSeenBitMap,
             tagPoses.size(),
             avgDistance,
-            observationType));
+            observationType,
+            originalTimestamp));
   }
 }

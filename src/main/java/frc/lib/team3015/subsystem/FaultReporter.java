@@ -3,6 +3,7 @@
 package frc.lib.team3015.subsystem;
 
 import com.ctre.phoenix6.SignalLogger;
+import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.CANrange;
 import com.ctre.phoenix6.hardware.Pigeon2;
@@ -275,8 +276,14 @@ public class FaultReporter {
     if (!this.startedCTRESignalLogger) {
       this.startedCTRESignalLogger = true;
       phoenixMotor.getVersion().waitForUpdate(0.5);
-      SignalLogger.setPath("/media/sda1");
-      SignalLogger.start();
+      StatusCode status = SignalLogger.setPath("/media/sda1");
+      if (status != StatusCode.OK) {
+        addFault(subsystemName, "Failed to set signal logger path");
+      }
+      status = SignalLogger.start();
+      if (status != StatusCode.OK) {
+        addFault(subsystemName, "Failed to start signal logger");
+      }
     }
   }
 
