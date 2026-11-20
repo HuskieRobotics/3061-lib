@@ -64,4 +64,8 @@ public final class VisionConstants {
 
   // the minimum confidence for a coral detection to be considered valid
   public static final double OBJECT_DETECT_CONFIDENCE_THRESHOLD = 0.80;
+
+  // the maximum allowable difference between a timestamp and the FPGA timestamp if the timestamp is
+  // in the future
+  public static final double MAX_TIMESTAMP_FUTURE_DELTA = 0.1; // seconds
 }
