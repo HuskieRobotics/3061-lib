@@ -316,6 +316,16 @@ public class VisionIONorthstar implements VisionIO {
     }
     double avgDistance = totalDistance / tagPoses.size();
 
+    // clamp the timestamp to the current timestamp if the timestamp is in the future yet is close
+    // to the current timestamp. We don't want to do this universally since it is possible that
+    // there are old samples in the queue from a different timebase, which could be far in the
+    // future.
+    double originalTimestamp = timestamp;
+    if (timestamp > Timer.getTimestamp()
+        && timestamp - Timer.getTimestamp() < MAX_TIMESTAMP_FUTURE_DELTA) {
+      timestamp = Timer.getTimestamp();
+    }
+
     observations.add(
         new PoseObservation(
             timestamp,
@@ -326,6 +336,7 @@ public class VisionIONorthstar implements VisionIO {
             tagsSeenBitMap,
             tagPoses.size(),
             avgDistance,
-            observationType));
+            observationType,
+            originalTimestamp));
   }
 }
