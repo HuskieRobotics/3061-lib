@@ -39,7 +39,7 @@ public class SavannaRobotConfig extends RobotConfig {
 
   private static final double TRACKWIDTH_METERS = 0.628650;
   private static final double WHEELBASE_METERS = 0.476250;
-  private static final double WHEEL_RADIUS_METERS = 0.04886315737;
+  private static final double WHEEL_RADIUS_METERS = 0.0515507563;
   private static final Translation2d FRONT_RIGHT_CORNER_POSITION =
       new Translation2d(0.302940, -0.379140);
 
@@ -112,11 +112,11 @@ public class SavannaRobotConfig extends RobotConfig {
 
   private static final String BR_CAMERA_SERIAL_NUMBER = "40708542";
   private static final String BL_CAMERA_SERIAL_NUMBER = "40708556";
-  private static final String BCL_CAMERA_SERIAL_NUMBER = "24608727";
+  private static final String BCL_CAMERA_SERIAL_NUMBER = "24608715";
   private static final String BCH_CAMERA_SERIAL_NUMBER = "40777404";
 
-  private static final int DAA1920_160UM_EXPOSURE = 2000;
-  private static final int DAA1280_54UM_EXPOSURE = 800;
+  private static final int DAA1920_160UM_EXPOSURE = 3500;
+  private static final int DAA1280_54UM_EXPOSURE = 1150;
   private static final double MONO_GAIN = 10;
   private static final double DAA1920_160UM_DENOISE = 1.0;
   private static final double DAA1280_54UM_DENOISE = 0.0;
@@ -125,31 +125,31 @@ public class SavannaRobotConfig extends RobotConfig {
   // x, y, z, pitch, yaw
   private static final Transform3d ROBOT_TO_BR_CAMERA =
       new Transform3d(
-          new Translation3d(-0.226, -0.311, 0.184),
-          new Rotation3d(new Quaternion(-0.686, 0.160, 0.156, 0.692)));
+          new Translation3d(-0.230, -0.311, 0.194),
+          new Rotation3d(new Quaternion(-0.690, 0.156, 0.156, 0.690)));
 
   // Back left camera
   // x, y, z, pitch, yaw
   private static final Transform3d ROBOT_TO_BL_CAMERA =
       new Transform3d(
-          new Translation3d(-0.219768, 0.306363, 0.202798),
-          new Rotation3d(new Quaternion(-0.680614, -0.147614, 0.145496, -0.702325)));
+          new Translation3d(-0.234, 0.320, 0.192),
+          new Rotation3d(new Quaternion(.692, .156, -0.164, 0.686)));
 
   // Back center left camera
   // x, y, z, pitch, yaw
   // FIXME: update
   private static final Transform3d ROBOT_TO_BCL_CAMERA =
       new Transform3d(
-          new Translation3d(-0.249052, 0.072636, 0.160716),
-          new Rotation3d(new Quaternion(0.106805, 0.165791, -0.980344, 0.005602)));
+          new Translation3d(-0.236, 0.061, 0.171),
+          new Rotation3d(new Quaternion(0.082, 0.156, -0.984, 0.007)));
 
   // Back center right camera
   // x, y, z, pitch, yaw
   // FIXME: update
   private static final Transform3d ROBOT_TO_BCH_CAMERA =
       new Transform3d(
-          new Translation3d(-0.231423, 0.054115, 0.222039),
-          new Rotation3d(new Quaternion(0.205042, 0.094613, -0.015936, 0.974039)));
+          new Translation3d(-0.230, 0.055, 0.222),
+          new Rotation3d(new Quaternion(0.206, 0.093, -0.020, 0.974)));
 
   // use AprilTag ID 13 for empirical determination of the robot-to-camera transform
   private static final Pose3d ROBOT_TO_TAG_13_BACK_CAMERAS =

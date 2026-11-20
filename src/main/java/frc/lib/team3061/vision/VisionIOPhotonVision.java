@@ -82,7 +82,8 @@ public class VisionIOPhotonVision implements VisionIO {
                     averageTagDistance,
                     estimate.strategy == PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR
                         ? PoseObservationType.MULTI_TAG
-                        : PoseObservationType.SINGLE_TAG));
+                        : PoseObservationType.SINGLE_TAG,
+                    result.getTimestampSeconds()));
           });
     }
 
