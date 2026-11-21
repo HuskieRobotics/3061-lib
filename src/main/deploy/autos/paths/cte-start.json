@@ -12,5 +12,6 @@
         "profiled_rotation": true
       }
     }
-  ]
+  ],
+  "tank_drive_direction": "forward"
 }

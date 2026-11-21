@@ -77,7 +77,7 @@ public class AutonomousCommandsFactory {
 
     /************ Auto Tuning ************
      *
-     * useful for tuning the autonomous PID controllers
+     * useful for tuning the autonomous PID controllers for BLine
      *
      */
     autoChooser.addOption(
@@ -117,7 +117,7 @@ public class AutonomousCommandsFactory {
 
     /************ Drive Wheel Radius Check ************
      *
-     * useful for checking the drive wheel radius
+     * useful for checking/characterizing the drive wheel radius
      *
      */
     autoChooser.addOption( // start by driving slowing in a circle to align wheels

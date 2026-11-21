@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "project_id": "workspace-b67e1fa7-8738-4671-8242-f73e2b9931cb",
+  "display_name": "autos",
+  "editor_config": {
+    "gui": {
+      "robot": {
+        "length_meters": 0.77,
+        "width_meters": 0.93
+      },
+      "protrusions": {
+        "enabled": false,
+        "distance_meters": 0,
+        "side": "none",
+        "default_state": "",
+        "show_on_event_keys": [],
+        "hide_on_event_keys": []
+      }
+    },
+    "kinematic_constraints": {
+      "default_auto_velocity_velocity_safety_factor": 0.9,
+      "default_auto_velocity_acceleration_safety_factor": 0.8,
+      "default_auto_velocity_merge_tolerance_meters_per_sec": 0.3
+    }
+  },
+  "paths": [
+    {
+      "path_id": "path-2e26d482-7ad5-4fb5-b307-465ece6a6549",
+      "display_name": "advancedTuning",
+      "file_name": "advancedTuning.json"
+    },
+    {
+      "path_id": "path-fb4b3aa0-6962-43ef-9bcc-94d3d4a94daf",
+      "display_name": "crossTrackTuning",
+      "file_name": "crossTrackTuning.json"
+    },
+    {
+      "path_id": "path-f5d78c7e-23c1-464a-89f9-f123b3567f23",
+      "display_name": "cte-start",
+      "file_name": "cte-start.json"
+    },
+    {
+      "path_id": "path-bc6371ab-ffc7-442c-bd63-91070e9d79a8",
+      "display_name": "first-straight",
+      "file_name": "first-straight.json"
+    },
+    {
+      "path_id": "path-20dcba20-b385-4d63-bb17-90497a4f66f2",
+      "display_name": "rotationTuning",
+      "file_name": "rotationTuning.json"
+    },
+    {
+      "path_id": "path-6ce79723-b0f8-4874-b5b7-c47691e968e9",
+      "display_name": "tad",
+      "file_name": "tad.json"
+    },
+    {
+      "path_id": "path-25da7e05-f03e-45d4-a2f4-922689a2cc83",
+      "display_name": "translationTuning",
+      "file_name": "translationTuning.json"
+    }
+  ],
+  "path_groups": [],
+  "linked_targets": []
+}
