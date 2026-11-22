@@ -122,6 +122,11 @@ public class AutonomousCommandsFactory {
      */
     autoChooser.addOption( // start by driving slowing in a circle to align wheels
         "Drive Wheel Radius Check", this.getDriveWheelRadiusCheckCommand(drivetrain));
+
+    /*
+     * Add Left Bump Double Sweep Auto made in BLine mirroring PathPlanner's Left Bump Double Sweep Auto from 2026 season.
+     */
+    autoChooser.addOption("Left Bump Double Sweep", this.leftBumpDoubleSweep(drivetrain));
   }
 
   public void configureAutoCommands(DifferentialDrivetrain drivetrain) {
@@ -254,6 +259,28 @@ public class AutonomousCommandsFactory {
           }
           drivetrain.resetPose(pose);
         });
+  }
+
+  /**
+   * This sequence of commands intends to mimic the Left Bump Double Sweep auto from
+   * frc-software-2026.
+   */
+  private Command leftBumpDoubleSweep(SwerveDrivetrain drivetrain) {
+    // Create the paths from their file names
+    Path firstSweep = new Path("L Fuel Sweep Over Bump");
+    Path secondSweep = new Path("L Bump to Trench");
+    Path slowToTrench = new Path("L Bump Second Collect");
+
+    return Commands.sequence(
+        Commands.runOnce(drivetrain::captureInitialConditions),
+        setStartingPoseForAuto(firstSweep.getStartPose(), drivetrain),
+        Commands.runOnce(
+            () ->
+                drivetrain.pointWheelsAt(
+                    firstSweep.getInitialModuleDirection(drivetrain::getPose))),
+        drivetrain.getPathBuilder().build(firstSweep),
+        drivetrain.getPathBuilder().build(secondSweep),
+        drivetrain.getPathBuilder().build(slowToTrench).withName("Left Bump Double Sweep"));
   }
 
   public void setPathFollowingTargetPose(Pose2d pose) {
