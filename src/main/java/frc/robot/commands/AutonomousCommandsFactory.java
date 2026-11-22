@@ -273,13 +273,13 @@ public class AutonomousCommandsFactory {
 
     return Commands.sequence(
         Commands.runOnce(drivetrain::captureInitialConditions),
-        setStartingPoseForAuto(firstSweep.getStartPose(), drivetrain),
+        setStartingPoseForAuto(firstSweep.getStartPose(), drivetrain), // Set our starting pose based on R or B alliance
         Commands.runOnce(
             () ->
                 drivetrain.pointWheelsAt(
-                    firstSweep.getInitialModuleDirection(drivetrain::getPose))),
-        drivetrain.getPathBuilder().build(firstSweep),
-        drivetrain.getPathBuilder().build(secondSweep),
+                    firstSweep.getInitialModuleDirection(drivetrain::getPose))), // tell swerves which direction to point in to start the path
+        drivetrain.getPathBuilder().build(firstSweep), 
+        drivetrain.getPathBuilder().build(secondSweep), 
         drivetrain.getPathBuilder().build(slowToTrench).withName("Left Bump Double Sweep"));
   }
 

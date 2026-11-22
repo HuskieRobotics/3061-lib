@@ -54,6 +54,7 @@
       "/SmartDashboard/SystemStatus/SwerveModule1/SystemCheck": "Command",
       "/SmartDashboard/SystemStatus/SwerveModule2/SystemCheck": "Command",
       "/SmartDashboard/SystemStatus/SwerveModule3/SystemCheck": "Command",
+      "/SmartDashboard/VisionSystemSim-24608715/Sim Field": "Field2d",
       "/SmartDashboard/VisionSystemSim-24608727/Sim Field": "Field2d",
       "/SmartDashboard/VisionSystemSim-40686739/Sim Field": "Field2d",
       "/SmartDashboard/VisionSystemSim-40708542/Sim Field": "Field2d",
@@ -68,6 +69,9 @@
     }
   },
   "NetworkTables Info": {
+    "Server": {
+      "open": true
+    },
     "visible": true
   }
 }
