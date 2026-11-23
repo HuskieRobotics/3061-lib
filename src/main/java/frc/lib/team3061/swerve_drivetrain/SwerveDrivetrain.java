@@ -14,6 +14,7 @@ import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.util.DriveFeedforwards;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -24,7 +25,9 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
@@ -144,6 +147,40 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
 
   private final SwerveRobotOdometry odometry;
   private int constrainPoseToFieldCount = 0;
+
+  /*
+   * State for validating odometry samples. When a CAN bus drops off the RIO (e.g., a CANivore
+   * browning out and re-enumerating on USB), Phoenix continues to invoke the telemetry callback with
+   * a valid timestamp but with every signal at its default value of zero. Integrating those zeros
+   * produces an enormous, bogus twist. Refer to isOdometrySampleValid.
+   */
+  private int previousSuccessfulDAQs = -1;
+  private double lastAcceptedOdometryTimestamp = -1.0;
+  private Rotation2d lastAcceptedOdometryYaw = new Rotation2d();
+  private int rejectedOdometrySampleCount = 0;
+  private int skidCorrectedSampleCount = 0;
+
+  /*
+   * The module positions most recently handed to the pose estimator. While the robot is skidding
+   * these diverge from the raw measurements in modulePositions, so the estimator's baseline has to
+   * be tracked separately. Refer to removeSkid.
+   */
+  private SwerveModulePosition[] integratedModulePositions =
+      new SwerveModulePosition[] {
+        new SwerveModulePosition(),
+        new SwerveModulePosition(),
+        new SwerveModulePosition(),
+        new SwerveModulePosition()
+      };
+
+  private final Alert odometryUnhealthyAlert =
+      new Alert(
+          "Rejecting odometry samples; check the CAN bus and the gyro connection.",
+          AlertType.kError);
+  private final Alert poseFarOutsideFieldAlert =
+      new Alert(
+          "Estimated pose is far outside of the field; relying on vision to recover.",
+          AlertType.kWarning);
 
   private Pose2d customPose = new Pose2d();
 
@@ -421,6 +458,15 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
   public void resetPose(Pose2d pose) {
     this.odometry.resetPose(
         Rotation2d.fromDegrees(this.inputs.drivetrain.rawHeadingDeg), this.modulePositions, pose);
+
+    // resetPosition sets the estimator's baseline to the raw positions passed above, so the
+    // skid-corrected baseline has to be resynchronized or the next sample's delta would be the
+    // accumulated difference between the two.
+    for (int moduleIndex = 0; moduleIndex < this.modulePositions.length; moduleIndex++) {
+      this.integratedModulePositions[moduleIndex].distanceMeters =
+          this.modulePositions[moduleIndex].distanceMeters;
+      this.integratedModulePositions[moduleIndex].angle = this.modulePositions[moduleIndex].angle;
+    }
   }
 
   /**
@@ -634,19 +680,7 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
     Logger.processInputs(SUBSYSTEM_NAME + "/BR", this.inputs.swerve[3]);
 
     // update odometry
-    for (int i = 0; i < inputs.drivetrain.odometryTimestamps.length; i++) {
-      for (int moduleIndex = 0; moduleIndex < this.modulePositions.length; moduleIndex++) {
-        this.modulePositions[moduleIndex].distanceMeters =
-            inputs.swerve[moduleIndex].odometryDrivePositionsMeters[i];
-        this.modulePositions[moduleIndex].angle =
-            inputs.swerve[moduleIndex].odometryTurnPositions[i];
-      }
-
-      this.odometry.updateWithTime(
-          inputs.drivetrain.odometryTimestamps[i],
-          inputs.drivetrain.odometryYawPositions[i],
-          modulePositions);
-    }
+    this.updateOdometry();
 
     // give chassis speeds to odometry for public access throughout the robot
     this.odometry.updateChassisSpeeds(this.getRobotRelativeSpeeds());
@@ -658,22 +692,7 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
     Logger.recordOutput(SUBSYSTEM_NAME + "/CustomPose", this.customPose);
 
     // check for position outside the field due to slipping
-    if (pose.getX() < 0) {
-      this.resetPose(new Pose2d(0, pose.getY(), pose.getRotation()));
-      this.constrainPoseToFieldCount++;
-    } else if (pose.getX() > FieldConstants.fieldLength) {
-      this.resetPose(new Pose2d(FieldConstants.fieldLength, pose.getY(), pose.getRotation()));
-      this.constrainPoseToFieldCount++;
-    }
-    if (pose.getY() < 0) {
-      this.resetPose(new Pose2d(pose.getX(), 0, pose.getRotation()));
-      this.constrainPoseToFieldCount++;
-    } else if (pose.getY() > FieldConstants.fieldWidth) {
-      this.resetPose(new Pose2d(pose.getX(), FieldConstants.fieldWidth, pose.getRotation()));
-      this.constrainPoseToFieldCount++;
-    }
-    Logger.recordOutput(
-        SUBSYSTEM_NAME + "/ConstrainPoseToFieldCount", this.constrainPoseToFieldCount);
+    this.constrainPoseToField(pose);
 
     Logger.recordOutput(SUBSYSTEM_NAME + "/FieldRelative", this.getFieldRelative());
 
@@ -738,6 +757,336 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
 
     // Record cycle time
     LoggedTracer.record("Drivetrain");
+  }
+
+  /**
+   * Replays the odometry samples that were captured by the hardware-specific layer since the last
+   * iteration into the pose estimator. Samples that cannot be trusted are rejected instead of being
+   * integrated.
+   *
+   * <p>When a CAN bus disappears from the RIO (e.g., a CANivore that browns out and re-enumerates
+   * on USB), Phoenix continues to publish a SwerveDriveState with a valid timestamp but with every
+   * signal at its default value of zero. Integrating a sample in which all four wheel distances and
+   * the gyro's yaw simultaneously jump to zero yields a twist of tens of meters, which teleports
+   * the estimated pose off of the field.
+   */
+  private void updateOdometry() {
+    // The queues in the hardware-specific layer are drained together, so these arrays are expected
+    // to be the same length. Bail out rather than risk an exception if that ever changes.
+    int sampleCount =
+        Math.min(
+            inputs.drivetrain.odometryTimestamps.length,
+            inputs.drivetrain.odometryYawPositions.length);
+    for (int moduleIndex = 0; moduleIndex < this.modulePositions.length; moduleIndex++) {
+      sampleCount =
+          Math.min(
+              sampleCount,
+              Math.min(
+                  inputs.swerve[moduleIndex].odometryDrivePositionsMeters.length,
+                  inputs.swerve[moduleIndex].odometryTurnPositions.length));
+    }
+
+    // The gyro and data acquisition counters describe the state of the bus at the end of this
+    // iteration, whereas the queued samples span the entire iteration. Samples that were captured
+    // before the bus failed are still valid, so these signals only raise an alert for the driver;
+    // they must not gate the samples themselves. Each sample is validated individually instead.
+    boolean daqAdvanced = inputs.drivetrain.successfulDAQs != this.previousSuccessfulDAQs;
+    this.previousSuccessfulDAQs = inputs.drivetrain.successfulDAQs;
+    this.odometryUnhealthyAlert.set(
+        !inputs.drivetrain.gyroConnected || (sampleCount > 0 && !daqAdvanced));
+
+    // The skid ratio is derived from inputs.drivetrain.swerveMeasuredStates, which is a single
+    // snapshot of the module velocities taken once per iteration, so it is the same for every
+    // sample drained below.
+    boolean skidding = this.computeSkidRatio() >= SKID_RATIO_THRESHOLD;
+
+    for (int i = 0; i < sampleCount; i++) {
+      if (!isOdometrySampleValid(i)) {
+        // Do not commit this sample to modulePositions. The pose estimator computes its wheel
+        // deltas relative to the last sample it was given, so skipping a sample makes the next
+        // accepted sample's delta span the gap. No distance is lost; it is only deferred.
+        this.rejectedOdometrySampleCount++;
+        continue;
+      }
+
+      this.integrateOdometrySample(i, skidding);
+    }
+
+    Logger.recordOutput(
+        SUBSYSTEM_NAME + "/SkidCorrectedSampleCount", this.skidCorrectedSampleCount);
+
+    Logger.recordOutput(
+        SUBSYSTEM_NAME + "/RejectedOdometrySampleCount", this.rejectedOdometrySampleCount);
+  }
+
+  /**
+   * Returns the ratio between the translational speed of the fastest module and that of the
+   * slowest, after the rotational component of each module's velocity has been removed. A robot
+   * that is tracking cleanly has all four modules translating at the same speed, giving a ratio of
+   * 1.0; a wheel that is slipping spins faster than the rest and drives the ratio up. Refer to
+   * https://www.pramit.gg/post/is-my-robot-skidding for details.
+   *
+   * @return the skid ratio, or 1.0 if the robot is not translating enough to compute one
+   */
+  private double computeSkidRatio() {
+    SwerveDriveKinematics kinematics = RobotConfig.getInstance().getSwerveDriveKinematics();
+    ChassisSpeeds speeds = kinematics.toChassisSpeeds(inputs.drivetrain.swerveMeasuredStates);
+    SwerveModuleState[] rotationOnly =
+        kinematics.toSwerveModuleStates(new ChassisSpeeds(0, 0, speeds.omegaRadiansPerSecond));
+
+    double maxTranslation = 0.0;
+    double minTranslation = Double.POSITIVE_INFINITY;
+    for (int moduleIndex = 0; moduleIndex < this.modulePositions.length; moduleIndex++) {
+      Translation2d measured =
+          new Translation2d(
+              inputs.drivetrain.swerveMeasuredStates[moduleIndex].speedMetersPerSecond,
+              inputs.drivetrain.swerveMeasuredStates[moduleIndex].angle);
+      Translation2d rotational =
+          new Translation2d(
+              rotationOnly[moduleIndex].speedMetersPerSecond, rotationOnly[moduleIndex].angle);
+      double translation = measured.minus(rotational).getNorm();
+      maxTranslation = Math.max(translation, maxTranslation);
+      minTranslation = Math.min(translation, minTranslation);
+    }
+
+    if (ENABLE_EXTRA_LOGGING) {
+      Logger.recordOutput(SUBSYSTEM_NAME + "/maxTranslation", maxTranslation);
+      Logger.recordOutput(SUBSYSTEM_NAME + "/minTranslation", minTranslation);
+    }
+
+    double skidRatio = 1.0;
+    // only calculate the skid ratio if the robot has a significant translation
+    if (minTranslation > 1e-4 && maxTranslation > .01) {
+      skidRatio = maxTranslation / minTranslation;
+    }
+    Logger.recordOutput(SUBSYSTEM_NAME + "/skidRatio", skidRatio);
+
+    return skidRatio;
+  }
+
+  /**
+   * Integrates one validated odometry sample into the pose estimator and advances the baselines
+   * that subsequent samples are measured against.
+   *
+   * @param sampleIndex the index of the sample to integrate
+   * @param skidding true if the modules are slipping and the wheel distances should be corrected
+   *     before they are integrated
+   */
+  private void integrateOdometrySample(int sampleIndex, boolean skidding) {
+    boolean firstSample = this.lastAcceptedOdometryTimestamp < 0.0;
+
+    if (firstSample) {
+      // There is no previous sample to take a displacement against, so seed both baselines.
+      for (int moduleIndex = 0; moduleIndex < this.modulePositions.length; moduleIndex++) {
+        this.integratedModulePositions[moduleIndex].distanceMeters =
+            inputs.swerve[moduleIndex].odometryDrivePositionsMeters[sampleIndex];
+        this.integratedModulePositions[moduleIndex].angle =
+            inputs.swerve[moduleIndex].odometryTurnPositions[sampleIndex];
+      }
+    } else {
+      // The displacement of each module since the last accepted sample, as a vector in the robot
+      // frame: how far the wheel rolled, in the direction the wheel was pointing.
+      Translation2d[] displacements = new Translation2d[this.modulePositions.length];
+      for (int moduleIndex = 0; moduleIndex < this.modulePositions.length; moduleIndex++) {
+        displacements[moduleIndex] =
+            new Translation2d(
+                inputs.swerve[moduleIndex].odometryDrivePositionsMeters[sampleIndex]
+                    - this.modulePositions[moduleIndex].distanceMeters,
+                inputs.swerve[moduleIndex].odometryTurnPositions[sampleIndex]);
+      }
+
+      if (skidding) {
+        displacements =
+            this.removeSkid(
+                displacements,
+                inputs.drivetrain.odometryYawPositions[sampleIndex].minus(
+                    this.lastAcceptedOdometryYaw));
+        this.skidCorrectedSampleCount++;
+      }
+
+      // SwerveDriveKinematics.toTwist2d takes each module's delta as the scalar difference in
+      // distanceMeters directed along the *end* angle, so storing the magnitude and the direction
+      // of the desired displacement makes the estimator integrate exactly that vector. This turns
+      // distanceMeters into an unsigned path length rather than a signed odometer, which is
+      // immaterial because only the difference between consecutive samples is ever read.
+      for (int moduleIndex = 0; moduleIndex < this.modulePositions.length; moduleIndex++) {
+        this.integratedModulePositions[moduleIndex].distanceMeters +=
+            displacements[moduleIndex].getNorm();
+        this.integratedModulePositions[moduleIndex].angle = displacements[moduleIndex].getAngle();
+      }
+    }
+
+    for (int moduleIndex = 0; moduleIndex < this.modulePositions.length; moduleIndex++) {
+      this.modulePositions[moduleIndex].distanceMeters =
+          inputs.swerve[moduleIndex].odometryDrivePositionsMeters[sampleIndex];
+      this.modulePositions[moduleIndex].angle =
+          inputs.swerve[moduleIndex].odometryTurnPositions[sampleIndex];
+    }
+
+    this.lastAcceptedOdometryTimestamp = inputs.drivetrain.odometryTimestamps[sampleIndex];
+    this.lastAcceptedOdometryYaw = inputs.drivetrain.odometryYawPositions[sampleIndex];
+
+    this.odometry.updateWithTime(
+        inputs.drivetrain.odometryTimestamps[sampleIndex],
+        inputs.drivetrain.odometryYawPositions[sampleIndex],
+        this.integratedModulePositions);
+  }
+
+  /**
+   * Replaces the measured module displacements with the displacements the modules would have had if
+   * none of them were slipping.
+   *
+   * <p>Each module's displacement is the sum of a rotational component, which is fixed by the
+   * change in heading and the module's location, and a translational component, which is common to
+   * all four modules when the robot is tracking cleanly. A slipping wheel rolls farther than it
+   * carries the chassis, so it inflates its own translational component; the smallest of the four
+   * is the one least contaminated by slip. Attributing that one to every module discards the
+   * slipped distance instead of integrating it.
+   *
+   * <p>Skipping the update entirely would not discard anything: the pose estimator's baseline only
+   * advances when it is given a sample, so the next accepted sample's delta would span the skid and
+   * reintroduce every slipped meter.
+   *
+   * <p>This recovers the true chassis displacement exactly as long as at least one wheel is not
+   * slipping, and is a no-op when none of them are. It has two limitations. If all four wheels slip
+   * together there is no clean reference and the correction can only partially help. And because it
+   * assumes a bad wheel reports too much distance, a wheel that reports too little -- one that is
+   * dragging, or whose encoder is miscalibrated -- becomes the reference and its deficit is spread
+   * to the other three, which is worse than not correcting at all.
+   *
+   * <p>An alternative this method does not take is to use the second smallest translation as the
+   * reference rather than the smallest. That would fix the under-reporting wheel, but it gives up
+   * the case of three wheels slipping at once, which the smallest recovers exactly and the second
+   * smallest degrades to worse than no correction.
+   *
+   * @param displacements the measured displacement of each module since the last accepted sample
+   * @param dtheta the change in the robot's heading over the same interval
+   * @return the corrected displacement of each module
+   */
+  private Translation2d[] removeSkid(Translation2d[] displacements, Rotation2d dtheta) {
+    // Kinematics is linear, so supplying an angular displacement where an angular velocity is
+    // expected yields a linear displacement where a linear velocity is expected.
+    SwerveModuleState[] rotationOnly =
+        RobotConfig.getInstance()
+            .getSwerveDriveKinematics()
+            .toSwerveModuleStates(new ChassisSpeeds(0, 0, dtheta.getRadians()));
+
+    Translation2d[] rotational = new Translation2d[displacements.length];
+    Translation2d smallestTranslation = null;
+    for (int moduleIndex = 0; moduleIndex < displacements.length; moduleIndex++) {
+      rotational[moduleIndex] =
+          new Translation2d(
+              rotationOnly[moduleIndex].speedMetersPerSecond, rotationOnly[moduleIndex].angle);
+      Translation2d translational = displacements[moduleIndex].minus(rotational[moduleIndex]);
+      if (smallestTranslation == null || translational.getNorm() < smallestTranslation.getNorm()) {
+        smallestTranslation = translational;
+      }
+    }
+
+    Translation2d[] corrected = new Translation2d[displacements.length];
+    for (int moduleIndex = 0; moduleIndex < displacements.length; moduleIndex++) {
+      corrected[moduleIndex] = smallestTranslation.plus(rotational[moduleIndex]);
+    }
+    return corrected;
+  }
+
+  /**
+   * Returns true if the specified odometry sample is physically plausible given the last accepted
+   * sample. A sample is rejected if any wheel or the gyro moved farther than the robot could have
+   * moved in the elapsed time.
+   *
+   * @param sampleIndex the index of the sample to validate
+   * @return true if the sample can be trusted
+   */
+  private boolean isOdometrySampleValid(int sampleIndex) {
+    double timestamp = inputs.drivetrain.odometryTimestamps[sampleIndex];
+
+    // Always accept the first sample; there is nothing to compare it against.
+    if (this.lastAcceptedOdometryTimestamp < 0.0) {
+      return true;
+    }
+
+    // A timestamp that does not advance falls back to the minimum tolerance rather than rejecting
+    // the sample outright, so that a stalled timestamp cannot reject every subsequent sample.
+    double elapsedTime = Math.max(0.0, timestamp - this.lastAcceptedOdometryTimestamp);
+
+    double maxWheelDelta =
+        Math.max(
+            ODOMETRY_MIN_WHEEL_DELTA_METERS,
+            RobotConfig.getInstance().getRobotMaxVelocityMPS()
+                * ODOMETRY_MAX_DELTA_SCALAR
+                * elapsedTime);
+
+    for (int moduleIndex = 0; moduleIndex < this.modulePositions.length; moduleIndex++) {
+      double wheelDelta =
+          Math.abs(
+              inputs.swerve[moduleIndex].odometryDrivePositionsMeters[sampleIndex]
+                  - this.modulePositions[moduleIndex].distanceMeters);
+      if (wheelDelta > maxWheelDelta) {
+        return false;
+      }
+    }
+
+    double maxYawDelta =
+        Math.max(
+            ODOMETRY_MIN_YAW_DELTA_DEG,
+            Units.radiansToDegrees(RobotConfig.getInstance().getRobotMaxAngularVelocityRPS())
+                * ODOMETRY_MAX_DELTA_SCALAR
+                * elapsedTime);
+
+    // Subtract the headings as plain degrees rather than with Rotation2d.minus. A gyro that has
+    // dropped off the bus reports a raw yaw of zero, and minus wraps its result to +/-180 degrees,
+    // which hides that jump whenever the robot is near a whole number of turns: in the log that
+    // motivated this check the heading was 720.21 degrees, whose wrapped difference from zero is
+    // 0.21 degrees and would have been accepted at any threshold.
+    //
+    // WARNING: this relies on these Rotation2d values carrying a continuous angle. Rotation2d
+    // stores the value it was constructed with verbatim, so getDegrees returns 720.21 here, but it
+    // normalizes to +/-180 degrees on any arithmetic (minus, plus, rotateBy, interpolate). These
+    // come straight from Rotation2d.fromDegrees in SwerveDrivetrainIOCTRE, which preserves the
+    // winding that Phoenix reports. If anything is ever inserted into that path that operates on
+    // them, this check silently degrades to detecting the jump only when the robot is far enough
+    // from a whole number of turns -- no compile error and no exception, just weaker detection.
+    double yawDelta =
+        Math.abs(
+            inputs.drivetrain.odometryYawPositions[sampleIndex].getDegrees()
+                - this.lastAcceptedOdometryYaw.getDegrees());
+
+    return yawDelta <= maxYawDelta;
+  }
+
+  /**
+   * Constrains the estimated pose to the field if it has drifted slightly off of it due to wheel
+   * slip.
+   *
+   * <p>Only small excursions are corrected. A pose that is far off of the field is the result of
+   * corrupt odometry rather than slip, and clamping it would pin the robot to a field corner and
+   * discard an estimate that vision can still recover. Resetting the pose also clears the pose
+   * estimator's buffered odometry samples and accumulated vision corrections, so the deadband keeps
+   * this from resetting the pose on every iteration while the robot is pressed against a wall.
+   *
+   * @param pose the current estimated pose
+   */
+  private void constrainPoseToField(Pose2d pose) {
+    double constrainedX = MathUtil.clamp(pose.getX(), 0.0, FieldConstants.fieldLength);
+    double constrainedY = MathUtil.clamp(pose.getY(), 0.0, FieldConstants.fieldWidth);
+
+    double errorX = Math.abs(pose.getX() - constrainedX);
+    double errorY = Math.abs(pose.getY() - constrainedY);
+    double error = Math.max(errorX, errorY);
+
+    boolean farOutsideField = error > CONSTRAIN_POSE_TO_FIELD_MAX_ERROR_METERS;
+    this.poseFarOutsideFieldAlert.set(farOutsideField);
+
+    if (error > CONSTRAIN_POSE_TO_FIELD_DEADBAND_METERS && !farOutsideField) {
+      // Correct both axes with a single reset so that neither axis is computed from a stale pose.
+      this.resetPose(new Pose2d(constrainedX, constrainedY, pose.getRotation()));
+      this.constrainPoseToFieldCount++;
+    }
+
+    Logger.recordOutput(
+        SUBSYSTEM_NAME + "/ConstrainPoseToFieldCount", this.constrainPoseToFieldCount);
+    Logger.recordOutput(SUBSYSTEM_NAME + "/PoseOutsideFieldMeters", error);
   }
 
   /**
