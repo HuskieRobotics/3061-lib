@@ -26,6 +26,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.lib.team254.Phoenix6Util;
 import frc.lib.team3061.RobotConfig;
+import frc.lib.team3061.bfg.BFG;
 import frc.lib.team3061.leds.LEDs;
 import frc.lib.team6328.util.LoggedTracer;
 import frc.lib.team6328.util.SystemTimeValidReader;
@@ -262,6 +263,9 @@ public class Robot extends LoggedRobot {
           !canivoreErrorTimer.hasElapsed(CANIVORE_ERROR_TIME_THRESHOLD)
               && canInitialErrorTimer.hasElapsed(CAN_ERROR_TIME_THRESHOLD));
     }
+
+    // Log battery data
+    BFG.getInstance().logData();
 
     // Update low battery alert
     if (DriverStation.isEnabled()) {

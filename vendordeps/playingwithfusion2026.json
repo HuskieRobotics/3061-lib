@@ -1,0 +1,71 @@
+{
+  "fileName": "playingwithfusion2026.json",
+  "name": "PlayingWithFusion",
+  "version": "2026.5.08",
+  "uuid": "14b8ad04-24df-11ea-978f-2e728ce88125",
+  "frcYear": "2026",
+  "jsonUrl": "https://www.playingwithfusion.com/frc/playingwithfusion2026.json",
+  "mavenUrls": [
+    "https://www.playingwithfusion.com/frc/maven/"
+  ],
+  "javaDependencies": [
+    {
+      "groupId": "com.playingwithfusion.frc",
+      "artifactId": "PlayingWithFusion-java",
+      "version": "2026.5.08"
+    }
+  ],
+  "jniDependencies": [
+    {
+      "groupId": "com.playingwithfusion.frc",
+      "artifactId": "PlayingWithFusion-driver",
+      "version": "2026.5.08",
+      "skipInvalidPlatforms": true,
+      "isJar": false,
+      "validPlatforms": [
+        "windowsx86-64",
+        "linuxarm64",
+        "linuxx86-64",
+        "linuxathena",
+        "linuxarm32",
+        "osxuniversal"
+      ]
+    }
+  ],
+  "cppDependencies": [
+    {
+      "groupId": "com.playingwithfusion.frc",
+      "artifactId": "PlayingWithFusion-cpp",
+      "version": "2026.5.08",
+      "libName": "PlayingWithFusion",
+      "headerClassifier": "headers",
+      "sharedLibrary": false,
+      "skipInvalidPlatforms": true,
+      "binaryPlatforms": [
+        "windowsx86-64",
+        "linuxarm64",
+        "linuxx86-64",
+        "linuxathena",
+        "linuxarm32",
+        "osxuniversal"
+      ]
+    },
+    {
+      "groupId": "com.playingwithfusion.frc",
+      "artifactId": "PlayingWithFusion-driver",
+      "version": "2026.5.08",
+      "libName": "PlayingWithFusionDriver",
+      "headerClassifier": "headers",
+      "sharedLibrary": true,
+      "skipInvalidPlatforms": true,
+      "binaryPlatforms": [
+        "windowsx86-64",
+        "linuxarm64",
+        "linuxx86-64",
+        "linuxathena",
+        "linuxarm32",
+        "osxuniversal"
+      ]
+    }
+  ]
+}
