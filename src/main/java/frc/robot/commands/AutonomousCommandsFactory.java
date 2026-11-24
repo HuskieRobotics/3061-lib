@@ -1,10 +1,10 @@
 package frc.robot.commands;
 
 import com.pathplanner.lib.commands.PathPlannerAuto;
-import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.util.FlippingUtil;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
@@ -15,10 +15,14 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.lib.team3061.differential_drivetrain.DifferentialDrivetrain;
 import frc.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
 import frc.lib.team3061.util.RobotOdometry;
+import frc.robot.lib.BLine.*;
+// import frc.robot.lib.BLine.Path;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 public class AutonomousCommandsFactory {
+
+  public static String DO_NOTHING_AUTO_STR = "Do Nothing";
 
   private static AutonomousCommandsFactory autonomousCommandFactory = null;
 
@@ -56,7 +60,8 @@ public class AutonomousCommandsFactory {
 
   public void configureAutoCommands(SwerveDrivetrain drivetrain) {
     // add commands to the auto chooser
-    autoChooser.addDefaultOption("Do Nothing", new InstantCommand());
+    autoChooser.addDefaultOption(
+        DO_NOTHING_AUTO_STR, new InstantCommand().withName(DO_NOTHING_AUTO_STR));
 
     /************ Start Point ************
      *
@@ -66,44 +71,25 @@ public class AutonomousCommandsFactory {
 
     Command startPoint =
         Commands.runOnce(
-            () -> {
-              try {
-                drivetrain.resetPose(
-                    PathPlannerPath.fromPathFile("Start Point").getStartingDifferentialPose());
-              } catch (Exception e) {
-                pathFileMissingAlert.setText("Could not find the specified path file: Start Point");
-                pathFileMissingAlert.set(true);
-              }
-            },
-            drivetrain);
+                () -> drivetrain.resetPose(new Pose2d(3.0, 3.0, new Rotation2d())), drivetrain)
+            .withName("Start Point");
     autoChooser.addOption("Start Point", startPoint);
-
-    /************ Distance Test ************
-     *
-     * used for empirically determining the wheel radius
-     *
-     */
-    autoChooser.addOption(
-        "Distance Test Slow", createTuningAutoPath("DistanceTestSlow", true, drivetrain));
-    autoChooser.addOption(
-        "Distance Test Med", createTuningAutoPath("DistanceTestMed", true, drivetrain));
-    autoChooser.addOption(
-        "Distance Test Fast", createTuningAutoPath("DistanceTestFast", true, drivetrain));
 
     /************ Auto Tuning ************
      *
-     * useful for tuning the autonomous PID controllers
+     * useful for tuning the autonomous PID controllers for BLine
      *
      */
     autoChooser.addOption(
-        "Rotation Test Slow", createTuningAutoPath("RotationTestSlow", false, drivetrain));
+        "Translation Tuning", createTuningAutoPath("translationTuning", drivetrain, true));
     autoChooser.addOption(
-        "Rotation Test Fast", createTuningAutoPath("RotationTestFast", false, drivetrain));
-
+        "Rotation Tuning", createTuningAutoPath("rotationTuning", drivetrain, true));
     autoChooser.addOption(
-        "Oval Test Slow", createTuningAutoPath("OvalTestSlow", false, drivetrain));
+        "Cross Track Reset Pose", createTuningAutoPath("cte-start", drivetrain, true));
     autoChooser.addOption(
-        "Oval Test Fast", createTuningAutoPath("OvalTestFast", false, drivetrain));
+        "Cross Track Tuning", createTuningAutoPath("crossTrackTuning", drivetrain, false));
+    autoChooser.addOption(
+        "first-straight", createTuningAutoPath("first-straight", drivetrain, true));
 
     /************ Drive Velocity Tuning ************
      *
@@ -131,11 +117,16 @@ public class AutonomousCommandsFactory {
 
     /************ Drive Wheel Radius Check ************
      *
-     * useful for checking the drive wheel radius
+     * useful for checking/characterizing the drive wheel radius
      *
      */
     autoChooser.addOption( // start by driving slowing in a circle to align wheels
         "Drive Wheel Radius Check", this.getDriveWheelRadiusCheckCommand(drivetrain));
+
+    /*
+     * Add Left Bump Double Sweep Auto made in BLine mirroring PathPlanner's Left Bump Double Sweep Auto from 2026 season.
+     */
+    autoChooser.addOption("Left Bump Double Sweep", this.leftBumpDoubleSweep(drivetrain));
   }
 
   public void configureAutoCommands(DifferentialDrivetrain drivetrain) {
@@ -150,16 +141,7 @@ public class AutonomousCommandsFactory {
 
     Command startPoint =
         Commands.runOnce(
-            () -> {
-              try {
-                drivetrain.resetPose(
-                    PathPlannerPath.fromPathFile("Start Point").getStartingDifferentialPose());
-              } catch (Exception e) {
-                pathFileMissingAlert.setText("Could not find the specified path file: Start Point");
-                pathFileMissingAlert.set(true);
-              }
-            },
-            drivetrain);
+            () -> drivetrain.resetPose(new Pose2d(3.0, 3.0, new Rotation2d())), drivetrain);
     autoChooser.addOption("Start Point", startPoint);
 
     /************ Differential Auto ************
@@ -173,50 +155,53 @@ public class AutonomousCommandsFactory {
 
   private Command getDriveVelocityTuningCommand(SwerveDrivetrain drivetrain) {
     return Commands.sequence(
-        Commands.runOnce(drivetrain::disableFieldRelative, drivetrain),
-        Commands.repeatingSequence(
-            Commands.deadline(
-                Commands.waitSeconds(1.0),
-                Commands.run(() -> drivetrain.drive(2.0, 0.0, 0.0, false, false), drivetrain)),
-            Commands.deadline(
-                Commands.waitSeconds(1.0),
-                Commands.run(() -> drivetrain.drive(-0.5, 0.0, 0.0, false, false), drivetrain)),
-            Commands.deadline(
-                Commands.waitSeconds(1.0),
-                Commands.run(() -> drivetrain.drive(1.0, 0.0, 0.0, false, false), drivetrain)),
-            Commands.deadline(
-                Commands.waitSeconds(1.0),
-                Commands.run(() -> drivetrain.drive(3.0, 0.0, 0.0, false, false), drivetrain)),
-            Commands.deadline(
-                Commands.waitSeconds(2.0),
-                Commands.run(() -> drivetrain.drive(1.0, 0.0, 0.0, false, false), drivetrain)),
-            Commands.deadline(
-                Commands.waitSeconds(2.0),
-                Commands.run(() -> drivetrain.drive(-1.0, 0.0, 0.0, false, false), drivetrain)),
-            Commands.deadline(
-                Commands.waitSeconds(1.0),
-                Commands.run(() -> drivetrain.drive(-3.0, 0.0, 0.0, false, false), drivetrain)),
-            Commands.deadline(
-                Commands.waitSeconds(2.0),
-                Commands.run(() -> drivetrain.drive(-1.0, 0.0, 0.0, false, false), drivetrain))));
+            Commands.runOnce(drivetrain::disableFieldRelative, drivetrain),
+            Commands.repeatingSequence(
+                Commands.deadline(
+                    Commands.waitSeconds(1.0),
+                    Commands.run(() -> drivetrain.drive(2.0, 0.0, 0.0, false, false), drivetrain)),
+                Commands.deadline(
+                    Commands.waitSeconds(1.0),
+                    Commands.run(() -> drivetrain.drive(-0.5, 0.0, 0.0, false, false), drivetrain)),
+                Commands.deadline(
+                    Commands.waitSeconds(1.0),
+                    Commands.run(() -> drivetrain.drive(1.0, 0.0, 0.0, false, false), drivetrain)),
+                Commands.deadline(
+                    Commands.waitSeconds(1.0),
+                    Commands.run(() -> drivetrain.drive(3.0, 0.0, 0.0, false, false), drivetrain)),
+                Commands.deadline(
+                    Commands.waitSeconds(2.0),
+                    Commands.run(() -> drivetrain.drive(1.0, 0.0, 0.0, false, false), drivetrain)),
+                Commands.deadline(
+                    Commands.waitSeconds(2.0),
+                    Commands.run(() -> drivetrain.drive(-1.0, 0.0, 0.0, false, false), drivetrain)),
+                Commands.deadline(
+                    Commands.waitSeconds(1.0),
+                    Commands.run(() -> drivetrain.drive(-3.0, 0.0, 0.0, false, false), drivetrain)),
+                Commands.deadline(
+                    Commands.waitSeconds(2.0),
+                    Commands.run(
+                        () -> drivetrain.drive(-1.0, 0.0, 0.0, false, false), drivetrain))))
+        .withName("Drive Velocity Tuning");
   }
 
   private Command getSwerveRotationTuningCommand(SwerveDrivetrain drivetrain) {
     return Commands.sequence(
-        Commands.runOnce(drivetrain::enableFieldRelative, drivetrain),
-        Commands.repeatingSequence(
-            Commands.deadline(
-                Commands.waitSeconds(0.5),
-                Commands.run(() -> drivetrain.drive(0.1, 0.1, 0.0, true, false), drivetrain)),
-            Commands.deadline(
-                Commands.waitSeconds(0.5),
-                Commands.run(() -> drivetrain.drive(-0.1, 0.1, 0.0, true, false), drivetrain)),
-            Commands.deadline(
-                Commands.waitSeconds(0.5),
-                Commands.run(() -> drivetrain.drive(-0.1, -0.1, 0.0, true, false), drivetrain)),
-            Commands.deadline(
-                Commands.waitSeconds(0.5),
-                Commands.run(() -> drivetrain.drive(0.1, -0.1, 0.0, true, false), drivetrain))));
+            Commands.runOnce(drivetrain::enableFieldRelative, drivetrain),
+            Commands.repeatingSequence(
+                Commands.deadline(
+                    Commands.waitSeconds(0.5),
+                    Commands.run(() -> drivetrain.drive(0.1, 0.1, 0.0, true, false), drivetrain)),
+                Commands.deadline(
+                    Commands.waitSeconds(0.5),
+                    Commands.run(() -> drivetrain.drive(-0.1, 0.1, 0.0, true, false), drivetrain)),
+                Commands.deadline(
+                    Commands.waitSeconds(0.5),
+                    Commands.run(() -> drivetrain.drive(-0.1, -0.1, 0.0, true, false), drivetrain)),
+                Commands.deadline(
+                    Commands.waitSeconds(0.5),
+                    Commands.run(() -> drivetrain.drive(0.1, -0.1, 0.0, true, false), drivetrain))))
+        .withName("Swerve Rotation Tuning");
   }
 
   private Command getDriveWheelRadiusCharacterizationCommand(SwerveDrivetrain drivetrain) {
@@ -233,11 +218,20 @@ public class AutonomousCommandsFactory {
   }
 
   private Command createTuningAutoPath(
-      String autoName, boolean measureDistance, SwerveDrivetrain drivetrain) {
+      String autoName, SwerveDrivetrain drivetrain, boolean resetPose) {
+    Path path = new Path(autoName);
+    Command resetPathCommand =
+        resetPose
+            ? Commands.runOnce(() -> drivetrain.resetPose(path.getStartPose()))
+            : Commands.none();
     return Commands.sequence(
-        Commands.runOnce(drivetrain::captureInitialConditions),
-        new PathPlannerAuto(autoName),
-        Commands.runOnce(() -> drivetrain.captureFinalConditions(autoName, measureDistance)));
+            Commands.runOnce(drivetrain::captureInitialConditions),
+            resetPathCommand,
+            Commands.runOnce(
+                () ->
+                    drivetrain.pointWheelsAt(path.getInitialModuleDirection(drivetrain::getPose))),
+            drivetrain.getPathBuilder().build(path))
+        .withName(autoName);
   }
 
   private boolean fallenBehindPath() {
@@ -265,6 +259,34 @@ public class AutonomousCommandsFactory {
           }
           drivetrain.resetPose(pose);
         });
+  }
+
+  /**
+   * This sequence of commands intends to mimic the Left Bump Double Sweep auto from
+   * frc-software-2026.
+   */
+  private Command leftBumpDoubleSweep(SwerveDrivetrain drivetrain) {
+    // Create the paths from their file names
+    Path firstSweep = new Path("L Fuel Sweep Over Bump");
+    Path secondSweep = new Path("L Bump to Trench");
+    Path slowToTrench = new Path("L Bump Second Collect");
+
+    return Commands.sequence(
+        Commands.runOnce(drivetrain::captureInitialConditions),
+        setStartingPoseForAuto(
+            firstSweep.getStartPose(),
+            drivetrain), // Set our starting pose based on R or B alliance
+        Commands.runOnce(
+            () ->
+                drivetrain.pointWheelsAt(
+                    firstSweep.getInitialModuleDirection(
+                        drivetrain
+                            ::getPose))), // tell swerves which direction to point in to start the
+        // path
+
+        drivetrain.getPathBuilder().build(firstSweep),
+        drivetrain.getPathBuilder().build(secondSweep),
+        drivetrain.getPathBuilder().build(slowToTrench).withName("Left Bump Double Sweep"));
   }
 
   public void setPathFollowingTargetPose(Pose2d pose) {
