@@ -754,36 +754,61 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
     updateBrakeMode();
 
     // update tunables
+
     LoggedTunableNumber.ifChanged(
         hashCode(),
         pid -> {
           autoXController.setPID(pid[0], pid[1], pid[2]);
           autoYController.setPID(pid[0], pid[1], pid[2]);
+          autoThetaController.setPID(pid[3], pid[4], pid[5]);
+          autoCrossTrackController.setP(pid[6]);
+          slowModeMultiplier = pid[7];
+          xFilter = new SlewRateLimiter(pid[8]);
+          yFilter = new SlewRateLimiter(pid[8]);
+          thetaFilter = new SlewRateLimiter(pid[9]);
         },
         autoDriveKp,
         autoDriveKi,
-        autoDriveKd);
-    LoggedTunableNumber.ifChanged(
-        hashCode(),
-        pid -> autoThetaController.setPID(pid[0], pid[1], pid[2]),
+        autoDriveKd,
         autoTurnKp,
         autoTurnKi,
-        autoTurnKd);
-    LoggedTunableNumber.ifChanged(
-        hashCode(), v -> autoCrossTrackController.setP(v[0]), autoCrossTrackKp);
-
-    LoggedTunableNumber.ifChanged(
-        hashCode(), limits -> slowModeMultiplier = limits[0], slowModeMultiplierTuneable);
-
-    LoggedTunableNumber.ifChanged(
-        hashCode(),
-        limits -> {
-          xFilter = new SlewRateLimiter(limits[0]);
-          yFilter = new SlewRateLimiter(limits[0]);
-          thetaFilter = new SlewRateLimiter(limits[1]);
-        },
+        autoTurnKd,
+        autoCrossTrackKp,
+        slowModeMultiplierTuneable,
         maxAccelerationWhenLimitedTuneable,
         maxAngularAccelerationWhenLimitedTuneable);
+
+    // LoggedTunableNumber.ifChanged(
+    //     hashCode(),
+    //     pid -> {
+    //       autoXController.setPID(pid[0], pid[1], pid[2]);
+    //       autoYController.setPID(pid[0], pid[1], pid[2]);
+    //     },
+    //     autoDriveKp,
+    //     autoDriveKi,
+    //     autoDriveKd);
+
+    // LoggedTunableNumber.ifChanged(
+    //     hashCode(),
+    //     pid -> autoThetaController.setPID(pid[0], pid[1], pid[2]),
+    //     autoTurnKp,
+    //     autoTurnKi,
+    //     autoTurnKd);
+    // LoggedTunableNumber.ifChanged(
+    //     hashCode(), v -> autoCrossTrackController.setP(v[0]), autoCrossTrackKp);
+
+    // LoggedTunableNumber.ifChanged(
+    //     hashCode(), limits -> slowModeMultiplier = limits[0], slowModeMultiplierTuneable);
+
+    // LoggedTunableNumber.ifChanged(
+    //     hashCode(),
+    //     limits -> {
+    //       xFilter = new SlewRateLimiter(limits[0]);
+    //       yFilter = new SlewRateLimiter(limits[0]);
+    //       thetaFilter = new SlewRateLimiter(limits[1]);
+    //     },
+    //     maxAccelerationWhenLimitedTuneable,
+    //     maxAngularAccelerationWhenLimitedTuneable);
 
     Logger.recordOutput(SUBSYSTEM_NAME + "/SlowModeMultiplier", slowModeMultiplier);
     Logger.recordOutput(
