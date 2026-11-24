@@ -116,8 +116,8 @@ public class SwerveDrivetrainCommandFactory {
                 .ignoringDisable(true)
                 .withName("print current pose"));
 
-    new Trigger(swerveDrivetrain::isTilted)
-        .whileTrue(Commands.run(swerveDrivetrain::untilt, swerveDrivetrain).withName("untilt"));
+    // new Trigger(swerveDrivetrain::isTilted)
+    //     .whileTrue(Commands.run(swerveDrivetrain::untilt, swerveDrivetrain).withName("untilt"));
 
     FaultReporter.getInstance()
         .registerSystemCheck(
