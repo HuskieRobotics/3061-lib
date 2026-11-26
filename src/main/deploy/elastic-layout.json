@@ -20,19 +20,6 @@
             }
           },
           {
-            "title": "Auto Routine",
-            "x": 512.0,
-            "y": 0.0,
-            "width": 368.0,
-            "height": 256.0,
-            "type": "ComboBox Chooser",
-            "properties": {
-              "topic": "/SmartDashboard/Auto Routine",
-              "period": 0.06,
-              "sort_options": false
-            }
-          },
-          {
             "title": "RawHeadingDeg",
             "x": 256.0,
             "y": 256.0,
@@ -86,6 +73,19 @@
               "true_icon": "None",
               "false_icon": "None"
             }
+          },
+          {
+            "title": "Auto Routine",
+            "x": 512.0,
+            "y": 0.0,
+            "width": 432.0,
+            "height": 256.0,
+            "type": "Dropdown Chooser",
+            "properties": {
+              "topic": "/Tunables/Auto Routine",
+              "period": 0.06,
+              "sort_options": false
+            }
           }
         ]
       }
@@ -95,19 +95,6 @@
       "grid_layout": {
         "layouts": [],
         "containers": [
-          {
-            "title": "SysId Chooser",
-            "x": 80.0,
-            "y": 192.0,
-            "width": 256.0,
-            "height": 128.0,
-            "type": "ComboBox Chooser",
-            "properties": {
-              "topic": "/SmartDashboard/SysId Chooser",
-              "period": 0.06,
-              "sort_options": false
-            }
-          },
           {
             "title": "Enable Vision",
             "x": 400.0,
@@ -119,6 +106,19 @@
               "topic": "/Tuning/operatorDashboard/Enable Vision",
               "period": 0.06,
               "data_type": "boolean"
+            }
+          },
+          {
+            "title": "SysId Selection",
+            "x": 64.0,
+            "y": 192.0,
+            "width": 240.0,
+            "height": 128.0,
+            "type": "Dropdown Chooser",
+            "properties": {
+              "topic": "/Tunables/SysId Selection",
+              "period": 0.06,
+              "sort_options": false
             }
           }
         ]

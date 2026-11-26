@@ -83,7 +83,7 @@ public class Shooter extends SubsystemBase {
               Volts.of(10), // will actually be a step to 10 A
               Seconds.of(5), // override default timeout (10 s)
               // Log state with SignalLogger class
-              state -> SignalLogger.writeString("SysIdTranslationCurrent_State", state.toString())),
+              state -> SignalLogger.writeString("SysId_State", state.toString())),
           new SysIdRoutine.Mechanism(
               output -> io.setShooterWheelTopCurrent(output.in(Volts)),
               null,
@@ -95,7 +95,7 @@ public class Shooter extends SubsystemBase {
               Volts.of(10), // will actually be a step to 10 A
               Seconds.of(5), // override default timeout (10 s)
               // Log state with SignalLogger class
-              state -> SignalLogger.writeString("SysIdTranslationCurrent_State", state.toString())),
+              state -> SignalLogger.writeString("SysId_State", state.toString())),
           new SysIdRoutine.Mechanism(
               output -> io.setShooterWheelBottomCurrent(output.in(Volts)),
               null,
