@@ -1,6 +1,5 @@
 package first.lib.team3061.util;
 
-import first.lib.team3061.RobotConfig;
 import java.util.Optional;
 import org.littletonrobotics.junction.Logger;
 import org.wpilib.math.estimator.DifferentialDrivePoseEstimator;
@@ -22,13 +21,7 @@ public class DifferentialRobotOdometry extends RobotOdometry {
   private DifferentialDrivePoseEstimator estimator = null;
 
   public DifferentialRobotOdometry() {
-    estimator =
-        new DifferentialDrivePoseEstimator(
-            RobotConfig.getInstance().getDifferentialDriveKinematics(),
-            new Rotation2d(),
-            0.0,
-            0.0,
-            new Pose2d());
+    estimator = new DifferentialDrivePoseEstimator(new Rotation2d(), 0.0, 0.0, new Pose2d());
   }
 
   /**

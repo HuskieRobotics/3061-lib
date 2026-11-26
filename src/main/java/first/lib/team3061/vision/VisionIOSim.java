@@ -6,10 +6,10 @@ import java.util.function.Supplier;
 import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.SimCameraProperties;
 import org.photonvision.simulation.VisionSystemSim;
+import org.wpilib.fields.Field;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Transform3d;
-import org.wpilib.vision.apriltag.AprilTagFieldLayout;
 
 /**
  * PhotonVision-compatible simulated implementation of the VisionIO interface. Only a single
@@ -37,10 +37,7 @@ public class VisionIOSim extends VisionIOPhotonVision {
    * @param robotToCamera the transform from the robot's center to the simulated camera
    */
   public VisionIOSim(
-      String cameraName,
-      AprilTagFieldLayout layout,
-      Supplier<Pose2d> poseSupplier,
-      Transform3d robotToCamera) {
+      String cameraName, Field layout, Supplier<Pose2d> poseSupplier, Transform3d robotToCamera) {
     super(cameraName, layout);
 
     this.poseSupplier = poseSupplier;

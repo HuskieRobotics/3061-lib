@@ -8,9 +8,9 @@ import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 import org.photonvision.targeting.PhotonPipelineResult;
+import org.wpilib.fields.Field;
 import org.wpilib.math.geometry.Transform3d;
 import org.wpilib.system.Timer;
-import org.wpilib.vision.apriltag.AprilTagFieldLayout;
 
 public class VisionIOPhotonVision implements VisionIO {
   protected final PhotonCamera camera;
@@ -22,7 +22,7 @@ public class VisionIOPhotonVision implements VisionIO {
    *
    * @param cameraName the name of the PhotonVision camera to use; the name must be unique
    */
-  public VisionIOPhotonVision(String cameraName, AprilTagFieldLayout layout) {
+  public VisionIOPhotonVision(String cameraName, Field layout) {
     this.camera = new PhotonCamera(cameraName);
 
     // Don't pass the robot to camera transform as we will work with the estimated camera poses and

@@ -18,9 +18,9 @@ import org.wpilib.command2.CommandScheduler;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
 import org.wpilib.command2.sysid.SysIdRoutine;
-import org.wpilib.driverstation.Alert;
 import org.wpilib.math.filter.Debouncer;
 import org.wpilib.math.util.Units;
+import org.wpilib.util.Alert;
 
 /**
  * Example subsystem for controlling an elevator.
@@ -53,7 +53,7 @@ public class Elevator extends SubsystemBase {
   private Positions targetPosition = Positions.BOTTOM;
 
   private Alert jammedAlert =
-      new Alert("Elevator jam detected. Use manual control.", Alert.Level.HIGH);
+      new Alert("elevatorJam", "Elevator jam detected. Use manual control.", Alert.Level.HIGH);
 
   private CurrentSpikeDetector jamDetector =
       new CurrentSpikeDetector(JAMMED_CURRENT_AMPS, JAMMED_TIME_THRESHOLD_SECONDS);

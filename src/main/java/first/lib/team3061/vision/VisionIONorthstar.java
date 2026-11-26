@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.wpilib.driverstation.MatchState;
+import org.wpilib.fields.Field;
 import org.wpilib.framework.RobotBase;
 import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Quaternion;
@@ -26,7 +27,6 @@ import org.wpilib.math.geometry.Transform3d;
 import org.wpilib.networktables.*;
 import org.wpilib.system.Timer;
 import org.wpilib.util.WPIUtilJNI;
-import org.wpilib.vision.apriltag.AprilTagFieldLayout;
 
 public class VisionIONorthstar implements VisionIO {
   private final String deviceId;
@@ -42,14 +42,14 @@ public class VisionIONorthstar implements VisionIO {
   private final BooleanPublisher isRecordingPublisher;
 
   private final List<VisionIO.PoseObservation> observations = new ArrayList<>();
-  private final AprilTagFieldLayout aprilTagFieldLayout;
+  private final Field field;
   private final Transform3d robotToCameraTransform;
 
   public VisionIONorthstar(
       FieldConstants.AprilTagLayoutType layoutType, RobotConfig.CameraConfig camera) {
     this.deviceId = "northstar_" + camera.location();
     this.robotToCameraTransform = camera.robotToCameraTransform();
-    this.aprilTagFieldLayout = layoutType.getLayout();
+    this.field = layoutType.getLayout();
     String layoutString = layoutType.getLayoutString();
     var northstarTable = NetworkTableInstance.getDefault().getTable(this.deviceId);
     var powerTable = NetworkTableInstance.getDefault().getTable("northstar_power");
@@ -268,7 +268,7 @@ public class VisionIONorthstar implements VisionIO {
       for (int i = startIndex + 1; i < startIndex + 1 + tagCount && i < values.length; i++) {
         int tagId = (int) values[i];
         tagsSeenBitMap |= 1L << tagId;
-        Optional<Pose3d> tagPose = aprilTagFieldLayout.getTagPose(tagId);
+        Optional<Pose3d> tagPose = field.getTagPose(tagId);
         tagPose.ifPresent(tagPoses::add);
       }
     }

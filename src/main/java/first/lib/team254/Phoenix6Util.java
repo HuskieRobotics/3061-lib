@@ -19,13 +19,14 @@ import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.CANrange;
 import com.ctre.phoenix6.hardware.TalonFX;
 import java.util.function.Supplier;
-import org.wpilib.driverstation.Alert;
+import org.wpilib.util.Alert;
 
 @java.lang.SuppressWarnings({"java:S112"})
 public class Phoenix6Util {
 
-  private static Alert canivoreSignalsAlert = new Alert("", Alert.Level.HIGH);
-  private static Alert rioSignalsAlert = new Alert("", Alert.Level.HIGH);
+  private static Alert canivoreSignalsAlert =
+      new Alert("CANivoreSignalsRefresh", "", Alert.Level.HIGH);
+  private static Alert rioSignalsAlert = new Alert("rioSignalsRefresh", "", Alert.Level.HIGH);
 
   private Phoenix6Util() {}
 

@@ -20,13 +20,13 @@ import first.lib.team3061.RobotConfig;
 import first.lib.team3061.sim.ElevatorSystemSim;
 import first.lib.team6328.util.LoggedTunableNumber;
 import first.robot.Constants;
-import org.wpilib.driverstation.Alert;
 import org.wpilib.math.filter.Debouncer;
 import org.wpilib.units.measure.Angle;
 import org.wpilib.units.measure.AngularVelocity;
 import org.wpilib.units.measure.Current;
 import org.wpilib.units.measure.Temperature;
 import org.wpilib.units.measure.Voltage;
+import org.wpilib.util.Alert;
 
 public class ElevatorIOTalonFX implements ElevatorIO {
 
@@ -38,9 +38,15 @@ public class ElevatorIOTalonFX implements ElevatorIO {
   private VoltageOut leadVoltageRequest;
 
   private Alert leadConfigAlert =
-      new Alert("Failed to apply configuration for subsystem.", Alert.Level.HIGH);
+      new Alert(
+          "leadConfigApplication",
+          "Failed to apply configuration for subsystem.",
+          Alert.Level.HIGH);
   private Alert followerConfigAlert =
-      new Alert("Failed to apply configuration for subsystem.", Alert.Level.HIGH);
+      new Alert(
+          "followerConfigApplication",
+          "Failed to apply configuration for subsystem.",
+          Alert.Level.HIGH);
 
   private StatusSignal<Current> leadStatorCurrent;
   private StatusSignal<Current> followerStatorCurrent;

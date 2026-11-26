@@ -11,8 +11,8 @@ package first.robot.operator_interface;
 import first.robot.Constants;
 import first.robot.Constants.RobotType;
 import org.wpilib.command2.CommandScheduler;
-import org.wpilib.driverstation.Alert;
 import org.wpilib.driverstation.internal.DriverStationBackend;
+import org.wpilib.util.Alert;
 
 @java.lang.SuppressWarnings({"java:S3776"})
 
@@ -22,9 +22,12 @@ import org.wpilib.driverstation.internal.DriverStationBackend;
 public class OISelector {
   private static String[] lastJoystickNames = new String[] {null, null, null, null, null, null};
   private static final Alert noOperatorInterfaceWarning =
-      new Alert("No operator controller(s) connected.", Alert.Level.MEDIUM);
+      new Alert("noOperatorInterface", "No operator controller(s) connected.", Alert.Level.MEDIUM);
   private static final Alert nonCompetitionOperatorInterfaceWarning =
-      new Alert("Non-competition operator controller connected.", Alert.Level.MEDIUM);
+      new Alert(
+          "nonCompetitionOperatorInterface",
+          "Non-competition operator controller connected.",
+          Alert.Level.MEDIUM);
 
   private static OperatorInterface oi = null;
 

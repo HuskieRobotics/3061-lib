@@ -2,11 +2,12 @@ package first.lib.team3061.util;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.SelectCommand;
 import org.wpilib.command2.sysid.SysIdRoutine;
 import org.wpilib.command2.sysid.SysIdRoutine.Direction;
+import org.wpilib.tunable.Selectable;
+import org.wpilib.tunable.Tunables;
 
 /**
  * Singleton class to manage SysId routines for dynamic and quasistatic testing. Each subsystem that
@@ -27,8 +28,7 @@ public class SysIdRoutineChooser {
   private Command quasistaticForwardSelectorCommand = null;
   private Command quasistaticBackwardSelectorCommand = null;
 
-  private final LoggedDashboardChooser<Integer> sysIdChooser =
-      new LoggedDashboardChooser<>("SysId Chooser");
+  private final Selectable<Integer> sysIdChooser = new Selectable<>();
 
   private SysIdRoutineChooser() {}
 
@@ -37,17 +37,18 @@ public class SysIdRoutineChooser {
   }
 
   public void addOption(String name, SysIdRoutine sysIdRoutine) {
-    sysIdChooser.addOption(name, name.hashCode());
-    dynamicForwardRoutines.put(name.hashCode(), sysIdRoutine.dynamic(Direction.kForward));
-    dynamicReverseRoutines.put(name.hashCode(), sysIdRoutine.dynamic(Direction.kReverse));
-    quasistaticForwardRoutines.put(name.hashCode(), sysIdRoutine.quasistatic(Direction.kForward));
-    quasistaticReverseRoutines.put(name.hashCode(), sysIdRoutine.quasistatic(Direction.kReverse));
+    sysIdChooser.add(name, name.hashCode());
+    dynamicForwardRoutines.put(name.hashCode(), sysIdRoutine.dynamic(Direction.FORWARD));
+    dynamicReverseRoutines.put(name.hashCode(), sysIdRoutine.dynamic(Direction.REVERSE));
+    quasistaticForwardRoutines.put(name.hashCode(), sysIdRoutine.quasistatic(Direction.FORWARD));
+    quasistaticReverseRoutines.put(name.hashCode(), sysIdRoutine.quasistatic(Direction.REVERSE));
+    Tunables.publish("SysId Selection", sysIdChooser);
   }
 
   public Command getDynamicForward() {
     if (dynamicForwardSelectorCommand == null) {
       dynamicForwardSelectorCommand =
-          new SelectCommand<>(this.dynamicForwardRoutines, sysIdChooser::get);
+          new SelectCommand<>(this.dynamicForwardRoutines, sysIdChooser::getSelected);
     }
     return dynamicForwardSelectorCommand;
   }
@@ -55,7 +56,7 @@ public class SysIdRoutineChooser {
   public Command getDynamicReverse() {
     if (dynamicBackupSelectorCommand == null) {
       dynamicBackupSelectorCommand =
-          new SelectCommand<>(this.dynamicReverseRoutines, sysIdChooser::get);
+          new SelectCommand<>(this.dynamicReverseRoutines, sysIdChooser::getSelected);
     }
 
     return dynamicBackupSelectorCommand;
@@ -64,7 +65,7 @@ public class SysIdRoutineChooser {
   public Command getQuasistaticForward() {
     if (quasistaticForwardSelectorCommand == null) {
       quasistaticForwardSelectorCommand =
-          new SelectCommand<>(this.quasistaticForwardRoutines, sysIdChooser::get);
+          new SelectCommand<>(this.quasistaticForwardRoutines, sysIdChooser::getSelected);
     }
 
     return quasistaticForwardSelectorCommand;
@@ -73,7 +74,7 @@ public class SysIdRoutineChooser {
   public Command getQuasistaticReverse() {
     if (quasistaticBackwardSelectorCommand == null) {
       quasistaticBackwardSelectorCommand =
-          new SelectCommand<>(this.quasistaticReverseRoutines, sysIdChooser::get);
+          new SelectCommand<>(this.quasistaticReverseRoutines, sysIdChooser::getSelected);
     }
     return quasistaticBackwardSelectorCommand;
   }

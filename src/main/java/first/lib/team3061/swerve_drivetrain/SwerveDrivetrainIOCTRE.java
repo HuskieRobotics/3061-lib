@@ -140,7 +140,7 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
   private static final SwerveDrivetrainConstants drivetrainConstants =
       new SwerveDrivetrainConstants()
           .withPigeon2Id(RobotConfig.getInstance().getGyroCANID())
-          .withCANBusName(RobotConfig.getInstance().getCANBusName())
+          .withNetwork(RobotConfig.getInstance().getCANBus())
           .withPigeon2Configs(RobotConfig.getInstance().getPigeonConfigForSwerveDrivetrain());
 
   private static final SwerveModuleConstantsFactory<

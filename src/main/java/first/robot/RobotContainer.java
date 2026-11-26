@@ -52,11 +52,11 @@ import java.util.Optional;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.button.Trigger;
-import org.wpilib.driverstation.Alert;
 import org.wpilib.driverstation.Alliance;
 import org.wpilib.driverstation.MatchState;
 import org.wpilib.framework.RobotBase;
 import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.util.Alert;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -82,7 +82,7 @@ public class RobotContainer {
   private final LoggedNetworkNumber endgameAlert2 =
       new LoggedNetworkNumber("/Tuning/Endgame Alert #2", 10.0);
 
-  private Alert tuningAlert = new Alert("Tuning mode enabled", Alert.Level.LOW);
+  private Alert tuningAlert = new Alert("tuningMode", "Tuning mode enabled", Alert.Level.LOW);
 
   /**
    * Create the container for the robot. Contains subsystems, operator interface (OI) devices, and

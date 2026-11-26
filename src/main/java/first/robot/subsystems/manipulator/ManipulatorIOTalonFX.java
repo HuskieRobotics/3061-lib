@@ -12,13 +12,13 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import first.lib.team254.Phoenix6Util;
 import first.lib.team3015.subsystem.FaultReporter;
 import first.lib.team3061.RobotConfig;
-import org.wpilib.driverstation.Alert;
 import org.wpilib.hardware.discrete.DigitalInput; // imported this class for the sensors
 import org.wpilib.math.filter.Debouncer;
 import org.wpilib.units.measure.AngularVelocity;
 import org.wpilib.units.measure.Current;
 import org.wpilib.units.measure.Temperature;
 import org.wpilib.units.measure.Voltage;
+import org.wpilib.util.Alert;
 
 public class ManipulatorIOTalonFX implements ManipulatorIO {
   // This mechanism has no close loop control; we just set the voltage directly.
@@ -29,7 +29,10 @@ public class ManipulatorIOTalonFX implements ManipulatorIO {
   private DigitalInput backupManipulatorIRSensor;
 
   private Alert manipulatorConfigAlert =
-      new Alert("Failed to apply configuration for manipulator.", Alert.Level.HIGH);
+      new Alert(
+          "manipulatorConfigApplication",
+          "Failed to apply configuration for manipulator.",
+          Alert.Level.HIGH);
 
   private StatusSignal<Current> manipulatorMotorStatorCurrent;
   private StatusSignal<Current> manipulatorMotorSupplyCurrent;

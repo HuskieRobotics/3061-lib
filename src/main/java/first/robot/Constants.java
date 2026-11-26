@@ -8,8 +8,8 @@
 
 package first.robot;
 
-import org.wpilib.driverstation.Alert;
 import org.wpilib.framework.RobotBase;
+import org.wpilib.util.Alert;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -29,9 +29,12 @@ public final class Constants {
   public static final boolean DEMO_MODE = false;
   public static final boolean ENABLE_EXTRA_LOGGING = false;
 
-  private static final RobotType ROBOT = RobotType.ROBOT_COMPETITION;
+  private static final RobotType ROBOT = RobotType.ROBOT_SIMBOT;
   private static final Alert invalidRobotAlert =
-      new Alert("Invalid robot selected, using competition robot as default.", Alert.Level.HIGH);
+      new Alert(
+          "invalidRobotSelected",
+          "Invalid robot selected, using competition robot as default.",
+          Alert.Level.HIGH);
 
   // FIXME: update for various robots
   public enum RobotType {

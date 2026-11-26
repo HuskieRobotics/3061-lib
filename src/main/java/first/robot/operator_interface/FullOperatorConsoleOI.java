@@ -32,8 +32,8 @@ public class FullOperatorConsoleOI extends OperatorDashboard {
     this.rotateJoystickButtons = new Trigger[13];
 
     for (int i = 1; i < translateJoystickButtons.length; i++) {
-      translateJoystickButtons[i] = translateJoystick.button(i);
-      rotateJoystickButtons[i] = rotateJoystick.button(i);
+      translateJoystickButtons[i] = translateJoystick.getHID().button(i);
+      rotateJoystickButtons[i] = rotateJoystick.getHID().button(i);
     }
   }
 

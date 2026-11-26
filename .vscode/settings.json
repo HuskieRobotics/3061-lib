@@ -63,6 +63,7 @@
     "org.wpilib.math.**.struct.*",
     null
   ],
+  "java.debug.settings.enableRunDebugCodeLens": false,
   "java.dependency.enableDependencyCheckup": false,
   "editor.codeActionsOnSave": {
     "source.fixAll.spotlessGradle": "explicit"

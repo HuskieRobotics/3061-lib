@@ -22,13 +22,13 @@ import first.lib.team3061.RobotConfig;
 import first.lib.team3061.sim.ArmSystemSim;
 import first.lib.team6328.util.LoggedTunableNumber;
 import first.robot.Constants;
-import org.wpilib.driverstation.Alert;
 import org.wpilib.math.filter.Debouncer;
 import org.wpilib.math.util.Units;
 import org.wpilib.units.measure.Angle;
 import org.wpilib.units.measure.Current;
 import org.wpilib.units.measure.Temperature;
 import org.wpilib.units.measure.Voltage;
+import org.wpilib.util.Alert;
 
 public class ArmIOTalonFX implements ArmIO {
 
@@ -48,7 +48,8 @@ public class ArmIOTalonFX implements ArmIO {
 
   private ArmSystemSim angleMotorSim;
 
-  private Alert configAlert = new Alert("Failed to apply configuration for arm.", Alert.Level.HIGH);
+  private Alert configAlert =
+      new Alert("armConfigApplication", "Failed to apply configuration for arm.", Alert.Level.HIGH);
 
   // The following enables tuning of the PID and feedforward values for the arm by changing values
   // via AdvantageScope and not needing to change values in code, compile, and re-deploy.

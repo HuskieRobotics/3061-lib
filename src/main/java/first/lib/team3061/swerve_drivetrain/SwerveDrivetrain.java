@@ -35,7 +35,6 @@ import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
 import org.wpilib.command2.sysid.SysIdRoutine;
-import org.wpilib.driverstation.Alert;
 import org.wpilib.driverstation.Alliance;
 import org.wpilib.framework.RobotBase;
 import org.wpilib.math.controller.PIDController;
@@ -54,6 +53,7 @@ import org.wpilib.math.numbers.N3;
 import org.wpilib.math.util.Units;
 import org.wpilib.system.Timer;
 import org.wpilib.units.measure.Angle;
+import org.wpilib.util.Alert;
 
 /**
  * This subsystem models the robot's drivetrain mechanism. It consists of a four swerve modules in
@@ -136,9 +136,15 @@ public class SwerveDrivetrain extends SubsystemBase implements CustomPoseEstimat
   private static final double ACCELERATION_LIMITING_MAX_ANGULAR_VELOCITY_RPS = 4.0;
 
   private Alert noPoseAlert =
-      new Alert("Attempted to reset pose from vision, but no pose was found.", Alert.Level.MEDIUM);
+      new Alert(
+          "NoPoseFromVision",
+          "Attempted to reset pose from vision, but no pose was found.",
+          Alert.Level.MEDIUM);
   private Alert pathFileMissingAlert =
-      new Alert("Could not find the specified path file.", Alert.Level.HIGH);
+      new Alert(
+          "swerve auto path not found",
+          "Could not find the specified path file.",
+          Alert.Level.HIGH);
 
   private final SwerveRobotOdometry odometry;
   private int constrainPoseToFieldCount = 0;

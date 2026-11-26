@@ -12,13 +12,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.wpilib.driverstation.Alert;
+import org.wpilib.fields.Field;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.math.geometry.Translation3d;
 import org.wpilib.math.util.Units;
 import org.wpilib.system.Filesystem;
-import org.wpilib.vision.apriltag.AprilTagFieldLayout;
+import org.wpilib.util.Alert;
 
 @java.lang.SuppressWarnings({"java:S112", "java:S115", "java:S1118", "java:S3077"})
 
@@ -323,19 +323,22 @@ public class FieldConstants {
     NONE("2026-none");
 
     private final String name;
-    private volatile AprilTagFieldLayout layout;
+    private volatile Field layout;
     private volatile String layoutString;
-    private Alert noAprilTagLayoutAlert =
-        new Alert(
-            "No AprilTag layout file found. Update APRILTAG_FIELD_LAYOUT_PATH in VisionConstants.java",
-            Alert.Level.MEDIUM);
-    private Alert unofficialAprilTagLayoutAlert = new Alert("", Alert.Level.LOW);
+    private Alert noAprilTagLayoutAlert;
+    private Alert unofficialAprilTagLayoutAlert;
 
     AprilTagLayoutType(String name) {
       this.name = name;
+      this.noAprilTagLayoutAlert =
+          new Alert(
+              name + "FieldFileNotFound",
+              "No AprilTag layout file found. Update APRILTAG_FIELD_LAYOUT_PATH in VisionConstants.java",
+              Alert.Level.MEDIUM);
+      this.unofficialAprilTagLayoutAlert = new Alert(name + "UnofficialField", "", Alert.Level.LOW);
     }
 
-    public AprilTagFieldLayout getLayout() {
+    public Field getLayout() {
       if (layout == null) {
         synchronized (this) {
           if (layout == null) {
@@ -346,7 +349,7 @@ public class FieldConstants {
                       "apriltags",
                       fieldType.getJsonFolder(),
                       name + ".json");
-              layout = new AprilTagFieldLayout(p);
+              layout = Field.loadFromFile(p);
               layoutString = Files.readString(p);
               noAprilTagLayoutAlert.set(false);
 

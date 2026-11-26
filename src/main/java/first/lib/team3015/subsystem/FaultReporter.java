@@ -9,6 +9,7 @@ import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.revrobotics.spark.SparkMax;
 import first.lib.team3015.subsystem.selfcheck.*;
+import first.robot.Constants;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,9 +19,9 @@ import org.wpilib.command2.Command;
 import org.wpilib.command2.CommandScheduler;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.button.Trigger;
-import org.wpilib.driverstation.Alert;
 import org.wpilib.framework.RobotBase;
 import org.wpilib.hardware.motor.PWMMotorController;
+import org.wpilib.util.Alert;
 
 /**
  * The FaultReporter class is a singleton that is used to check for and publish faults related to
@@ -171,6 +172,7 @@ public class FaultReporter {
 
       Alert alert =
           new Alert(
+              subsystemName + "system test fault",
               subsystemName + ": " + fault.description,
               fault.isWarning ? Alert.Level.MEDIUM : Alert.Level.HIGH);
       alert.set(true);
@@ -273,7 +275,11 @@ public class FaultReporter {
     if (!this.startedCTRESignalLogger) {
       this.startedCTRESignalLogger = true;
       phoenixMotor.getVersion().waitForUpdate(0.5);
-      SignalLogger.setPath("/media/sda1");
+
+      if (Constants.getMode() == Constants.Mode.REAL) {
+        SignalLogger.setPath("/media/sda1");
+      }
+
       SignalLogger.start();
     }
   }

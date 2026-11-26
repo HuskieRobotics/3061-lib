@@ -18,8 +18,8 @@ import java.util.Optional;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 import org.wpilib.command2.SubsystemBase;
-import org.wpilib.driverstation.Alert;
 import org.wpilib.driverstation.RobotState;
+import org.wpilib.fields.Field;
 import org.wpilib.framework.RobotBase;
 import org.wpilib.math.filter.Debouncer;
 import org.wpilib.math.filter.Debouncer.DebounceType;
@@ -32,7 +32,7 @@ import org.wpilib.math.linalg.VecBuilder;
 import org.wpilib.math.numbers.N1;
 import org.wpilib.math.numbers.N3;
 import org.wpilib.system.Timer;
-import org.wpilib.vision.apriltag.AprilTagFieldLayout;
+import org.wpilib.util.Alert;
 
 /**
  * The Vision subsystem is responsible for updating the robot's estimated pose based on a collection
@@ -47,7 +47,7 @@ public class Vision extends SubsystemBase {
   private final AprilTagVisionIOInputsAutoLogged[] aprilTagInputs;
   private final ObjDetectVisionIOInputsAutoLogged[] objDetectInputs;
 
-  private final Debouncer fmsAttachedDebouncer = new Debouncer(3.0, DebounceType.kRising);
+  private final Debouncer fmsAttachedDebouncer = new Debouncer(3.0, DebounceType.RISING);
   private final LoggedNetworkBoolean recordingRequest =
       new LoggedNetworkBoolean("/Vision/Enable Recording", false);
 
@@ -61,16 +61,22 @@ public class Vision extends SubsystemBase {
 
   private List<Integer> camerasToConsider = new ArrayList<>();
 
-  private AprilTagFieldLayout layout;
+  private Field layout;
 
   private Alert northstarThermalAlertWarning =
-      new Alert("Northstar co-processor thermal pressure is high.", Alert.Level.MEDIUM);
+      new Alert(
+          "northstarThermalWarning",
+          "Northstar co-processor thermal pressure is high.",
+          Alert.Level.MEDIUM);
   private Alert northstarThermalAlertError =
-      new Alert("Northstar co-processor thermal pressure is critical!", Alert.Level.HIGH);
+      new Alert(
+          "northstarThermalError",
+          "Northstar co-processor thermal pressure is critical!",
+          Alert.Level.HIGH);
 
   private boolean isEnabled = true;
   private final Debouncer isVisionUpdatingDebounce =
-      new Debouncer(0.1, Debouncer.DebounceType.kFalling);
+      new Debouncer(0.1, Debouncer.DebounceType.FALLING);
 
   private Pose3d mostRecentBestPose = new Pose3d();
   private double mostRecentBestPoseTimestamp = 0.0;
@@ -139,6 +145,7 @@ public class Vision extends SubsystemBase {
       this.objDetectInputs[i] = new ObjDetectVisionIOInputsAutoLogged();
       this.disconnectedAlerts[i] =
           new Alert(
+              "camera" + RobotConfig.getInstance().getCameraConfigs()[i].location() + "Disconnect",
               "camera "
                   + RobotConfig.getInstance().getCameraConfigs()[i].location()
                   + " is disconnected",
@@ -161,7 +168,7 @@ public class Vision extends SubsystemBase {
     this.layout = FieldConstants.defaultAprilTagType.getLayout();
     Pose3d[] aprilTagsPoses = new Pose3d[this.layout.getTags().size()];
     for (int i = 0; i < aprilTagsPoses.length; i++) {
-      aprilTagsPoses[i] = this.layout.getTags().get(i).pose;
+      aprilTagsPoses[i] = this.layout.getTags().get(i).getPose();
     }
     Logger.recordOutput(SUBSYSTEM_NAME + "/AprilTagsPoses", aprilTagsPoses);
   }

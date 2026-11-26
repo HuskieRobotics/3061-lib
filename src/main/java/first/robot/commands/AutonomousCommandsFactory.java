@@ -7,26 +7,26 @@ import first.lib.team3061.differential_drivetrain.DifferentialDrivetrain;
 import first.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
 import first.lib.team3061.util.RobotOdometry;
 import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.InstantCommand;
-import org.wpilib.driverstation.Alert;
 import org.wpilib.math.filter.Debouncer;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Transform2d;
 import org.wpilib.system.Timer;
+import org.wpilib.tunable.Selectable;
+import org.wpilib.tunable.Tunables;
+import org.wpilib.util.Alert;
 
 public class AutonomousCommandsFactory {
 
   private static AutonomousCommandsFactory autonomousCommandFactory = null;
 
   // use AdvantageKit's LoggedDashboardChooser instead of SendableChooser to ensure accurate logging
-  private final LoggedDashboardChooser<Command> autoChooser =
-      new LoggedDashboardChooser<>("Auto Routine");
+  private final Selectable<Command> autoChooser = new Selectable<>();
 
   private final Alert pathFileMissingAlert =
-      new Alert("Could not find the specified path file.", Alert.Level.HIGH);
+      new Alert("autoPathFileMissing", "Could not find the specified path file.", Alert.Level.HIGH);
 
   private Timer matchTimer;
   private Pose2d currentTargetPose;
@@ -50,12 +50,12 @@ public class AutonomousCommandsFactory {
   }
 
   public Command getAutonomousCommand() {
-    return autoChooser.get();
+    return autoChooser.getSelected();
   }
 
   public void configureAutoCommands(SwerveDrivetrain drivetrain) {
     // add commands to the auto chooser
-    autoChooser.addDefaultOption("Do Nothing", new InstantCommand());
+    autoChooser.addDefault("Do Nothing", new InstantCommand());
 
     /************ Start Point ************
      *
@@ -75,18 +75,17 @@ public class AutonomousCommandsFactory {
               }
             },
             drivetrain);
-    autoChooser.addOption("Start Point", startPoint);
+    autoChooser.add("Start Point", startPoint);
 
     /************ Distance Test ************
      *
      * used for empirically determining the wheel radius
      *
      */
-    autoChooser.addOption(
+    autoChooser.add(
         "Distance Test Slow", createTuningAutoPath("DistanceTestSlow", true, drivetrain));
-    autoChooser.addOption(
-        "Distance Test Med", createTuningAutoPath("DistanceTestMed", true, drivetrain));
-    autoChooser.addOption(
+    autoChooser.add("Distance Test Med", createTuningAutoPath("DistanceTestMed", true, drivetrain));
+    autoChooser.add(
         "Distance Test Fast", createTuningAutoPath("DistanceTestFast", true, drivetrain));
 
     /************ Auto Tuning ************
@@ -94,44 +93,43 @@ public class AutonomousCommandsFactory {
      * useful for tuning the autonomous PID controllers
      *
      */
-    autoChooser.addOption(
+    autoChooser.add(
         "Rotation Test Slow", createTuningAutoPath("RotationTestSlow", false, drivetrain));
-    autoChooser.addOption(
+    autoChooser.add(
         "Rotation Test Fast", createTuningAutoPath("RotationTestFast", false, drivetrain));
 
-    autoChooser.addOption(
-        "Oval Test Slow", createTuningAutoPath("OvalTestSlow", false, drivetrain));
-    autoChooser.addOption(
-        "Oval Test Fast", createTuningAutoPath("OvalTestFast", false, drivetrain));
+    autoChooser.add("Oval Test Slow", createTuningAutoPath("OvalTestSlow", false, drivetrain));
+    autoChooser.add("Oval Test Fast", createTuningAutoPath("OvalTestFast", false, drivetrain));
 
     /************ Drive Velocity Tuning ************
      *
      * useful for tuning the drive velocity PID controller
      *
      */
-    autoChooser.addOption("Drive Velocity Tuning", this.getDriveVelocityTuningCommand(drivetrain));
+    autoChooser.add("Drive Velocity Tuning", this.getDriveVelocityTuningCommand(drivetrain));
 
     /************ Swerve Rotation Tuning ************
      *
      * useful for tuning the swerve module rotation PID controller
      *
      */
-    autoChooser.addOption(
-        "Swerve Rotation Tuning", this.getSwerveRotationTuningCommand(drivetrain));
+    autoChooser.add("Swerve Rotation Tuning", this.getSwerveRotationTuningCommand(drivetrain));
 
     /************ Drive Wheel Radius Characterization ************
      *
      * useful for characterizing the drive wheel Radius
      *
      */
-    autoChooser.addOption( // start by driving slowing in a circle to align wheels
+    autoChooser.add( // start by driving slowing in a circle to align wheels
         "Drive Wheel Radius Characterization",
         this.getDriveWheelRadiusCharacterizationCommand(drivetrain));
+
+    Tunables.publish("Auto Routine", autoChooser);
   }
 
   public void configureAutoCommands(DifferentialDrivetrain drivetrain) {
     // add commands to the auto chooser
-    autoChooser.addDefaultOption("Do Nothing", new InstantCommand());
+    autoChooser.addDefault("Do Nothing", new InstantCommand());
 
     /************ Start Point ************
      *
@@ -151,7 +149,7 @@ public class AutonomousCommandsFactory {
               }
             },
             drivetrain);
-    autoChooser.addOption("Start Point", startPoint);
+    autoChooser.add("Start Point", startPoint);
 
     /************ Differential Auto ************
      *
@@ -159,7 +157,9 @@ public class AutonomousCommandsFactory {
      *
      */
 
-    autoChooser.addOption("Differential Example", new PathPlannerAuto("Differential Auto"));
+    autoChooser.add("Differential Example", new PathPlannerAuto("Differential Auto"));
+
+    Tunables.publish("Auto Routine", autoChooser);
   }
 
   private Command getDriveVelocityTuningCommand(SwerveDrivetrain drivetrain) {

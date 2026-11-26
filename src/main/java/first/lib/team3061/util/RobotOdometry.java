@@ -12,7 +12,6 @@ import org.wpilib.math.kinematics.ChassisVelocities;
 import org.wpilib.math.linalg.Matrix;
 import org.wpilib.math.numbers.N1;
 import org.wpilib.math.numbers.N3;
-import org.wpilib.system.Timer;
 
 @java.lang.SuppressWarnings({"java:S6548"})
 
@@ -108,13 +107,8 @@ public abstract class RobotOdometry {
       this.addVisionMeasurement(visionRobotPoseMeters, adjustedTimestamp, visionMeasurementStdDevs);
 
       if (INCLUDE_VISION_POSE_ESTIMATES_IN_CUSTOM_ESTIMATOR && this.customEstimator != null) {
-        // FIXME: after future releases research the timebases used by CTRE and WPILib in both
-        // simulation and on the robot and determine if they are equal, which they should be, but
-        // they aren't now.
-        double phoenixTimestamp =
-            adjustedTimestamp - (Timer.getTimestamp() - Utils.getCurrentTimeSeconds());
         this.customEstimator.addVisionMeasurement(
-            visionRobotPoseMeters, phoenixTimestamp, visionMeasurementStdDevs);
+            visionRobotPoseMeters, adjustedTimestamp, visionMeasurementStdDevs);
       }
     }
 

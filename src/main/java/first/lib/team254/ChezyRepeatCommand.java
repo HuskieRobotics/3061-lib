@@ -4,7 +4,6 @@ import static org.wpilib.util.ErrorMessages.requireNonNullParam;
 
 import org.wpilib.command2.Command;
 import org.wpilib.command2.CommandScheduler;
-import org.wpilib.util.sendable.SendableBuilder;
 
 public class ChezyRepeatCommand extends Command {
   private final Command m_command;
@@ -74,11 +73,5 @@ public class ChezyRepeatCommand extends Command {
   @Override
   public InterruptionBehavior getInterruptionBehavior() {
     return m_command.getInterruptionBehavior();
-  }
-
-  @Override
-  public void initSendable(SendableBuilder builder) {
-    super.initSendable(builder);
-    builder.addStringProperty("command", m_command::getName, null);
   }
 }

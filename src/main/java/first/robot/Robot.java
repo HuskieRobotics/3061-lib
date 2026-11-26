@@ -25,7 +25,6 @@ import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.CommandScheduler;
-import org.wpilib.driverstation.Alert;
 import org.wpilib.driverstation.DriverStationErrors;
 import org.wpilib.framework.IterativeRobotBase;
 import org.wpilib.framework.RobotBase;
@@ -37,6 +36,7 @@ import org.wpilib.system.Filesystem;
 import org.wpilib.system.RobotController;
 import org.wpilib.system.Timer;
 import org.wpilib.system.Watchdog;
+import org.wpilib.util.Alert;
 
 @java.lang.SuppressWarnings({"java:S1192", "java:S106"})
 
@@ -61,18 +61,25 @@ public class Robot extends LoggedRobot {
   private final Timer canivoreErrorTimer = new Timer();
 
   private final Alert canivoreErrorAlert =
-      new Alert("CANivore error detected, robot may not be controllable.", Alert.Level.HIGH);
+      new Alert(
+          "CANivoreError",
+          "CANivore error detected, robot may not be controllable.",
+          Alert.Level.HIGH);
   private final Alert logReceiverQueueAlert =
-      new Alert("Logging queue exceeded capacity, data will NOT be logged.", Alert.Level.HIGH);
+      new Alert(
+          "logReceiverQueueError",
+          "Logging queue exceeded capacity, data will NOT be logged.",
+          Alert.Level.HIGH);
   private final Alert lowBatteryAlert =
       new Alert(
+          "lowBattery",
           "Battery voltage is very low, consider turning off the robot or replacing the battery.",
           Alert.Level.MEDIUM);
   private final Alert jitAlert =
-      new Alert("Please wait to enable, JITing in progress.", Alert.Level.MEDIUM);
+      new Alert("jit", "Please wait to enable, JITing in progress.", Alert.Level.MEDIUM);
 
   private final Alert noAutoSelectedAlert =
-      new Alert("No auto selected: please select an auto", Alert.Level.MEDIUM);
+      new Alert("noAutoSelected", "No auto selected: please select an auto", Alert.Level.MEDIUM);
 
   /** Create a new Robot. */
   public Robot() {
