@@ -11,6 +11,17 @@ import org.wpilib.math.system.Models;
 import org.wpilib.simulation.FlywheelSim;
 import org.wpilib.system.RobotController;
 
+/**
+ * Simulates a "flywheel," which, as in WPILib's {@link FlywheelSim}, refers to any mechanism that
+ * spins freely without a limited range of motion and whose dynamics don't depend on its position.
+ * In addition to shooter flywheels, this includes intake rollers, indexers, conveyors, and similar
+ * mechanisms that are typically controlled by velocity or voltage. Use {@link ArmSystemSim} for
+ * mechanisms affected by gravity based on their angle and {@link ElevatorSystemSim} for linear
+ * mechanisms with a limited range of motion.
+ *
+ * <p>The simulated motors' rotor velocities are set based on the simulated velocity of the
+ * mechanism, and their rotor positions are updated by integrating that velocity.
+ */
 public class FlywheelSystemSim {
 
   private TalonFXSimState[] motorSimStates;
@@ -18,8 +29,9 @@ public class FlywheelSystemSim {
   private double gearRatio;
 
   /**
-   * Creates a simulation of a flywheel based on its physical characteristics. This simulation is
-   * only created when the robot is running in simulation mode; otherwise, this object does nothing.
+   * Creates a simulation of a flywheel (or other freely spinning mechanism, such as an intake
+   * roller) based on its physical characteristics. This simulation is only created when the robot
+   * is running in simulation mode; otherwise, this object does nothing.
    *
    * <p>If any of the specified motors are followers, their leaders must also be specified, and the
    * follower control request must be applied before this object is constructed. The orientation of
@@ -29,7 +41,8 @@ public class FlywheelSystemSim {
    *     two Kraken X60s using FOC)
    * @param gearRatio the gear ratio from the motor's rotor to the flywheel (numbers greater than 1
    *     represent reductions); this should match the TalonFX's SensorToMechanismRatio
-   * @param momentOfInertia the moment of inertia of the flywheel in kg·m²
+   * @param momentOfInertia the moment of inertia of the flywheel in kg·m², including all of the
+   *     rotating parts driven by the motors (e.g., all of the rollers and shafts of an intake)
    * @param motors the motors driving the flywheel; the first motor's output voltage is used as the
    *     input to the simulation, so it must be the leader if any followers are specified
    */
@@ -43,9 +56,10 @@ public class FlywheelSystemSim {
   }
 
   /**
-   * Creates a simulation of a flywheel based on its characterization constants (e.g., as determined
-   * by SysId). This simulation is only created when the robot is running in simulation mode;
-   * otherwise, this object does nothing.
+   * Creates a simulation of a flywheel (or other freely spinning mechanism, such as an intake
+   * roller) based on its characterization constants (e.g., as determined by SysId). This simulation
+   * is only created when the robot is running in simulation mode; otherwise, this object does
+   * nothing.
    *
    * <p>The kV and kA constants are expected in the same units as the TalonFX's Slot0 gains when the
    * device is configured with a SensorToMechanismRatio (i.e., volts per flywheel rotation per
@@ -77,10 +91,11 @@ public class FlywheelSystemSim {
   }
 
   /**
-   * Creates a simulation of a flywheel based on the specified state-space model. The public
-   * constructors build the model from either physical characteristics or characterization constants
-   * and delegate to this constructor. This simulation is only created when the robot is running in
-   * simulation mode; otherwise, this object does nothing.
+   * Creates a simulation of a flywheel (or other freely spinning mechanism, such as an intake
+   * roller) based on the specified state-space model. The public constructors build the model from
+   * either physical characteristics or characterization constants and delegate to this constructor.
+   * This simulation is only created when the robot is running in simulation mode; otherwise, this
+   * object does nothing.
    *
    * <p>The model is provided as a supplier so that it is only created in simulation mode (e.g.,
    * creating a model from characterization constants throws an exception if kA is zero, which

@@ -18,10 +18,11 @@ import com.ctre.phoenix6.signals.UpdateModeValue;
 import first.lib.team254.Phoenix6Util;
 import first.lib.team3015.subsystem.FaultReporter;
 import first.lib.team3061.RobotConfig;
-import first.lib.team3061.sim.VelocitySystemSim;
+import first.lib.team3061.sim.FlywheelSystemSim;
 import first.lib.team6328.util.LoggedTunableNumber;
 import first.robot.Constants;
 import org.wpilib.math.filter.Debouncer;
+import org.wpilib.math.system.DCMotor;
 import org.wpilib.system.RobotController;
 import org.wpilib.units.measure.AngularVelocity;
 import org.wpilib.units.measure.Current;
@@ -59,8 +60,8 @@ public class ShooterIOTalonFX implements ShooterIO {
   private final Debouncer bottomMotorConnectedDebouncer = new Debouncer(0.5);
   private final Debouncer gamePieceSensorConnectedDebouncer = new Debouncer(0.5);
 
-  private VelocitySystemSim shootMotorTopSim;
-  private VelocitySystemSim shootMotorBottomSim;
+  private FlywheelSystemSim shootMotorTopSim;
+  private FlywheelSystemSim shootMotorBottomSim;
 
   private Alert topMotorConfigAlert =
       new Alert(
@@ -161,12 +162,23 @@ public class ShooterIOTalonFX implements ShooterIO {
     configGamePieceDetector(gamePieceDetector, gamePieceDetectorConfigAlert);
 
     // Create a simulation objects for the shooter. The specific parameters for the simulation
-    // are determined based on the mechanical design of the shooter.
+    // are determined based on the mechanical design of the shooter. Since the shooter motors are
+    // controlled with torque current, the Slot0 gains are in amps and can't be used for the
+    // simulation. Instead, these kV (V/(rot/s)) and kA (V/(rot/s²)) values are approximations.
     this.shootMotorBottomSim =
-        new VelocitySystemSim(
-            0.05, 0.01, ShooterConstants.SHOOT_MOTORS_GEAR_RATIO, shootMotorBottom);
+        new FlywheelSystemSim(
+            SHOOT_MOTORS_SIM_KV,
+            SHOOT_MOTORS_SIM_KA,
+            DCMotor.getKrakenX60Foc(1),
+            ShooterConstants.SHOOT_MOTORS_GEAR_RATIO,
+            shootMotorBottom);
     this.shootMotorTopSim =
-        new VelocitySystemSim(0.05, 0.01, ShooterConstants.SHOOT_MOTORS_GEAR_RATIO, shootMotorTop);
+        new FlywheelSystemSim(
+            SHOOT_MOTORS_SIM_KV,
+            SHOOT_MOTORS_SIM_KA,
+            DCMotor.getKrakenX60Foc(1),
+            ShooterConstants.SHOOT_MOTORS_GEAR_RATIO,
+            shootMotorTop);
   }
 
   @Override

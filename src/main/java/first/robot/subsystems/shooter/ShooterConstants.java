@@ -37,6 +37,10 @@ public class ShooterConstants {
 
   // the following are determined based on the mechanical design of the shooter
   public static final double SHOOT_MOTORS_GEAR_RATIO = 0.5;
+
+  // approximate kV (V/(rot/s)) and kA (V/(rot/s²)) of the shooter wheels, only used for simulation
+  public static final double SHOOT_MOTORS_SIM_KV = 0.05 * 2 * Math.PI;
+  public static final double SHOOT_MOTORS_SIM_KA = 0.01 * 2 * Math.PI;
   public static final boolean SHOOT_TOP_INVERTED = false;
   public static final boolean SHOOT_BOTTOM_INVERTED = false;
   public static final double SHOOTER_IDLE_VELOCITY_RPS = 10.0;
