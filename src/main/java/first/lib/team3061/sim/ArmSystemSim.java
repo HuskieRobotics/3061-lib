@@ -24,6 +24,19 @@ import org.wpilib.system.RobotController;
 import org.wpilib.util.Color;
 import org.wpilib.util.Color8Bit;
 
+/**
+ * Simulates a single-jointed arm (e.g., an arm, wrist, or pivot) whose dynamics are affected by
+ * gravity based on its angle and whose range of motion is limited.
+ *
+ * <p>The simulation assumes that the arm is a position mechanism controlled with voltage-based
+ * control requests (e.g., {@code MotionMagicExpoVoltage} or {@code PositionVoltage}). The model's
+ * input is the simulated output voltage of the motor, and kV and kA characterization constants must
+ * be in volts. Phoenix calculates the simulated output voltage in every control mode, so the
+ * physical-characteristics constructors work with any control mode, but the
+ * characterization-constant constructors require constants determined with voltage control. Torque
+ * current (e.g., {@code TorqueCurrentFOC}) is only supported for velocity mechanisms by {@link
+ * FlywheelSystemSim}.
+ */
 public class ArmSystemSim {
 
   private TalonFXSimState[] motorSimStates;
@@ -177,6 +190,11 @@ public class ArmSystemSim {
    * volts per arm rotation per second squared). They are converted to radians internally. When
    * gravity is simulated, it is modeled based on the arm's length; kG is not used.
    *
+   * <p>The kV and kA constants must be in volts (i.e., the arm must be characterized with voltage
+   * control) since the model's input is the simulated output voltage of the motor. Constants in
+   * amps from characterizing with torque-current control (e.g., TorqueCurrentFOC) are not
+   * supported.
+   *
    * <p>Angles are measured from horizontal, with counterclockwise positive. The simulated rotor
    * position is relative to the starting angle (i.e., it reads zero at the starting angle), which
    * matches the behavior of a real motor when the robot is powered on.
@@ -238,6 +256,11 @@ public class ArmSystemSim {
    * device is configured with a SensorToMechanismRatio (i.e., volts per arm rotation per second and
    * volts per arm rotation per second squared). They are converted to radians internally. When
    * gravity is simulated, it is modeled based on the arm's length; kG is not used.
+   *
+   * <p>The kV and kA constants must be in volts (i.e., the arm must be characterized with voltage
+   * control) since the model's input is the simulated output voltage of the motor. Constants in
+   * amps from characterizing with torque-current control (e.g., TorqueCurrentFOC) are not
+   * supported.
    *
    * <p>Angles are measured from horizontal, with counterclockwise positive. The simulated CANcoder
    * reports the absolute angle of the arm; the simulated rotor position is relative to the starting

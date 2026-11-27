@@ -18,6 +18,19 @@ import org.wpilib.system.RobotController;
 import org.wpilib.util.Color;
 import org.wpilib.util.Color8Bit;
 
+/**
+ * Simulates an elevator (or other linear mechanism) with a limited range of motion that is driven
+ * by a pulley or drum and, optionally, affected by gravity.
+ *
+ * <p>The simulation assumes that the elevator is a position mechanism controlled with voltage-based
+ * control requests (e.g., {@code MotionMagicExpoVoltage} or {@code PositionVoltage}). The model's
+ * input is the simulated output voltage of the motor, and kV and kA characterization constants must
+ * be in volts. Phoenix calculates the simulated output voltage in every control mode, so the
+ * physical-characteristics constructor works with any control mode, but the
+ * characterization-constant constructor requires constants determined with voltage control. Torque
+ * current (e.g., {@code TorqueCurrentFOC}) is only supported for velocity mechanisms by {@link
+ * FlywheelSystemSim}.
+ */
 public class ElevatorSystemSim {
 
   private TalonFXSimState[] motorSimStates;
@@ -95,6 +108,11 @@ public class ElevatorSystemSim {
    * and volts per pulley rotation per second squared). They are converted to linear units based on
    * the pulley radius. When gravity is simulated, a constant acceleration of -9.8 m/s² is applied;
    * kG is not used.
+   *
+   * <p>The kV and kA constants must be in volts (i.e., the elevator must be characterized with
+   * voltage control) since the model's input is the simulated output voltage of the motor.
+   * Constants in amps from characterizing with torque-current control (e.g., TorqueCurrentFOC) are
+   * not supported.
    *
    * <p>If any of the specified motors are followers, their leaders must also be specified, and the
    * follower control request must be applied before this object is constructed. The orientation of

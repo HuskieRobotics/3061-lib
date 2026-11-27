@@ -9,6 +9,7 @@ import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.system.LinearSystem;
 import org.wpilib.math.system.Models;
 import org.wpilib.simulation.FlywheelSim;
+import org.wpilib.simulation.LinearSystemSim;
 import org.wpilib.system.RobotController;
 
 /**
@@ -21,17 +22,44 @@ import org.wpilib.system.RobotController;
  *
  * <p>The simulated motors' rotor velocities are set based on the simulated velocity of the
  * mechanism, and their rotor positions are updated by integrating that velocity.
+ *
+ * <p>Velocity mechanisms are often controlled with torque current (e.g., {@code
+ * VelocityTorqueCurrentFOC}), in which case characterizing them with SysId produces kV and kA in
+ * amps rather than volts. The characterization-constant constructor therefore takes the {@link
+ * CharacterizationUnits} of kV and kA. With {@link CharacterizationUnits#AMPS}, the model's input
+ * is the simulated torque current of the motor instead of its voltage. Phoenix calculates the
+ * simulated torque current in every control mode, so the motors may be controlled in any mode; only
+ * the units of kV and kA determine which one to specify.
  */
 public class FlywheelSystemSim {
 
+  /** The units of the kV and kA characterization constants, which determine the model's input. */
+  public enum CharacterizationUnits {
+    /**
+     * kV and kA are in volts (e.g., characterized with voltage control); the model's input is the
+     * simulated output voltage of the motor.
+     */
+    VOLTS,
+    /**
+     * kV and kA are in amps (e.g., characterized with TorqueCurrentFOC control); the model's input
+     * is the simulated torque current of the motor.
+     */
+    AMPS
+  }
+
   private TalonFXSimState[] motorSimStates;
-  private FlywheelSim systemSim;
+  private LinearSystemSim<N1, N1, N1> systemSim;
   private double gearRatio;
+  private CharacterizationUnits characterizationUnits;
 
   /**
    * Creates a simulation of a flywheel (or other freely spinning mechanism, such as an intake
    * roller) based on its physical characteristics. This simulation is only created when the robot
    * is running in simulation mode; otherwise, this object does nothing.
+   *
+   * <p>The model's input is the simulated output voltage of the motor. Phoenix calculates this
+   * voltage in every control mode (including TorqueCurrentFOC), so the motors may be controlled in
+   * any mode.
    *
    * <p>If any of the specified motors are followers, their leaders must also be specified, and the
    * follower control request must be applied before this object is constructed. The orientation of
@@ -52,6 +80,7 @@ public class FlywheelSystemSim {
         () -> Models.flywheelFromPhysicalConstants(gearbox, momentOfInertia, gearRatio),
         gearbox,
         gearRatio,
+        CharacterizationUnits.VOLTS,
         motors);
   }
 
@@ -62,31 +91,50 @@ public class FlywheelSystemSim {
    * nothing.
    *
    * <p>The kV and kA constants are expected in the same units as the TalonFX's Slot0 gains when the
-   * device is configured with a SensorToMechanismRatio (i.e., volts per flywheel rotation per
-   * second and volts per flywheel rotation per second squared). They are converted to radians
-   * internally.
+   * device is configured with a SensorToMechanismRatio (i.e., volts or amps per flywheel rotation
+   * per second and volts or amps per flywheel rotation per second squared). They are converted to
+   * radians internally.
+   *
+   * <p>If the flywheel is characterized with voltage control, specify {@link
+   * CharacterizationUnits#VOLTS}, and the model's input is the simulated output voltage of the
+   * motor. If the flywheel is characterized with torque-current control (e.g., TorqueCurrentFOC),
+   * specify {@link CharacterizationUnits#AMPS}, and the model's input is the simulated torque
+   * current of the first motor. In this case, kV and kA are expected to be based on the torque
+   * current of a single motor (e.g., the leader's torque current logged by SysId) with all of the
+   * specified motors driving the flywheel.
    *
    * <p>If any of the specified motors are followers, their leaders must also be specified, and the
    * follower control request must be applied before this object is constructed. The orientation of
    * each simulated motor is determined from its (or its leader's) configuration.
    *
-   * @param kV the velocity gain in volts / (flywheel rotations / second)
-   * @param kA the acceleration gain in volts / (flywheel rotations / second²)
+   * @param kV the velocity gain in volts or amps / (flywheel rotations / second)
+   * @param kA the acceleration gain in volts or amps / (flywheel rotations / second²)
+   * @param characterizationUnits the units of kV and kA, which determine whether the model's input
+   *     is the motor's simulated output voltage or torque current
    * @param gearbox the motor(s) driving the flywheel (e.g., {@code DCMotor.getKrakenX60Foc(2)} for
-   *     two Kraken X60s using FOC); only used to calculate the simulated current draw
+   *     two Kraken X60s using FOC); only used to calculate the simulated current draw and ignored
+   *     if characterizationUnits is {@link CharacterizationUnits#AMPS}
    * @param gearRatio the gear ratio from the motor's rotor to the flywheel (numbers greater than 1
    *     represent reductions), used to convert the flywheel's velocity to the rotor's velocity;
    *     this should match the TalonFX's SensorToMechanismRatio
-   * @param motors the motors driving the flywheel; the first motor's output voltage is used as the
-   *     input to the simulation, so it must be the leader if any followers are specified
+   * @param motors the motors driving the flywheel; the first motor's output voltage or torque
+   *     current is used as the input to the simulation, so it must be the leader if any followers
+   *     are specified
    */
   public FlywheelSystemSim(
-      double kV, double kA, DCMotor gearbox, double gearRatio, TalonFX... motors) {
-    // convert from V/(rot/s) and V/(rot/s²) to V/(rad/s) and V/(rad/s²)
+      double kV,
+      double kA,
+      CharacterizationUnits characterizationUnits,
+      DCMotor gearbox,
+      double gearRatio,
+      TalonFX... motors) {
+    // convert from units/(rot/s) and units/(rot/s²) to units/(rad/s) and units/(rad/s²); the model
+    // has the same form whether its input is in volts or amps
     this(
         () -> Models.flywheelFromSysId(kV / (2 * Math.PI), kA / (2 * Math.PI)),
         gearbox,
         gearRatio,
+        characterizationUnits,
         motors);
   }
 
@@ -102,20 +150,25 @@ public class FlywheelSystemSim {
    * shouldn't prevent the robot code from running on a real robot).
    *
    * @param plantSupplier supplies the state-space model of the flywheel whose state is [angular
-   *     velocity] in radians per second, whose input is [voltage], and whose output is [angular
-   *     velocity]
+   *     velocity] in radians per second, whose input is [voltage] or [torque current] (as specified
+   *     by characterizationUnits), and whose output is [angular velocity]
    * @param gearbox the motor(s) driving the flywheel; used to calculate the simulated current draw
+   *     and ignored if characterizationUnits is {@link CharacterizationUnits#AMPS}
    * @param gearRatio the gear ratio from the motor's rotor to the flywheel (numbers greater than 1
    *     represent reductions), used to convert the flywheel's velocity to the rotor's velocity
-   * @param motors the motors driving the flywheel; the first motor's output voltage is used as the
-   *     input to the simulation, so it must be the leader if any followers are specified
+   * @param characterizationUnits the units of the model's input
+   * @param motors the motors driving the flywheel; the first motor's output voltage or torque
+   *     current is used as the input to the simulation, so it must be the leader if any followers
+   *     are specified
    */
   private FlywheelSystemSim(
       Supplier<LinearSystem<N1, N1, N1>> plantSupplier,
       DCMotor gearbox,
       double gearRatio,
+      CharacterizationUnits characterizationUnits,
       TalonFX... motors) {
     this.gearRatio = gearRatio;
+    this.characterizationUnits = characterizationUnits;
 
     if (Constants.getMode() != Constants.Mode.SIM) {
       return;
@@ -123,7 +176,13 @@ public class FlywheelSystemSim {
 
     this.motorSimStates = TalonFXSimUtil.createSimStates(motors);
 
-    this.systemSim = new FlywheelSim(plantSupplier.get(), gearbox);
+    // FlywheelSim derives the gearing and moment of inertia from the model and the gearbox, which
+    // is only valid if the model's input is voltage; otherwise, simulate the model directly
+    if (characterizationUnits == CharacterizationUnits.AMPS) {
+      this.systemSim = new LinearSystemSim<>(plantSupplier.get());
+    } else {
+      this.systemSim = new FlywheelSim(plantSupplier.get(), gearbox);
+    }
   }
 
   public void updateSim() {
@@ -136,8 +195,13 @@ public class FlywheelSystemSim {
       motorSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
     }
 
-    // update the input voltages of the models based on the outputs of the simulated TalonFXs
-    this.systemSim.setInput(this.motorSimStates[0].getMotorVoltage());
+    // update the input of the model based on the output voltage or torque current of the simulated
+    // TalonFX, depending on the units of the characterization constants
+    if (this.characterizationUnits == CharacterizationUnits.AMPS) {
+      this.systemSim.setInput(this.motorSimStates[0].getTorqueCurrent());
+    } else {
+      this.systemSim.setInput(this.motorSimStates[0].getMotorVoltage());
+    }
 
     // update the models
     this.systemSim.update(Constants.LOOP_PERIOD_SECS);
