@@ -23,6 +23,7 @@ import first.lib.team3061.sim.ArmSystemSim;
 import first.lib.team6328.util.LoggedTunableNumber;
 import first.robot.Constants;
 import org.wpilib.math.filter.Debouncer;
+import org.wpilib.math.system.DCMotor;
 import org.wpilib.math.util.Units;
 import org.wpilib.units.measure.Angle;
 import org.wpilib.units.measure.Current;
@@ -110,9 +111,8 @@ public class ArmIOTalonFX implements ArmIO {
     // physical mechanism is not available.
     this.angleMotorSim =
         new ArmSystemSim(
-            angleMotor,
+            DCMotor.getKrakenX60(1),
             angleEncoder,
-            ArmConstants.ANGLE_MOTOR_INVERTED,
             ArmConstants.SENSOR_TO_MECHANISM_RATIO,
             ArmConstants.ANGLE_MOTOR_GEAR_RATIO,
             Units.inchesToMeters(20.0),
@@ -121,7 +121,8 @@ public class ArmIOTalonFX implements ArmIO {
             Units.degreesToRadians(120.0),
             Units.degreesToRadians(10.0),
             true,
-            SUBSYSTEM_NAME);
+            SUBSYSTEM_NAME,
+            angleMotor);
   }
 
   @Override

@@ -1,7 +1,6 @@
 package first.lib.team3061.sim;
 
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 import first.robot.Constants;
 import org.littletonrobotics.junction.Logger;
@@ -16,8 +15,7 @@ import org.wpilib.util.Color8Bit;
 
 public class ElevatorSystemSim {
 
-  private TalonFX motor;
-  private TalonFXSimState motorSimState;
+  private TalonFXSimState[] motorSimStates;
   private ElevatorSim systemSim;
   private double gearRatio;
   private double pulleyRadiusMeters;
@@ -29,38 +27,34 @@ public class ElevatorSystemSim {
   private LoggedMechanismLigament2d elevatorExtension;
 
   public ElevatorSystemSim(
-      TalonFX motor,
-      boolean motorInverted,
+      DCMotor gearbox,
       double gearRatio,
       double carriageMassKg,
       double pulleyRadiusMeters,
       double minHeightMeters,
       double maxHeightMeters,
       double startingHeightMeters,
-      String subsystemName) {
+      boolean simulateGravity,
+      String subsystemName,
+      TalonFX... motors) {
     if (Constants.getMode() != Constants.Mode.SIM) {
       return;
     }
 
-    this.motor = motor;
     this.gearRatio = gearRatio;
     this.pulleyRadiusMeters = pulleyRadiusMeters;
 
-    this.motorSimState = this.motor.getSimState();
-    this.motorSimState.Orientation =
-        motorInverted
-            ? ChassisReference.Clockwise_Positive
-            : ChassisReference.CounterClockwise_Positive;
+    this.motorSimStates = TalonFXSimUtil.createSimStates(motors);
 
     this.systemSim =
         new ElevatorSim(
-            DCMotor.getKrakenX60Foc(2),
+            gearbox,
             gearRatio,
             carriageMassKg,
             pulleyRadiusMeters,
             minHeightMeters,
             maxHeightMeters,
-            true,
+            simulateGravity,
             startingHeightMeters);
 
     this.mech2d = new LoggedMechanism2d(1, 1);
@@ -79,10 +73,12 @@ public class ElevatorSystemSim {
     }
 
     // update the sim states supply voltage based on the simulated battery
-    this.motorSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
+    for (TalonFXSimState motorSimState : this.motorSimStates) {
+      motorSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
+    }
 
     // update the input voltages of the models based on the outputs of the simulated TalonFXs
-    double motorVoltage = this.motorSimState.getMotorVoltage();
+    double motorVoltage = this.motorSimStates[0].getMotorVoltage();
     this.systemSim.setInput(motorVoltage);
 
     // update the models
@@ -95,10 +91,13 @@ public class ElevatorSystemSim {
     double mechanismMetersPerSec = this.systemSim.getVelocity();
     double pulleyRPS = mechanismMetersPerSec / (2 * Math.PI * this.pulleyRadiusMeters);
     double motorRPS = pulleyRPS * this.gearRatio;
-    this.motorSimState.setRawRotorPosition(motorRotations);
-    this.motorSimState.setRotorVelocity(motorRPS);
 
-    // Update the Mechanism Arm angle based on the simulated elevator position
+    for (TalonFXSimState motorSimState : this.motorSimStates) {
+      motorSimState.setRotorVelocity(motorRPS);
+      motorSimState.setRawRotorPosition(motorRotations);
+    }
+
+    // Update the Mechanism based on the simulated elevator position
     this.elevatorExtension.setLength(mechanismLength);
     Logger.recordOutput(subsystemName + "/ElevatorSim", mech2d);
   }
