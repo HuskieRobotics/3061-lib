@@ -158,7 +158,8 @@ public class ElevatorIOTalonFX implements ElevatorIO {
             0.0,
             true,
             ElevatorConstants.SUBSYSTEM_NAME,
-            elevatorMotorLead);
+            elevatorMotorLead,
+            elevatorMotorFollower);
   }
 
   @Override

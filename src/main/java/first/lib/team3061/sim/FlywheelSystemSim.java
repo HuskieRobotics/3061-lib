@@ -18,7 +18,12 @@ public class FlywheelSystemSim {
   private double gearRatio;
 
   public FlywheelSystemSim(
-      double kV, double kA, double gearRatio, double momentOfInertia, TalonFX... motors) {
+      DCMotor gearbox,
+      double kV,
+      double kA,
+      double gearRatio,
+      double momentOfInertia,
+      TalonFX... motors) {
     this.gearRatio = gearRatio;
 
     if (Constants.getMode() != Constants.Mode.SIM) {
@@ -36,10 +41,9 @@ public class FlywheelSystemSim {
               : ChassisReference.CounterClockwise_Positive;
     }
 
-    DCMotor dcMotors = DCMotor.getKrakenX60Foc(motors.length);
     this.systemSim =
         new FlywheelSim(
-            Models.flywheelFromPhysicalConstants(dcMotors, momentOfInertia, gearRatio), dcMotors);
+            Models.flywheelFromPhysicalConstants(gearbox, momentOfInertia, gearRatio), gearbox);
   }
 
   public void updateSim() {
