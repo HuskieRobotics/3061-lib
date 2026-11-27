@@ -47,7 +47,8 @@ public interface VisionIO {
       long tagsSeenBitMap,
       int numTags,
       double averageTagDistance,
-      PoseObservationType type) {}
+      PoseObservationType type,
+      double originalTimestamp) {}
 
   public enum PoseObservationType {
     SINGLE_TAG,
@@ -67,4 +68,6 @@ public interface VisionIO {
       ObjDetectVisionIOInputs objDetectInputs) {}
 
   default void setRecording(boolean active) {}
+
+  default void setThrottleFps(double fps) {}
 }

@@ -1,10 +1,10 @@
 {
   "hubs": [
     {
-      "x": 236,
-      "y": 30,
-      "width": 1655,
-      "height": 1122,
+      "x": 320,
+      "y": 1185,
+      "width": 1512,
+      "height": 949,
       "state": {
         "sidebar": {
           "width": 374,
@@ -134,11 +134,20 @@
             "/RealOutputs/Vision/BCH/RobotToCameraTransform/translation",
             "/RealOutputs/Vision/BCH/RobotToCameraTransform/rotation",
             "/RealOutputs/Vision/BCH/RobotToCameraTransform/rotation/q",
-            "/SystemStats/NTClients"
+            "/SystemStats/NTClients",
+            "/RealOutputs/FollowPath",
+            "/Tuning/Vision",
+            "/Tuning/Vision/BCH",
+            "/Tuning/Vision/BCL",
+            "/RealOutputs/Shooter",
+            "/RealOutputs/ShooterModes",
+            "/Vision/BCL/PoseObservations",
+            "/Vision/BCL/PoseObservations/0",
+            "/Vision/BL"
           ]
         },
         "tabs": {
-          "selected": 1,
+          "selected": 23,
           "tabs": [
             {
               "type": 0,
@@ -237,6 +246,44 @@
                     "options": {
                       "color": "#ff0000"
                     }
+                  },
+                  {
+                    "type": "ghost",
+                    "logKey": "/RealOutputs/FollowPath/closestPoint",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {
+                      "color": "#ffff00"
+                    }
+                  },
+                  {
+                    "type": "trajectory",
+                    "logKey": "/RealOutputs/FollowPath/pathTranslations",
+                    "logType": "Translation2d[]",
+                    "visible": true,
+                    "options": {
+                      "color": "#00ff00",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "trajectory",
+                    "logKey": "/RealOutputs/FollowPath/robotTranslations",
+                    "logType": "Translation2d[]",
+                    "visible": true,
+                    "options": {
+                      "color": "#ff8c00",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "ghost",
+                    "logKey": "/RealOutputs/FollowPath/rotationTargetPose",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {
+                      "color": "#00ffff"
+                    }
                   }
                 ],
                 "field": "FRC:2026 Field",
@@ -244,6 +291,72 @@
                 "size": "medium"
               },
               "controllerUUID": "oup5f5d8axykrxu8ikwgu96eq703vblm",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
+              "type": 1,
+              "title": "Line Graph",
+              "controller": {
+                "leftSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "/RealOutputs//ShooterModes/DistanceToHub",
+                    "logType": "Number",
+                    "visible": false,
+                    "options": {
+                      "color": "#2b66a2",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "rightSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "/RealOutputs/ShooterModes/HoodAngleSetpointDegrees",
+                    "logType": "Number",
+                    "visible": false,
+                    "options": {
+                      "color": "#af2437",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "/RealOutputs/ShooterModes/TurretAngleSetpointDegrees",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#80588e",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "discreteSources": [
+                  {
+                    "type": "stripes",
+                    "logKey": "/RealOutputs/ShooterModes/CurrentMode",
+                    "logType": "String",
+                    "visible": true,
+                    "options": {
+                      "color": "#e5b31b"
+                    }
+                  }
+                ],
+                "leftLockedRange": null,
+                "rightLockedRange": null,
+                "leftUnitConversion": {
+                  "autoTarget": null,
+                  "preset": null
+                },
+                "rightUnitConversion": {
+                  "autoTarget": "degrees",
+                  "preset": null
+                },
+                "leftFilter": 0,
+                "rightFilter": 0
+              },
+              "controllerUUID": "9ym5wgtyniztbkfwtd5i2sjz3el2h8i9",
               "renderer": null,
               "controlsHeight": 200
             },
@@ -1934,16 +2047,6 @@
                 "leftSources": [
                   {
                     "type": "stepped",
-                    "logKey": "/Vision/BL/AnePower",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#2b66a2",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
                     "logKey": "/Vision/BL/CpuPower",
                     "logType": "Number",
                     "visible": true,
@@ -1951,7 +2054,9 @@
                       "color": "#e5b31b",
                       "size": "normal"
                     }
-                  },
+                  }
+                ],
+                "rightSources": [
                   {
                     "type": "stepped",
                     "logKey": "/Vision/BL/GpuPower",
@@ -1959,38 +2064,6 @@
                     "visible": true,
                     "options": {
                       "color": "#af2437",
-                      "size": "normal"
-                    }
-                  }
-                ],
-                "rightSources": [
-                  {
-                    "type": "stepped",
-                    "logKey": "/Vision/BR/AnePower",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#e48b32",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "/Vision/BR/CpuPower",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#c0b487",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "/Vision/BR/GpuPower",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#858584",
                       "size": "normal"
                     }
                   }
@@ -2003,33 +2076,6 @@
                     "visible": true,
                     "options": {
                       "color": "#80588e"
-                    }
-                  },
-                  {
-                    "type": "stripes",
-                    "logKey": "/Vision/BR/ThermalPressure",
-                    "logType": "String",
-                    "visible": true,
-                    "options": {
-                      "color": "#3b875a"
-                    }
-                  },
-                  {
-                    "type": "stripes",
-                    "logKey": "/Vision/BCL/ThermalPressure",
-                    "logType": "String",
-                    "visible": true,
-                    "options": {
-                      "color": "#d993aa"
-                    }
-                  },
-                  {
-                    "type": "stripes",
-                    "logKey": "/Vision/BCR/ThermalPressure",
-                    "logType": "String",
-                    "visible": true,
-                    "options": {
-                      "color": "#5f4528"
                     }
                   }
                 ],

@@ -12,6 +12,7 @@ import static first.lib.team3061.vision.VisionConstants.*;
 import first.lib.team3061.RobotConfig;
 import first.lib.team3061.util.RobotOdometry;
 import first.lib.team6328.util.FieldConstants;
+import first.lib.team6328.util.LoggedTunableNumber;
 import first.robot.Constants;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,10 +41,19 @@ public class VisionIONorthstar implements VisionIO {
   private final IntegerPublisher matchNumberPublisher;
   private final IntegerPublisher timestampPublisher;
   private final BooleanPublisher isRecordingPublisher;
+  private final DoublePublisher throttleFpsPublisher;
 
   private final List<VisionIO.PoseObservation> observations = new ArrayList<>();
   private final Field field;
   private final Transform3d robotToCameraTransform;
+
+  private final LoggedTunableNumber exposure;
+  private final LoggedTunableNumber gain;
+  private final LoggedTunableNumber denoise;
+
+  private final IntegerPublisher exposurePublisher;
+  private final DoublePublisher gainPublisher;
+  private final DoublePublisher denoisePublisher;
 
   public VisionIONorthstar(
       FieldConstants.AprilTagLayoutType layoutType, RobotConfig.CameraConfig camera) {
@@ -59,9 +69,12 @@ public class VisionIONorthstar implements VisionIO {
     configTable.getIntegerTopic("camera_resolution_width").publish().set(camera.width());
     configTable.getIntegerTopic("camera_resolution_height").publish().set(camera.height());
     configTable.getIntegerTopic("camera_auto_exposure").publish().set(camera.autoExposure());
-    configTable.getIntegerTopic("camera_exposure").publish().set(camera.exposure());
-    configTable.getDoubleTopic("camera_gain").publish().set(camera.gain());
-    configTable.getDoubleTopic("camera_denoise").publish().set(camera.denoise());
+    exposurePublisher = configTable.getIntegerTopic("camera_exposure").publish();
+    exposurePublisher.set(camera.exposure());
+    gainPublisher = configTable.getDoubleTopic("camera_gain").publish();
+    gainPublisher.set(camera.gain());
+    denoisePublisher = configTable.getDoubleTopic("camera_denoise").publish();
+    denoisePublisher.set(camera.denoise());
     configTable.getDoubleTopic("fiducial_size_m").publish().set(FieldConstants.aprilTagWidth);
     configTable.getStringTopic("tag_layout").publish().set(layoutString);
     isRecordingPublisher = configTable.getBooleanTopic("is_recording").publish();
@@ -70,6 +83,8 @@ public class VisionIONorthstar implements VisionIO {
     eventNamePublisher = configTable.getStringTopic("event_name").publish();
     matchTypePublisher = configTable.getIntegerTopic("match_type").publish();
     matchNumberPublisher = configTable.getIntegerTopic("match_number").publish();
+    throttleFpsPublisher = configTable.getDoubleTopic("throttle_fps").publish();
+    throttleFpsPublisher.set(-1.0); // don't throttle by default
 
     var outputTable = northstarTable.getSubTable("output");
     observationSubscriber =
@@ -97,6 +112,11 @@ public class VisionIONorthstar implements VisionIO {
             .getSubTable("output")
             .getDoubleArrayTopic("power_metrics")
             .subscribe(new double[] {});
+
+    exposure =
+        new LoggedTunableNumber("Vision/" + camera.location() + "/Exposure", camera.exposure());
+    gain = new LoggedTunableNumber("Vision/" + camera.location() + "/Gain", camera.gain());
+    denoise = new LoggedTunableNumber("Vision/" + camera.location() + "/Denoise", camera.denoise());
   }
 
   public void updateInputs(
@@ -175,10 +195,25 @@ public class VisionIONorthstar implements VisionIO {
           inputs.thermalPressure = "Unknown";
       }
     }
+
+    LoggedTunableNumber.ifChanged(
+        hashCode(),
+        cameraSettings -> {
+          exposurePublisher.set((int) exposure.get());
+          gainPublisher.set(gain.get());
+          denoisePublisher.set(denoise.get());
+        },
+        exposure,
+        gain,
+        denoise);
   }
 
   public void setRecording(boolean active) {
     isRecordingPublisher.set(active);
+  }
+
+  public void setThrottleFps(double fps) {
+    throttleFpsPublisher.set(fps);
   }
 
   private void processAprilTagFrame(
@@ -281,6 +316,16 @@ public class VisionIONorthstar implements VisionIO {
     }
     double avgDistance = totalDistance / tagPoses.size();
 
+    // clamp the timestamp to the current timestamp if the timestamp is in the future yet is close
+    // to the current timestamp. We don't want to do this universally since it is possible that
+    // there are old samples in the queue from a different timebase, which could be far in the
+    // future.
+    double originalTimestamp = timestamp;
+    if (timestamp > Timer.getTimestamp()
+        && timestamp - Timer.getTimestamp() < MAX_TIMESTAMP_FUTURE_DELTA) {
+      timestamp = Timer.getTimestamp();
+    }
+
     observations.add(
         new PoseObservation(
             timestamp,
@@ -291,6 +336,7 @@ public class VisionIONorthstar implements VisionIO {
             tagsSeenBitMap,
             tagPoses.size(),
             avgDistance,
-            observationType));
+            observationType,
+            originalTimestamp));
   }
 }
