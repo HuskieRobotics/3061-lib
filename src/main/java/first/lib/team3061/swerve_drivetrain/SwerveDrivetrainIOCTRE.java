@@ -50,6 +50,7 @@ import org.wpilib.system.Timer;
 import org.wpilib.units.measure.Angle;
 import org.wpilib.units.measure.Current;
 import org.wpilib.units.measure.Force;
+import org.wpilib.units.measure.LinearAcceleration;
 import org.wpilib.units.measure.Temperature;
 import org.wpilib.units.measure.Voltage;
 
@@ -331,6 +332,9 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
   // gyro status signals
   private StatusSignal<Angle> pitchStatusSignal;
   private StatusSignal<Angle> rollStatusSignal;
+  private StatusSignal<LinearAcceleration> xAccelStatusSignal;
+  private StatusSignal<LinearAcceleration> yAccelStatusSignal;
+  private StatusSignal<LinearAcceleration> zAccelStatusSignal;
   private final Debouncer connectedDebouncer = new Debouncer(0.5);
 
   private TorqueCurrentFOC driveCurrentRequest = new TorqueCurrentFOC(0);
@@ -470,8 +474,17 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
 
     this.rollStatusSignal = this.getPigeon2().getRoll();
     this.pitchStatusSignal = this.getPigeon2().getPitch();
+    this.xAccelStatusSignal = this.getPigeon2().getAccelerationX();
+    this.yAccelStatusSignal = this.getPigeon2().getAccelerationY();
+    this.zAccelStatusSignal = this.getPigeon2().getAccelerationZ();
 
-    Phoenix6Util.registerSignals(true, rollStatusSignal, pitchStatusSignal);
+    Phoenix6Util.registerSignals(
+        true,
+        rollStatusSignal,
+        pitchStatusSignal,
+        xAccelStatusSignal,
+        yAccelStatusSignal,
+        zAccelStatusSignal);
 
     // register all drivetrain-related devices with FaultReporter
     FaultReporter.getInstance().registerHardware(SUBSYSTEM_NAME, "Pigeon", this.getPigeon2());
@@ -606,10 +619,18 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
 
     inputs.drivetrain.gyroConnected =
         connectedDebouncer.calculate(
-            BaseStatusSignal.isAllGood(pitchStatusSignal, rollStatusSignal));
+            BaseStatusSignal.isAllGood(
+                pitchStatusSignal,
+                rollStatusSignal,
+                xAccelStatusSignal,
+                yAccelStatusSignal,
+                zAccelStatusSignal));
 
     inputs.drivetrain.pitchDeg = this.pitchStatusSignal.getValue().in(Degrees);
     inputs.drivetrain.rollDeg = this.rollStatusSignal.getValue().in(Degrees);
+    inputs.drivetrain.xAccelG = this.xAccelStatusSignal.getValue().in(Gs);
+    inputs.drivetrain.yAccelG = this.yAccelStatusSignal.getValue().in(Gs);
+    inputs.drivetrain.zAccelG = this.zAccelStatusSignal.getValue().in(Gs);
 
     inputs.drivetrain.customPose = this.getState().Pose;
 

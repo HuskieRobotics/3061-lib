@@ -66,6 +66,9 @@ public interface SwerveDrivetrainIO {
     double rawHeadingDeg = 0.0;
     double pitchDeg = 0.0;
     double rollDeg = 0.0;
+    double xAccelG = 0.0;
+    double yAccelG = 0.0;
+    double zAccelG = 0.0;
     boolean gyroConnected = false;
 
     Pose2d customPose = new Pose2d();
