@@ -37,14 +37,16 @@ public class ShooterConstants {
 
   // the following are determined based on the mechanical design of the shooter
   public static final double SHOOT_MOTORS_GEAR_RATIO = 0.5;
-
-  // approximate kV (V/(rot/s)) and kA (V/(rot/s²)) of the shooter wheels, only used for simulation
-  public static final double SHOOT_MOTORS_SIM_KV = 0.05 * 2 * Math.PI;
-  public static final double SHOOT_MOTORS_SIM_KA = 0.01 * 2 * Math.PI;
   public static final boolean SHOOT_TOP_INVERTED = false;
   public static final boolean SHOOT_BOTTOM_INVERTED = false;
   public static final double SHOOTER_IDLE_VELOCITY_RPS = 10.0;
   public static final double VELOCITY_TOLERANCE_RPS = 5.0;
+
+  // moment of inertia (kg·m²) of the wheels and shaft driven by each shooter motor, only used for
+  // simulation; ESTIMATE: about 1.5 kg of 4-inch diameter wheels treated as solid cylinders:
+  // 0.5 * 1.5 kg * (0.0508 m)² ≈ 0.002 kg·m²; replace with the value from CAD or measure kA on the
+  // robot as described in FlywheelSystemSim
+  public static final double SHOOT_WHEELS_MOMENT_OF_INERTIA = 0.002;
 
   // game piece detection constants
   public static final double DETECTOR_MIN_SIGNAL_STRENGTH = 2000;

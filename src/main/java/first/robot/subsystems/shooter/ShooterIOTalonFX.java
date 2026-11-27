@@ -19,7 +19,6 @@ import first.lib.team254.Phoenix6Util;
 import first.lib.team3015.subsystem.FaultReporter;
 import first.lib.team3061.RobotConfig;
 import first.lib.team3061.sim.FlywheelSystemSim;
-import first.lib.team3061.sim.FlywheelSystemSim.CharacterizationUnits;
 import first.lib.team6328.util.LoggedTunableNumber;
 import first.robot.Constants;
 import org.wpilib.math.filter.Debouncer;
@@ -163,25 +162,24 @@ public class ShooterIOTalonFX implements ShooterIO {
     configGamePieceDetector(gamePieceDetector, gamePieceDetectorConfigAlert);
 
     // Create a simulation objects for the shooter. The specific parameters for the simulation
-    // are determined based on the mechanical design of the shooter. The shooter hasn't been
-    // characterized, so these kV (V/(rot/s)) and kA (V/(rot/s²)) values are approximations in
-    // volts. After characterizing the shooter with SysId using TorqueCurrentFOC, use the resulting
-    // kV and kA (in amps) with CharacterizationUnits.AMPS instead.
+    // are determined based on the tuned gains (in amps, since the shooter motors are controlled
+    // with
+    // TorqueCurrentFOC) and the mechanical design of the shooter. The shooter's kV is zero.
     this.shootMotorBottomSim =
         new FlywheelSystemSim(
-            SHOOT_MOTORS_SIM_KV,
-            SHOOT_MOTORS_SIM_KA,
-            CharacterizationUnits.VOLTS,
+            BOTTOM_SHOOT_KS,
+            0.0,
+            SHOOT_WHEELS_MOMENT_OF_INERTIA,
             DCMotor.getKrakenX60Foc(1),
-            ShooterConstants.SHOOT_MOTORS_GEAR_RATIO,
+            SHOOT_MOTORS_GEAR_RATIO,
             shootMotorBottom);
     this.shootMotorTopSim =
         new FlywheelSystemSim(
-            SHOOT_MOTORS_SIM_KV,
-            SHOOT_MOTORS_SIM_KA,
-            CharacterizationUnits.VOLTS,
+            TOP_SHOOT_KS,
+            0.0,
+            SHOOT_WHEELS_MOMENT_OF_INERTIA,
             DCMotor.getKrakenX60Foc(1),
-            ShooterConstants.SHOOT_MOTORS_GEAR_RATIO,
+            SHOOT_MOTORS_GEAR_RATIO,
             shootMotorTop);
   }
 
