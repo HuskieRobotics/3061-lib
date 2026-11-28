@@ -1,9 +1,12 @@
 package first.lib.team3061.bfg;
 
+import first.lib.team3061.RobotConfig;
+import first.robot.Constants;
 import org.littletonrobotics.junction.Logger;
 import org.wpilib.command2.SubsystemBase;
 import org.wpilib.driverstation.RobotState;
 import org.wpilib.framework.RobotBase;
+import org.wpilib.util.Alert;
 
 /**
  * Logs data from the Playing With Fusion Battery Fuel Gauge (BFG).
@@ -12,7 +15,8 @@ import org.wpilib.framework.RobotBase;
  *
  * <ul>
  *   <li>voltage, current, depth of discharge, and remaining charge every robot loop
- *   <li>battery and charge-cycle data once, when the sensor first connects
+ *   <li>battery and charge-cycle data once, after the sensor has been connected long enough for all
+ *       of the once-per-second frames that contain this data to have been received
  *   <li>match data once, when the robot is disabled after teleop while connected to the FMS
  * </ul>
  *
@@ -27,21 +31,39 @@ public class BFG extends SubsystemBase {
 
   private static final String SUBSYSTEM_NAME = "BFG";
 
+  // the BFG sends its battery, charge-cycle, and match data once per second; so, wait longer than
+  // that after the BFG connects before reading the battery and charge-cycle data
+  private static final double BATTERY_INPUTS_DELAY_SECS = 2.0;
+
+  private static final Alert invalidCANIDAlert =
+      new Alert(
+          SUBSYSTEM_NAME,
+          "BFG CAN ID must be between 0 and 63; the BFG will not be read",
+          Alert.Level.HIGH);
+
   private static BFG instance;
 
   /**
-   * Returns the singleton instance of this class, creating it on the first call with the CAN ID
-   * specified by the robot's config.
+   * Returns the singleton instance of this class, creating it on the first call. When running on a
+   * real robot whose config specifies a BFG CAN ID ({@link RobotConfig#getBFGCANID()}), the BFG is
+   * read from the CAN port specified by {@link RobotConfig#getBFGCANPort()}.
    *
    * @return the singleton instance of this class
    */
   public static BFG getInstance() {
     if (instance == null) {
-      // TODO: when running on a real robot whose config specifies a BFG CAN ID
-      // (RobotConfig.getBFGCANID), create a BFGIOPlayingWithFusion with that CAN ID. This requires
-      // a 2027 Playing With Fusion vendordep that supports SystemCore, which hasn't been published.
-      // Until then, the BFG logs only its disconnected default values.
-      instance = new BFG(new BFGIO() {});
+      BFGIO io = new BFGIO() {};
+      int canID = RobotConfig.getInstance().getBFGCANID();
+      if (Constants.getMode() == Constants.Mode.REAL && canID != -1) {
+        if (canID >= 0 && canID <= 63) {
+          // TODO: replace BFGIOCAN with an IO class that uses Playing With Fusion's vendordep once
+          // a 2027 version that supports SystemCore is released (issue #187)
+          io = new BFGIOCAN(RobotConfig.getInstance().getBFGCANPort(), canID);
+        } else {
+          invalidCANIDAlert.set(true);
+        }
+      }
+      instance = new BFG(io);
     }
     return instance;
   }
@@ -52,6 +74,7 @@ public class BFG extends SubsystemBase {
   private final BFGMatchIOInputsAutoLogged matchInputs = new BFGMatchIOInputsAutoLogged();
 
   private boolean hasReadBatteryInputs = false;
+  private long connectedSinceNanos = -1;
   private boolean hasReadMatchInputs = false;
   private boolean hasTeleopStarted = false;
 
@@ -69,14 +92,25 @@ public class BFG extends SubsystemBase {
    * Updates and logs the BFG's inputs. The command scheduler invokes this method every robot loop.
    *
    * <p>The battery and match inputs are each updated and logged once. When replaying a log, they
-   * are read at the same point in the log at which they were recorded.
+   * are read at the same point in the log at which they were recorded, since the decision to read
+   * them depends only on logged inputs, the logged timestamp, and the logged robot state.
    */
   @Override
   public void periodic() {
     io.updateInputs(inputs);
     Logger.processInputs(SUBSYSTEM_NAME, inputs);
 
-    if (!hasReadBatteryInputs && inputs.connected) {
+    // read the battery and charge-cycle data once the BFG has been connected long enough for all of
+    // the once-per-second frames that contain it to have been received
+    long timestampNanos = Logger.getTimestamp();
+    if (!inputs.connected) {
+      connectedSinceNanos = -1;
+    } else if (connectedSinceNanos < 0) {
+      connectedSinceNanos = timestampNanos;
+    }
+    if (!hasReadBatteryInputs
+        && connectedSinceNanos >= 0
+        && (timestampNanos - connectedSinceNanos) / 1.0e9 >= BATTERY_INPUTS_DELAY_SECS) {
       hasReadBatteryInputs = true;
       io.updateBatteryInputs(batteryInputs);
       Logger.processInputs(SUBSYSTEM_NAME + "/Battery", batteryInputs);

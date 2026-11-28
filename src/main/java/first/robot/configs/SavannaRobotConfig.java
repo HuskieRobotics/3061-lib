@@ -520,6 +520,11 @@ public class SavannaRobotConfig extends RobotConfig {
   }
 
   @Override
+  public int getBFGCANID() {
+    return 0;
+  }
+
+  @Override
   public double getMoveToPathFinalVelocityMPS() {
     return SQUARING_SPEED_MPS;
   }
