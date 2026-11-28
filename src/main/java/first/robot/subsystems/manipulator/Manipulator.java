@@ -2,12 +2,12 @@ package first.robot.subsystems.manipulator;
 
 import static first.robot.subsystems.manipulator.ManipulatorConstants.*;
 
-import first.lib.team254.CurrentSpikeDetector;
-import first.lib.team3015.subsystem.FaultReporter;
-import first.lib.team3061.leds.LEDs;
-import first.lib.team3061.leds.LEDs.States;
-import first.lib.team6328.util.LoggedTracer;
-import first.lib.team6328.util.LoggedTunableNumber;
+import first.lib.CurrentSpikeDetector;
+import first.lib.leds.LEDs;
+import first.lib.leds.LEDs.States;
+import first.lib.subsystem.FaultReporter;
+import first.lib.util.LoggedTracer;
+import first.lib.util.LoggedTunableNumber;
 import first.robot.operator_interface.OISelector;
 import org.littletonrobotics.junction.Logger;
 import org.wpilib.command2.Command;

@@ -1,6 +1,6 @@
 package first.robot.visualizations;
 
-import first.lib.team3061.RobotConfig;
+import first.lib.RobotConfig;
 import first.robot.subsystems.elevator.Elevator;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;

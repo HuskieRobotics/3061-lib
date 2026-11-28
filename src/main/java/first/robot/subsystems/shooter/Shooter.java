@@ -4,11 +4,11 @@ import static first.robot.subsystems.shooter.ShooterConstants.*;
 import static org.wpilib.units.Units.*;
 
 import com.ctre.phoenix6.SignalLogger;
-import first.lib.team3015.subsystem.FaultReporter;
-import first.lib.team3061.util.MathUtils;
-import first.lib.team3061.util.SysIdRoutineChooser;
-import first.lib.team6328.util.LoggedTracer;
-import first.lib.team6328.util.LoggedTunableNumber;
+import first.lib.subsystem.FaultReporter;
+import first.lib.util.LoggedTracer;
+import first.lib.util.LoggedTunableNumber;
+import first.lib.util.MathUtils;
+import first.lib.util.SysIdRoutineChooser;
 import org.littletonrobotics.junction.Logger;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;

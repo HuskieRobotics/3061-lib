@@ -1,7 +1,7 @@
 package first.robot.configs;
 
-import first.lib.team3061.RobotConfig;
-import first.lib.team3061.swerve_drivetrain.swerve.SwerveConstants;
+import first.lib.RobotConfig;
+import first.lib.swerve_drivetrain.swerve.SwerveConstants;
 
 /*
  * Refer to the README for how to represent your robot's configuration. For more information on

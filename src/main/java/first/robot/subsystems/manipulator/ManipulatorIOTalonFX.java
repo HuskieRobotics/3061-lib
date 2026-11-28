@@ -9,9 +9,9 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import first.lib.team254.Phoenix6Util;
-import first.lib.team3015.subsystem.FaultReporter;
-import first.lib.team3061.RobotConfig;
+import first.lib.Phoenix6Util;
+import first.lib.RobotConfig;
+import first.lib.subsystem.FaultReporter;
 import org.wpilib.hardware.discrete.DigitalInput; // imported this class for the sensors
 import org.wpilib.math.filter.Debouncer;
 import org.wpilib.units.measure.AngularVelocity;
