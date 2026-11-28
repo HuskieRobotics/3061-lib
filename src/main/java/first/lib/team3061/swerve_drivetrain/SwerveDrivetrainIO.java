@@ -66,6 +66,18 @@ public interface SwerveDrivetrainIO {
     double rawHeadingDeg = 0.0;
     double pitchDeg = 0.0;
     double rollDeg = 0.0;
+    // acceleration measured by the gyro, which includes gravity
+    double xAccelG = 0.0;
+    double yAccelG = 0.0;
+    double zAccelG = 0.0;
+    // components of the gyro's estimate of the gravity vector (unit vector, i.e., 1 g)
+    double xGravityG = 0.0;
+    double yGravityG = 0.0;
+    double zGravityG = 0.0;
+    // acceleration measured by the gyro less gravity (i.e., the acceleration of the robot)
+    double xLinearAccelG = 0.0;
+    double yLinearAccelG = 0.0;
+    double zLinearAccelG = 0.0;
     boolean gyroConnected = false;
 
     Pose2d customPose = new Pose2d();
