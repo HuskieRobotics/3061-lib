@@ -53,6 +53,7 @@ import org.wpilib.units.measure.Force;
 import org.wpilib.units.measure.LinearAcceleration;
 import org.wpilib.units.measure.Temperature;
 import org.wpilib.units.measure.Voltage;
+import org.wpilib.util.Alert;
 
 @java.lang.SuppressWarnings({"java:S1450"})
 public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, CANcoder>
@@ -90,6 +91,36 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
       new LoggedTunableNumber("Drivetrain/TurnKi", RobotConfig.getInstance().getSwerveAngleKI());
   private final LoggedTunableNumber steerKd =
       new LoggedTunableNumber("Drivetrain/TurnKd", RobotConfig.getInstance().getSwerveAngleKD());
+
+  /*
+   * The drive motors' supply current limits are tunable to quickly compare limits by running the
+   * same drill with each and comparing the energy used, time at the limit, and battery voltage. The
+   * names avoid "SupplyCurrent" so that they don't match log analysis patterns for measured supply
+   * current (e.g., '*SupplyCurrent*').
+   */
+  private final LoggedTunableNumber driveSupplyLimitAmps =
+      new LoggedTunableNumber(
+          "Drivetrain/DriveSupplyLimitAmps", SwerveConstants.DRIVE_PEAK_CURRENT_LIMIT);
+  private final LoggedTunableNumber driveSupplyLowerLimitAmps =
+      new LoggedTunableNumber(
+          "Drivetrain/DriveSupplyLowerLimitAmps", SwerveConstants.DRIVE_CONTINUOUS_CURRENT_LIMIT);
+  private final LoggedTunableNumber driveSupplyLowerTimeSecs =
+      new LoggedTunableNumber(
+          "Drivetrain/DriveSupplyLowerTimeSecs", SwerveConstants.DRIVE_PEAK_CURRENT_DURATION);
+
+  // the drive motors' supply current limits that were most recently applied to all drive motors
+  private double appliedDriveSupplyLimitAmps = SwerveConstants.DRIVE_PEAK_CURRENT_LIMIT;
+  private double appliedDriveSupplyLowerLimitAmps = SwerveConstants.DRIVE_CONTINUOUS_CURRENT_LIMIT;
+  private double appliedDriveSupplyLowerTimeSecs = SwerveConstants.DRIVE_PEAK_CURRENT_DURATION;
+  private final Alert driveCurrentLimitsAlert =
+      new Alert(
+          "drivetrainCurrentLimitsApplication",
+          "Failed to apply the drive motors' supply current limits",
+          Alert.Level.HIGH);
+
+  // the drive and steer motors are tracked in separate groups by the EnergyMonitor
+  private static final String DRIVE_ENERGY_GROUP = "Drive";
+  private static final String STEER_ENERGY_GROUP = "Steer";
 
   protected static final LoggedTunableNumber driveFacingAngleThetaKp =
       new LoggedTunableNumber(
@@ -495,32 +526,27 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
         yGravityStatusSignal,
         zGravityStatusSignal);
 
-    // register all drivetrain-related devices with FaultReporter
+    // register all drivetrain-related devices with FaultReporter; the drive and steer motors are
+    // in separate energy groups so that their current limits can be tuned separately
     FaultReporter.getInstance().registerHardware(SUBSYSTEM_NAME, "Pigeon", this.getPigeon2());
-    FaultReporter.getInstance()
-        .registerHardware(SUBSYSTEM_NAME, "FL Drive", this.getModule(0).getDriveMotor());
-    FaultReporter.getInstance()
-        .registerHardware(SUBSYSTEM_NAME, "FL Steer", this.getModule(0).getSteerMotor());
-    FaultReporter.getInstance()
-        .registerHardware(SUBSYSTEM_NAME, "FL Encoder", this.getModule(0).getEncoder());
-    FaultReporter.getInstance()
-        .registerHardware(SUBSYSTEM_NAME, "FR Drive", this.getModule(1).getDriveMotor());
-    FaultReporter.getInstance()
-        .registerHardware(SUBSYSTEM_NAME, "FR Steer", this.getModule(1).getSteerMotor());
-    FaultReporter.getInstance()
-        .registerHardware(SUBSYSTEM_NAME, "FR Encoder", this.getModule(1).getEncoder());
-    FaultReporter.getInstance()
-        .registerHardware(SUBSYSTEM_NAME, "BL Drive", this.getModule(2).getDriveMotor());
-    FaultReporter.getInstance()
-        .registerHardware(SUBSYSTEM_NAME, "BL Steer", this.getModule(2).getSteerMotor());
-    FaultReporter.getInstance()
-        .registerHardware(SUBSYSTEM_NAME, "BL Encoder", this.getModule(2).getEncoder());
-    FaultReporter.getInstance()
-        .registerHardware(SUBSYSTEM_NAME, "BR Drive", this.getModule(3).getDriveMotor());
-    FaultReporter.getInstance()
-        .registerHardware(SUBSYSTEM_NAME, "BR Steer", this.getModule(3).getSteerMotor());
-    FaultReporter.getInstance()
-        .registerHardware(SUBSYSTEM_NAME, "BR Encoder", this.getModule(3).getEncoder());
+    String[] moduleLabels = {"FL", "FR", "BL", "BR"};
+    for (int i = 0; i < moduleLabels.length; i++) {
+      SwerveModule<TalonFX, TalonFX, CANcoder> module = this.getModule(i);
+      FaultReporter.getInstance()
+          .registerHardware(
+              SUBSYSTEM_NAME,
+              moduleLabels[i] + " Drive",
+              module.getDriveMotor(),
+              DRIVE_ENERGY_GROUP);
+      FaultReporter.getInstance()
+          .registerHardware(
+              SUBSYSTEM_NAME,
+              moduleLabels[i] + " Steer",
+              module.getSteerMotor(),
+              STEER_ENERGY_GROUP);
+      FaultReporter.getInstance()
+          .registerHardware(SUBSYSTEM_NAME, moduleLabels[i] + " Encoder", module.getEncoder());
+    }
 
     if (Constants.getMode() == Constants.Mode.SIM) {
       startSimThread();
@@ -731,6 +757,53 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
         driveFacingAngleThetaKp,
         driveFacingAngleThetaKi,
         driveFacingAngleThetaKd);
+
+    LoggedTunableNumber.ifChanged(
+        hashCode(),
+        limits -> applyDriveSupplyCurrentLimits(limits[0], limits[1], limits[2]),
+        driveSupplyLimitAmps,
+        driveSupplyLowerLimitAmps,
+        driveSupplyLowerTimeSecs);
+
+    // log the limits in use so that each log records the limits with which the robot ran
+    inputs.drivetrain.driveSupplyLimitAmps = this.appliedDriveSupplyLimitAmps;
+    inputs.drivetrain.driveSupplyLowerLimitAmps = this.appliedDriveSupplyLowerLimitAmps;
+    inputs.drivetrain.driveSupplyLowerTimeSecs = this.appliedDriveSupplyLowerTimeSecs;
+  }
+
+  /**
+   * Applies the specified supply current limits to all drive motors. Only the supply current limits
+   * are changed; the drive motors' other current limits (e.g., the stator current limit based on
+   * the slip current) are unchanged.
+   *
+   * @param supplyLimitAmps the supply current limit in amps
+   * @param supplyLowerLimitAmps the supply current lower limit in amps, to which the supply current
+   *     is limited after it has been limited to supplyLimitAmps for supplyLowerTimeSecs
+   * @param supplyLowerTimeSecs the time in seconds after which the supply current is limited to
+   *     supplyLowerLimitAmps
+   */
+  private void applyDriveSupplyCurrentLimits(
+      double supplyLimitAmps, double supplyLowerLimitAmps, double supplyLowerTimeSecs) {
+    boolean applied = true;
+    for (SwerveModule<TalonFX, TalonFX, CANcoder> swerveModule : this.getModules()) {
+      // refresh the current limits from the motor so that only the supply current limits change
+      CurrentLimitsConfigs currentLimits = new CurrentLimitsConfigs();
+      if (!swerveModule.getDriveMotor().getConfigurator().refresh(currentLimits).isOK()) {
+        applied = false;
+        continue;
+      }
+      currentLimits.SupplyCurrentLimit = supplyLimitAmps;
+      currentLimits.SupplyCurrentLowerLimit = supplyLowerLimitAmps;
+      currentLimits.SupplyCurrentLowerTime = supplyLowerTimeSecs;
+      applied &= swerveModule.getDriveMotor().getConfigurator().apply(currentLimits).isOK();
+    }
+
+    driveCurrentLimitsAlert.set(!applied);
+    if (applied) {
+      this.appliedDriveSupplyLimitAmps = supplyLimitAmps;
+      this.appliedDriveSupplyLowerLimitAmps = supplyLowerLimitAmps;
+      this.appliedDriveSupplyLowerTimeSecs = supplyLowerTimeSecs;
+    }
   }
 
   @Override

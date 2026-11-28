@@ -63,6 +63,10 @@ public interface SwerveDrivetrainIO {
     };
 
     double averageDriveCurrent = 0.0;
+    // the drive motors' supply current limits in use
+    double driveSupplyLimitAmps = 0.0;
+    double driveSupplyLowerLimitAmps = 0.0;
+    double driveSupplyLowerTimeSecs = 0.0;
     double rawHeadingDeg = 0.0;
     double pitchDeg = 0.0;
     double rollDeg = 0.0;

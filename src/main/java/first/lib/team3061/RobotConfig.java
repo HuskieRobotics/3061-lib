@@ -5,6 +5,7 @@ import com.ctre.phoenix6.configs.Pigeon2Configuration;
 import com.pathplanner.lib.config.ModuleConfig;
 import first.lib.team3061.swerve_drivetrain.swerve.SwerveConstants;
 import lombok.Builder;
+import org.wpilib.hardware.bus.CANPort;
 import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Transform3d;
 import org.wpilib.math.geometry.Translation2d;
@@ -568,6 +569,16 @@ public abstract class RobotConfig {
    */
   public int getBFGCANID() {
     return -1;
+  }
+
+  /**
+   * Returns the CAN port to which the Playing With Fusion Battery Fuel Gauge (BFG) is connected.
+   * Defaults to CAN_S0. Only used if the robot has a BFG (i.e., {@link #getBFGCANID()} isn't -1).
+   *
+   * @return the CAN port to which the BFG is connected
+   */
+  public CANPort getBFGCANPort() {
+    return CANPort.CAN_S0;
   }
 
   /**

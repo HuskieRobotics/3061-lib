@@ -344,17 +344,30 @@ public class ShooterIOTalonFX implements ShooterIO {
 
     TalonFXConfiguration shootMotorsConfig = new TalonFXConfiguration();
 
-    if (isTopMotor) {
-      shootMotorsConfig.TorqueCurrent.PeakForwardTorqueCurrent =
-          ShooterConstants.SHOOT_MOTOR_TOP_PEAK_CURRENT_LIMIT;
-      shootMotorsConfig.TorqueCurrent.PeakReverseTorqueCurrent =
-          -ShooterConstants.SHOOT_MOTOR_TOP_PEAK_CURRENT_LIMIT;
-    } else {
-      shootMotorsConfig.TorqueCurrent.PeakForwardTorqueCurrent =
-          ShooterConstants.SHOOT_MOTOR_BOTTOM_PEAK_CURRENT_LIMIT;
-      shootMotorsConfig.TorqueCurrent.PeakReverseTorqueCurrent =
-          -ShooterConstants.SHOOT_MOTOR_BOTTOM_PEAK_CURRENT_LIMIT;
-    }
+    double peakCurrentLimit =
+        isTopMotor
+            ? ShooterConstants.SHOOT_MOTOR_TOP_PEAK_CURRENT_LIMIT
+            : ShooterConstants.SHOOT_MOTOR_BOTTOM_PEAK_CURRENT_LIMIT;
+    double continuousCurrentLimit =
+        isTopMotor
+            ? ShooterConstants.SHOOT_MOTOR_TOP_CONTINUOUS_CURRENT_LIMIT
+            : ShooterConstants.SHOOT_MOTOR_BOTTOM_CONTINUOUS_CURRENT_LIMIT;
+    double peakCurrentDuration =
+        isTopMotor
+            ? ShooterConstants.SHOOT_MOTOR_TOP_PEAK_CURRENT_DURATION
+            : ShooterConstants.SHOOT_MOTOR_BOTTOM_PEAK_CURRENT_DURATION;
+
+    shootMotorsConfig.TorqueCurrent.PeakForwardTorqueCurrent = peakCurrentLimit;
+    shootMotorsConfig.TorqueCurrent.PeakReverseTorqueCurrent = -peakCurrentLimit;
+
+    // the stator current limit applies to torque current control in addition to the peak torque
+    // currents; the supply current limit limits the current drawn from the battery
+    shootMotorsConfig.CurrentLimits.SupplyCurrentLimit = peakCurrentLimit;
+    shootMotorsConfig.CurrentLimits.SupplyCurrentLowerLimit = continuousCurrentLimit;
+    shootMotorsConfig.CurrentLimits.SupplyCurrentLowerTime = peakCurrentDuration;
+    shootMotorsConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+    shootMotorsConfig.CurrentLimits.StatorCurrentLimit = peakCurrentLimit;
+    shootMotorsConfig.CurrentLimits.StatorCurrentLimitEnable = true;
 
     if (isTopMotor) {
       shootMotorsConfig.Slot0.kP = shootMotorTopKP.get();
