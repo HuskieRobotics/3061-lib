@@ -27,6 +27,7 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import first.lib.team254.Phoenix6Util;
 import first.lib.team3015.subsystem.FaultReporter;
 import first.lib.team3061.RobotConfig;
+import first.lib.team3061.energy.EnergyMonitor;
 import first.lib.team3061.swerve_drivetrain.SwerveDrivetrainConstants.SysIDCharacterizationMode;
 import first.lib.team3061.swerve_drivetrain.swerve.SwerveConstants;
 import first.lib.team3061.util.RobotOdometry;
@@ -117,10 +118,6 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
           "drivetrainCurrentLimitsApplication",
           "Failed to apply the drive motors' supply current limits",
           Alert.Level.HIGH);
-
-  // the drive and steer motors are tracked in separate groups by the EnergyMonitor
-  private static final String DRIVE_ENERGY_GROUP = "Drive";
-  private static final String STEER_ENERGY_GROUP = "Steer";
 
   protected static final LoggedTunableNumber driveFacingAngleThetaKp =
       new LoggedTunableNumber(
@@ -537,13 +534,13 @@ public class SwerveDrivetrainIOCTRE extends SwerveDrivetrain<TalonFX, TalonFX, C
               SUBSYSTEM_NAME,
               moduleLabels[i] + " Drive",
               module.getDriveMotor(),
-              DRIVE_ENERGY_GROUP);
+              EnergyMonitor.DRIVE_GROUP);
       FaultReporter.getInstance()
           .registerHardware(
               SUBSYSTEM_NAME,
               moduleLabels[i] + " Steer",
               module.getSteerMotor(),
-              STEER_ENERGY_GROUP);
+              EnergyMonitor.STEER_GROUP);
       FaultReporter.getInstance()
           .registerHardware(SUBSYSTEM_NAME, moduleLabels[i] + " Encoder", module.getEncoder());
     }

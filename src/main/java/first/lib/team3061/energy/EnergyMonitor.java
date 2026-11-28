@@ -41,6 +41,7 @@ import org.wpilib.units.measure.Current;
  *       current
  *   <li>Energy/[group]/AtStatorLimit: true if any of the group's motors is limiting its stator
  *       current
+ *   <li>Energy/[group]/MotorCount: the number of motors in the group
  * </ul>
  *
  * <p>The following are calculated and logged as outputs every robot loop:
@@ -65,6 +66,39 @@ import org.wpilib.units.measure.Current;
  *       would trip)
  * </ul>
  *
+ * <p>The following estimates are also logged as outputs. They hold their previous values while the
+ * current doesn't vary enough to estimate them (e.g., while the robot is idle). EstimateValid is
+ * false until the first estimate, and the other values aren't logged until then. See {@link
+ * ResistanceEstimator}.
+ *
+ * <ul>
+ *   <li>Energy/Estimates/BatteryAndWiring/ResistanceOhms, RestingVoltageVolts, and EstimateValid:
+ *       the resistance of the battery and wiring combined and the battery's resting voltage, from
+ *       the robot controller's voltage and the total current (the BFG's current if it is connected;
+ *       otherwise, the sum of the groups' currents). Brownouts depend on these. Without the BFG,
+ *       loads that aren't measured shift the resting voltage but not the resistance.
+ *   <li>Energy/Estimates/Battery/ResistanceOhms, RestingVoltageVolts, and EstimateValid: the
+ *       battery's internal resistance and resting voltage, from the BFG's voltage and current. The
+ *       battery is identified by the BFG's inputs (BFG/Battery/SerialNumber and Nickname).
+ *   <li>Energy/Estimates/Wiring/ResistanceOhms and EstimateValid: the resistance of the main wires,
+ *       main breaker, and power distribution panel, from the difference between the BFG's and the
+ *       robot controller's voltages and the BFG's current.
+ * </ul>
+ *
+ * <p>A current budget and a dynamic drive current limit are calculated and logged, but not applied
+ * to any motors:
+ *
+ * <ul>
+ *   <li>Energy/Budget/BatteryMaxAmps: the current at which the robot controller's voltage would
+ *       fall to the minimum allowed voltage, based on the battery-and-wiring estimate
+ *   <li>Energy/Budget/BreakerMaxAmps: the current that the main breaker can carry for the next few
+ *       seconds without its modeled damage reaching the maximum allowed
+ *   <li>Energy/Budget/TotalAmps: the lower of these two, with headroom, and capped
+ *   <li>Energy/Budget/DriveAmps: the budget less the current of everything except the drive motors
+ *   <li>Energy/Budget/DriveLimitAmps: the drive budget divided among the drive motors, rounded down
+ *       to a step and no less than a minimum; compare it to the drive motors' supply current limit
+ * </ul>
+ *
  * <p>Since every group's energy is logged as Energy/[group]/Joules, the sum of these entries is the
  * total energy used by the robot. To keep that true, nothing else is logged as
  * Energy/[name]/Joules. When the BFG is connected, this sum is the energy delivered by the battery
@@ -79,8 +113,39 @@ import org.wpilib.units.measure.Current;
  */
 public class EnergyMonitor extends SubsystemBase {
 
+  /**
+   * The name of the group of a swerve drivetrain's drive motors, which the dynamic drive current
+   * limit is for.
+   */
+  public static final String DRIVE_GROUP = "Drive";
+
+  /** The name of the group of a swerve drivetrain's steer motors. */
+  public static final String STEER_GROUP = "Steer";
+
   private static final String SUBSYSTEM_NAME = "Energy";
   private static final String UNACCOUNTED_GROUP = "Unaccounted";
+  private static final String ESTIMATES = SUBSYSTEM_NAME + "/Estimates/";
+  private static final String BUDGET = SUBSYSTEM_NAME + "/Budget/";
+
+  // resistance estimates are fit over this many seconds of samples, and only when the current's
+  // standard deviation within that window is at least this large
+  private static final double ESTIMATOR_WINDOW_SECS = 2.0;
+  private static final double ESTIMATOR_MIN_CURRENT_STD_DEV_AMPS = 5.0;
+  private static final double MAX_BATTERY_RESISTANCE_OHMS = 0.1;
+  private static final double MAX_WIRING_RESISTANCE_OHMS = 0.05;
+
+  /*
+   * Budget parameters, from 6328's 2026 robot code. The minimum allowed voltage should be above the
+   * brownout voltage set for the robot controller (RobotController.setBrownoutVoltages), which
+   * can't be read back.
+   */
+  private static final double MIN_ALLOWED_VOLTAGE_VOLTS = 7.0;
+  private static final double BREAKER_HORIZON_SECS = 3.0;
+  private static final double MAX_BREAKER_DAMAGE = 0.95;
+  private static final double BUDGET_HEADROOM = 0.9;
+  private static final double MAX_BUDGET_AMPS = 190.0;
+  private static final double MIN_DRIVE_LIMIT_AMPS = 5.0;
+  private static final double DRIVE_LIMIT_STEP_AMPS = 0.5;
 
   /*
    * By default, the current-limit signals are only sent at 4 Hz on any bus. This is too slow to
@@ -124,6 +189,7 @@ public class EnergyMonitor extends SubsystemBase {
     private double amps = 0.0;
     private boolean atSupplyLimit = false;
     private boolean atStatorLimit = false;
+    private int motorCount = 0;
   }
 
   /**
@@ -134,6 +200,7 @@ public class EnergyMonitor extends SubsystemBase {
     private static final String AMPS = "Amps";
     private static final String AT_SUPPLY_LIMIT = "AtSupplyLimit";
     private static final String AT_STATOR_LIMIT = "AtStatorLimit";
+    private static final String MOTOR_COUNT = "MotorCount";
 
     private double controllerVoltageVolts = 0.0;
     private final Map<String, GroupInputs> groups = new TreeMap<>();
@@ -146,6 +213,7 @@ public class EnergyMonitor extends SubsystemBase {
         groupTable.put(AMPS, entry.getValue().amps);
         groupTable.put(AT_SUPPLY_LIMIT, entry.getValue().atSupplyLimit);
         groupTable.put(AT_STATOR_LIMIT, entry.getValue().atStatorLimit);
+        groupTable.put(MOTOR_COUNT, entry.getValue().motorCount);
       }
     }
 
@@ -163,6 +231,7 @@ public class EnergyMonitor extends SubsystemBase {
           groupInputs.amps = groupTable.get(AMPS, groupInputs.amps);
           groupInputs.atSupplyLimit = groupTable.get(AT_SUPPLY_LIMIT, groupInputs.atSupplyLimit);
           groupInputs.atStatorLimit = groupTable.get(AT_STATOR_LIMIT, groupInputs.atStatorLimit);
+          groupInputs.motorCount = groupTable.get(MOTOR_COUNT, groupInputs.motorCount);
         }
       }
     }
@@ -174,6 +243,21 @@ public class EnergyMonitor extends SubsystemBase {
   private final Map<String, Double> joules = new HashMap<>();
   private final BreakerModel breakerModel = new BreakerModel();
   private long lastTimestampNanos = -1;
+  private double totalGroupAmps = 0.0;
+
+  private static final int ESTIMATOR_WINDOW_SIZE =
+      (int) Math.round(ESTIMATOR_WINDOW_SECS / Constants.LOOP_PERIOD_SECS);
+  private final ResistanceEstimator batteryAndWiringEstimator =
+      new ResistanceEstimator(
+          ESTIMATOR_WINDOW_SIZE,
+          ESTIMATOR_MIN_CURRENT_STD_DEV_AMPS,
+          MAX_BATTERY_RESISTANCE_OHMS + MAX_WIRING_RESISTANCE_OHMS);
+  private final ResistanceEstimator batteryEstimator =
+      new ResistanceEstimator(
+          ESTIMATOR_WINDOW_SIZE, ESTIMATOR_MIN_CURRENT_STD_DEV_AMPS, MAX_BATTERY_RESISTANCE_OHMS);
+  private final ResistanceEstimator wiringEstimator =
+      new ResistanceEstimator(
+          ESTIMATOR_WINDOW_SIZE, ESTIMATOR_MIN_CURRENT_STD_DEV_AMPS, MAX_WIRING_RESISTANCE_OHMS);
 
   private EnergyMonitor() {
     super(SUBSYSTEM_NAME);
@@ -199,7 +283,7 @@ public class EnergyMonitor extends SubsystemBase {
     String groupName = group.replace('/', '-');
     MotorSignals motorSignals = new MotorSignals(groupName, motor);
     motors.add(motorSignals);
-    inputs.groups.computeIfAbsent(groupName, g -> new GroupInputs());
+    inputs.groups.computeIfAbsent(groupName, g -> new GroupInputs()).motorCount++;
 
     for (BaseStatusSignal signal :
         List.of(motorSignals.supplyCurrentLimitFault, motorSignals.statorCurrentLimitFault)) {
@@ -239,7 +323,7 @@ public class EnergyMonitor extends SubsystemBase {
     double voltageVolts = bfg.isConnected() ? bfg.getVoltageVolts() : inputs.controllerVoltageVolts;
     Logger.recordOutput(SUBSYSTEM_NAME + "/VoltageVolts", voltageVolts);
 
-    double totalGroupAmps = 0.0;
+    totalGroupAmps = 0.0;
     for (Map.Entry<String, GroupInputs> entry : inputs.groups.entrySet()) {
       totalGroupAmps += entry.getValue().amps;
       logPowerAndEnergy(entry.getKey(), entry.getValue().amps, voltageVolts, periodSecs);
@@ -258,6 +342,96 @@ public class EnergyMonitor extends SubsystemBase {
     breakerModel.update(breakerAmps, periodSecs);
     Logger.recordOutput(SUBSYSTEM_NAME + "/BreakerAmps", breakerAmps);
     Logger.recordOutput(SUBSYSTEM_NAME + "/BreakerDamage", breakerModel.getDamage());
+
+    updateEstimatesAndBudget(bfg, breakerAmps);
+  }
+
+  /**
+   * Updates and logs the resistance estimates, the current budget, and the dynamic drive current
+   * limit. The budget and limit are only logged; they aren't applied to any motors.
+   *
+   * @param bfg the BFG
+   * @param totalAmps the robot's total current: the BFG's current if it is connected; otherwise,
+   *     the sum of the groups' currents
+   */
+  private void updateEstimatesAndBudget(BFG bfg, double totalAmps) {
+    // the robot controller's voltage depends on the resistance of both the battery and the wiring,
+    // which is what determines brownouts; this estimate doesn't require the BFG
+    batteryAndWiringEstimator.update(totalAmps, inputs.controllerVoltageVolts);
+
+    if (bfg.isConnected()) {
+      batteryEstimator.update(bfg.getCurrentAmps(), bfg.getVoltageVolts());
+      // controller voltage = BFG voltage - wiring resistance * current; so, fitting the difference
+      // between the voltages against the current yields the wiring resistance
+      wiringEstimator.update(
+          bfg.getCurrentAmps(), inputs.controllerVoltageVolts - bfg.getVoltageVolts());
+    }
+
+    logEstimate("BatteryAndWiring", batteryAndWiringEstimator, true);
+    logEstimate("Battery", batteryEstimator, true);
+    logEstimate("Wiring", wiringEstimator, false);
+
+    // the current at which the controller's voltage would fall to the minimum allowed voltage
+    double batteryMaxAmps =
+        batteryAndWiringEstimator.isValid()
+            ? Math.max(
+                0.0,
+                (batteryAndWiringEstimator.getRestingVoltageVolts() - MIN_ALLOWED_VOLTAGE_VOLTS)
+                    / batteryAndWiringEstimator.getResistanceOhms())
+            : MAX_BUDGET_AMPS;
+    double breakerMaxAmps =
+        breakerModel.calculateMaxCurrent(BREAKER_HORIZON_SECS, MAX_BREAKER_DAMAGE);
+    double budgetAmps =
+        Math.min(Math.min(batteryMaxAmps, breakerMaxAmps) * BUDGET_HEADROOM, MAX_BUDGET_AMPS);
+
+    Logger.recordOutput(BUDGET + "BatteryMaxAmps", batteryMaxAmps);
+    Logger.recordOutput(BUDGET + "BreakerMaxAmps", breakerMaxAmps);
+    Logger.recordOutput(BUDGET + "TotalAmps", budgetAmps);
+
+    // the drive motors get whatever is left after everything else's current in this loop
+    GroupInputs drive = inputs.groups.get(DRIVE_GROUP);
+    if (drive != null && drive.motorCount > 0) {
+      double driveBudgetAmps = Math.max(0.0, budgetAmps - (totalAmps - drive.amps));
+      double driveLimitAmps =
+          Math.floor(
+                  Math.max(driveBudgetAmps / drive.motorCount, MIN_DRIVE_LIMIT_AMPS)
+                      / DRIVE_LIMIT_STEP_AMPS)
+              * DRIVE_LIMIT_STEP_AMPS;
+      Logger.recordOutput(BUDGET + "DriveAmps", driveBudgetAmps);
+      Logger.recordOutput(BUDGET + "DriveLimitAmps", driveLimitAmps);
+    }
+  }
+
+  /**
+   * Logs the specified resistance estimate.
+   *
+   * @param name the name of the estimate
+   * @param estimator the estimator
+   * @param logRestingVoltage whether to log the resting voltage
+   */
+  private static void logEstimate(
+      String name, ResistanceEstimator estimator, boolean logRestingVoltage) {
+    Logger.recordOutput(ESTIMATES + name + "/EstimateValid", estimator.isValid());
+
+    // the estimates aren't logged until they are valid so that log analysis (e.g., the mean over a
+    // match) isn't skewed by the placeholder values
+    if (estimator.isValid()) {
+      Logger.recordOutput(ESTIMATES + name + "/ResistanceOhms", estimator.getResistanceOhms());
+      if (logRestingVoltage) {
+        Logger.recordOutput(
+            ESTIMATES + name + "/RestingVoltageVolts", estimator.getRestingVoltageVolts());
+      }
+    }
+  }
+
+  /**
+   * Returns the sum of the groups' currents in the most recent robot loop. This is used by the
+   * simulated BFG.
+   *
+   * @return the sum of the groups' currents in amps
+   */
+  public double getMotorAmps() {
+    return totalGroupAmps;
   }
 
   /**

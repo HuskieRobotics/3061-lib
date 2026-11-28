@@ -1,6 +1,7 @@
 package first.lib.team3061.bfg;
 
 import first.lib.team3061.RobotConfig;
+import first.lib.team3061.energy.EnergyMonitor;
 import first.robot.Constants;
 import org.littletonrobotics.junction.Logger;
 import org.wpilib.command2.SubsystemBase;
@@ -46,7 +47,8 @@ public class BFG extends SubsystemBase {
   /**
    * Returns the singleton instance of this class, creating it on the first call. When running on a
    * real robot whose config specifies a BFG CAN ID ({@link RobotConfig#getBFGCANID()}), the BFG is
-   * read from the CAN port specified by {@link RobotConfig#getBFGCANPort()}.
+   * read from the CAN port specified by {@link RobotConfig#getBFGCANPort()}. When simulating such a
+   * robot, the BFG and battery are simulated by {@link BFGIOSim}.
    *
    * @return the singleton instance of this class
    */
@@ -54,7 +56,10 @@ public class BFG extends SubsystemBase {
     if (instance == null) {
       BFGIO io = new BFGIO() {};
       int canID = RobotConfig.getInstance().getBFGCANID();
-      if (Constants.getMode() == Constants.Mode.REAL && canID != -1) {
+      if (Constants.getMode() == Constants.Mode.SIM && canID != -1) {
+        // the simulated BFG draws the simulated motors' current, as measured by the energy monitor
+        io = new BFGIOSim(() -> EnergyMonitor.getInstance().getMotorAmps());
+      } else if (Constants.getMode() == Constants.Mode.REAL && canID != -1) {
         if (canID >= 0 && canID <= 63) {
           // TODO: replace BFGIOCAN with an IO class that uses Playing With Fusion's vendordep once
           // a 2027 version that supports SystemCore is released (issue #187)

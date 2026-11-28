@@ -31,14 +31,19 @@ public class BreakerModel {
   };
   private static final double SENTINEL_TRIP_TIME_SECS = 1.0e6;
 
-  // the trip curve is interpolated in log-log space
+  // the trip curve (and its inverse) are interpolated in log-log space
   private static final InterpolatingDoubleTreeMap logTripTimeMap = new InterpolatingDoubleTreeMap();
+  private static final InterpolatingDoubleTreeMap logInverseTripTimeMap =
+      new InterpolatingDoubleTreeMap();
 
   static {
     logTripTimeMap.put(Math.log(1.0), Math.log(SENTINEL_TRIP_TIME_SECS));
+    logInverseTripTimeMap.put(Math.log(SENTINEL_TRIP_TIME_SECS), Math.log(1.0));
     for (int i = 0; i < NORMALIZED_CURRENT_POINTS.length; i++) {
       logTripTimeMap.put(
           Math.log(NORMALIZED_CURRENT_POINTS[i]), Math.log(TRIP_TIME_POINTS_SECS[i]));
+      logInverseTripTimeMap.put(
+          Math.log(TRIP_TIME_POINTS_SECS[i]), Math.log(NORMALIZED_CURRENT_POINTS[i]));
     }
   }
 
@@ -68,6 +73,37 @@ public class BreakerModel {
    */
   public double getDamage() {
     return damage;
+  }
+
+  /**
+   * Returns the largest constant current that the breaker can carry for the specified period
+   * without its damage exceeding the specified maximum. This is the current whose trip time is the
+   * period divided by the remaining damage.
+   *
+   * <p>A current at or below the breaker's rating never adds damage; so, if the remaining damage
+   * allows only currents at or just above the rating, the rated current is returned. If the damage
+   * already exceeds the maximum, zero is returned.
+   *
+   * @param periodSecs the period over which the current is carried, in seconds
+   * @param maxDamage the maximum damage, from 0 to 1 (e.g., 0.95 to stay 5% below tripping)
+   * @return the maximum current in amps
+   */
+  public double calculateMaxCurrent(double periodSecs, double maxDamage) {
+    double remainingDamage = maxDamage - damage;
+    if (remainingDamage <= 0.0) {
+      return 0.0;
+    }
+
+    double requiredTripTimeSecs = periodSecs / remainingDamage;
+    if (requiredTripTimeSecs >= SENTINEL_TRIP_TIME_SECS) {
+      return RATED_CURRENT_AMPS;
+    }
+    double minTripTimeSecs = TRIP_TIME_POINTS_SECS[TRIP_TIME_POINTS_SECS.length - 1];
+    if (requiredTripTimeSecs <= minTripTimeSecs) {
+      return NORMALIZED_CURRENT_POINTS[NORMALIZED_CURRENT_POINTS.length - 1] * RATED_CURRENT_AMPS;
+    }
+
+    return Math.exp(logInverseTripTimeMap.get(Math.log(requiredTripTimeSecs))) * RATED_CURRENT_AMPS;
   }
 
   /**
