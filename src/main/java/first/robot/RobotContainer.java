@@ -6,6 +6,7 @@ package first.robot;
 
 import first.lib.team3061.RobotConfig;
 import first.lib.team3061.RobotConfig.CameraConfig;
+import first.lib.team3061.bfg.BFG;
 import first.lib.team3061.differential_drivetrain.DifferentialDrivetrain;
 import first.lib.team3061.differential_drivetrain.DifferentialDrivetrainIOXRP;
 import first.lib.team3061.leds.LEDs;
@@ -90,6 +91,10 @@ public class RobotContainer {
      * that use it directly or indirectly. If this isn't done, a null pointer exception will result.
      */
     createRobotConfig();
+
+    // create the BFG before any other subsystems so that its periodic method is invoked first and
+    // other subsystems have the current loop's battery data
+    BFG.getInstance();
 
     constructField();
 
