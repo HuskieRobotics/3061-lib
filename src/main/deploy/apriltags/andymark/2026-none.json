@@ -1,7 +1,11 @@
 {
-  "tags": [],
-  "field": {
+  "name": "2026 FRC Rebuilt AndyMark (no tags)",
+  "season": "2026",
+  "game": "Rebuilt",
+  "field-dimensions": {
     "length": 16.518,
     "width": 8.043
-  }
+  },
+  "program": "frc",
+  "field-tags": []
 }
