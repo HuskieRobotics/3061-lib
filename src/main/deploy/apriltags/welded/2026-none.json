@@ -1,7 +1,11 @@
 {
-  "tags": [],
-  "field": {
+  "name": "2026 FRC Rebuilt Welded (no tags)",
+  "season": "2026",
+  "game": "Rebuilt",
+  "field-dimensions": {
     "length": 16.541,
     "width": 8.069
-  }
+  },
+  "program": "frc",
+  "field-tags": []
 }
