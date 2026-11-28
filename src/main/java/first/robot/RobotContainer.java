@@ -9,6 +9,7 @@ import first.lib.team3061.RobotConfig.CameraConfig;
 import first.lib.team3061.bfg.BFG;
 import first.lib.team3061.differential_drivetrain.DifferentialDrivetrain;
 import first.lib.team3061.differential_drivetrain.DifferentialDrivetrainIOXRP;
+import first.lib.team3061.energy.EnergyMonitor;
 import first.lib.team3061.leds.LEDs;
 import first.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
 import first.lib.team3061.swerve_drivetrain.SwerveDrivetrainIO;
@@ -95,6 +96,10 @@ public class RobotContainer {
     // create the BFG before any other subsystems so that its periodic method is invoked first and
     // other subsystems have the current loop's battery data
     BFG.getInstance();
+
+    // create the energy monitor after the BFG, since it uses the BFG's current, and before any
+    // other subsystems, since they register their motors with it
+    EnergyMonitor.getInstance();
 
     constructField();
 

@@ -10,6 +10,7 @@ import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.revrobotics.spark.SparkMax;
 import first.lib.team3015.subsystem.selfcheck.*;
+import first.lib.team3061.energy.EnergyMonitor;
 import first.robot.Constants;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -261,15 +262,40 @@ public class FaultReporter {
    * hardware-specific subsystem class to register all hardware devices associated with the
    * subsystem. Refer to the configMotor method in the Subsystem class for an example.
    *
+   * <p>The motor is also registered with the {@link EnergyMonitor}, which tracks its current,
+   * power, and energy as part of a group named after the subsystem.
+   *
    * @param subsystemName the name of the subsystem that the hardware device is associated with
    * @param label the label of the hardware device
    * @param phoenixMotor the hardware device to register
    */
   public void registerHardware(String subsystemName, String label, TalonFX phoenixMotor) {
+    registerHardware(subsystemName, label, phoenixMotor, subsystemName);
+  }
+
+  /**
+   * Registers a hardware device with the FaultReporter. This method should be invoked by the
+   * hardware-specific subsystem class to register all hardware devices associated with the
+   * subsystem. Refer to the configMotor method in the Subsystem class for an example.
+   *
+   * <p>The motor is also registered with the {@link EnergyMonitor}, which tracks its current,
+   * power, and energy as part of the specified group. Specify a group other than the subsystem's
+   * name to track a subset of a subsystem's motors separately (e.g., a swerve drivetrain's drive
+   * and steer motors).
+   *
+   * @param subsystemName the name of the subsystem that the hardware device is associated with
+   * @param label the label of the hardware device
+   * @param phoenixMotor the hardware device to register
+   * @param energyGroup the name of the group in which the EnergyMonitor includes this motor
+   */
+  public void registerHardware(
+      String subsystemName, String label, TalonFX phoenixMotor, String energyGroup) {
     SubsystemFaults subsystemFaults =
         subsystemsFaults.getOrDefault(subsystemName, new SubsystemFaults());
     subsystemFaults.hardware.add(new SelfCheckingPhoenixMotor(label, phoenixMotor));
     subsystemsFaults.put(subsystemName, subsystemFaults);
+
+    EnergyMonitor.getInstance().registerMotor(energyGroup, phoenixMotor);
 
     // The following is the recommended workaround from CTRE to ensure that the CANivore has been
     // enumerated by the root hub and therefore, hoot files will be properly generated.

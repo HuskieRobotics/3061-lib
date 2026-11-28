@@ -105,4 +105,24 @@ public class BFG extends SubsystemBase {
   public boolean isConnected() {
     return inputs.connected;
   }
+
+  /**
+   * Returns the current measured at the battery's terminals in this robot loop. This is only valid
+   * if the BFG is connected.
+   *
+   * @return the current in amps
+   */
+  public double getCurrentAmps() {
+    return inputs.currentAmps;
+  }
+
+  /**
+   * Returns the voltage measured at the battery's terminals in this robot loop. This is only valid
+   * if the BFG is connected.
+   *
+   * @return the voltage in volts
+   */
+  public double getVoltageVolts() {
+    return inputs.voltageVolts;
+  }
 }

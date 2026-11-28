@@ -99,7 +99,12 @@ public class LoggedTunableNumber implements DoubleSupplier {
   }
 
   /**
-   * Runs action if any of the tunableNumbers have changed
+   * Runs action once if any of the tunableNumbers have changed. The action is passed the values of
+   * all of the tunable numbers; so, it should apply all of them.
+   *
+   * <p>Each tunable number tracks its last value separately for each id. So, the same id may be
+   * used for multiple calls to this method as long as each tunable number is only passed to one of
+   * those calls.
    *
    * @param id Unique identifier for the caller to avoid conflicts when shared between multiple *
    *     objects. Recommended approach is to pass the result of "hashCode()"
@@ -109,7 +114,14 @@ public class LoggedTunableNumber implements DoubleSupplier {
    */
   public static void ifChanged(
       int id, Consumer<double[]> action, LoggedTunableNumber... tunableNumbers) {
-    if (Arrays.stream(tunableNumbers).anyMatch(tunableNumber -> tunableNumber.hasChanged(id))) {
+    // check every tunable number, rather than stopping at the first one that changed, so that each
+    // records its current value; otherwise, the action would be run again in each of the following
+    // robot loops for each of the other tunable numbers that changed
+    boolean changed = false;
+    for (LoggedTunableNumber tunableNumber : tunableNumbers) {
+      changed |= tunableNumber.hasChanged(id);
+    }
+    if (changed) {
       action.accept(Arrays.stream(tunableNumbers).mapToDouble(LoggedTunableNumber::get).toArray());
     }
   }
