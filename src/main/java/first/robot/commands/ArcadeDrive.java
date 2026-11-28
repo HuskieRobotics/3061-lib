@@ -4,8 +4,8 @@
 
 package first.robot.commands;
 
-import first.lib.team3061.RobotConfig;
-import first.lib.team3061.differential_drivetrain.DifferentialDrivetrain;
+import first.lib.RobotConfig;
+import first.lib.differential_drivetrain.DifferentialDrivetrain;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 import org.wpilib.command2.Command;

@@ -1,8 +1,8 @@
 package first.robot.commands;
 
-import first.lib.team3061.RobotConfig;
-import first.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
-import first.lib.team6328.util.LoggedTunableNumber;
+import first.lib.RobotConfig;
+import first.lib.swerve_drivetrain.SwerveDrivetrain;
+import first.lib.util.LoggedTunableNumber;
 import java.util.Optional;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;

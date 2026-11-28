@@ -1,11 +1,11 @@
 package first.robot.commands;
 
-import first.lib.team3015.subsystem.FaultReporter;
-import first.lib.team3061.leds.LEDs;
-import first.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
-import first.lib.team3061.swerve_drivetrain.SwerveDrivetrainConstants;
-import first.lib.team3061.vision.Vision;
-import first.lib.team6328.util.FieldConstants;
+import first.lib.leds.LEDs;
+import first.lib.subsystem.FaultReporter;
+import first.lib.swerve_drivetrain.SwerveDrivetrain;
+import first.lib.swerve_drivetrain.SwerveDrivetrainConstants;
+import first.lib.util.FieldConstants;
+import first.lib.vision.Vision;
 import first.robot.operator_interface.OISelector;
 import first.robot.operator_interface.OperatorInterface;
 import java.util.Optional;

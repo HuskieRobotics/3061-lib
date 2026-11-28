@@ -1,7 +1,7 @@
 package first.robot.configs;
 
-import first.lib.team3061.RobotConfig;
-import first.lib.team3061.swerve_drivetrain.swerve.SwerveConstants;
+import first.lib.RobotConfig;
+import first.lib.swerve_drivetrain.swerve.SwerveConstants;
 import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.geometry.Transform3d;
 import org.wpilib.math.geometry.Translation3d;

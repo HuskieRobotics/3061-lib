@@ -13,8 +13,8 @@
 
 package first.robot.commands;
 
-import first.lib.team3061.RobotConfig;
-import first.lib.team3061.swerve_drivetrain.SwerveDrivetrain;
+import first.lib.RobotConfig;
+import first.lib.swerve_drivetrain.SwerveDrivetrain;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import org.littletonrobotics.junction.Logger;

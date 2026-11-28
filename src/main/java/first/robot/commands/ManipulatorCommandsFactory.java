@@ -1,6 +1,6 @@
 package first.robot.commands;
 
-import first.lib.team3015.subsystem.FaultReporter;
+import first.lib.subsystem.FaultReporter;
 import first.robot.operator_interface.OperatorInterface;
 import first.robot.subsystems.manipulator.Manipulator;
 import first.robot.subsystems.manipulator.ManipulatorConstants;

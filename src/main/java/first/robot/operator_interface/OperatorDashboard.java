@@ -1,6 +1,6 @@
 package first.robot.operator_interface;
 
-import first.lib.team6328.util.LoggedTunableBoolean;
+import first.lib.util.LoggedTunableBoolean;
 import org.wpilib.command2.button.Trigger;
 
 /**
