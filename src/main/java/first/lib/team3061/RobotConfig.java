@@ -561,6 +561,16 @@ public abstract class RobotConfig {
   public abstract int getPneumaticsHubCANID();
 
   /**
+   * Returns the CAN ID of the Playing With Fusion Battery Fuel Gauge (BFG). Defaults to -1, which
+   * indicates that the robot doesn't have a BFG.
+   *
+   * @return the CAN ID of the BFG, or -1 if the robot doesn't have one
+   */
+  public int getBFGCANID() {
+    return -1;
+  }
+
+  /**
    * Returns the analog input channel number to which the flow sensor is connected. Defaults to 0.
    *
    * @return the analog input channel number to which the flow sensor is connected
